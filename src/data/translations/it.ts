@@ -15,7 +15,7 @@ export const it: Dictionary = {
     scrollCue: "Scorri per immergerti",
   },
   intro: {
-    eyebrow: "Superficie · 0 m",
+    eyebrow: "Superficie",
     heading: "Costruisco sistemi che devono reggere quando nessuno guarda.",
     body1:
       "Sono Alberto — software engineer full-stack di Iglesias, Sardegna, ora a Camerino. Lavoro end-to-end: schema dei dati e hardening della sicurezza, sistemi real-time, UI responsive, CI/CD — e il layer AI che tiene insieme il tutto.",

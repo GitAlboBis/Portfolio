@@ -15,7 +15,7 @@ export const en: Dictionary = {
     scrollCue: "Scroll to dive",
   },
   intro: {
-    eyebrow: "Surface · 0 m",
+    eyebrow: "Surface",
     heading: "I build systems that have to run when no one is watching.",
     body1:
       "I'm Alberto — a full-stack engineer from Iglesias, Sardinia, now based in Camerino. I work end-to-end: database schema and security hardening, real-time systems, responsive UI, CI/CD — and the AI layer that ties them together.",

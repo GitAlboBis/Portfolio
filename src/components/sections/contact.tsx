@@ -2,10 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Eyebrow } from "@/components/ui/eyebrow";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { useLanguage } from "@/components/language-provider";
+
+/*
+  Contact — the deepest point of the descent. Cinematic close on deep sea:
+  white serif heading, generous negative space, one warm golden CTA (the rare
+  accent), frosted water-glass social pills, and a calm closing line. NatGeo
+  measured, never HUD. No mono, no depth rails.
+*/
 
 const SOCIALS = [
   { label: "LinkedIn", href: "https://linkedin.com/in/albertotuveri" },
@@ -18,10 +24,10 @@ export function Contact() {
   return (
     <section
       id="contact"
-      className="scroll-mt-24 border-t border-rule py-24 sm:py-32 md:py-40"
+      className="scroll-mt-24 bg-abyss py-28 text-foam sm:py-36 md:py-44"
     >
       <Container>
-        <div className="flex flex-col items-center">
+        <div className="mx-auto flex max-w-3xl flex-col items-center">
           <Reveal>
             <SectionHeading
               eyebrow={t.contact.eyebrow}
@@ -31,43 +37,34 @@ export function Contact() {
             />
           </Reveal>
 
-          <Reveal delay={120} className="mt-12 sm:mt-16">
+          <Reveal delay={120} className="mt-14 sm:mt-16">
             <Button variant="signal" href="mailto:albertotuveri@gmail.com">
               {t.contact.emailCta}
               <span aria-hidden="true">→</span>
             </Button>
           </Reveal>
 
-          <Reveal delay={200} className="mt-10 w-full max-w-md">
-            <ul className="flex flex-col items-stretch gap-px overflow-hidden border-t border-b border-rule">
+          <Reveal delay={200} className="mt-8">
+            <ul className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
               {SOCIALS.map((social) => (
-                <li key={social.label} className="border-b border-rule last:border-b-0">
-                  <a
+                <li key={social.label}>
+                  <Button
+                    variant="outline"
                     href={social.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={social.label}
-                    className="group flex items-center justify-between py-4 font-mono text-xs uppercase tracking-[0.18em] text-ink-mute transition-colors duration-300 hover:text-aqua"
+                    ariaLabel={social.label}
                   >
-                    <span>{social.label}</span>
-                    <span
-                      aria-hidden="true"
-                      className="translate-x-0 transition-transform duration-300 group-hover:translate-x-1"
-                    >
-                      ↗
-                    </span>
-                  </a>
+                    {social.label}
+                    <span aria-hidden="true">↗</span>
+                  </Button>
                 </li>
               ))}
             </ul>
           </Reveal>
         </div>
 
-        <Reveal delay={280} className="mt-20 sm:mt-28">
+        <Reveal delay={280} className="mx-auto mt-20 max-w-sm sm:mt-28">
           <div className="rule-node" />
-          <div className="mt-8 text-center">
-            <Eyebrow className="text-ink-mute">{t.contact.availability}</Eyebrow>
-          </div>
+          <p className="label mt-8 text-center">{t.contact.availability}</p>
         </Reveal>
       </Container>
     </section>

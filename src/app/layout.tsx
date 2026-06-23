@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { JetBrains_Mono } from "next/font/google";
+import { LanguageProvider } from "@/components/language-provider";
+import { CanvasHost } from "@/webgl/CanvasHost";
+import type { Lang } from "@/data/translations/types";
 import "./globals.css";
 
 const jetBrainsMono = JetBrains_Mono({
@@ -18,17 +22,25 @@ export const metadata: Metadata = {
     "Immersive portfolio of Alberto Tuveri — full-stack & AI software engineer. From the cliffs of Pan di Zucchero to production-grade systems.",
   openGraph: {
     title: "Alberto Tuveri — Software Engineer",
-    description: "Full-stack & AI software engineer. Immersive ocean-themed portfolio.",
+    description:
+      "Full-stack & AI software engineer. Immersive ocean-themed portfolio.",
     type: "website",
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const lang = ((await cookies()).get("lang")?.value as Lang) ?? "en";
+
   return (
-    <html lang="en" className={jetBrainsMono.variable}>
-      <body>{children}</body>
+    <html lang={lang} className={jetBrainsMono.variable}>
+      <body>
+        <LanguageProvider initialLang={lang}>
+          <CanvasHost />
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   );
 }

@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { JetBrains_Mono } from "next/font/google";
+import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import { LanguageProvider } from "@/components/language-provider";
 import { CanvasHost } from "@/webgl/CanvasHost";
 import { SiteNav } from "@/components/site-nav";
-import { DepthGauge } from "@/components/depth-gauge";
 import { SiteFooter } from "@/components/site-footer";
 import type { Lang } from "@/data/translations/types";
 import "./globals.css";
 
-const jetBrainsMono = JetBrains_Mono({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
+const hanken = Hanken_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-hanken",
   display: "swap",
 });
 
@@ -22,11 +30,11 @@ export const metadata: Metadata = {
     template: "%s · Alberto Tuveri",
   },
   description:
-    "Immersive portfolio of Alberto Tuveri — full-stack & AI software engineer. From the cliffs of Pan di Zucchero to production-grade systems.",
+    "Portfolio of Alberto Tuveri — full-stack & AI software engineer. From the cliffs of Pan di Zucchero to production-grade systems.",
   openGraph: {
     title: "Alberto Tuveri — Software Engineer",
     description:
-      "Full-stack & AI software engineer. Immersive ocean-themed portfolio.",
+      "Full-stack & AI software engineer. A cinematic, ocean-themed portfolio.",
     type: "website",
   },
 };
@@ -37,12 +45,11 @@ export default async function RootLayout({
   const lang = ((await cookies()).get("lang")?.value as Lang) ?? "en";
 
   return (
-    <html lang={lang} className={jetBrainsMono.variable}>
+    <html lang={lang} className={`${fraunces.variable} ${hanken.variable}`}>
       <body>
         <LanguageProvider initialLang={lang}>
           <CanvasHost />
           <SiteNav />
-          <DepthGauge />
           {children}
           <SiteFooter />
         </LanguageProvider>

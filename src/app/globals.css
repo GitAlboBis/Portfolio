@@ -1,27 +1,35 @@
 @import "tailwindcss";
 
 /*
-  ABYSSAL EDITORIAL — design tokens. Canonical source: docs/02-DESIGN.md.
-  Tailwind v4 CSS-first: --color-* generate utilities (bg-abyss, text-foam, ...).
+  CINEMATIC OCEAN — design system (NatGeo "Into the Amazon" lineage).
+  Full-bleed media-driven, grand white serif, one rare warm accent (sun).
+  No electric cyan, no monospace. Canonical source: docs/02-DESIGN.md.
 */
 @theme {
-  /* Palette — one dominant tone (abyss), one accent (aqua), neutral (foam/ink) */
-  --color-abyss: #05131a; /* page base (deep blue-green, near black) */
-  --color-deep: #0a2430; /* surface */
-  --color-surface-elev: #103240; /* elevated surface (cards) */
-  --color-foam: #eaf6f6; /* ink / foreground */
-  --color-ink-mute: #88a2a8; /* muted text (sea grey) */
-  --color-aqua: #1fc8c8; /* accent signal — cold (interactive only) */
-  --color-aqua-hot: #7df9ff; /* foam-cyan — hot */
-  --color-abyss-glow: #0e5a6b; /* deep accent */
-  --color-gold: #ffc27a; /* golden-hour — use sparingly, never as AA body text */
-  --color-rule: rgb(234 246 246 / 0.1); /* hairline */
+  /* Palette — natural ocean, light surface -> deep */
+  --color-abyss: #07222e; /* deep sea base (dark sections) */
+  --color-deep: #0b2c3a; /* deeper surface */
+  --color-tide: #5aa7be; /* natural mid sea-blue (subtle accents, never neon) */
+  --color-foam: #f4fafb; /* near-white (text on dark, surfaces) */
+  --color-mist: #9fbac6; /* muted text on dark */
+  --color-ink: #0b2731; /* deep text for LIGHT sections */
+  --color-ink-mute: #5c7884; /* muted text on light */
+  --color-sun: #f2b45a; /* the one warm accent — golden hour, used rarely */
+  --color-rule: rgb(244 250 251 / 0.14); /* hairline on dark */
+  --color-rule-ink: rgb(11 39 49 / 0.14); /* hairline on light */
 
-  /* Typography — Display=Editorial New, Body=Switzer (Fontshare, self-host Gate 3+),
-     Mono=JetBrains Mono (next/font). Robust fallbacks until woff2 are added. */
-  --font-display: "Editorial New", ui-serif, Georgia, "Times New Roman", serif;
-  --font-sans: "Switzer", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace;
+  /* Back-compat aliases (older utilities resolve to natural tones, never cyan) */
+  --color-aqua: #5aa7be;
+  --color-aqua-hot: #cfeaf0;
+  --color-surface-elev: #123a4a;
+  --color-abyss-glow: #0e5a6b;
+  --color-gold: #f2b45a;
+
+  /* Type — Fraunces (serif, display + reading) · Hanken Grotesk (sans labels) */
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -39,76 +47,76 @@ body {
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
 }
 
 ::selection {
-  background: var(--color-aqua);
+  background: var(--color-sun);
   color: var(--color-abyss);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-aqua);
+  outline: 2px solid var(--color-sun);
   outline-offset: 3px;
   border-radius: 2px;
 }
 
-/* Subtle film grain — texture/depth, screen-blended, behind nothing interactive. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-  opacity: 0.04;
-  mix-blend-mode: screen;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* ---- Typography utilities (structural scale, editorial rhythm) ---- */
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--color-aqua);
-}
-
-.heading-display {
+/* ---- Typography (grand editorial serif; sans only for small caps labels) ---- */
+.display-hero {
   font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 0.92;
-  letter-spacing: -0.015em;
-  font-size: clamp(2.75rem, 8vw, 7.75rem);
+  letter-spacing: -0.02em;
+  font-size: clamp(3.5rem, 13vw, 13rem);
 }
 
 .heading-1 {
   font-family: var(--font-display);
-  font-style: italic;
   font-weight: 400;
-  font-size: clamp(2rem, 5vw, 4.25rem);
-  line-height: 1.02;
-  letter-spacing: -0.01em;
+  font-size: clamp(2.25rem, 5.5vw, 4.75rem);
+  line-height: 1.0;
+  letter-spacing: -0.015em;
 }
 
 .heading-2 {
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3.5vw, 2.75rem);
-  line-height: 1.06;
-  letter-spacing: -0.005em;
+  font-weight: 400;
+  font-size: clamp(1.7rem, 3.6vw, 2.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
 }
 
 .lead {
-  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
-  line-height: 1.5;
-  color: var(--color-ink-mute);
+  font-family: var(--font-serif);
+  font-size: clamp(1.1rem, 1.7vw, 1.45rem);
+  line-height: 1.55;
+  color: var(--color-mist);
 }
 
-/* Hairline divider with a center node — recurring editorial motif. */
+/* Small caps label — clean sans, letter-spaced (NatGeo chapter labels). */
+.label {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+}
+/* legacy alias used by existing components */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+}
+
+/* Hairline divider with a soft node */
 .rule-node {
   position: relative;
   height: 1px;
@@ -119,10 +127,30 @@ body::after {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 4px;
-  height: 4px;
-  transform: translate(-50%, -50%) rotate(45deg);
-  background: var(--color-aqua);
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+  background: var(--color-sun);
+  opacity: 0.85;
+}
+
+/* Frosted "water glass" surface — for buttons and cards (white-based) */
+.water-glass {
+  background: rgb(244 250 251 / 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgb(244 250 251 / 0.22);
+}
+
+/* Faint sea-surface caustic shimmer (hover sheen) */
+@keyframes water-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

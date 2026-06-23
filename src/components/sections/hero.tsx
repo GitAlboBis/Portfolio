@@ -114,16 +114,11 @@ export function Hero() {
   }, []);
 
   return (
-    <section ref={sectionRef} id="hero" className="relative h-[300vh]">
+    <section ref={sectionRef} id="hero" className="relative z-10 h-[300vh]">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* bright Mediterranean: azure sky -> turquoise -> deep sea */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg,#5a9ccd 0%,#86bee2 34%,#bcddee 50%,#cfe6f0 53%,#2f93ab 60%,#176a8d 76%,#0c3d57 100%)",
-          }}
-        />
+        {/* Sky/sea gradient now lives on the global canvas backdrop (CanvasHost)
+            so the water-mark "A" reads through this transparent hero overlay.
+            These soft sun glints stay as atmosphere over the canvas. */}
         <div
           aria-hidden
           className="absolute inset-0"

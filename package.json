@@ -33,6 +33,7 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.184.1",
     "leva": "0.10.1",
+    "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

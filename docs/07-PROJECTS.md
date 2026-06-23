@@ -1,0 +1,511 @@
+# 07 — PROJECTS & BIO
+
+> Scopo: fonte di verita unica per tutto il **copy di contenuto** del portfolio — biografia di Alberto Tuveri, raggruppamento delle skill, e schede progetto — in **EN + IT pronti all'uso**. Gli agenti che costruiscono le sezioni S2 ABOUT, S4 WORK/PROJECTS e S5 SKILLS (vedi `docs/00-PRD.md` e `docs/03-ARCHITECTURE.md`) copiano da qui, non inventano. Le stringhe vivono in `src/data/translations` (en/it) e `src/data/projects`. Le label tecniche, i nomi di stack e gli slug restano in inglese; la prosa di queste direttive e in italiano.
+
+---
+
+## 0. Regole d'uso di questo documento
+
+1. **Confermato vs Da confermare.** Ogni blocco e marcato con `[CONFIRMED]` (dato dal CV/LinkedIn, usabile subito) o `[PROVISIONAL]` (placeholder da validare con Alberto — vedi sezione 6 "Open questions"). Un agente NON deve pubblicare contenuto `[PROVISIONAL]` come fosse definitivo: usare i placeholder testuali esatti riportati qui.
+2. **Bilingue.** Per ogni testo c'e la coppia EN (primaria, default) e IT. Le chiavi i18n sono identiche tra le due lingue. Sorgente i18n: `src/data/translations/en.ts` e `src/data/translations/it.ts`.
+3. **Content model progetti.** Ogni progetto e un oggetto `Project` tipizzato (schema in sezione 4.0). Lo schema runtime e validato con `zod` (vedi `docs/01-TECHSTACK.md`). I dati vivono in `src/data/projects/<slug>.ts`.
+4. **Voce del copy.** Tono: tecnico, asciutto, orientato al risultato. Niente superlativi vuoti ("amazing", "cutting-edge"). Struttura Problem → Action → Result. Metriche concrete dove esistono. Per le linee guida estetiche del copy vedi `docs/02-DESIGN.md`.
+5. **Privacy / verita.** Non inventare metriche. Se un numero non e nel knowledge pack, lascialo come placeholder `[[TBD: ...]]`, mai un valore inventato.
+
+---
+
+## 1. BIO — Alberto Tuveri
+
+### 1.0 Dati anagrafici e contatti `[CONFIRMED]`
+
+| Campo | Valore |
+|---|---|
+| Name | Alberto Tuveri |
+| Role | Software Engineer — Full-Stack + AI Integration |
+| Origin | Iglesias, Sardinia (Sulcis-Iglesiente; Pan di Zucchero / Masua coastline) |
+| Based in | Camerino, Marche, Italy |
+| Phone | +39 375 880 9005 |
+| Email | albertotuveri@gmail.com |
+| LinkedIn | linkedin.com/in/albertotuveri |
+| GitHub | github.com/GitAlboBis |
+| Languages | Italian (native), English (B1 → C1, in progress) |
+
+> Nota copy: l'email pubblica del sito e `albertotuveri@gmail.com`. L'email `alberto.t@sersan.dev` e l'indirizzo aziendale SerSan e **non** va esposta nel portfolio salvo richiesta esplicita di Alberto.
+
+### 1.1 Short bio — una riga (hero / meta) `[CONFIRMED]`
+
+Chiave i18n: `bio.tagline`
+
+```
+EN: Software engineer building full-stack products and AI-driven systems — from the cliffs of Sardinia to the hills of Camerino.
+IT: Software engineer che costruisce prodotti full-stack e sistemi guidati dall'AI — dalle scogliere della Sardegna alle colline di Camerino.
+```
+
+### 1.2 Short bio — paragrafo (about hero / og:description) `[CONFIRMED]`
+
+Chiave i18n: `bio.short`
+
+```
+EN:
+Alberto Tuveri is a software engineer focused on full-stack development and AI
+integration. He ships production web apps with Next.js, React and TypeScript,
+designs secure backends on Supabase and PostgreSQL, and builds AI agents that
+turn natural language into real actions. Born on the mining coast of Iglesias,
+Sardinia, he now studies and works from Camerino.
+```
+
+```
+IT:
+Alberto Tuveri e un software engineer specializzato in sviluppo full-stack e
+integrazione AI. Realizza web app in produzione con Next.js, React e TypeScript,
+progetta backend sicuri su Supabase e PostgreSQL, e costruisce agenti AI che
+trasformano il linguaggio naturale in azioni concrete. Nato sulla costa
+mineraria di Iglesias, in Sardegna, oggi studia e lavora da Camerino.
+```
+
+### 1.3 Long bio — sezione S2 ABOUT `[CONFIRMED]`
+
+Chiave i18n: `bio.long`. Da spezzare in 3 paragrafi animati (split-text reveal, vedi `docs/03-ARCHITECTURE.md` per la mappa scena↔sezione).
+
+```
+EN:
+I'm Alberto, a software engineer who works across the whole stack — from GPU
+shaders and React front-ends down to PostGIS queries and CI pipelines — with a
+particular focus on integrating AI into real products.
+
+I grew up in Iglesias, on the Sulcis-Iglesiente coast of Sardinia, where the
+sea around Pan di Zucchero shaped how I see things: clean lines, deep structure,
+and a respect for what's underneath the surface. I'm finishing my B.Sc. in
+Computer Science at the University of Camerino, with a thesis on the security of
+OS-level AI agents — from simple autocomplete to autonomous agentic
+orchestration.
+
+Recently I've shipped a production PWA that matches families with caregivers
+across Italy, built a hands-free voice AI agent for Microsoft Teams, and joined
+SerSan — AI Studio as a software engineer. I care about systems that are fast,
+secure, and genuinely useful.
+```
+
+```
+IT:
+Sono Alberto, un software engineer che lavora su tutto lo stack — dagli shader
+GPU e i front-end React fino alle query PostGIS e alle pipeline CI — con un
+focus particolare sull'integrazione dell'AI in prodotti reali.
+
+Sono cresciuto a Iglesias, sulla costa del Sulcis-Iglesiente in Sardegna, dove
+il mare attorno a Pan di Zucchero ha plasmato il mio modo di vedere le cose:
+linee pulite, struttura profonda, e rispetto per cio che sta sotto la
+superficie. Sto completando la laurea triennale in Informatica all'Universita
+di Camerino, con una tesi sulla sicurezza degli agenti AI a livello di sistema
+operativo — dall'autocomplete all'orchestrazione agentica autonoma.
+
+Di recente ho rilasciato una PWA in produzione che mette in contatto famiglie e
+caregiver in tutta Italia, ho costruito un agente vocale AI hands-free per
+Microsoft Teams, e sono entrato in SerSan — AI Studio come software engineer.
+Mi interessano i sistemi veloci, sicuri e davvero utili.
+```
+
+### 1.4 Tesi — micro-copy `[CONFIRMED]`
+
+Chiave i18n: `bio.thesis`
+
+```
+EN:
+B.Sc. thesis — "From Autocomplete to Agentic Orchestration: Architectural
+Analysis and Security of OS-Level Agents". Maps the evolution from code
+completion to autonomous agentic systems (MCP, RAG, multi-agent orchestration),
+catalogues OS-level attack vectors (prompt injection, tool poisoning, multi-agent
+kill chains) against MITRE ATLAS and the OWASP Agentic Top 10, and proposes
+Zero-Trust defensive strategies.
+```
+
+```
+IT:
+Tesi triennale — "From Autocomplete to Agentic Orchestration: Architectural
+Analysis and Security of OS-Level Agents". Mappa l'evoluzione dal completamento
+del codice ai sistemi agentici autonomi (MCP, RAG, orchestrazione multi-agente),
+cataloga i vettori di attacco a livello OS (prompt injection, tool poisoning,
+kill chain multi-agente) rispetto a MITRE ATLAS e OWASP Agentic Top 10, e
+propone strategie difensive Zero-Trust.
+```
+
+### 1.5 Education `[CONFIRMED]`
+
+| Period | Item |
+|---|---|
+| 2022 – Apr 2026 | B.Sc. Computer Science, University of Camerino |
+| — | Technical IT Diploma, Ist. Boccaccio, Iglesias |
+
+---
+
+## 2. SKILLS — raggruppate per dominio `[CONFIRMED]`
+
+Sorgente per la sezione **S5 SKILLS/STACK**. Chiave i18n radice: `skills.groups`. I nomi tecnologici NON si traducono; si traducono solo le label di gruppo. Ogni gruppo ha un `id` stabile (usato come anchor e per ordinare le colonne/card).
+
+| Group id | Label EN | Label IT | Items (English, do not translate) |
+|---|---|---|---|
+| `core` | Core Languages | Linguaggi core | TypeScript, JavaScript (ES2024), Python, Java, C/C++, C# |
+| `frontend` | Front-End | Front-End | React 19, Next.js 15/16, Angular, Tailwind CSS, Framer Motion, GSAP, Three.js / WebGPU |
+| `backend` | Back-End & Data | Back-End e Dati | Node.js, Spring / Spring Boot, Supabase, PostgreSQL, PostGIS, MySQL, REST, JWT |
+| `cloud` | Cloud & DevOps | Cloud e DevOps | Azure (AD, Speech), GitHub Actions, Vercel, Sentry, Git |
+| `ai` | AI & Low-Code | AI e Low-Code | Microsoft Copilot Studio, Power Automate, Dataverse, Dynamics 365, RAG, MCP, multi-agent orchestration |
+| `testing` | Testing & Tooling | Testing e Tooling | Vitest, Playwright, ESLint, Prettier, Zod |
+
+> Nota: `Three.js / WebGPU` e incluso in `frontend` perche e una competenza dimostrata **dallo stesso portfolio** (il logo ad acqua GPGPU, vedi `docs/04-3D-HERO-WATER-LOGO.md`). Marcare come `[CONFIRMED — proven by this site]` nel data file via flag `provenBySite: true`.
+>
+> Nota: Framer Motion e una competenza personale di Alberto; lo stack del PORTFOLIO usa GSAP, non Framer Motion (vedi `docs/01-TECHSTACK.md`).
+
+Snippet del data file:
+
+```ts
+// src/data/skills.ts
+export const SKILL_GROUPS = [
+  { id: "core",     items: ["TypeScript", "JavaScript", "Python", "Java", "C/C++", "C#"] },
+  { id: "frontend", items: ["React 19", "Next.js", "Angular", "Tailwind CSS", "Framer Motion", "GSAP", "Three.js / WebGPU"] },
+  { id: "backend",  items: ["Node.js", "Spring Boot", "Supabase", "PostgreSQL", "PostGIS", "MySQL", "REST", "JWT"] },
+  { id: "cloud",    items: ["Azure", "GitHub Actions", "Vercel", "Sentry", "Git"] },
+  { id: "ai",       items: ["Copilot Studio", "Power Automate", "Dataverse", "Dynamics 365", "RAG", "MCP", "Multi-agent orchestration"] },
+  { id: "testing",  items: ["Vitest", "Playwright", "ESLint", "Prettier", "Zod"] },
+] as const;
+```
+
+---
+
+## 3. EXPERIENCE — timeline `[CONFIRMED unless noted]`
+
+Sorgente per un'eventuale mini-timeline nella S2 ABOUT o S4 WORK. Ordine: piu recente prima.
+
+| # | Period | Company | Role | Status |
+|---|---|---|---|---|
+| 1 | May 2026 – present | SerSan — AI Studio | Software Engineer | `[CONFIRMED]` role; projects `[PROVISIONAL]` |
+| 2 | Jan 2026 | ALS MCL Civitanova | Full-Stack Developer (Freelance) | `[CONFIRMED]` |
+| 3 | Nov 2025 – Feb 2026 | DOIT S.r.l (Lodestar Group), Fabriano | AI & Software Developer (Internship) | `[CONFIRMED]` |
+| 4 | 2019 – 2020 | Ist. Boccaccio, Iglesias | Network Technician (Intern) | `[CONFIRMED]` |
+
+> Il CV PDF **non** riporta ancora SerSan: e il ruolo corrente (da maggio 2026). Trattare la voce SerSan come confermata per il *ruolo*, provvisoria per i *progetti*.
+
+---
+
+## 4. PROJECT CARDS — sezione S4 WORK
+
+### 4.0 Content model `Project` (schema)
+
+```ts
+// src/data/projects/types.ts
+import { z } from "zod";
+
+export const ProjectSchema = z.object({
+  slug: z.string(),                       // url + anchor, kebab-case, English
+  status: z.enum(["confirmed", "provisional"]),
+  order: z.number().int(),                // display order in S4 (ascending)
+  title: z.object({ en: z.string(), it: z.string() }),
+  company: z.string(),
+  role: z.object({ en: z.string(), it: z.string() }),
+  period: z.string(),                     // free text, language-neutral ("Jan 2026")
+  context: z.object({ en: z.string(), it: z.string() }),
+  problem: z.object({ en: z.string(), it: z.string() }),
+  action: z.object({ en: z.string(), it: z.string() }),
+  result: z.object({ en: z.string(), it: z.string() }),
+  stack: z.array(z.string()),             // English tech names
+  metrics: z.array(z.object({
+    value: z.string(),                    // "<1s", "10 roles", "96"
+    label: z.object({ en: z.string(), it: z.string() }),
+  })),
+  links: z.array(z.object({
+    kind: z.enum(["repo", "live", "case-study"]),
+    href: z.string().url().or(z.literal("")),   // "" = TBD, hide button
+    label: z.string(),
+  })),
+});
+
+export type Project = z.infer<typeof ProjectSchema>;
+```
+
+Regola di rendering: se `links[].href === ""` il bottone NON si mostra. Se `status === "provisional"` la card mostra un badge `WORK IN PROGRESS` (EN) / `IN LAVORAZIONE` (IT) e i campi placeholder restano visibili come tali.
+
+Ordine display in S4: `order` 1=Badante24h, 2=DOIT Voice AI, 3=SerSan #1, 4=SerSan #2, 5=Agricultural Supply Chain.
+
+---
+
+### 4.1 Badante24h — ALS MCL Civitanova `[CONFIRMED]`
+
+`slug: "badante24h"` · `status: "confirmed"` · `order: 1`
+
+| Field | EN | IT |
+|---|---|---|
+| Title | Badante24h | Badante24h |
+| Company | ALS MCL Civitanova | ALS MCL Civitanova |
+| Role | Full-Stack Developer (Freelance) | Sviluppatore Full-Stack (Freelance) |
+| Period | Jan 2026 | Gen 2026 |
+
+```
+CONTEXT
+EN: A production PWA that matches families with home-care caregivers across the
+    Italian domiciliary-care market.
+IT: Una PWA di produzione che mette in contatto famiglie e caregiver nel mercato
+    italiano dell'assistenza domiciliare.
+
+PROBLEM
+EN: Families and caregivers needed a fast, trustworthy way to find each other —
+    working offline on low-end phones, with real-time messaging and verified
+    identities, at near-zero infrastructure cost.
+IT: Famiglie e caregiver avevano bisogno di un modo veloce e affidabile per
+    trovarsi — funzionante offline su telefoni di fascia bassa, con messaggistica
+    in tempo reale e identita verificate, a costo infrastrutturale quasi nullo.
+
+ACTION
+EN: Built a full PWA on Next.js 15 App Router, React 19 and TypeScript (strict)
+    with Supabase. Full offline support via a custom Serwist Service Worker and
+    VAPID-signed Web Push. Real-time family<->caregiver messaging over Supabase
+    Realtime (event-driven WebSocket subscriptions) with integrated push.
+    Sub-second geospatial search with PostGIS 3 (GiST indexes, WGS-84 geography),
+    Leaflet / React-Leaflet maps and open-source geocoding (Photon + Nominatim)
+    for zero map-API cost. End-to-end hardening: Row Level Security on every
+    sensitive table, RBAC middleware in Next.js, HSTS, a CSP whitelist and VAPID
+    push. Sentry across three layers (client / server / edge) with an
+    anti-adblock tunnel route. Localized IT/EN admin dashboard for caregiver
+    identity verification, server-side image optimization (Sharp), and GitHub
+    Actions CI/CD with sub-5-minute deploys.
+IT: Realizzata una PWA completa su Next.js 15 App Router, React 19 e TypeScript
+    (strict) con Supabase. Supporto offline totale via Service Worker custom
+    (Serwist) e Web Push firmate VAPID. Messaggistica famiglie<->caregiver in
+    tempo reale su Supabase Realtime (subscription WebSocket event-driven) con
+    push integrate. Ricerca geospaziale sub-secondo con PostGIS 3 (indici GiST,
+    geography WGS-84), mappe Leaflet / React-Leaflet e geocoding open-source
+    (Photon + Nominatim) a costo zero di map API. Hardening end-to-end: Row Level
+    Security su ogni tabella sensibile, middleware RBAC in Next.js, HSTS,
+    whitelist CSP e push VAPID. Sentry su tre layer (client / server / edge) con
+    tunnel route anti-adblock. Dashboard admin localizzata IT/EN per la verifica
+    d'identita dei caregiver, ottimizzazione immagini server-side (Sharp), e
+    CI/CD con GitHub Actions con deploy sotto i 5 minuti.
+
+RESULT
+EN: Shipped to production with full offline capability, real-time messaging and
+    sub-second geospatial search — and zero known auth vulnerabilities at launch.
+IT: Rilasciata in produzione con piena capacita offline, messaggistica in tempo
+    reale e ricerca geospaziale sub-secondo — e zero vulnerabilita auth note al
+    lancio.
+```
+
+**Stack:** `Next.js 15`, `React 19`, `TypeScript`, `Supabase`, `PostgreSQL`, `PostGIS 3`, `Serwist`, `Web Push (VAPID)`, `Leaflet`, `Photon`, `Nominatim`, `Sharp`, `Sentry`, `GitHub Actions`.
+
+**Metrics:**
+| value | label EN | label IT |
+|---|---|---|
+| `<1s` | Geospatial search | Ricerca geospaziale |
+| `0` | Known auth vulns at launch | Vulnerabilita auth note al lancio |
+| `<5 min` | CI/CD deploy time | Tempo di deploy CI/CD |
+| `100%` | Offline-capable PWA | PWA con capacita offline |
+
+**Links:** repo `[[TBD: private?]]` → href `""` (hide); live `[[TBD: production URL]]` → href `""` (hide). Vedi open questions.
+
+---
+
+### 4.2 Voice AI Agent for Microsoft Teams — DOIT S.r.l `[CONFIRMED]`
+
+`slug: "doit-voice-ai-agent"` · `status: "confirmed"` · `order: 2`
+
+| Field | EN | IT |
+|---|---|---|
+| Title | Voice AI Agent for Microsoft Teams | Agente vocale AI per Microsoft Teams |
+| Company | DOIT S.r.l (Lodestar Group), Fabriano | DOIT S.r.l (Lodestar Group), Fabriano |
+| Role | AI & Software Developer (Internship) | AI & Software Developer (Tirocinio) |
+| Period | Nov 2025 – Feb 2026 | Nov 2025 – Feb 2026 |
+
+```
+CONTEXT
+EN: A hands-free voice AI agent inside Microsoft Teams for managing appointments
+    by voice note.
+IT: Un agente vocale AI hands-free dentro Microsoft Teams per gestire gli
+    appuntamenti tramite note vocali.
+
+PROBLEM
+EN: Busy professionals needed to manage meetings without typing — creating and
+    updating appointments, finding colleagues and contacts, and sending invites,
+    entirely through natural-language voice.
+IT: Professionisti impegnati avevano bisogno di gestire le riunioni senza
+    digitare — creare e aggiornare appuntamenti, trovare colleghi e contatti, e
+    inviare inviti, interamente tramite voce in linguaggio naturale.
+
+ACTION
+EN: Built a voice agent that creates and updates meetings, searches colleagues
+    and contacts in Dynamics 365, adds contacts and sends invites — all from
+    natural-language voice notes. Real-time speech-to-text with Azure Speech
+    Services, orchestrated through Copilot Studio + Power Automate. Built a
+    Pro-Code Angular + TypeScript front-end that bridges to the Low-Code layer,
+    keeping the UX consistent between Teams and a standalone web app.
+IT: Costruito un agente vocale che crea e aggiorna riunioni, cerca colleghi e
+    contatti in Dynamics 365, aggiunge contatti e invia inviti — tutto da note
+    vocali in linguaggio naturale. Speech-to-text in tempo reale con Azure Speech
+    Services, orchestrato tramite Copilot Studio + Power Automate. Realizzato un
+    front-end Pro-Code Angular + TypeScript che fa da ponte verso il layer
+    Low-Code, mantenendo la UX coerente tra Teams e una web app standalone.
+
+RESULT
+EN: A working hands-free assistant that turns spoken intent into real calendar
+    and CRM actions, with a consistent experience across Teams and web.
+IT: Un assistente hands-free funzionante che trasforma l'intento vocale in azioni
+    reali su calendario e CRM, con un'esperienza coerente tra Teams e web.
+```
+
+**Stack:** `Azure Speech Services`, `Microsoft Copilot Studio`, `Power Automate`, `Dynamics 365`, `Angular`, `TypeScript`, `Microsoft Teams`.
+
+**Metrics:** principalmente qualitativo. Un'unica metrica sicura:
+| value | label EN | label IT |
+|---|---|---|
+| `100%` | Hands-free workflow | Flusso hands-free |
+
+> Altre metriche (es. riduzione tempo di scheduling) sono `[[TBD]]` — non inventare.
+
+**Links:** repo/live non pubblici (progetto aziendale interno) → href `""`. Eventuale case-study testuale solo.
+
+---
+
+### 4.3 SerSan — AI Studio · Project #1 `[PROVISIONAL]`
+
+`slug: "sersan-project-1"` · `status: "provisional"` · `order: 3`
+
+> ATTENZIONE AGENTE: contenuto PLACEHOLDER. Non pubblicare come definitivo. Mostrare badge `WORK IN PROGRESS` / `IN LAVORAZIONE`. Compilare solo dopo conferma di Alberto (vedi sezione 6).
+
+| Field | EN | IT |
+|---|---|---|
+| Title | `[[TBD: SerSan project #1 title]]` | `[[TBD: titolo progetto SerSan #1]]` |
+| Company | SerSan — AI Studio | SerSan — AI Studio |
+| Role | Software Engineer | Software Engineer |
+| Period | 2026 – present | 2026 – present |
+
+```
+CONTEXT  EN/IT: [[TBD — confirm with Alberto]]
+PROBLEM  EN/IT: [[TBD — confirm with Alberto]]
+ACTION   EN/IT: [[TBD — confirm with Alberto]]
+RESULT   EN/IT: [[TBD — confirm with Alberto]]
+```
+
+Copy di riempimento da mostrare finche e provvisorio (chiave `projects.placeholder.body`):
+
+```
+EN: Details coming soon. This project was built at SerSan — AI Studio and is
+    being prepared for the portfolio.
+IT: Dettagli in arrivo. Questo progetto e stato realizzato in SerSan — AI Studio
+    ed e in fase di preparazione per il portfolio.
+```
+
+**Stack:** `[[TBD]]` (probabilmente AI/full-stack — non assumere). **Metrics:** `[[TBD]]`. **Links:** `""`.
+
+---
+
+### 4.4 SerSan — AI Studio · Project #2 `[PROVISIONAL]`
+
+`slug: "sersan-project-2"` · `status: "provisional"` · `order: 4`
+
+> Identico trattamento di 4.3. Placeholder fino a conferma.
+
+| Field | EN | IT |
+|---|---|---|
+| Title | `[[TBD: SerSan project #2 title]]` | `[[TBD: titolo progetto SerSan #2]]` |
+| Company | SerSan — AI Studio | SerSan — AI Studio |
+| Role | Software Engineer | Software Engineer |
+| Period | 2026 – present | 2026 – present |
+
+```
+CONTEXT / PROBLEM / ACTION / RESULT  EN/IT: [[TBD — confirm with Alberto]]
+```
+
+Usa la stessa chiave placeholder `projects.placeholder.body` della 4.3. **Stack / Metrics / Links:** `[[TBD]]` / `[[TBD]]` / `""`.
+
+---
+
+### 4.5 Agricultural Supply Chain Platform — Academic `[CONFIRMED]`
+
+`slug: "agricultural-supply-chain"` · `status: "confirmed"` · `order: 5`
+
+| Field | EN | IT |
+|---|---|---|
+| Title | Agricultural Supply Chain Platform | Piattaforma per la Filiera Agricola |
+| Company | University of Camerino (academic project) | Universita di Camerino (progetto accademico) |
+| Role | Backend Developer (team of 3) | Sviluppatore Backend (team di 3) |
+| Period | University project | Progetto universitario |
+
+```
+CONTEXT
+EN: A multi-actor platform modelling an agricultural supply chain with 10
+    distinct roles, built as a university software-engineering project.
+IT: Una piattaforma multi-attore che modella una filiera agricola con 10 ruoli
+    distinti, realizzata come progetto universitario di ingegneria del software.
+
+PROBLEM
+EN: Coordinate ten different actors across an agricultural supply chain with
+    clean role separation, secure auth and a maintainable, well-documented design.
+IT: Coordinare dieci attori diversi lungo una filiera agricola con netta
+    separazione dei ruoli, autenticazione sicura e un design manutenibile e ben
+    documentato.
+
+ACTION
+EN: Designed and built a Spring Boot backend with Spring Security and JWT auth
+    over a PostgreSQL database, exposing a REST API. Followed the Unified Process,
+    applied GoF design patterns and modelled the system with UML, in a 3-person
+    team across 96 commits.
+IT: Progettato e realizzato un backend Spring Boot con Spring Security e auth JWT
+    su database PostgreSQL, esponendo una REST API. Seguito lo Unified Process,
+    applicati i design pattern GoF e modellato il sistema con UML, in un team di
+    3 persone e 96 commit.
+
+RESULT
+EN: A working multi-role platform with a documented, pattern-driven architecture
+    and a clean REST API — delivered as a team.
+IT: Una piattaforma multi-ruolo funzionante con architettura documentata e
+    pattern-driven e una REST API pulita — consegnata come team.
+```
+
+**Stack:** `Java`, `Spring Boot`, `Spring Security`, `PostgreSQL`, `JWT`, `REST`, `UML`, `GoF Design Patterns`, `Unified Process`.
+
+**Metrics:**
+| value | label EN | label IT |
+|---|---|---|
+| `10` | Distinct actor roles | Ruoli attore distinti |
+| `3` | Team size | Dimensione del team |
+| `96` | Commits | Commit |
+
+**Links:** repo `https://github.com/daveeCity/IDS_GROUP_PROJECT` (kind `repo`, label `Source`). Live: none → `""`.
+
+---
+
+## 5. CHECKLIST DI BUILD per la sezione S4 (per l'agente)
+
+- [ ] Creare `src/data/projects/types.ts` con lo `ProjectSchema` (sezione 4.0).
+- [ ] Creare un file per progetto: `badante24h.ts`, `doit-voice-ai-agent.ts`, `sersan-project-1.ts`, `sersan-project-2.ts`, `agricultural-supply-chain.ts`.
+- [ ] Esportare un array ordinato `PROJECTS` da `src/data/projects/index.ts` (ordinato per `order`).
+- [ ] Validare ogni oggetto con `ProjectSchema.parse()` in fase di build/test (Vitest).
+- [ ] Le card `provisional` mostrano il badge WIP e il body placeholder; non emettere i bottoni link con `href === ""`.
+- [ ] Bio (1.1–1.4) e skills (sezione 2) vanno in `src/data/translations/{en,it}.ts` con le chiavi i18n indicate.
+- [ ] Non esporre `alberto.t@sersan.dev`; email pubblica = `albertotuveri@gmail.com`.
+- [ ] Nessuna metrica inventata: ogni `[[TBD]]` resta tale finche Alberto conferma.
+- [ ] Copy passa per le skill `copywriting` / `avoid-ai-writing` / `professional-proofreader` prima del merge (vedi `docs/10-SKILLS.md`).
+
+---
+
+## 6. OPEN QUESTIONS — cosa serve da Alberto
+
+Decisioni e asset da raccogliere prima di considerare questo documento "completo". Marcare risolto quando confermato.
+
+1. **SerSan Project #1 e #2** — titolo, contesto, Problem/Action/Result, stack, metriche, eventuali link/screenshot. Sono i due blocchi `[PROVISIONAL]` (4.3, 4.4). Bloccante per la pubblicazione di quelle card.
+2. **Badante24h** — il repo e pubblico o privato? C'e un URL di produzione linkabile? Eventuali screenshot/asset per la card.
+3. **DOIT Voice AI Agent** — esiste materiale condivisibile (demo video, screenshot anonimizzati)? Confermare che non ci sono vincoli NDA prima di descriverlo nel dettaglio.
+4. **Metriche aggiuntive** — esistono numeri verificabili per DOIT (es. % tempo risparmiato) o Badante24h (es. utenti/match) che Alberto vuole esporre?
+5. **Foto / asset personali** — serve la clip Higgsfield del tuffo a Pan di Zucchero per S3 (vedi `docs/05-CINEMATIC-SCROLL.md`) e, opzionalmente, un ritratto per S2.
+6. **Lingua di default** — confermare che il sito apre in EN con toggle IT (assunto corrente da `docs/00-PRD.md`).
+7. **Voce "SerSan" nel CV** — il PDF non e aggiornato; confermare il mese d'inizio esatto (assunto: maggio 2026) e il titolo esatto del ruolo.
+8. **Diploma / dettagli education** — anno esatto del diploma all'Ist. Boccaccio (placeholder attuale: data assente).
+
+---
+
+## 7. CROSS-REFERENCES
+
+- Visione, sitemap, content model d'insieme → `docs/00-PRD.md`
+- Stack, versioni, struttura `src/data` → `docs/01-TECHSTACK.md`
+- Voce del copy, token, estetica delle card → `docs/02-DESIGN.md`
+- Store i18n, mappa scena↔sezione, routing `/work/[slug]` → `docs/03-ARCHITECTURE.md`
+- Skill `Three.js / WebGPU` provata dal sito → `docs/04-3D-HERO-WATER-LOGO.md`
+- Asset video del tuffo (open question #5) → `docs/05-CINEMATIC-SCROLL.md`
+- Routing skill di copy/QA → `docs/10-SKILLS.md`
+- Gates e disciplina di pubblicazione → `docs/11-WORKFLOW.md`

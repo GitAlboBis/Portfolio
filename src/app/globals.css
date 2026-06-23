@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/*
+  Ocean design tokens — canonical source: docs/02-DESIGN.md
+  Tailwind v4 CSS-first config: --color-* generate utilities (bg-abyss, text-foam, ...).
+*/
+@theme {
+  /* Palette */
+  --color-abyss: #05131a; /* page base (deep blue-green, near black) */
+  --color-deep: #0a2430; /* surface */
+  --color-surface-elev: #103240; /* elevated surface (cards, modals) */
+  --color-foam: #eaf6f6; /* ink / foreground */
+  --color-ink-mute: #88a2a8; /* muted text (sea grey) */
+  --color-aqua: #1fc8c8; /* accent signal — cold */
+  --color-aqua-hot: #7df9ff; /* foam-cyan — hot */
+  --color-abyss-glow: #0e5a6b; /* deep accent */
+  --color-gold: #ffc27a; /* golden-hour — use sparingly */
+  --color-rule: rgb(234 246 246 / 0.1); /* hairline */
+
+  /* Typography
+     NOTE (Gate 3): Display=Editorial New, Body=Switzer are Fontshare fonts to be
+     self-hosted (.woff2) — see docs/02-DESIGN.md. Until then, robust fallbacks. */
+  --font-display: "Editorial New", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "Switzer", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: var(--color-abyss);
+  color: var(--color-foam);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

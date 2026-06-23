@@ -15,6 +15,11 @@
   --color-ink: #0b2731; /* deep text for LIGHT sections */
   --color-ink-mute: #5c7884; /* muted text on light */
   --color-sun: #f2b45a; /* the one warm accent — golden hour, used rarely */
+
+  /* Bright Mediterranean surface (hero) — real Pan di Zucchero colors */
+  --color-sky: #8fc1e2; /* azure sky */
+  --color-shallow: #2f93ab; /* turquoise shallows */
+  --color-limestone: #e3dac6; /* pale sunlit rock */
   --color-rule: rgb(244 250 251 / 0.14); /* hairline on dark */
   --color-rule-ink: rgb(11 39 49 / 0.14); /* hairline on light */
 

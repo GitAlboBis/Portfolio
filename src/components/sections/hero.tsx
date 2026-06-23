@@ -3,50 +3,54 @@
 import { useEffect, useRef } from "react";
 import { useLanguage } from "@/components/language-provider";
 
-/* Sparse, faint starfield (twilight sea sky). */
-const STARS = [
-  "radial-gradient(1.3px 1.3px at 14% 18%, rgba(244,250,251,.75), transparent 60%)",
-  "radial-gradient(1px 1px at 28% 42%, rgba(244,250,251,.5), transparent 60%)",
-  "radial-gradient(1.2px 1.2px at 47% 24%, rgba(244,250,251,.6), transparent 60%)",
-  "radial-gradient(1px 1px at 63% 38%, rgba(244,250,251,.45), transparent 60%)",
-  "radial-gradient(1.4px 1.4px at 78% 20%, rgba(244,250,251,.6), transparent 60%)",
-  "radial-gradient(1px 1px at 88% 48%, rgba(244,250,251,.4), transparent 60%)",
-  "radial-gradient(1px 1px at 36% 62%, rgba(244,250,251,.35), transparent 60%)",
-  "radial-gradient(1.1px 1.1px at 70% 66%, rgba(244,250,251,.4), transparent 60%)",
-].join(",");
-
-/* Placeholder silhouette of Pan di Zucchero (the sea stack near Masua).
-   The peak dissolves into haze at the top via a gradient mask. Replaced later
-   by the Higgsfield / real footage of the scoglio (see docs/05-CINEMATIC-SCROLL.md). */
+/* Placeholder silhouette of Pan di Zucchero (sea stack near Masua), in its real
+   colors: pale sunlit limestone (warm cream + golden faces, cool shadow side,
+   green cap) standing in a turquoise sea. Replaced later by the Higgsfield /
+   real drone footage — see docs/05-CINEMATIC-SCROLL.md. */
 function Scoglio() {
   return (
     <svg
-      viewBox="0 0 600 700"
-      className="h-[80vh] w-auto max-w-none"
+      viewBox="0 0 600 720"
+      className="h-[78vh] w-auto max-w-none"
       preserveAspectRatio="xMidYMax meet"
     >
       <defs>
-        <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2f5666" />
-          <stop offset="45%" stopColor="#173e4f" />
-          <stop offset="100%" stopColor="#0a2530" />
+        <linearGradient id="lime" x1="0" y1="0" x2="0.2" y2="1">
+          <stop offset="0%" stopColor="#f0e8d6" />
+          <stop offset="40%" stopColor="#d9c49a" />
+          <stop offset="78%" stopColor="#b9ad97" />
+          <stop offset="100%" stopColor="#8f9499" />
         </linearGradient>
-        <linearGradient id="rockFade" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0" />
-          <stop offset="34%" stopColor="#fff" stopOpacity="0.65" />
+        <linearGradient id="topHaze" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.15" />
+          <stop offset="16%" stopColor="#fff" stopOpacity="0.9" />
           <stop offset="100%" stopColor="#fff" stopOpacity="1" />
         </linearGradient>
-        <mask id="rockMask">
-          <rect x="0" y="0" width="600" height="700" fill="url(#rockFade)" />
+        <mask id="hazeMask">
+          <rect x="0" y="0" width="600" height="720" fill="url(#topHaze)" />
         </mask>
       </defs>
-      <g mask="url(#rockMask)">
+
+      <g mask="url(#hazeMask)">
+        {/* main sunlit mass */}
         <path
-          d="M150 700 L188 486 L210 440 L232 332 L250 286 L272 214 L292 150 L300 118 L312 168 L330 246 L348 300 L366 372 L386 452 L410 540 L436 700 Z"
-          fill="url(#rock)"
+          d="M150 720 L188 506 L210 458 L232 346 L250 298 L272 224 L292 156 L300 122 L312 174 L330 258 L348 314 L366 388 L386 470 L410 560 L436 720 Z"
+          fill="url(#lime)"
         />
-        {/* lit edge */}
-        <path d="M300 118 L312 168 L330 246 L300 250 Z" fill="#3f6a7c" opacity="0.7" />
+        {/* cool shadowed face (right) */}
+        <path
+          d="M300 122 L312 174 L330 258 L348 314 L366 388 L386 470 L410 560 L436 720 L360 720 L330 470 L312 300 Z"
+          fill="#76858c"
+          opacity="0.45"
+        />
+        {/* green vegetation cap */}
+        <path
+          d="M272 224 L292 156 L300 122 L312 174 L330 258 L300 250 L284 232 Z"
+          fill="#6f7c4c"
+          opacity="0.55"
+        />
+        {/* small detached pinnacle (left), like the real stack */}
+        <path d="M120 720 L138 612 L150 580 L164 612 L176 720 Z" fill="url(#lime)" />
       </g>
     </svg>
   );
@@ -68,10 +72,9 @@ export function Hero() {
       const rect = section.getBoundingClientRect();
       const total = rect.height - window.innerHeight;
       const p = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
-      const e = reduce ? 0.55 : p;
+      const e = reduce ? 0.5 : p;
       if (rockRef.current) {
-        rockRef.current.style.transform = `translate3d(0, ${(1 - e) * 26 - 2}%, 0) scale(${1.04 + e * 0.22})`;
-        rockRef.current.style.opacity = String(0.4 + e * 0.6);
+        rockRef.current.style.transform = `translate3d(0, ${(1 - e) * 30 - 2}%, 0) scale(${1.02 + e * 0.24})`;
       }
       if (titleRef.current) {
         titleRef.current.style.transform = `translate3d(0, ${e * -3.5}vh, 0)`;
@@ -94,48 +97,73 @@ export function Hero() {
   return (
     <section ref={sectionRef} id="hero" className="relative h-[220vh]">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* twilight sea sky */}
+        {/* bright Mediterranean: azure sky -> turquoise -> deep sea */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, #061c27 0%, #0a2a39 45%, #14475c 100%)",
+              "linear-gradient(180deg,#5a9ccd 0%,#86bee2 34%,#bcddee 50%,#cfe6f0 53%,#2f93ab 60%,#176a8d 76%,#0c3d57 100%)",
           }}
         />
+        {/* soft wispy clouds */}
         <div
           aria-hidden
-          className="absolute inset-0 opacity-70"
-          style={{ backgroundImage: STARS }}
+          className="absolute inset-0"
+          style={{
+            backgroundImage: [
+              "radial-gradient(38% 16% at 24% 16%, rgba(255,255,255,.55), transparent 70%)",
+              "radial-gradient(30% 12% at 70% 12%, rgba(255,255,255,.45), transparent 70%)",
+              "radial-gradient(26% 10% at 52% 26%, rgba(255,255,255,.35), transparent 70%)",
+            ].join(","),
+          }}
         />
 
-        {/* the scoglio, rising from below as you scroll */}
+        {/* the scoglio, rising from the sea as you scroll */}
         <div
           ref={rockRef}
           aria-hidden
           className="absolute inset-x-0 bottom-0 flex justify-center will-change-transform"
-          style={{ transform: "translate3d(0,24%,0) scale(1.04)", opacity: 0.4 }}
+          style={{ transform: "translate3d(0,28%,0) scale(1.02)" }}
         >
           <Scoglio />
         </div>
 
-        {/* sea / foam at the base */}
+        {/* foam / sea surface at the base */}
         <div
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-[20vh]"
+          className="absolute inset-x-0 bottom-0 h-[24vh]"
           style={{
             background:
-              "linear-gradient(180deg, transparent, rgba(90,167,190,.20) 55%, rgba(207,234,240,.14))",
+              "linear-gradient(180deg, transparent, rgba(207,234,240,.28) 42%, rgba(13,61,87,.5))",
+          }}
+        />
+
+        {/* legibility scrim behind the white title */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(58% 46% at 50% 42%, rgba(6,28,42,.42), transparent 72%)",
+          }}
+        />
+        {/* gentle cinematic vignette */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            boxShadow: "inset 0 0 220px 40px rgba(6,24,38,.45)",
           }}
         />
 
         {/* big white name, in front of the rising rock */}
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
           <div ref={titleRef} className="will-change-transform">
-            <p className="label mb-6 text-foam/75">Portfolio</p>
+            <p className="label mb-6 text-foam/85">Portfolio</p>
             <h1
               className="display-hero uppercase text-foam"
               style={{
-                textShadow: "0 2px 40px rgba(4,16,24,.55)",
+                textShadow: "0 2px 50px rgba(4,16,24,.6)",
                 letterSpacing: "0.01em",
               }}
             >
@@ -151,8 +179,8 @@ export function Hero() {
           ref={cueRef}
           className="absolute inset-x-0 bottom-10 flex flex-col items-center gap-3"
         >
-          <span className="label text-foam/70">{t.hero.scrollCue}</span>
-          <span aria-hidden className="h-10 w-px bg-foam/30" />
+          <span className="label text-foam/80">{t.hero.scrollCue}</span>
+          <span aria-hidden className="h-10 w-px bg-foam/40" />
         </div>
       </div>
     </section>

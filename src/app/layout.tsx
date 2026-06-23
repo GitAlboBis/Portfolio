@@ -3,6 +3,9 @@ import { cookies } from "next/headers";
 import { JetBrains_Mono } from "next/font/google";
 import { LanguageProvider } from "@/components/language-provider";
 import { CanvasHost } from "@/webgl/CanvasHost";
+import { SiteNav } from "@/components/site-nav";
+import { DepthGauge } from "@/components/depth-gauge";
+import { SiteFooter } from "@/components/site-footer";
 import type { Lang } from "@/data/translations/types";
 import "./globals.css";
 
@@ -38,7 +41,10 @@ export default async function RootLayout({
       <body>
         <LanguageProvider initialLang={lang}>
           <CanvasHost />
+          <SiteNav />
+          <DepthGauge />
           {children}
+          <SiteFooter />
         </LanguageProvider>
       </body>
     </html>

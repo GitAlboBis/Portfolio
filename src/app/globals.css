@@ -1,25 +1,24 @@
 @import "tailwindcss";
 
 /*
-  Ocean design tokens — canonical source: docs/02-DESIGN.md
-  Tailwind v4 CSS-first config: --color-* generate utilities (bg-abyss, text-foam, ...).
+  ABYSSAL EDITORIAL — design tokens. Canonical source: docs/02-DESIGN.md.
+  Tailwind v4 CSS-first: --color-* generate utilities (bg-abyss, text-foam, ...).
 */
 @theme {
-  /* Palette */
+  /* Palette — one dominant tone (abyss), one accent (aqua), neutral (foam/ink) */
   --color-abyss: #05131a; /* page base (deep blue-green, near black) */
   --color-deep: #0a2430; /* surface */
-  --color-surface-elev: #103240; /* elevated surface (cards, modals) */
+  --color-surface-elev: #103240; /* elevated surface (cards) */
   --color-foam: #eaf6f6; /* ink / foreground */
   --color-ink-mute: #88a2a8; /* muted text (sea grey) */
-  --color-aqua: #1fc8c8; /* accent signal — cold */
+  --color-aqua: #1fc8c8; /* accent signal — cold (interactive only) */
   --color-aqua-hot: #7df9ff; /* foam-cyan — hot */
   --color-abyss-glow: #0e5a6b; /* deep accent */
-  --color-gold: #ffc27a; /* golden-hour — use sparingly */
+  --color-gold: #ffc27a; /* golden-hour — use sparingly, never as AA body text */
   --color-rule: rgb(234 246 246 / 0.1); /* hairline */
 
-  /* Typography
-     NOTE (Gate 3): Display=Editorial New, Body=Switzer are Fontshare fonts to be
-     self-hosted (.woff2) — see docs/02-DESIGN.md. Until then, robust fallbacks. */
+  /* Typography — Display=Editorial New, Body=Switzer (Fontshare, self-host Gate 3+),
+     Mono=JetBrains Mono (next/font). Robust fallbacks until woff2 are added. */
   --font-display: "Editorial New", ui-serif, Georgia, "Times New Roman", serif;
   --font-sans: "Switzer", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace;
@@ -27,6 +26,10 @@
 
 :root {
   color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -39,15 +42,98 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-aqua);
+  color: var(--color-abyss);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-aqua);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Subtle film grain — texture/depth, screen-blended, behind nothing interactive. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- Typography utilities (structural scale, editorial rhythm) ---- */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-aqua);
+}
+
+.heading-display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  font-size: clamp(2.75rem, 8vw, 7.75rem);
+}
+
+.heading-1 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 4.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+
+.heading-2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.5vw, 2.75rem);
+  line-height: 1.06;
+  letter-spacing: -0.005em;
+}
+
+.lead {
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+  line-height: 1.5;
+  color: var(--color-ink-mute);
+}
+
+/* Hairline divider with a center node — recurring editorial motif. */
+.rule-node {
+  position: relative;
+  height: 1px;
+  background: var(--color-rule);
+}
+.rule-node::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--color-aqua);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }

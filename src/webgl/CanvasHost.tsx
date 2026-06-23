@@ -56,6 +56,10 @@ export function CanvasHost() {
             <Suspense fallback={null}>
               <HeroLogo />
             </Suspense>
+            {/* NOTE: post-process Bloom is deferred — a global bloom blows out the
+                bright sky (brighter than the foam). True SELECTIVE bloom (skin
+                only) is the right tech; wire it with Selection/Select and tune on
+                a real GPU (Gate 6 feel). The skin's additive glow stands in. */}
           </Canvas>
         </div>
       )}

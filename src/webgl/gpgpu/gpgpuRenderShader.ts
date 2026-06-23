@@ -40,20 +40,24 @@ uniform vec3  uColHot;
 uniform float uAlpha;
 uniform float uEmissive;
 uniform float uOpacity;
+uniform float uGlow;   // 1 = additive foam (bloom-like halo), 0 = solid body
 out vec4 fragColor;
 
 void main(){
   vec2 pc = gl_PointCoord - 0.5;
   float r = length(pc);
   if (r > 0.5) discard;
-  float edge = smoothstep(0.5, 0.0, r);          // soft round sprite
+  float disc = smoothstep(0.5, 0.0, r);          // soft round sprite
+  float core = smoothstep(0.18, 0.0, r);         // bright nucleus (fake bloom)
 
   vec3 col = mix(uColCold, uColHot, smoothstep(0.0, 1.0, vSpeed));
   float rim = pow(clamp(r * 2.0, 0.0, 1.0), 2.0); // fresnel-ish edge glow
   col += rim * 0.15 * uColHot;
+  col += core * uGlow * 0.6 * uColHot;            // hot core -> additive glow
   col *= (1.0 + uEmissive);
 
-  float a = edge * uAlpha * uOpacity * (0.55 + 0.45 * vSpeed);
+  float a = disc * uAlpha * uOpacity * (0.55 + 0.45 * vSpeed);
+  a += core * uGlow * 0.4 * uOpacity;             // extra additive punch
   fragColor = vec4(col, a);
 }
 `;
@@ -73,6 +77,7 @@ export function makeRenderMaterial(cfg: LayerConfig): THREE.ShaderMaterial {
       uAlpha: { value: cfg.POINT_ALPHA },
       uEmissive: { value: cfg.EMISSIVE },
       uOpacity: { value: 1 },
+      uGlow: { value: cfg.blending === "Additive" ? 1 : 0 },
     },
     vertexShader: VERT,
     fragmentShader: FRAG,

@@ -54,7 +54,7 @@ const BODY_BASE: Omit<LayerConfig, "SIZE"> = {
   TURB_BASE: 0.15,
   TURB_MOVE: 0.4,
   NOISE_SCALE: 0.6,
-  POINT_SIZE: 0.0055,
+  POINT_SIZE: 0.007, // slightly larger so the volume reads as a solid silhouette
   SIZE_SPEED: 0.6,
   POINT_ALPHA: 0.95,
   EMISSIVE: 0.1,

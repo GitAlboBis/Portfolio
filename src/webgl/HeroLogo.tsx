@@ -122,7 +122,16 @@ export function HeroLogo() {
       u.uProjScale.value = projScale;
       u.uOpacity.value = fade;
     }
-    if (groupRef.current) groupRef.current.visible = fade > 0.01;
+
+    // responsive fit: the mark is 2u tall / ~2.3u wide — keep it ~62% of the
+    // viewport height but never overflow the width (portrait phones).
+    if (groupRef.current) {
+      const vp = state.viewport;
+      let s = (vp.height * 0.62) / 2.0;
+      s = Math.min(s, (vp.width * 0.88) / 2.3, 1.3);
+      groupRef.current.scale.setScalar(s);
+      groupRef.current.visible = fade > 0.01;
+    }
   });
 
   return (

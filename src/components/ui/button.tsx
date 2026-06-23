@@ -13,8 +13,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        signal: "bg-sun text-abyss hover:brightness-105",
-        outline: "water-glass text-foam hover:border-foam/45",
+        signal: "bg-foam text-abyss hover:bg-celeste",
+        outline: "water-glass text-foam hover:border-celeste/60",
         ghost: "text-foam/80 hover:text-foam",
         link: "text-foam/90 underline-offset-4 hover:underline",
       },

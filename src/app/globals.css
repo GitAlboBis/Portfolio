@@ -14,7 +14,9 @@
   --color-mist: #9fbac6; /* muted text on dark */
   --color-ink: #0b2731; /* deep text for LIGHT sections */
   --color-ink-mute: #5c7884; /* muted text on light */
-  --color-sun: #f2b45a; /* the one warm accent — golden hour, used rarely */
+  --color-celeste: #9bd3ee; /* light sky-blue — the accent, paired with white */
+  --color-celeste-soft: #c7e6f4;
+  --color-sun: #9bd3ee; /* back-compat alias -> celeste (gold removed per direction) */
 
   /* Bright Mediterranean surface (hero) — real Pan di Zucchero colors */
   --color-sky: #8fc1e2; /* azure sky */
@@ -155,6 +157,13 @@ body {
   }
   100% {
     transform: translateX(120%);
+  }
+}
+
+/* Slow celeste "wave" shimmer sweeping through the hero title letters. */
+@keyframes title-shimmer {
+  to {
+    background-position: -250% 0;
   }
 }
 

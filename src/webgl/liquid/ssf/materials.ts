@@ -22,6 +22,9 @@ import {
   mix,
   exp,
   abs,
+  ceil,
+  min,
+  max,
   normalize,
   normalView,
   reflect,
@@ -84,9 +87,22 @@ export function makeThicknessMaterial(positions: Node, uRadius: Node): THREE.Mes
   return m;
 }
 
+// Narrow-range filter tuning, derived from the particle radius like Splash
+// (narrowRangeFilter.wgsl: mu = 3*0.6, depthThreshold = 10*0.6, where 0.6 = radius).
+const NR_RADIUS = 0.05; // our particle radius (useFluidSim uRadius)
+const NR_MU = 3.0 * NR_RADIUS; // 0.15 — how far a clamped far-tap is pulled in
+const NR_THRESHOLD = 10.0 * NR_RADIUS; // 0.5 — running depth window half-width
+const NR_MAX_FILTER = 32; // loop cap (Splash uses 50; capped here for fill-rate)
+
 /**
- * P2 — separable depth blur (masked Gaussian): averages only FOREGROUND taps so
- * the silhouette stays sharp over the busy photo (no bleed into the BG sentinel).
+ * P2 — separable NARROW-RANGE bilateral depth filter, a faithful TSL port of
+ * Splash's `narrowRangeFilter.wgsl` (1D branch). Per pixel the kernel size is
+ * depth-adaptive (`min(max, ceil(projConst/depth))`); each tap is rejected when
+ * nearer than a running low bound, CLAMPED to `depth+mu` when farther than a
+ * running high bound, and otherwise EXPANDS the window. This smooths the interior
+ * into a glassy surface while keeping the silhouette crisp — unlike a plain
+ * Gaussian, which left the ragged "foamy" edge. Depth is stored NEGATIVE (view z);
+ * we run the math on |depth| and re-negate on output to keep that convention.
  */
 export function makeDepthBlurMaterial(srcRT: THREE.RenderTarget) {
   const m = new THREE.NodeMaterial();
@@ -94,37 +110,78 @@ export function makeDepthBlurMaterial(srcRT: THREE.RenderTarget) {
   m.depthWrite = false;
   m.toneMapped = false; // raw depth data — never tonemap
   const uTexel = uniform(new THREE.Vector2(0, 0)); // (1/w,0) H pass, (0,1/h) V pass
+  const uProjConst = uniform(94.0); // projectedParticleConstant (set per-resize)
 
   m.fragmentNode = Fn(() => {
     const uv = screenUV;
     const center = texture(srcRT.texture, uv).r.toVar();
-    const result = center.toVar();
+    const depth = abs(center).toVar(); // positive eye distance
+    const outv = center.toVar(); // default passthrough (BG keeps its +sentinel)
 
-    If(abs(center).lessThan(BG_TEST), () => {
-      const sum = center.toVar();
+    If(depth.lessThan(BG_TEST), () => {
+      const filterSize = min(float(NR_MAX_FILTER), ceil(uProjConst.div(depth))).toVar();
+      const sigma = filterSize.mul(0.5).toVar();
+      const sigmaSqInv = float(1.0).div(sigma.mul(sigma).mul(2.0)).toVar();
+      const higher = depth.add(NR_MU).toVar();
+
+      const sum = depth.toVar();
       const wsum = float(1.0).toVar();
-      Loop({ start: int(1), end: int(6), type: "int", condition: "<=" }, ({ i }: Node) => {
-        const fi = float(i);
-        const w = exp(fi.mul(fi).mul(-0.08)).toVar();
-        const offs = uTexel.mul(fi);
-        const sp = texture(srcRT.texture, uv.add(offs)).r.toVar();
-        const sm = texture(srcRT.texture, uv.sub(offs)).r.toVar();
-        If(abs(sp).lessThan(BG_TEST), () => {
-          sum.addAssign(sp.mul(w));
-          wsum.addAssign(w);
-        });
-        If(abs(sm).lessThan(BG_TEST), () => {
-          sum.addAssign(sm.mul(w));
-          wsum.addAssign(w);
+      // running depth window, tracked independently for the two kernel sides
+      const loN = depth.sub(NR_THRESHOLD).toVar();
+      const hiN = depth.add(NR_THRESHOLD).toVar();
+      const loP = depth.sub(NR_THRESHOLD).toVar();
+      const hiP = depth.add(NR_THRESHOLD).toVar();
+
+      Loop({ start: int(1), end: int(NR_MAX_FILTER), type: "int", condition: "<=" }, ({ i }: Node) => {
+        const r = float(i);
+        If(r.lessThanEqual(filterSize), () => {
+          const gw = exp(r.mul(r).mul(sigmaSqInv).negate()).toVar();
+          const offs = uTexel.mul(r);
+          const sN = abs(texture(srcRT.texture, uv.sub(offs)).r).toVar(); // - side
+          const sP = abs(texture(srcRT.texture, uv.add(offs)).r).toVar(); // + side
+          const wN = gw.toVar();
+          const wP = gw.toVar();
+
+          // negative side: reject (too near) / clamp (too far) / expand window
+          If(sN.lessThan(loN), () => {
+            wN.assign(0.0);
+          });
+          If(sN.greaterThanEqual(loN), () => {
+            If(sN.greaterThan(hiN), () => {
+              sN.assign(higher);
+            });
+            If(sN.lessThanEqual(hiN), () => {
+              loN.assign(min(loN, sN.sub(NR_THRESHOLD)));
+              hiN.assign(max(hiN, sN.add(NR_THRESHOLD)));
+            });
+          });
+
+          // positive side
+          If(sP.lessThan(loP), () => {
+            wP.assign(0.0);
+          });
+          If(sP.greaterThanEqual(loP), () => {
+            If(sP.greaterThan(hiP), () => {
+              sP.assign(higher);
+            });
+            If(sP.lessThanEqual(hiP), () => {
+              loP.assign(min(loP, sP.sub(NR_THRESHOLD)));
+              hiP.assign(max(hiP, sP.add(NR_THRESHOLD)));
+            });
+          });
+
+          sum.addAssign(sN.mul(wN).add(sP.mul(wP)));
+          wsum.addAssign(wN.add(wP));
         });
       });
-      result.assign(sum.div(wsum));
+
+      outv.assign(sum.div(wsum).negate()); // restore negative eye-z convention
     });
 
-    return vec4(result, 0.0, 0.0, 1.0);
+    return vec4(outv, 0.0, 0.0, 1.0);
   })();
 
-  return { material: m, uTexel };
+  return { material: m, uTexel, uProjConst };
 }
 
 /** P4 — separable Gaussian blur for thickness (no mask; low frequency). */

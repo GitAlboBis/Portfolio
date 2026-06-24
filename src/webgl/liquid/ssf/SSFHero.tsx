@@ -42,14 +42,26 @@ const SSFControls =
     ? dynamic(() => import("./SSFControls"), { ssr: false })
     : null;
 
-function makeRedRT(nearest: boolean, depthBuffer: boolean) {
+function makeRedRT(nearest: boolean, depthBuffer: boolean, float = false) {
   return new THREE.RenderTarget(2, 2, {
-    type: THREE.HalfFloatType,
+    // depth targets use full FloatType (r32float) so the narrow-range filter and
+    // finite-difference normals stay precise (Splash stores r32float eye-z); the
+    // low-frequency thickness targets keep HalfFloat (r16float), matching Splash.
+    type: float ? THREE.FloatType : THREE.HalfFloatType,
     format: THREE.RedFormat,
     minFilter: nearest ? THREE.NearestFilter : THREE.LinearFilter,
     magFilter: nearest ? THREE.NearestFilter : THREE.LinearFilter,
     depthBuffer,
   });
+}
+
+// projectedParticleConstant for the narrow-range depth filter — the screen-space
+// kernel scale as a function of depth (Splash fluidRender.ts:67). Recomputed on
+// resize because it depends on the render height. FOV matches CanvasHost (35deg).
+const NR_FOV_RAD = (35 * Math.PI) / 180;
+function narrowRangeProjConst(h: number) {
+  // (blurFilterSize=12 * diameter=0.1 * 0.05 * (h/2)) / tan(fov/2)
+  return (12 * 0.1 * 0.05 * (h / 2)) / Math.tan(NR_FOV_RAD / 2);
 }
 
 function makeColorRT() {
@@ -68,8 +80,8 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
 
   const r = useMemo(() => {
     const backdropRT = makeColorRT();
-    const depthRT_A = makeRedRT(true, true); // depth-tested target for the sphere pass
-    const depthRT_B = makeRedRT(true, false); // ping-pong target
+    const depthRT_A = makeRedRT(true, true, true); // r32float, depth-tested sphere pass
+    const depthRT_B = makeRedRT(true, false, true); // r32float ping-pong target
     const thicknessRT = makeRedRT(false, false);
     const thickBlur_A = makeRedRT(false, false);
     const thickBlur_B = makeRedRT(false, false);
@@ -180,6 +192,10 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
     r.backdropRT.setSize(w, h);
     r.depthRT_A.setSize(w, h);
     r.depthRT_B.setSize(w, h);
+    // narrow-range filter kernel scale depends on render height
+    const pc = narrowRangeProjConst(h);
+    r.depthBlurA.uProjConst.value = pc;
+    r.depthBlurB.uProjConst.value = pc;
     const hw = Math.max(1, Math.floor(w / 2));
     const hh = Math.max(1, Math.floor(h / 2));
     r.thicknessRT.setSize(hw, hh);

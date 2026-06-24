@@ -32,3 +32,6 @@ next-env.d.ts
 
 # large working video assets (hero clip source — add later via Git LFS, not raw git)
 /public/video/
+
+# cloned reference repo (matsuoka-601/Splash) — read-only shading reference, not built
+/Splash-main/

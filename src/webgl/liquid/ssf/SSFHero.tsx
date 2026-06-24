@@ -3,8 +3,9 @@
 import * as THREE from "three/webgpu";
 import { useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useFluidSim } from "./useFluidSim";
+import { createSkyEnvironment } from "@/webgl/liquid/skyEnvironment";
 import {
   makeDepthMaterial,
   makeThicknessMaterial,
@@ -63,6 +64,7 @@ function makeColorRT() {
 
 export function SSFHero({ onFail }: { onFail?: () => void }) {
   const sim = useFluidSim();
+  const gl = useThree((s) => s.gl) as unknown as THREE.WebGPURenderer;
 
   const r = useMemo(() => {
     const backdropRT = makeColorRT();
@@ -78,22 +80,28 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
     const depthBlurB = makeDepthBlurMaterial(depthRT_B); // reads B
     const thickGaussSrc = makeGaussianMaterial(thicknessRT); // reads source
     const thickGaussA = makeGaussianMaterial(thickBlur_A); // reads A
-    // real cubemap sky (from matsuoka-601/Splash) for high-frequency water reflections
-    const envCube = new THREE.CubeTextureLoader().load([
-      "/cubemap/posx.png",
-      "/cubemap/negx.png",
-      "/cubemap/posy.png",
-      "/cubemap/negy.png",
-      "/cubemap/posz.png",
-      "/cubemap/negz.png",
-    ]);
-    envCube.colorSpace = THREE.SRGBColorSpace;
+    // Sea/sky + sun PMREM (createSkyEnvironment) as the radiance the water reflects
+    // AND refracts — gives the "A" a blue-water read instead of the brown Splash
+    // canyon cubemap. Roughness-aware (proper prefiltered mips), unlike a raw cube.
+    let envRT: { texture: THREE.Texture; dispose: () => void } | null = null;
+    let envTex: THREE.Texture;
+    const sky = createSkyEnvironment();
+    try {
+      const pmrem = new THREE.PMREMGenerator(gl);
+      envRT = pmrem.fromScene(sky.scene, 0.04);
+      envTex = envRT.texture;
+      pmrem.dispose();
+    } catch (e) {
+      console.warn("[ssf] sky environment unavailable:", e);
+      envTex = new THREE.Texture();
+    }
+    sky.dispose();
 
     const composite = makeCompositeMaterial({
       depthTex: depthRT_A.texture, // smoothed depth ends here after P2
       thickTex: thickBlur_B.texture,
       backdropTex: backdropRT.texture,
-      envCube,
+      env: envTex,
     });
 
     const quad = new THREE.QuadMesh(composite.material);
@@ -115,9 +123,9 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
       composite,
       quad,
       geometry,
-      envCube,
+      envRT,
     };
-  }, [sim.positions, sim.uRadius]);
+  }, [gl, sim.positions, sim.uRadius]);
 
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const failed = useRef(false);
@@ -161,7 +169,7 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
       r.thickGaussA.material.dispose();
       r.composite.material.dispose();
       r.geometry.dispose();
-      r.envCube.dispose();
+      r.envRT?.dispose();
     },
     [r],
   );

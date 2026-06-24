@@ -46,6 +46,13 @@ export function CanvasHost() {
       ? "mesh"
       : "ssf",
   );
+  // dev/debug: ?bg=off hides the photo backdrop so the water surface can be judged
+  // against a clean (black) field — easier QA of the SSF reflection/normals.
+  const [showBackdrop] = useState(
+    () =>
+      typeof window === "undefined" ||
+      new URLSearchParams(window.location.search).get("bg") !== "off",
+  );
   const useSSF = webgpu && tier === "full" && !ssfFailed;
   // SSF takes over the render loop only in its own mode; the mesh path uses
   // R3F auto-render (so the backdrop must share the default layer there).
@@ -82,11 +89,13 @@ export function CanvasHost() {
             {/* photo background (placeholder for the hero video). On the SSF path
                 it renders into its own target via a camera layer; on the fallback
                 it shares layer 0 with the direct-render spheres. */}
-            <SceneErrorBoundary>
-              <Suspense fallback={null}>
-                <PhotoBackdrop layer={ssfActive ? BACKDROP_LAYER : 0} />
-              </Suspense>
-            </SceneErrorBoundary>
+            {showBackdrop && (
+              <SceneErrorBoundary>
+                <Suspense fallback={null}>
+                  <PhotoBackdrop layer={ssfActive ? BACKDROP_LAYER : 0} />
+                </Suspense>
+              </SceneErrorBoundary>
+            )}
             {/* the "A" hero. WebGPU/full → SSF particle water (default) OR the PBR
                 glass mesh (?hero=mesh, A/B compare); otherwise direct-render spheres.
                 A GLB/SSF failure degrades to the fallback (keyed remount). */}

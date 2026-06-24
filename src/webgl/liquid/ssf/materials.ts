@@ -175,7 +175,7 @@ export function makeCompositeMaterial(opts: {
   depthTex: THREE.Texture;
   thickTex: THREE.Texture;
   backdropTex: THREE.Texture;
-  envCube: THREE.CubeTexture;
+  env: THREE.Texture; // PMREM radiance from the sky/sea scene (roughness-aware)
 }): CompositeHandle {
   const m = new THREE.NodeMaterial();
   m.depthTest = false;
@@ -239,14 +239,14 @@ export function makeCompositeMaterial(opts: {
       // tinted by Beer-Lambert absorption keyed to (1 - diffuseColor).
       const refrDirView = refract(rayDir, N, float(1.0 / 1.333));
       const refrDirWorld = normalize(uInvView.mul(vec4(refrDirView, 0.0)).xyz);
-      const transmitted = pmremTexture(opts.envCube, refrDirWorld, uRoughness);
+      const transmitted = pmremTexture(opts.env, refrDirWorld, uRoughness);
       const trans = exp(diffuseColor.sub(1.0).mul(uDensity.mul(10.0).mul(thickness))).toVar();
       const refractionColor = transmitted.mul(trans).toVar();
 
       // REFLECTION of the environment cubemap (Splash: reflect(rayDir,N) -> envmap)
       const reflDirView = reflect(rayDir, N);
       const reflDirWorld = normalize(uInvView.mul(vec4(reflDirView, 0.0)).xyz);
-      const reflectionColor = pmremTexture(opts.envCube, reflDirWorld, uRoughness).toVar();
+      const reflectionColor = pmremTexture(opts.env, reflDirWorld, uRoughness).toVar();
 
       // Schlick Fresnel + mix (Splash: finalColor = mix(refraction, reflection, fresnel))
       const ndv = clamp(dot(N, rayDir.negate()), float(0.0), float(1.0));

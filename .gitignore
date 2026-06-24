@@ -29,3 +29,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# large working video assets (hero clip source — add later via Git LFS, not raw git)
+/public/video/

@@ -16,12 +16,16 @@ import { usePointerStore } from "@/webgl/store/pointerStore";
 export function FrameDriver() {
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
-      const { ndc, setActive } = usePointerStore.getState();
-      ndc.set(
+      const st = usePointerStore.getState();
+      st.ndc.set(
         (e.clientX / window.innerWidth) * 2 - 1,
         -(e.clientY / window.innerHeight) * 2 + 1,
       );
-      setActive(true);
+      // snap the smoothed pointer to the real position on (re)entry, so the
+      // first frame doesn't lerp from screen-center (0,0) and fire a stray
+      // ripple in the middle of the mark.
+      if (!st.active) st.smooth.copy(st.ndc);
+      st.setActive(true);
     };
     const onLeave = () => usePointerStore.getState().setActive(false);
     window.addEventListener("pointermove", onMove, { passive: true });

@@ -1,5 +1,7 @@
 import { create } from "zustand";
-import { Vector2, Vector3 } from "three";
+// three/webgpu (not "three") so the whole live canvas shares ONE three instance
+// now that the renderer is WebGPURenderer. See docs/03-ARCHITECTURE.md.
+import { Vector2, Vector3 } from "three/webgpu";
 
 /*
   Pointer state. The Vector objects are mutated in place once per frame by the

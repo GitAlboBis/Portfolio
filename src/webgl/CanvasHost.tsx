@@ -3,24 +3,28 @@
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect } from "react";
 import { FrameDriver } from "@/webgl/FrameDriver";
-import { SeaBackdrop } from "@/webgl/SeaBackdrop";
-import { HeroLogo } from "@/webgl/HeroLogo";
+import { PhotoBackdrop } from "@/webgl/PhotoBackdrop";
+import { FluidParticles } from "@/webgl/liquid/FluidParticles";
+import { SceneErrorBoundary } from "@/webgl/SceneErrorBoundary";
 import { useFxStore } from "@/webgl/store/fxStore";
-import { detectTier, supportsWebGPU } from "@/webgl/renderer/createRenderer";
+import {
+  detectTier,
+  supportsWebGPU,
+  createWebGPURenderer,
+} from "@/webgl/renderer/createRenderer";
 
 /*
   Persistent, full-screen R3F canvas mounted once in the root layout. It is the
   background visual layer (z-0): the DOM overlay (hero text, sections) sits above
-  it at z>=10 and is transparent where the canvas should read through. See
-  docs/03-ARCHITECTURE.md (Canvas globale + overlay DOM).
+  it at z>=10 and reads through where transparent. See docs/03-ARCHITECTURE.md.
 
-  Behind the canvas, a CSS sea gradient (-z-10) is always present — it is the
-  bright Pan di Zucchero surface the water mark floats in, and the static
-  backdrop when reduced-motion disables the canvas.
+  Renderer: WebGPURenderer (async `gl` factory) — required by the liquid-mesh
+  hero's MeshPhysicalNodeMaterial + TSL. It auto-falls-back to a WebGL2 backend
+  when navigator.gpu is absent, so the same TSL runs on both (docs/04 §6.1).
 
-  TODO (Gate 6, WebGPU): pass a WebGPURenderer factory via the `gl` prop for the
-  TSL compute path once Context7 is available. This WebGL2 renderer is the
-  stable documented fallback and drives the current GPGPU sim (FBO ping-pong).
+  Behind the canvas, a CSS sea gradient (-z-10) is always present — the
+  reduced-motion / no-canvas static backdrop. The in-scene SeaBackdropTSL is the
+  refraction content for the liquid mark.
 */
 
 const SEA_GRADIENT =
@@ -40,26 +44,35 @@ export function CanvasHost() {
   return (
     <>
       {/* Sea backdrop — always present (also the reduced-motion static hero). */}
-      <div id="sea-backdrop" aria-hidden className="fixed inset-0 -z-10" style={{ background: SEA_GRADIENT }} />
+      <div
+        id="sea-backdrop"
+        aria-hidden
+        className="fixed inset-0 -z-10"
+        style={{ background: SEA_GRADIENT }}
+      />
 
-      {/* reduced-motion / weak GPU → no WebGL; the gradient + DOM hero remain. */}
+      {/* reduced-motion / weak GPU → tier "off": no canvas; gradient + DOM hero remain. */}
       {tier !== "off" && (
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
           <Canvas
             dpr={[1, tier === "lite" ? 1.5 : 2]}
             camera={{ position: [0, 0, 5], fov: 35 }}
-            gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+            gl={createWebGPURenderer}
             onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
           >
             <FrameDriver />
-            <SeaBackdrop />
-            <Suspense fallback={null}>
-              <HeroLogo />
-            </Suspense>
-            {/* NOTE: post-process Bloom is deferred — a global bloom blows out the
-                bright sky (brighter than the foam). True SELECTIVE bloom (skin
-                only) is the right tech; wire it with Selection/Select and tune on
-                a real GPU (Gate 6 feel). The skin's additive glow stands in. */}
+            {/* photo background (placeholder for the hero video) */}
+            <SceneErrorBoundary>
+              <Suspense fallback={null}>
+                <PhotoBackdrop />
+              </Suspense>
+            </SceneErrorBoundary>
+            {/* the "A" fluid model; a GLB failure degrades to just the backdrop */}
+            <SceneErrorBoundary>
+              <Suspense fallback={null}>
+                <FluidParticles />
+              </Suspense>
+            </SceneErrorBoundary>
           </Canvas>
         </div>
       )}

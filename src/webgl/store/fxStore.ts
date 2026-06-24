@@ -1,11 +1,11 @@
 import { create } from "zustand";
 
 export type Tier = "full" | "lite" | "off";
-export type HeroRenderMode = "particles-2layer" | "static";
+export type HeroRenderMode = "liquid-mesh" | "particles-2layer" | "static";
 
 /*
-  Global FX / quality state. tier drives particle density + postFX;
-  heroRenderMode selects the GPGPU 2-layer sim vs the static analytic fallback;
+  Global FX / quality state. tier drives density + postFX; heroRenderMode is the
+  active hero technique ("liquid-mesh" = the WebGPU/TSL transmissive "A");
   webgpu reflects backend capability (docs/04 §6, §10).
 */
 type FxState = {
@@ -20,7 +20,7 @@ type FxState = {
 
 export const useFxStore = create<FxState>((set) => ({
   tier: "full",
-  heroRenderMode: "particles-2layer",
+  heroRenderMode: "liquid-mesh",
   reducedMotion: false,
   webgpu: false,
   set: (p) => set(p),

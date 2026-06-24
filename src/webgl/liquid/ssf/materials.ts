@@ -219,6 +219,7 @@ export type CompositeHandle = {
   uDensity: Node;
   uRoughness: Node;
   uSpecular: Node;
+  uEdgeFoam: Node;
 };
 
 /**
@@ -245,11 +246,12 @@ export function makeCompositeMaterial(opts: {
   const uInvProj: Node = uniform(new THREE.Matrix4());
   const uInvView: Node = uniform(new THREE.Matrix4()); // view->world (camera.matrixWorld)
   const uView: Node = uniform(new THREE.Matrix4()); // world->view (camera.matrixWorldInverse) for the light dir
-  const uSpecular: Node = uniform(0.35); // glint weight (Splash zeroes it; we enable it)
+  const uSpecular: Node = uniform(0.0); // glint weight — Splash AND waterball zero it; off by default
+  const uEdgeFoam: Node = uniform(0.4); // waterball edge-highlight strength (blend toward white at depth jumps)
   const F0: Node = float(0.02); // water IOR 1.333 -> ~0.02 normal-incidence reflectance
-  // Splash diffuseColor = (140,220,240)/255 — the color that TRANSMITS; absorption is
-  // exp(-density*10*thickness*(1 - diffuseColor)), so thick fluid skews celeste.
-  const diffuseColor: Node = uniform(new THREE.Vector3(0.549, 0.863, 0.941));
+  // diffuseColor = the color that TRANSMITS; absorption = exp(-density*10*thickness*(1-diffuse)).
+  // waterball uses a SATURATED blue (0,0.7375,0.95) so thick fluid reads deep blue, not pale celeste.
+  const diffuseColor: Node = uniform(new THREE.Vector3(0.0, 0.7375, 0.95));
   const uDensity: Node = uniform(0.7); // Splash colorDensity (x10 in the formula below)
   const uRoughness: Node = uniform(0.06); // PMREM roughness: 0 = mirror, higher = frosted
 
@@ -325,13 +327,24 @@ export function makeCompositeMaterial(opts: {
       const H = normalize(lightDirView.sub(rayDir));
       const spec = pow(max(dot(H, N), float(0.0)), float(300.0));
       outColor.addAssign(vec3(spec).mul(uSpecular));
+
+      // Edge highlighting (waterball fluid.wgsl:86-89): at depth discontinuities
+      // (silhouette + interior folds) blend toward white — reads as sea foam/spray
+      // and hides the ragged SSF silhouette without a billboard/fragDepth rewrite.
+      const dzMax = max(
+        max(abs(Pr.z.sub(P.z)), abs(P.z.sub(Pl.z))),
+        max(abs(Pu.z.sub(P.z)), abs(P.z.sub(Pd.z))),
+      );
+      If(dzMax.greaterThan(float(0.15)), () => {
+        outColor.assign(mix(outColor, vec3(0.9), uEdgeFoam));
+      });
     });
 
     // linear out; the renderer applies the sRGB output encode on present
     return vec4(outColor, 1.0);
   })();
 
-  return { material: m, uInvProj, uInvView, uView, diffuseColor, uDensity, uRoughness, uSpecular };
+  return { material: m, uInvProj, uInvView, uView, diffuseColor, uDensity, uRoughness, uSpecular, uEdgeFoam };
 }
 
 export { BG_SENTINEL };

@@ -18,10 +18,11 @@ function hexToRaw(hex: string): [number, number, number] {
 
 export default function SSFControls({ handle }: { handle: CompositeHandle }) {
   const v = useControls("SSF Water", {
-    diffuseColor: "#8cdcf0", // Splash default (140,220,240)
+    diffuseColor: "#00bcf2", // waterball saturated blue (0, 0.7375, 0.95)
     density: { value: 0.7, min: 0, max: 6, step: 0.05 }, // x10 in the shader
     roughness: { value: 0.06, min: 0, max: 1, step: 0.01 }, // PMREM: 0 mirror .. frosted
-    specular: { value: 0.35, min: 0, max: 2, step: 0.05 }, // wet glint weight (Splash pow 300)
+    specular: { value: 0.0, min: 0, max: 2, step: 0.05 }, // wet glint (off — both refs zero it)
+    edgeFoam: { value: 0.4, min: 0, max: 1, step: 0.05 }, // waterball white-foam rim at depth jumps
   });
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function SSFControls({ handle }: { handle: CompositeHandle }) {
     handle.uDensity.value = v.density;
     handle.uRoughness.value = v.roughness;
     handle.uSpecular.value = v.specular;
+    handle.uEdgeFoam.value = v.edgeFoam;
   }, [v, handle]);
 
   return null;

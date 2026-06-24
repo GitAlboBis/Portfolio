@@ -117,7 +117,9 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
     });
 
     const quad = new THREE.QuadMesh(composite.material);
-    const geometry = new THREE.IcosahedronGeometry(1, 1);
+    // billboard imposters: a 1x1 quad (positionLocal.xy in [-0.5,0.5]) oriented to
+    // face the camera in the depth/thickness vertexNode (see materials.billboardClip)
+    const geometry = new THREE.PlaneGeometry(1, 1);
 
     return {
       backdropRT,

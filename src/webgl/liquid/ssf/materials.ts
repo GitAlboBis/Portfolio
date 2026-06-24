@@ -3,7 +3,10 @@ import {
   Fn,
   positionLocal,
   instanceIndex,
-  modelViewMatrix,
+  uv,
+  varying,
+  cameraViewMatrix,
+  cameraProjectionMatrix,
   vec2,
   vec3,
   vec4,
@@ -22,14 +25,15 @@ import {
   mix,
   exp,
   abs,
+  sqrt,
   ceil,
   min,
   max,
   normalize,
-  normalView,
   reflect,
   Loop,
   If,
+  Discard,
 } from "three/tsl";
 
 /*
@@ -48,41 +52,79 @@ type Node = any;
 const BG_SENTINEL = 1000.0; // depth RT "no fluid" clear value (well within half-float)
 const BG_TEST = 100.0; // |eyeZ| above this == background (real eyeZ ~ 5)
 
-/** Per-instance world position from the sim buffer + the local sphere vertex. */
-function worldPosNode(positions: Node, uRadius: Node): Node {
-  return positionLocal.mul(uRadius).add(positions.element(instanceIndex));
+// `any`-typed aliases for the strict TSL primitives so the billboard math chains
+// compose without fighting the scalar/vec overloads (same escape hatch as `Node`).
+const PLOCAL: Node = positionLocal;
+const CAM_VIEW: Node = cameraViewMatrix;
+const CAM_PROJ: Node = cameraProjectionMatrix;
+
+/**
+ * Camera-facing billboard clip position (waterball depthMap.wgsl/sphere.wgsl): a
+ * quad sized to the particle diameter, placed at the particle's view-space center.
+ * Cheaper than a real icosahedron (6 verts vs 42) and the basis for the analytic
+ * per-fragment sphere normal — which is what makes the surface smooth and round.
+ * Geometry must be a PlaneGeometry(1,1) so positionLocal.xy spans [-0.5, 0.5].
+ */
+function billboardClip(positions: Node, uRadius: Node): Node {
+  const center: Node = positions.element(instanceIndex);
+  const viewCenter: Node = CAM_VIEW.mul(vec4(center, 1.0)).xyz;
+  const corner: Node = PLOCAL.xy.mul(uRadius.mul(2.0)); // [-0.5,0.5] -> diameter
+  return CAM_PROJ.mul(vec4(viewCenter.add(vec3(corner, 0.0)), 1.0));
 }
 
-/** P1 — depth pass: render spheres, store NEGATIVE linear eye-z in RED. */
+/** P1 — depth pass: billboard sphere imposters. Per fragment reconstruct the
+ *  analytic sphere normal (sqrt(1-r^2)), push depth to the sphere surface via
+ *  fragDepth, and store NEGATIVE linear eye-z in RED. */
 export function makeDepthMaterial(positions: Node, uRadius: Node): THREE.MeshBasicNodeMaterial {
   const m = new THREE.MeshBasicNodeMaterial();
   m.depthTest = true;
   m.depthWrite = true;
   m.toneMapped = false;
-  const worldPos = worldPosNode(positions, uRadius);
-  m.positionNode = worldPos;
-  const viewZ = modelViewMatrix.mul(vec4(worldPos, 1.0)).z; // model matrix is identity -> view z
-  m.colorNode = vec4(viewZ, 0.0, 0.0, 1.0);
+  m.side = THREE.DoubleSide;
+  m.vertexNode = billboardClip(positions, uRadius);
+
+  const vCenter: Node = varying(CAM_VIEW.mul(vec4(positions.element(instanceIndex), 1.0)).xyz);
+  const nxy: Node = uv().mul(2.0).sub(1.0);
+  const r2: Node = dot(nxy, nxy);
+  const nz: Node = sqrt(oneMinus(r2));
+  const realViewPos: Node = vCenter.add(vec3(nxy, nz).mul(uRadius));
+  const clipPos: Node = CAM_PROJ.mul(vec4(realViewPos, 1.0));
+
+  m.colorNode = Fn(() => {
+    If(r2.greaterThan(1.0), () => {
+      Discard();
+    });
+    return vec4(realViewPos.z, 0.0, 0.0, 1.0);
+  })();
+  m.depthNode = clipPos.z.div(clipPos.w); // fragDepth = sphere-surface depth
   return m;
 }
 
-/** P3 — thickness pass: additive accumulation of a per-particle constant. */
+/** P3 — thickness pass: billboard imposters, additive sqrt(1-r^2)*0.05 (waterball
+ *  thicknessMap.wgsl). Thin at the silhouette, thick at the center. */
 export function makeThicknessMaterial(positions: Node, uRadius: Node): THREE.MeshBasicNodeMaterial {
   const m = new THREE.MeshBasicNodeMaterial();
   m.toneMapped = false;
   m.transparent = true;
   m.depthTest = false;
   m.depthWrite = false;
+  m.side = THREE.DoubleSide;
   // pure additive (One/One) so thickness == sum of overlapping spheres along the ray
   m.blending = THREE.CustomBlending;
   m.blendEquation = THREE.AddEquation;
   m.blendSrc = THREE.OneFactor;
   m.blendDst = THREE.OneFactor;
-  m.positionNode = worldPosNode(positions, uRadius);
-  // hemisphere thickness: |viewNormal.z| == sqrt(1 - r^2) for a camera-facing sphere
-  // fragment -> thin at the silhouette, thick at the center (Splash particle_alpha=0.05).
-  // Curved absorption (vs a flat constant) is what gives the body real depth.
-  m.colorNode = vec4(abs(normalView.z).mul(0.05), 0.0, 0.0, 1.0);
+  m.vertexNode = billboardClip(positions, uRadius);
+
+  const nxy: Node = uv().mul(2.0).sub(1.0);
+  const r2: Node = dot(nxy, nxy);
+  const nz: Node = sqrt(oneMinus(r2));
+  m.colorNode = Fn(() => {
+    If(r2.greaterThan(1.0), () => {
+      Discard();
+    });
+    return vec4(nz.mul(0.05), 0.0, 0.0, 1.0);
+  })();
   return m;
 }
 

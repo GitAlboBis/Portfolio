@@ -39,12 +39,12 @@ export function CanvasHost() {
   // SSF is the WebGPU/full-tier path; a runtime failure flips this to the
   // direct-render fallback without unmounting the canvas.
   const [ssfFailed, setSsfFailed] = useState(false);
-  // dev A/B compare: ?hero=mesh → realistic PBR mesh (old material); default → SSF.
+  // This branch is the PBR glass-MESH hero: default → mesh; ?hero=ssf shows SSF.
   const [heroMode] = useState<"ssf" | "mesh">(() =>
     typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("hero") === "mesh"
-      ? "mesh"
-      : "ssf",
+    new URLSearchParams(window.location.search).get("hero") === "ssf"
+      ? "ssf"
+      : "mesh",
   );
   const useSSF = webgpu && tier === "full" && !ssfFailed;
   // SSF takes over the render loop only in its own mode; the mesh path uses

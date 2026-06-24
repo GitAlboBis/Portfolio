@@ -237,6 +237,7 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
       const { w, h } = sizeRef.current;
       r.composite.uInvProj.value.copy(cam.projectionMatrixInverse);
       r.composite.uInvView.value.copy(cam.matrixWorld); // view->world for reflect/refract dirs
+      r.composite.uView.value.copy(cam.matrixWorldInverse); // world->view for the glint light dir
       gl.autoClear = true;
 
       // P0 — backdrop into its own color target

@@ -214,9 +214,11 @@ export type CompositeHandle = {
   material: THREE.NodeMaterial;
   uInvProj: Node;
   uInvView: Node;
+  uView: Node;
   diffuseColor: Node;
   uDensity: Node;
   uRoughness: Node;
+  uSpecular: Node;
 };
 
 /**
@@ -242,6 +244,8 @@ export function makeCompositeMaterial(opts: {
   // loose Node alias so TSL's strict scalar/vec typings don't reject the math chains.
   const uInvProj: Node = uniform(new THREE.Matrix4());
   const uInvView: Node = uniform(new THREE.Matrix4()); // view->world (camera.matrixWorld)
+  const uView: Node = uniform(new THREE.Matrix4()); // world->view (camera.matrixWorldInverse) for the light dir
+  const uSpecular: Node = uniform(0.35); // glint weight (Splash zeroes it; we enable it)
   const F0: Node = float(0.02); // water IOR 1.333 -> ~0.02 normal-incidence reflectance
   // Splash diffuseColor = (140,220,240)/255 — the color that TRANSMITS; absorption is
   // exp(-density*10*thickness*(1 - diffuseColor)), so thick fluid skews celeste.
@@ -313,13 +317,21 @@ export function makeCompositeMaterial(opts: {
         float(1.0),
       );
       outColor.assign(mix(refractionColor, reflectionColor, fres));
+
+      // Specular glint (Splash fluid.wgsl:99-101, there multiplied by 0): a tight
+      // Blinn-Phong wet highlight from a fixed light dir, added on top of the env
+      // mix. rayDir is eye->surface (== Splash rayDirView), so L - rayDir matches.
+      const lightDirView = normalize(uView.mul(vec4(0.2, 0.0, 1.0, 0.0)).xyz);
+      const H = normalize(lightDirView.sub(rayDir));
+      const spec = pow(max(dot(H, N), float(0.0)), float(300.0));
+      outColor.addAssign(vec3(spec).mul(uSpecular));
     });
 
     // linear out; the renderer applies the sRGB output encode on present
     return vec4(outColor, 1.0);
   })();
 
-  return { material: m, uInvProj, uInvView, diffuseColor, uDensity, uRoughness };
+  return { material: m, uInvProj, uInvView, uView, diffuseColor, uDensity, uRoughness, uSpecular };
 }
 
 export { BG_SENTINEL };

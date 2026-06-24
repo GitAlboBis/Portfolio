@@ -23,6 +23,7 @@ export default function SSFControls({ handle }: { handle: CompositeHandle }) {
     roughness: { value: 0.06, min: 0, max: 1, step: 0.01 }, // PMREM: 0 mirror .. frosted
     specular: { value: 0.0, min: 0, max: 2, step: 0.05 }, // wet glint (off — both refs zero it)
     edgeFoam: { value: 0.4, min: 0, max: 1, step: 0.05 }, // waterball white-foam rim at depth jumps
+    refractBg: "#b3b3bf", // waterball flat refraction background (0.7,0.7,0.75)
   });
 
   useEffect(() => {
@@ -32,6 +33,8 @@ export default function SSFControls({ handle }: { handle: CompositeHandle }) {
     handle.uRoughness.value = v.roughness;
     handle.uSpecular.value = v.specular;
     handle.uEdgeFoam.value = v.edgeFoam;
+    const [br, bg, bb] = hexToRaw(v.refractBg);
+    handle.uRefractBg.value.set(br, bg, bb);
   }, [v, handle]);
 
   return null;

@@ -28,7 +28,6 @@ import {
   normalize,
   normalView,
   reflect,
-  refract,
   Loop,
   If,
 } from "three/tsl";
@@ -220,6 +219,7 @@ export type CompositeHandle = {
   uRoughness: Node;
   uSpecular: Node;
   uEdgeFoam: Node;
+  uRefractBg: Node;
 };
 
 /**
@@ -254,6 +254,8 @@ export function makeCompositeMaterial(opts: {
   const diffuseColor: Node = uniform(new THREE.Vector3(0.0, 0.7375, 0.95));
   const uDensity: Node = uniform(0.7); // Splash colorDensity (x10 in the formula below)
   const uRoughness: Node = uniform(0.06); // PMREM roughness: 0 = mirror, higher = frosted
+  // waterball refracts a FLAT background tint (not the env/photo) -> clean translucent body.
+  const uRefractBg: Node = uniform(new THREE.Vector3(0.7, 0.7, 0.75));
 
   // view-space position from stored eye-z: scale the inverse-projected corner ray
   // so its z matches the stored linear depth.
@@ -298,13 +300,10 @@ export function makeCompositeMaterial(opts: {
       const rayDir = normalize(P).toVar(); // eye -> surface (incident, into scene)
       const thickness = texture(opts.thickTex, uv).r.toVar();
 
-      // REFRACTION of the environment cubemap (Splash: refract(rayDir,N) -> envmap),
-      // tinted by Beer-Lambert absorption keyed to (1 - diffuseColor).
-      const refrDirView = refract(rayDir, N, float(1.0 / 1.333));
-      const refrDirWorld = normalize(uInvView.mul(vec4(refrDirView, 0.0)).xyz);
-      const transmitted = pmremTexture(opts.env, refrDirWorld, uRoughness);
+      // REFRACTION (waterball): a FLAT background tint absorbed by Beer-Lambert —
+      // no env/photo refraction, so the body reads as a clean translucent blue volume.
       const trans = exp(diffuseColor.sub(1.0).mul(uDensity.mul(10.0).mul(thickness))).toVar();
-      const refractionColor = transmitted.mul(trans).toVar();
+      const refractionColor = uRefractBg.mul(trans).toVar();
 
       // REFLECTION of the environment cubemap (Splash: reflect(rayDir,N) -> envmap)
       const reflDirView = reflect(rayDir, N);
@@ -344,7 +343,7 @@ export function makeCompositeMaterial(opts: {
     return vec4(outColor, 1.0);
   })();
 
-  return { material: m, uInvProj, uInvView, uView, diffuseColor, uDensity, uRoughness, uSpecular, uEdgeFoam };
+  return { material: m, uInvProj, uInvView, uView, diffuseColor, uDensity, uRoughness, uSpecular, uEdgeFoam, uRefractBg };
 }
 
 export { BG_SENTINEL };

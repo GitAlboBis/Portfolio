@@ -1,7 +1,8 @@
 "use client";
 
+import { Vector3 } from "three/webgpu";
 import { useFrame } from "@react-three/fiber";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { getLenis } from "@/lib/lenis-singleton";
 import { useScrollStore } from "@/webgl/store/scrollStore";
 import { usePointerStore } from "@/webgl/store/pointerStore";
@@ -14,6 +15,12 @@ import { usePointerStore } from "@/webgl/store/pointerStore";
   See docs/03-ARCHITECTURE.md.
 */
 export function FrameDriver() {
+  // frame-loop scratch (no per-frame allocation)
+  const ray = useRef(new Vector3()).current;
+  const wNow = useRef(new Vector3()).current;
+  const instVel = useRef(new Vector3()).current;
+  const seeded = useRef(false);
+
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       const st = usePointerStore.getState();
@@ -36,7 +43,7 @@ export function FrameDriver() {
     };
   }, []);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const lenis = getLenis();
     if (lenis) {
       lenis.raf(performance.now());
@@ -47,6 +54,34 @@ export function FrameDriver() {
     }
     const p = usePointerStore.getState();
     p.smooth.lerp(p.ndc, Math.min(1, delta * 8));
+
+    // Project the smoothed pointer onto the hero plane (z=0) and derive a smoothed
+    // world-space velocity — the single shared source for the splash direction +
+    // speed (consumed by the fluid compute via uMouse/uMouseVel/uSpeed).
+    if (p.active) {
+      const cam = state.camera;
+      ray.set(p.smooth.x, p.smooth.y, 0.5).unproject(cam).sub(cam.position).normalize();
+      const tHit = -cam.position.z / ray.z;
+      wNow.copy(cam.position).addScaledVector(ray, tHit);
+      if (!seeded.current) {
+        // first frame after entry — seed, no spurious velocity
+        p.world.copy(wNow);
+        p.worldPrev.copy(wNow);
+        p.worldVel.set(0, 0, 0);
+        p.speed = 0;
+        seeded.current = true;
+      } else {
+        instVel.copy(wNow).sub(p.worldPrev).divideScalar(Math.max(delta, 1e-4));
+        p.worldVel.lerp(instVel, Math.min(1, delta * 10));
+        p.speed = p.worldVel.length();
+        p.world.copy(wNow);
+        p.worldPrev.copy(wNow);
+      }
+    } else {
+      seeded.current = false;
+      p.worldVel.set(0, 0, 0);
+      p.speed = 0;
+    }
   });
 
   return null;

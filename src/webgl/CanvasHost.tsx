@@ -1,10 +1,13 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { FrameDriver } from "@/webgl/FrameDriver";
 import { PhotoBackdrop } from "@/webgl/PhotoBackdrop";
 import { FluidParticles } from "@/webgl/liquid/FluidParticles";
+import { SSFHero } from "@/webgl/liquid/ssf/SSFHero";
+import { HeroLiquidLogo } from "@/webgl/HeroLiquidLogo";
+import { BACKDROP_LAYER } from "@/webgl/liquid/ssf/constants";
 import { SceneErrorBoundary } from "@/webgl/SceneErrorBoundary";
 import { useFxStore } from "@/webgl/store/fxStore";
 import {
@@ -32,6 +35,21 @@ const SEA_GRADIENT =
 
 export function CanvasHost() {
   const tier = useFxStore((s) => s.tier);
+  const webgpu = useFxStore((s) => s.webgpu);
+  // SSF is the WebGPU/full-tier path; a runtime failure flips this to the
+  // direct-render fallback without unmounting the canvas.
+  const [ssfFailed, setSsfFailed] = useState(false);
+  // dev A/B compare: ?hero=mesh → realistic PBR mesh (old material); default → SSF.
+  const [heroMode] = useState<"ssf" | "mesh">(() =>
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("hero") === "mesh"
+      ? "mesh"
+      : "ssf",
+  );
+  const useSSF = webgpu && tier === "full" && !ssfFailed;
+  // SSF takes over the render loop only in its own mode; the mesh path uses
+  // R3F auto-render (so the backdrop must share the default layer there).
+  const ssfActive = useSSF && heroMode === "ssf";
 
   useEffect(() => {
     useFxStore.getState().set({
@@ -61,16 +79,29 @@ export function CanvasHost() {
             onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
           >
             <FrameDriver />
-            {/* photo background (placeholder for the hero video) */}
+            {/* photo background (placeholder for the hero video). On the SSF path
+                it renders into its own target via a camera layer; on the fallback
+                it shares layer 0 with the direct-render spheres. */}
             <SceneErrorBoundary>
               <Suspense fallback={null}>
-                <PhotoBackdrop />
+                <PhotoBackdrop layer={ssfActive ? BACKDROP_LAYER : 0} />
               </Suspense>
             </SceneErrorBoundary>
-            {/* the "A" fluid model; a GLB failure degrades to just the backdrop */}
-            <SceneErrorBoundary>
+            {/* the "A" hero. WebGPU/full → SSF particle water (default) OR the PBR
+                glass mesh (?hero=mesh, A/B compare); otherwise direct-render spheres.
+                A GLB/SSF failure degrades to the fallback (keyed remount). */}
+            <SceneErrorBoundary
+              key={`${useSSF ? "gpu" : "fallback"}-${heroMode}`}
+              onError={() => setSsfFailed(true)}
+            >
               <Suspense fallback={null}>
-                <FluidParticles />
+                {!useSSF ? (
+                  <FluidParticles />
+                ) : heroMode === "mesh" ? (
+                  <HeroLiquidLogo />
+                ) : (
+                  <SSFHero onFail={() => setSsfFailed(true)} />
+                )}
               </Suspense>
             </SceneErrorBoundary>
           </Canvas>

@@ -14,8 +14,14 @@ type PointerState = {
   ndc: Vector2;
   /** smoothed ndc (lerped in FrameDriver) */
   smooth: Vector2;
-  /** projected world position on the hero plane (filled by HeroLogo, Gate 4) */
+  /** projected world position on the hero plane (z=0); written by FrameDriver */
   world: Vector3;
+  /** previous frame's projected world position (for velocity) */
+  worldPrev: Vector3;
+  /** smoothed world-space pointer velocity (units / second) */
+  worldVel: Vector3;
+  /** |worldVel| — drives the speed-scaled splash */
+  speed: number;
   setActive: (a: boolean) => void;
 };
 
@@ -24,5 +30,8 @@ export const usePointerStore = create<PointerState>((set) => ({
   ndc: new Vector2(),
   smooth: new Vector2(),
   world: new Vector3(),
+  worldPrev: new Vector3(),
+  worldVel: new Vector3(),
+  speed: 0,
   setActive: (active) => set({ active }),
 }));

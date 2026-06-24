@@ -1,7 +1,7 @@
 "use client";
 
 import * as THREE from "three/webgpu";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { Fn, texture, screenUV, uniform, vec2 } from "three/tsl";
@@ -13,9 +13,10 @@ import { Fn, texture, screenUV, uniform, vec2 } from "three/tsl";
 */
 const BG_URL = "/images/AdobeStock_1294278468.jpeg";
 
-export function PhotoBackdrop() {
+export function PhotoBackdrop({ layer = 0 }: { layer?: number }) {
   const tex = useTexture(BG_URL);
   const { size } = useThree();
+  const meshRef = useRef<THREE.Mesh>(null);
 
   const { geometry, material, uScale } = useMemo(() => {
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -52,8 +53,15 @@ export function PhotoBackdrop() {
     [geometry, material],
   );
 
+  // SSF renders the backdrop in isolation via a camera layer; the fallback uses
+  // the default layer 0 (auto-render draws backdrop + spheres together).
+  useEffect(() => {
+    meshRef.current?.layers.set(layer);
+  }, [layer]);
+
   return (
     <mesh
+      ref={meshRef}
       geometry={geometry}
       material={material}
       position={[0, 0, -5]}

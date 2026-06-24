@@ -35,3 +35,7 @@ next-env.d.ts
 
 # cloned reference repo (matsuoka-601/Splash) — read-only shading reference, not built
 /Splash-main/
+
+# cloned reference repo (matsuoka-601/waterball) — read-only
+/waterball/
+/WaterBall-main/

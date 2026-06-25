@@ -37,6 +37,8 @@
   ],
   "exclude": [
     "node_modules",
-    "Splash-main"
+    "Splash-main",
+    "WaterBall-main",
+    "waterball"
   ]
 }

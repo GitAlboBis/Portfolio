@@ -4,8 +4,8 @@ import * as THREE from "three/webgpu";
 import { useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useFluidSim } from "./useFluidSim";
-import { createSkyEnvironment } from "@/webgl/liquid/skyEnvironment";
+import { useFluidSim, type FluidSim } from "./useFluidSim";
+import { useMlsMpmSim } from "./useMlsMpmSim";
 import {
   makeDepthMaterial,
   makeThicknessMaterial,
@@ -74,8 +74,7 @@ function makeColorRT() {
   });
 }
 
-export function SSFHero({ onFail }: { onFail?: () => void }) {
-  const sim = useFluidSim();
+function SSFRender({ sim, onFail }: { sim: FluidSim; onFail?: () => void }) {
   const gl = useThree((s) => s.gl) as unknown as THREE.WebGPURenderer;
 
   const r = useMemo(() => {
@@ -92,29 +91,28 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
     const depthBlurB = makeDepthBlurMaterial(depthRT_B); // reads B
     const thickGaussSrc = makeGaussianMaterial(thicknessRT); // reads source
     const thickGaussA = makeGaussianMaterial(thickBlur_A); // reads A
-    // Sea/sky + sun PMREM (createSkyEnvironment) as the radiance the water reflects
-    // AND refracts — gives the "A" a blue-water read instead of the brown Splash
-    // canyon cubemap. Roughness-aware (proper prefiltered mips), unlike a raw cube.
-    let envRT: { texture: THREE.Texture; dispose: () => void } | null = null;
-    let envTex: THREE.Texture;
-    const sky = createSkyEnvironment();
-    try {
-      const pmrem = new THREE.PMREMGenerator(gl);
-      envRT = pmrem.fromScene(sky.scene, 0.04);
-      envTex = envRT.texture;
-      pmrem.dispose();
-    } catch (e) {
-      console.warn("[ssf] sky environment unavailable:", e);
-      envTex = new THREE.Texture();
-    }
-    sky.dispose();
+    // Real sky cubemap ("Sky Box - Sunny Day", from waterball) — sampled as a SHARP
+    // MIRROR in the composite. THIS is where the water look comes from (a glossy
+    // reflection of a detailed sky), NOT the page background. Self-contained, exactly
+    // like the cloned sims. The cube loads async; the cubeTexture node picks up the 6
+    // faces once they decode (water is flat-tinted for the first frame or two).
+    const envCube = new THREE.CubeTextureLoader()
+      .setPath("/cubemap-sky/")
+      .load(["posx.png", "negx.png", "posy.png", "negy.png", "posz.png", "negz.png"]);
+    envCube.colorSpace = THREE.SRGBColorSpace;
 
     const composite = makeCompositeMaterial({
       depthTex: depthRT_A.texture, // smoothed depth ends here after P2
       thickTex: thickBlur_B.texture,
       backdropTex: backdropRT.texture,
-      env: envTex,
+      env: envCube,
     });
+
+    // TEMP: debug viz from ?dbg= (1=normal, 2=thickness, 3=fresnel)
+    if (typeof window !== "undefined") {
+      const dbg = Number(new URLSearchParams(window.location.search).get("dbg")) || 0;
+      composite.uDebug.value = dbg;
+    }
 
     const quad = new THREE.QuadMesh(composite.material);
     // billboard imposters: a 1x1 quad (positionLocal.xy in [-0.5,0.5]) oriented to
@@ -137,7 +135,7 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
       composite,
       quad,
       geometry,
-      envRT,
+      envCube,
     };
   }, [gl, sim.positions, sim.uRadius]);
 
@@ -183,7 +181,7 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
       r.thickGaussA.material.dispose();
       r.composite.material.dispose();
       r.geometry.dispose();
-      r.envRT?.dispose();
+      r.envCube.dispose();
     },
     [r],
   );
@@ -255,9 +253,10 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
       gl.setRenderTarget(r.depthRT_A);
       gl.render(scene, cam);
 
-      // P2 — masked-Gaussian depth blur, 2 iterations of H then V (ends in depthRT_A)
+      // P2 — narrow-range depth blur, 3 iterations of H then V (ends in depthRT_A);
+      // more passes => smoother surface normals => smoother, less-patchy reflection.
       setClear(scratch.BLACK, 1);
-      for (let it = 0; it < 2; it++) {
+      for (let it = 0; it < 3; it++) {
         r.depthBlurA.uTexel.value.set(1 / w, 0);
         r.quad.material = r.depthBlurA.material;
         gl.setRenderTarget(r.depthRT_B);
@@ -316,4 +315,24 @@ export function SSFHero({ onFail }: { onFail?: () => void }) {
       {SSFControls ? <SSFControls handle={r.composite} /> : null}
     </>
   );
+}
+
+// spring-to-glyph sim (the original) — holds the "A" rigidly, splashes on pointer.
+function SpringHero({ onFail }: { onFail?: () => void }) {
+  const sim = useFluidSim();
+  return <SSFRender sim={sim} onFail={onFail} />;
+}
+
+// real MLS-MPM fluid sim (waterball port). Behind ?sim=mpm while it's tuned.
+function MpmHero({ onFail }: { onFail?: () => void }) {
+  const sim = useMlsMpmSim(FLUID_COUNT);
+  return <SSFRender sim={sim} onFail={onFail} />;
+}
+
+export function SSFHero({ onFail }: { onFail?: () => void }) {
+  // real MLS-MPM fluid is the default now; ?sim=spring keeps the old spring sim.
+  const useSpring =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("sim") === "spring";
+  return useSpring ? <SpringHero onFail={onFail} /> : <MpmHero onFail={onFail} />;
 }

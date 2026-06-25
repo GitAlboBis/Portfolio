@@ -14,7 +14,7 @@ import {
   int,
   uniform,
   texture,
-  pmremTexture,
+  cubeTexture,
   screenUV,
   screenSize,
   dot,
@@ -31,6 +31,7 @@ import {
   max,
   normalize,
   reflect,
+  refract,
   Loop,
   If,
   Discard,
@@ -258,26 +259,30 @@ export type CompositeHandle = {
   uView: Node;
   diffuseColor: Node;
   uDensity: Node;
-  uRoughness: Node;
+  uReflectFloor: Node;
+  uRefractLod: Node;
   uSpecular: Node;
   uEdgeFoam: Node;
-  uRefractBg: Node;
+  uDebug: Node;
 };
 
 /**
- * P5 — composite to screen: a faithful TSL translation of Splash's `fluid.wgsl`.
- * Reconstruct the view-space surface + normal from the smoothed depth, then shade
- * exactly like Splash: REFLECT and REFRACT the environment CUBEMAP (via PMREM, so
- * it is roughness-aware), tint the refraction by Beer-Lambert absorption
- * (exp(-density*10*thickness*(1-diffuseColor))), and mix the two by a Schlick
- * Fresnel. No procedural sky, no photo refraction. Outputs the photo backdrop
- * verbatim where there is no fluid.
+ * P5 — composite to screen. SELF-CONTAINED water (no page-background dependency):
+ * BOTH refraction and reflection are directional lookups of the sky CUBEMAP, so the
+ * body color is driven by the surface NORMAL — the one signal a flat "A" glyph can
+ * supply (its thickness range is too small for Beer-Lambert to carry the look, the
+ * way it does on waterball's 3D ball). The body is the env seen THROUGH the water
+ * (refract, blurred LOD) tinted by Beer-Lambert absorption; the rim/sheen is a sharp
+ * mirror reflection (reflect, LOD 0); the two mixed by a Schlick fresnel with a
+ * reflection FLOOR so the reflection is a real contributor (pure F0=0.02 pins it to
+ * ~2% → flat). See SSF-WATER-REFACTOR-PLAN.md §5. The photo backdrop is shown
+ * verbatim ONLY where there is no fluid.
  */
 export function makeCompositeMaterial(opts: {
   depthTex: THREE.Texture;
   thickTex: THREE.Texture;
   backdropTex: THREE.Texture;
-  env: THREE.Texture; // PMREM radiance from the sky/sea scene (roughness-aware)
+  env: THREE.CubeTexture; // real sky cubemap, sampled as a sharp mirror (LOD 0)
 }): CompositeHandle {
   const m = new THREE.NodeMaterial();
   m.depthTest = false;
@@ -288,26 +293,27 @@ export function makeCompositeMaterial(opts: {
   const uInvProj: Node = uniform(new THREE.Matrix4());
   const uInvView: Node = uniform(new THREE.Matrix4()); // view->world (camera.matrixWorld)
   const uView: Node = uniform(new THREE.Matrix4()); // world->view (camera.matrixWorldInverse) for the light dir
-  const uSpecular: Node = uniform(0.0); // glint weight — Splash AND waterball zero it; off by default
-  const uEdgeFoam: Node = uniform(0.4); // waterball edge-highlight strength (blend toward white at depth jumps)
+  // waterball fluid.wgsl values, verbatim:
   const F0: Node = float(0.02); // water IOR 1.333 -> ~0.02 normal-incidence reflectance
-  // diffuseColor = the color that TRANSMITS; absorption = exp(-density*10*thickness*(1-diffuse)).
-  // waterball uses a SATURATED blue (0,0.7375,0.95) so thick fluid reads deep blue, not pale celeste.
-  const diffuseColor: Node = uniform(new THREE.Vector3(0.0, 0.7375, 0.95));
-  const uDensity: Node = uniform(0.7); // Splash colorDensity (x10 in the formula below)
-  const uRoughness: Node = uniform(0.06); // PMREM roughness: 0 = mirror, higher = frosted
-  // waterball refracts a FLAT background tint (not the env/photo) -> clean translucent body.
-  const uRefractBg: Node = uniform(new THREE.Vector3(0.7, 0.7, 0.75));
+  const diffuseColor: Node = uniform(new THREE.Vector3(0.0, 0.7375, 0.95)); // transmit color
+  const uDensity: Node = uniform(1.6); // Beer-Lambert: exp(-density*thickness*(1-diffuse)); A is thin -> needs higher density
+  const uReflectFloor: Node = uniform(0.18); // baseline reflection weight so the normal-driven env reflection is visible on a flat letter
+  const uRefractLod: Node = uniform(3.0); // env mip for the transmitted (see-through) lookup: higher = softer "behind"
+  const uSpecular: Node = uniform(0.0); // wet sun glint weight (reference keeps it 0; tunable)
+  const uEdgeFoam: Node = uniform(0.35); // cyan-white foam at depth jumps
+  // TEMP debug switch (set from ?dbg=): 1=normal, 2=thickness, 3=fresnel, 4=refraction, 5=reflection
+  const uDebug: Node = uniform(0.0);
 
   // view-space position from stored eye-z: scale the inverse-projected corner ray
-  // so its z matches the stored linear depth.
-  const reconstruct: Node = Fn(([uv]: Node) => {
-    const eyeZ = texture(opts.depthTex, uv).r;
-    const clip = vec4(uv.mul(2.0).sub(1.0), float(1.0), float(1.0));
+  // so its z matches the stored linear depth. Plain JS helper (inlined per call) —
+  // NOT a TSL Fn — so it doesn't emit the "return in inline Fn" build warning.
+  const reconstruct = (uvArg: Node): Node => {
+    const eyeZ = texture(opts.depthTex, uvArg).r;
+    const clip = vec4(uvArg.mul(2.0).sub(1.0), float(1.0), float(1.0));
     const ray = uInvProj.mul(clip);
     const dir = ray.xyz.div(ray.w);
     return dir.mul(eyeZ.div(dir.z));
-  });
+  };
 
   m.fragmentNode = Fn(() => {
     const uv = screenUV;
@@ -335,39 +341,49 @@ export function makeCompositeMaterial(opts: {
 
       const N = normalize(cross(ddx, ddy)).toVar();
       // force the normal to face the camera (view +z) regardless of winding
+      // (equivalent to waterball's `-normalize(cross(ddx,ddy))`).
       If(N.z.lessThan(0.0), () => {
         N.assign(N.negate());
       });
 
-      const rayDir = normalize(P).toVar(); // eye -> surface (incident, into scene)
+      const rayDir = normalize(P).toVar(); // eye -> surface (== waterball rayDir)
       const thickness = texture(opts.thickTex, uv).r.toVar();
+      // Beer-Lambert absorption toward the water color (thicker => bluer/darker).
+      const tint = diffuseColor.oneMinus().mul(thickness).mul(uDensity).negate().exp().toVar();
 
-      // REFRACTION (waterball): a FLAT background tint absorbed by Beer-Lambert —
-      // no env/photo refraction, so the body reads as a clean translucent blue volume.
-      const trans = exp(diffuseColor.sub(1.0).mul(uDensity.mul(10.0).mul(thickness))).toVar();
-      const refractionColor = uRefractBg.mul(trans).toVar();
+      // REFRACTION — DIRECTIONAL env lookup (Splash render/fluid.wgsl:105-113): the body
+      // is the environment seen THROUGH the water, bent by the surface normal, tinted by
+      // Beer-Lambert. Normal-driven => varies per-pixel even on a flat letter, and
+      // self-contained (no dependency on a possibly-black page backdrop). Softened LOD
+      // so it reads as diffuse "behind", not a second mirror.
+      const refrDirView = refract(rayDir, N, float(1.0 / 1.333));
+      const refrDirWorld = normalize(uInvView.mul(vec4(refrDirView, 0.0)).xyz);
+      const transmitted = cubeTexture(opts.env, refrDirWorld, uRefractLod).rgb.toVar();
+      const refractionColor = transmitted.mul(tint).toVar();
 
-      // REFLECTION of the environment cubemap (Splash: reflect(rayDir,N) -> envmap)
+      // REFLECTION — sharp mirror of the sky cube.
       const reflDirView = reflect(rayDir, N);
       const reflDirWorld = normalize(uInvView.mul(vec4(reflDirView, 0.0)).xyz);
-      const reflectionColor = pmremTexture(opts.env, reflDirWorld, uRoughness).toVar();
+      const reflectionColor = cubeTexture(opts.env, reflDirWorld, float(0.0)).rgb.toVar();
 
-      // Schlick Fresnel + mix (Splash: finalColor = mix(refraction, reflection, fresnel))
+      // Schlick Fresnel + reflection FLOOR. Pure F0=0.02 pins reflection to ~2% at the
+      // near-normal viewing that covers a flat letter -> the body collapses to one
+      // (refraction) term. The floor keeps the normal-driven reflection a real
+      // contributor so the surface actually shimmers. (Was the "tinta unita" bug.)
       const ndv = clamp(dot(N, rayDir.negate()), float(0.0), float(1.0));
       const fres = clamp(
-        F0.add(oneMinus(F0).mul(pow(oneMinus(ndv), float(5.0)))),
+        F0.add(oneMinus(F0).mul(pow(oneMinus(ndv), float(5.0)))).add(uReflectFloor),
         float(0.0),
         float(1.0),
       );
       outColor.assign(mix(refractionColor, reflectionColor, fres));
 
-      // Specular glint (Splash fluid.wgsl:99-101, there multiplied by 0): a tight
-      // Blinn-Phong wet highlight from a fixed light dir, added on top of the env
-      // mix. rayDir is eye->surface (== Splash rayDirView), so L - rayDir matches.
-      const lightDirView = normalize(uView.mul(vec4(0.2, 0.0, 1.0, 0.0)).xyz);
+      // WET SUN GLINT — a broad, bright Blinn-Phong highlight from the sky's sun, so
+      // the surface actually sparkles "wet" (the old pow-250 glint was invisible).
+      const lightDirView = normalize(uView.mul(vec4(0.4, 0.7, 0.6, 0.0)).xyz);
       const H = normalize(lightDirView.sub(rayDir));
-      const spec = pow(max(dot(H, N), float(0.0)), float(300.0));
-      outColor.addAssign(vec3(spec).mul(uSpecular));
+      const spec = pow(max(dot(H, N), float(0.0)), float(80.0));
+      outColor.addAssign(vec3(1.0, 0.97, 0.9).mul(spec).mul(uSpecular));
 
       // Edge highlighting (waterball fluid.wgsl:86-89): at depth discontinuities
       // (silhouette + interior folds) blend toward white — reads as sea foam/spray
@@ -377,7 +393,25 @@ export function makeCompositeMaterial(opts: {
         max(abs(Pu.z.sub(P.z)), abs(P.z.sub(Pd.z))),
       );
       If(dzMax.greaterThan(float(0.15)), () => {
-        outColor.assign(mix(outColor, vec3(0.9), uEdgeFoam));
+        // cyan-white sea foam at depth jumps (silhouette + folds) — the brand "schiuma".
+        outColor.assign(mix(outColor, vec3(0.8, 0.95, 1.0), uEdgeFoam));
+      });
+
+      // TEMP debug overrides (cascade): 1=normal, 2=thickness, 3=fresnel
+      If(uDebug.greaterThan(0.5), () => {
+        outColor.assign(N.mul(0.5).add(0.5));
+      });
+      If(uDebug.greaterThan(1.5), () => {
+        outColor.assign(vec3(thickness.mul(4.0)));
+      });
+      If(uDebug.greaterThan(2.5), () => {
+        outColor.assign(vec3(fres));
+      });
+      If(uDebug.greaterThan(3.5), () => {
+        outColor.assign(refractionColor);
+      });
+      If(uDebug.greaterThan(4.5), () => {
+        outColor.assign(reflectionColor);
       });
     });
 
@@ -385,7 +419,7 @@ export function makeCompositeMaterial(opts: {
     return vec4(outColor, 1.0);
   })();
 
-  return { material: m, uInvProj, uInvView, uView, diffuseColor, uDensity, uRoughness, uSpecular, uEdgeFoam, uRefractBg };
+  return { material: m, uInvProj, uInvView, uView, diffuseColor, uDensity, uReflectFloor, uRefractLod, uSpecular, uEdgeFoam, uDebug };
 }
 
 export { BG_SENTINEL };

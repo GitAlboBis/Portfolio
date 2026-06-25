@@ -3,8 +3,9 @@
   See docs/04-3D-HERO-WATER-LOGO.md and the SSF blueprint.
 */
 
-/** Particle count for the fluid sim (compute-driven). */
-export const FLUID_COUNT = 42000;
+/** Particle count for the fluid sim (compute-driven). Higher = denser, smoother
+ *  fluid surface for the MLS-MPM "A" (WaterBall runs 60k–100k). */
+export const FLUID_COUNT = 56000;
 
 /*
   Camera layers used to render scene subsets in isolation from the SSF render

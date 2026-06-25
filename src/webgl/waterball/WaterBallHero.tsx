@@ -6,6 +6,7 @@ import { Camera } from "./camera";
 import { MLSMPMSimulator, mlsmpmParticleStructSize } from "./mls-mpm/mls-mpm";
 import { FluidRenderer } from "./render/fluidRender";
 import { renderUniformsViews, renderUniformsValues, numParticlesMax } from "./common";
+import { useControls } from "leva";
 
 /*
   WaterBall hero — a faithful embed of matsuoka-601/WaterBall's raw-WebGPU MLS-MPM
@@ -18,10 +19,11 @@ import { renderUniformsViews, renderUniformsValues, numParticlesMax } from "./co
   editing mls-mpm/g2p.wgsl.
 */
 
-// WaterBall used 60k for a big BALL; the "A" is a much smaller volume, so 60k would
-// over-pack it into a high-pressure balloon. Match the count to the letter volume so
-// the fluid fills crisp strokes without bursting out. Tune this first if the "A"
-// balloons (lower) or looks sparse/holey (higher).
+// Step 1a: the fill no longer comes from a timed jet but from sampling the "A" volume
+// directly (initFromHomes). This is now the MAX cap for that home-fill; the actual
+// count is derived from the sampling spacing (and auto-widened to never exceed this cap
+// with a uniform fill). Lower if the "A" looks dense/heavy; the spacing in initFromHomes
+// controls per-volume density (overpressure/balloon).
 const NUM_PARTICLES = 40000;
 // BIG box (Alberto's "two boxes": this is the splash BOUND; the "A" confinement inside is
 // the rest shape). Wide XY = room for the spray to fly out around the letter; thin Z keeps
@@ -40,6 +42,18 @@ const AUTO_ROTATE = false; // the "A" should read head-on, not spin out of legib
 export function WaterBallHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [unsupported, setUnsupported] = useState(false);
+
+  // step 1b: live splash tuning (leva panel, top-right). The RAF loop reads the latest
+  // values through a ref so edits take effect instantly, without rebuilding the sim.
+  const splash = useControls("splash", {
+    restoreK: { value: 0.1, min: 0, max: 3, step: 0.01 },
+    speedGate: { value: 1.0, min: 0.1, max: 60, step: 0.1 },
+    drag: { value: 0, min: 0, max: 0.2, step: 0.005 },
+    pokeForce: { value: 0.2, min: 0, max: 2, step: 0.01 },
+    leashRadius: { value: 50, min: 5, max: 60, step: 1 },
+  });
+  const splashRef = useRef(splash);
+  splashRef.current = splash;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -157,6 +171,10 @@ export function WaterBallHero() {
 
       camera = new Camera(canvas, { orbit: false, zoom: false, hoverTarget: window });
       sim.reset(INIT_BOX, SPHERE_RADIUS);
+      // step 1a: fill the "A" instantly by seeding particles on sampled home positions
+      // (replaces the ~13s jet). With no gravity, they hold the shape; the existing
+      // g2p wall still confines. Disables the jet (numParticles already == target).
+      sim.initFromHomes(INIT_BOX, NUM_PARTICLES);
       // face the "A" head-on (+Z) and frame its center. The letter lives in box XY
       // (apex y=52, feet y=9 -> center ~30.5); reset() defaults to a side-on angle that
       // suited the symmetric ball but would show the flat letter edge-on.
@@ -177,6 +195,13 @@ export function WaterBallHero() {
 
       const frame = () => {
         if (cancelled || !device || !camera) return;
+        // push the latest leva values into the sim before stepping (live tuning)
+        const sp = splashRef.current;
+        sim.splashRestoreK = sp.restoreK;
+        sim.splashSpeedGate = sp.speedGate;
+        sim.splashDrag = sp.drag;
+        sim.splashLeashRadius = sp.leashRadius;
+        sim.pokeForce = sp.pokeForce;
         sim.changeBoxSize(realBoxSize);
         dev.queue.writeBuffer(renderUniformBuffer, 0, renderUniformsValues);
         const enc = dev.createCommandEncoder();
@@ -184,7 +209,7 @@ export function WaterBallHero() {
           enc,
           [camera.currentHoverX / canvas.clientWidth, camera.currentHoverY / canvas.clientHeight],
           camera.calcMouseVelocity(),
-          NUM_PARTICLES,
+          sim.numParticles, // home-fill already seeded all particles -> keep the jet off
           MOUSE_RADIUS,
         );
         renderer.execute(context, enc, sim.numParticles, false, STRETCH);

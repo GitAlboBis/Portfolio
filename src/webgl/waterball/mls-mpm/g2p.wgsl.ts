@@ -4,13 +4,19 @@ export default `struct Particle {
     C: mat3x3f, 
 }
 struct Cell {
-    vx: i32, 
-    vy: i32, 
-    vz: i32, 
-    mass: i32, 
+    vx: i32,
+    vy: i32,
+    vz: i32,
+    mass: i32,
+}
+struct SplashParams {
+    restoreK: f32,
+    speedGate: f32,
+    drag: f32,
+    leashRadius: f32,
 }
 
-override fixed_point_multiplier: f32; 
+override fixed_point_multiplier: f32;
 override dt: f32; 
 
 @group(0) @binding(0) var<storage, read_write> particles: array<Particle>;
@@ -19,6 +25,8 @@ override dt: f32;
 @group(0) @binding(3) var<uniform> init_box_size: vec3f;
 @group(0) @binding(4) var<uniform> numParticles: u32;
 @group(0) @binding(5) var<uniform> sphereRadius: f32;
+@group(0) @binding(6) var<storage, read> homes: array<f32>;
+@group(0) @binding(7) var<uniform> splash: SplashParams;
 
 fn decodeFixedPoint(fixed_point: i32) -> f32 {
 	return f32(fixed_point) / fixed_point_multiplier;
@@ -86,38 +94,48 @@ fn g2p(@builtin(global_invocation_id) id: vec3<u32>) {
             clamp(particles[id.x].position.z, 1., real_box_size.z - 2.)
         );
 
-        // ---- "A" glyph confinement: a FIRM wall holds the incompressible fluid INSIDE the
-        // stroke half-width -> a solid, filled letter (no inflate, which would hollow it).
-        let P = vec2f(particles[id.x].position.x, particles[id.x].position.y);
-        let apex  = vec2f(40.0, 48.0);
-        let lfoot = vec2f(26.0, 12.0);
-        let rfoot = vec2f(54.0, 12.0);
-        let tcross = (48.0 - 26.0) / (48.0 - 12.0);
-        let cl = apex + (lfoot - apex) * tcross;
-        let cr = apex + (rfoot - apex) * tcross;
-        let q1 = closestOnSeg(P, apex, lfoot);
-        let q2 = closestOnSeg(P, apex, rfoot);
-        let q3 = closestOnSeg(P, cl, cr);
-        var closest = q1;
-        var dmin = distance(P, q1);
-        let e2 = distance(P, q2);
-        if (e2 < dmin) { closest = q2; dmin = e2; }
-        let e3 = distance(P, q3);
-        if (e3 < dmin) { closest = q3; dmin = e3; }
-        let halfW = 5.0;
-        let toSkel = closest - P;
-        let dSkel = max(length(toSkel), 1e-4);
-        let nSkel = toSkel / dSkel;
-        if (dmin > halfW) {
-            particles[id.x].v += vec3f(nSkel * (dmin - halfW) * 6.0, 0.0);
+        // ---- step 1b: "A" shape constraint via HOME positions (PBD attachment) ----
+        // Every particle owns a "home" that fills the solid "A". A velocity-gated soft
+        // pull reels it toward home: at rest the gate is full so the letter holds its
+        // shape (and since the particle already sits ON its home, the pull is ~0 -> no
+        // freeze); a fast mouse poke pushes speed above the gate threshold, the gate
+        // closes, and the particle flies out unobstructed (the splash). As it slows the
+        // gate re-opens and the restore brings it home to re-form the "A" (the undertow).
+        // No firm wall -> nothing blocks the splash; no inflate -> no hollow shell.
+        let home = vec3f(homes[3u * id.x], homes[3u * id.x + 1u], homes[3u * id.x + 2u]);
+        let toHome = home - particles[id.x].position;
+        let dist = length(toHome);
+        let speed = length(particles[id.x].v);
+        // speed gate (splash): near home, fast particles escape so a flick throws water out.
+        let speedGateTerm = clamp(1.0 - speed / max(splash.speedGate, 1e-3), 0.0, 1.0);
+        // LEASH: the further a particle strays past leashRadius, the more the gate is forced
+        // back open (toward 1), so nothing escapes for good. This reels in the runaways that
+        // continuous fast pokes would otherwise fling out to the invisible box walls.
+        let leashWidth = 12.0;
+        let leash = clamp((dist - splash.leashRadius) / leashWidth, 0.0, 1.0);
+        let gate = max(speedGateTerm, leash);
+        particles[id.x].v += toHome * (splash.restoreK * gate);
+        // damping: a touch everywhere (drag). The leash + box-wall bounce + un-stick handle
+        // strayed particles now, so no separate stray-damping term is needed.
+        particles[id.x].v *= (1.0 - splash.drag);
+        // hard safety: cap speed so a feedback loop can never blow a particle to infinity.
+        let sp2 = dot(particles[id.x].v, particles[id.x].v);
+        let maxSpeed = 60.0;
+        if (sp2 > maxSpeed * maxSpeed) {
+            particles[id.x].v *= maxSpeed / sqrt(sp2);
         }
-        particles[id.x].v += vec3f(nSkel * 0.05, 0.0); // gentle cohesion
-        let zc = real_box_size.z * 0.5;
-        let zh = 5.0;
-        let dz = particles[id.x].position.z - zc;
-        if (abs(dz) > zh) {
-            particles[id.x].v.z += (sign(dz) * zh - dz) * 6.0;
+
+        // UN-STICK: updateGrid zeroes the velocity ONLY of the outermost boundary cells
+        // (x<2, etc.), which can TRAP a particle that penetrates there -- its velocity is
+        // wiped before it can advect, so it stays glued even at rest. Nudge ONLY those
+        // dead-cell particles home by POSITION (bypassing the grid). Kept tight (~2 units)
+        // so particles bouncing in the 3..box-3 range are left alone -> the splash still
+        // ricochets off the box walls naturally.
+        let pEdge = particles[id.x].position;
+        if (any(pEdge < vec3f(2.2)) || any(pEdge > real_box_size - vec3f(2.2))) {
+            particles[id.x].position += toHome * 0.05;
         }
+
         let cC = vec3f(real_box_size.x * 0.5, real_box_size.y * 0.5, real_box_size.z * 0.5);
         let dC = particles[id.x].position - cC;
         let safeR = max(sphereRadius, length(real_box_size));

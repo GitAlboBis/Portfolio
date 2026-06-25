@@ -13,10 +13,11 @@ struct RenderUniforms {
     inv_view_matrix: mat4x4f, 
 }
 struct MouseInfo {
-    screenSize: vec2f, 
-    mouseCoord : vec2f, 
-    mouseVel : vec2f, 
-    mouseRadius: f32, 
+    screenSize: vec2f,
+    mouseCoord : vec2f,
+    mouseVel : vec2f,
+    mouseRadius: f32,
+    pokeForce: f32,
 }
 
 override fixed_point_multiplier: f32; 
@@ -96,7 +97,7 @@ fn updateGrid(@builtin(global_invocation_id) id: vec3<u32>) {
             float_v /= decodeFixedPoint(cells[id.x].mass);
             
             if (cellSquareDistToMouse < r * r) { 
-                let strength = (r * r - cellSquareDistToMouse) / (r * r) * 0.3; // mouse-poke force (WaterBall default 0.15; speed-proportional via forceDir)
+                let strength = (r * r - cellSquareDistToMouse) / (r * r) * mouseInfo.pokeForce; // live mouse-poke force (leva); speed-proportional via forceDir
                 cells[id.x].vx = encodeFixedPoint(float_v.x + strength * forceDir.x); 
                 cells[id.x].vy = encodeFixedPoint(float_v.y + strength * forceDir.y); 
                 cells[id.x].vz = encodeFixedPoint(float_v.z + strength * forceDir.z); 

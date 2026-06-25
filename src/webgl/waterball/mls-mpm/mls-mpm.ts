@@ -55,7 +55,23 @@ export class MLSMPMSimulator {
 
     restDensity: number
 
-    constructor (particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderDiameter: number, device: GPUDevice, 
+    // step 1a: "home" positions that fill the solid "A" (one per particle), kept on CPU
+    // for the soft restore (step 1b). null until initFromHomes() runs.
+    homePositions: Float32Array | null
+    homeCount: number
+
+    // step 1b: GPU home buffer (g2p binding 6) + live splash uniform (g2p binding 7),
+    // plus the CPU-side live params (driven by leva each frame, written in execute()).
+    homeBuffer: GPUBuffer
+    splashParamsBuffer: GPUBuffer
+    splashParamsValues: Float32Array
+    splashRestoreK: number
+    splashSpeedGate: number
+    splashDrag: number
+    splashLeashRadius: number
+    pokeForce: number
+
+    constructor (particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderDiameter: number, device: GPUDevice,
         renderUniformBuffer: GPUBuffer, depthMapTextureView: GPUTextureView, canvas: HTMLCanvasElement) 
     {
         this.device = device
@@ -63,6 +79,14 @@ export class MLSMPMSimulator {
         this.frameCount = 0
         this.spawned = false
         this.numParticles = 0
+        this.homePositions = null
+        this.homeCount = 0
+        this.splashRestoreK = 0.10
+        this.splashSpeedGate = 1.0
+        this.splashDrag = 0.0
+        this.splashLeashRadius = 50.0
+        this.pokeForce = 0.20
+        this.splashParamsValues = new Float32Array(4)
         const clearGridModule = device.createShaderModule({ code: clearGrid });
         const spawnParticlesModule = device.createShaderModule({ code: spawnParticles });
         const p2g1Module = device.createShaderModule({ code: p2g_1 });
@@ -186,8 +210,18 @@ export class MLSMPMSimulator {
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
         this.sphereRadiusBuffer = device.createBuffer({
-            label: 'sphere radius buffer', 
+            label: 'sphere radius buffer',
             size: 4, // single f32
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        })
+        this.homeBuffer = device.createBuffer({
+            label: 'home positions buffer',
+            size: 12 * numParticlesMax, // vec3 packed as 3x f32 (12B); read as array<f32> in g2p
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        })
+        this.splashParamsBuffer = device.createBuffer({
+            label: 'splash params buffer',
+            size: 16, // restoreK, speedGate, drag, leashRadius
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
 
@@ -253,8 +287,10 @@ export class MLSMPMSimulator {
                 { binding: 1, resource: { buffer: cellBuffer }},
                 { binding: 2, resource: { buffer: this.realBoxSizeBuffer }},
                 { binding: 3, resource: { buffer: this.initBoxSizeBuffer }},
-                { binding: 4, resource: { buffer: this.numParticlesBuffer }}, 
-                { binding: 5, resource: { buffer: this.sphereRadiusBuffer }}, 
+                { binding: 4, resource: { buffer: this.numParticlesBuffer }},
+                { binding: 5, resource: { buffer: this.sphereRadiusBuffer }},
+                { binding: 6, resource: { buffer: this.homeBuffer }},
+                { binding: 7, resource: { buffer: this.splashParamsBuffer }},
             ],
         })
         this.copyPositionBindGroup = device.createBindGroup({
@@ -300,6 +336,93 @@ export class MLSMPMSimulator {
         return particles;
     }
 
+    // --- step 1a: home-position fill -------------------------------------------------
+    // Sample "home" positions that FILL the solid "A" volume (3 capsule strokes of
+    // half-width halfW within the Z slab), seed every particle ON its home, and keep
+    // the homes (CPU) for the soft restore wired up in step 1b. Replaces the slow jet
+    // spawn: the solver has NO gravity, so particles seeded on their homes hold the
+    // shape on their own. Geometry MUST stay in sync with mls-mpm/g2p.wgsl
+    // (apex / lfoot / rfoot / crossbar / halfW / zh) or the fill and the confinement
+    // would disagree.
+    initFromHomes(initBoxSize: number[], maxParticles: number, baseSpacing = 0.66) {
+        const halfW = 5.0;
+        const zh = 5.0;
+        const apex = [40.0, 48.0];
+        const lfoot = [26.0, 12.0];
+        const rfoot = [54.0, 12.0];
+        const tcross = (48.0 - 26.0) / (48.0 - 12.0);
+        const cl = [apex[0] + (lfoot[0] - apex[0]) * tcross, apex[1] + (lfoot[1] - apex[1]) * tcross];
+        const cr = [apex[0] + (rfoot[0] - apex[0]) * tcross, apex[1] + (rfoot[1] - apex[1]) * tcross];
+        const zc = initBoxSize[2] * 0.5;
+
+        const distSeg = (px: number, py: number, a: number[], b: number[]) => {
+            const abx = b[0] - a[0];
+            const aby = b[1] - a[1];
+            const t = Math.max(0, Math.min(1, ((px - a[0]) * abx + (py - a[1]) * aby) / Math.max(abx * abx + aby * aby, 1e-6)));
+            const cx = a[0] + t * abx;
+            const cy = a[1] + t * aby;
+            return Math.hypot(px - cx, py - cy);
+        };
+        const inA = (x: number, y: number, z: number) => {
+            if (Math.abs(z - zc) > zh) return false;
+            const d = Math.min(distSeg(x, y, apex, lfoot), distSeg(x, y, apex, rfoot), distSeg(x, y, cl, cr));
+            return d <= halfW;
+        };
+
+        // scan region = "A" bounding box padded by halfW (clamped well inside the box)
+        const x0 = 21, x1 = 59, y0 = 7, y1 = 53;
+        const z0 = zc - zh, z1 = zc + zh;
+        const cap = Math.min(maxParticles, numParticlesMax);
+
+        const countAt = (s: number) => {
+            let c = 0;
+            for (let z = z0; z <= z1; z += s)
+                for (let y = y0; y <= y1; y += s)
+                    for (let x = x0; x <= x1; x += s)
+                        if (inA(x, y, z)) c++;
+            return c;
+        };
+
+        // choose spacing so a full, UNIFORM volume fill lands at <= cap. If the base
+        // (densest) spacing overflows, widen it once (density ~ 1/s^3) instead of
+        // truncating the scan spatially (which would leave half the letter empty).
+        let s = baseSpacing;
+        let n = countAt(s);
+        if (n > cap) {
+            s *= Math.cbrt(n / cap) * 1.02; // small margin so the discrete recount lands under cap
+            n = countAt(s);
+        }
+
+        const particlesBuf = new ArrayBuffer(mlsmpmParticleStructSize * numParticlesMax);
+        const homes = new Float32Array(cap * 3);
+        let idx = 0;
+        for (let z = z0; z <= z1 && idx < cap; z += s) {
+            for (let y = y0; y <= y1 && idx < cap; y += s) {
+                for (let x = x0; x <= x1 && idx < cap; x += s) {
+                    if (!inA(x, y, z)) { continue; }
+                    const jx = x + (Math.random() - 0.5) * s * 0.6;
+                    const jy = y + (Math.random() - 0.5) * s * 0.6;
+                    const jz = z + (Math.random() - 0.5) * s * 0.6;
+                    const off = mlsmpmParticleStructSize * idx;
+                    new Float32Array(particlesBuf, off + 0, 3).set([jx, jy, jz]);
+                    // v (off+16) and C (off+32) stay zero -- the ArrayBuffer is zero-filled
+                    homes[idx * 3 + 0] = jx;
+                    homes[idx * 3 + 1] = jy;
+                    homes[idx * 3 + 2] = jz;
+                    idx++;
+                }
+            }
+        }
+
+        this.device.queue.writeBuffer(this.particleBuffer, 0, particlesBuf, 0, mlsmpmParticleStructSize * idx);
+        // upload the packed homes (3x f32 per particle) for the g2p soft restore (step 1b)
+        this.device.queue.writeBuffer(this.homeBuffer, 0, homes, 0, idx * 3);
+        this.homePositions = homes.subarray(0, idx * 3);
+        this.homeCount = idx;
+        this.changeNumParticles(idx);
+        return idx;
+    }
+
     reset(initBoxSize: number[], sphereRadius: number) {
         renderUniformsViews.sphere_size.set([this.renderDiameter])
         const maxGridCount = this.max_x_grids * this.max_y_grids * this.max_z_grids;
@@ -327,12 +450,21 @@ export class MLSMPMSimulator {
             screenSize: new Float32Array(this.mouseInfoValues, 0, 2),
             mouseCoord: new Float32Array(this.mouseInfoValues, 8, 2),
             mouseVel: new Float32Array(this.mouseInfoValues, 16, 2),
-            mouseRadius : new Float32Array(this.mouseInfoValues, 24, 2),
+            mouseRadius : new Float32Array(this.mouseInfoValues, 24, 1),
+            pokeForce : new Float32Array(this.mouseInfoValues, 28, 1),
         };
         canvasInfoViews.mouseCoord.set([mouseCoord[0], mouseCoord[1]])
         canvasInfoViews.mouseVel.set([mouseVel[0], mouseVel[1]])
         canvasInfoViews.mouseRadius.set([mouseRadius])
+        canvasInfoViews.pokeForce.set([this.pokeForce])
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
+
+        // live splash params (leva): restoreK, speedGate, drag, leashRadius
+        this.splashParamsValues[0] = this.splashRestoreK
+        this.splashParamsValues[1] = this.splashSpeedGate
+        this.splashParamsValues[2] = this.splashDrag
+        this.splashParamsValues[3] = this.splashLeashRadius
+        this.device.queue.writeBuffer(this.splashParamsBuffer, 0, this.splashParamsValues)
 
         if (this.frameCount % 2 == 0 && this.numParticles < targetNumParticles) {
             computePass.setBindGroup(0, this.spawnParticlesBindGroup)

@@ -27,6 +27,7 @@
 | `C:/Users/alber/Desktop/PortfolioAlbertoTuveri/docs/09-MCP.md` | Routing MCP/connettori per task: Blender, Higgsfield, Context7, claude-in-chrome, Vercel, Figma/Canva, Supabase; setup e passi manuali. | Usare un MCP (asset 3D, video, QA visivo, deploy, docs). |
 | `C:/Users/alber/Desktop/PortfolioAlbertoTuveri/docs/10-SKILLS.md` | Tabella di routing delle skill installate per task + regola di scoperta/uso autonomo. | Scegliere quali skill invocare per un dato task. |
 | `C:/Users/alber/Desktop/PortfolioAlbertoTuveri/docs/11-WORKFLOW.md` | Workflow operativo agenti: gates, loop di QA visivo, done-when, orchestrazione sub-agenti, disciplina commit. | Eseguire qualsiasi task di build: definisce processo e criteri di "fatto". |
+| `C:/Users/alber/Desktop/PortfolioAlbertoTuveri/docs/12-PARTICLE-PHYSICS.md` | Base di conoscenza fisica delle particelle: PBD (constraint projection), PBF (fluidi incomprimibili: density constraint, s_corr, vorticity, XSPH), Unified Particle Physics (shape matching, attrito, sleeping, diffuse particles); + mappatura sul nostro hero MLS-MPM e parametri. | Toccare il solver del fluido (`src/webgl/waterball/mls-mpm/*`), tarare splash/forma, o valutare un solver alternativo (PBF). |
 
 ## Ordine di lettura consigliato (nuovo agente)
 

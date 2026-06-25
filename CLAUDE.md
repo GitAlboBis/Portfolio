@@ -41,6 +41,7 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript strict · **bun** �
 | `docs/09-MCP.md` | Routing MCP/connettori per task: Blender, Higgsfield, Context7, claude-in-chrome, Vercel, Figma/Canva, Supabase; setup + passi manuali | Quando ti serve un MCP/connettore |
 | `docs/10-SKILLS.md` | Tabella di routing delle skill installate per task + regola di scoperta/uso autonomo | Per scegliere la skill giusta per il task |
 | `docs/11-WORKFLOW.md` | Workflow operativo: gates, loop QA visivo, done-when, orchestrazione sub-agenti, disciplina commit | A inizio e fine di ogni unita di lavoro |
+| `docs/12-PARTICLE-PHYSICS.md` | Fisica delle particelle (PBD constraint-projection · PBF fluidi incomprimibili: density constraint, s_corr, vorticity, XSPH · Unified: shape matching, attrito, sleeping, diffuse/foam particles) + mappatura sul nostro solver MLS-MPM e tabella parametri | Prima di toccare il solver fluido (`src/webgl/waterball/mls-mpm/*`), tarare splash/forma, o valutare PBF come alternativa |
 
 ## 5. Routing Rapido SKILL + MCP
 

@@ -43,17 +43,36 @@ export function WaterBallHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [unsupported, setUnsupported] = useState(false);
 
-  // step 1b: live splash tuning (leva panel, top-right). The RAF loop reads the latest
-  // values through a ref so edits take effect instantly, without rebuilding the sim.
+  // live water tuning (leva panel, top-right). The RAF loop reads the latest values through
+  // a ref so edits take effect instantly, without rebuilding the sim.
+  //   inflate/gravity = the CHURN ENGINE (the water moves on its own, like the original
+  //     WaterBall): inflate fills + stirs the "A" tube, gravity gently pulls to its centerline.
+  //   restoreK/speedGate/leashRadius = confinement + splash recall (speedGate high so the
+  //     gentle inner churn is NOT recalled; only fast mouse pokes escape, then get reeled home).
   const splash = useControls("splash", {
-    restoreK: { value: 0.1, min: 0, max: 3, step: 0.01 },
-    speedGate: { value: 1.0, min: 0.1, max: 60, step: 0.1 },
+    inflate: { value: 4.0, min: 0, max: 12, step: 0.1 },
+    gravity: { value: 0.05, min: 0, max: 2, step: 0.01 },
     drag: { value: 0, min: 0, max: 0.2, step: 0.005 },
-    pokeForce: { value: 0.2, min: 0, max: 2, step: 0.01 },
-    leashRadius: { value: 50, min: 5, max: 60, step: 1 },
+    restoreK: { value: 0.1, min: 0, max: 3, step: 0.01 },
+    speedGate: { value: 2.5, min: 0.1, max: 60, step: 0.1 },
+    leashRadius: { value: 60, min: 5, max: 120, step: 1 },
+    pokeForce: { value: 1.0, min: 0, max: 4, step: 0.01 },
   });
   const splashRef = useRef(splash);
   splashRef.current = splash;
+
+  // step 1c: gentle 3D camera "sway" — the only safe way to give the resting "A" life.
+  // Moving the FLUID at rest disperses it (any motion lifts speed past the gate so the
+  // restore switches off and the water scatters — proven/reverted twice; see HANDOFF
+  // gotcha). Orbiting the CAMERA never touches the sim. Yaw+pitch trace a small ellipse so
+  // the flat letter "floats" in 3D yet stays legible (a full rotation would show it edge-
+  // on). sway=0 -> static head-on. Read live via ref so the leva edits apply instantly.
+  const camCtl = useControls("camera", {
+    sway: { value: 0.18, min: 0, max: 0.6, step: 0.01 },
+    swaySpeed: { value: 0.35, min: 0, max: 2, step: 0.01 },
+  });
+  const camCtlRef = useRef(camCtl);
+  camCtlRef.current = camCtl;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -187,6 +206,7 @@ export function WaterBallHero() {
       camera.prevHoverX = camera.currentHoverX;
       camera.prevHoverY = camera.currentHoverY;
       const realBoxSize = [...INIT_BOX];
+      const swayStart = performance.now();
 
       if (cancelled) {
         dev.destroy();
@@ -197,11 +217,25 @@ export function WaterBallHero() {
         if (cancelled || !device || !camera) return;
         // push the latest leva values into the sim before stepping (live tuning)
         const sp = splashRef.current;
+        sim.splashInflate = sp.inflate;
+        sim.splashGravity = sp.gravity;
+        sim.splashDrag = sp.drag;
         sim.splashRestoreK = sp.restoreK;
         sim.splashSpeedGate = sp.speedGate;
-        sim.splashDrag = sp.drag;
         sim.splashLeashRadius = sp.leashRadius;
         sim.pokeForce = sp.pokeForce;
+        // step 1c: drive the camera-sway ellipse (yaw via sin, pitch via cos) and rebuild
+        // the view BEFORE the uniform upload below, so THIS frame renders from the swayed
+        // camera. Eased in over ~2.5s so the "A" starts exactly head-on (yaw=pitch=0) and
+        // drifts into the float. Pitch amplitude is shallower (0.55x) so the flat letter
+        // stays legible. Auto-rotate stays off (sway sets the angles absolutely).
+        const cc = camCtlRef.current;
+        const elapsed = (performance.now() - swayStart) * 0.001;
+        const ramp = Math.min(1, elapsed / 2.5);
+        const phase = elapsed * cc.swaySpeed;
+        camera.currentXtheta = ramp * cc.sway * Math.sin(phase);
+        camera.currentYtheta = ramp * cc.sway * 0.55 * Math.cos(phase);
+        camera.recalculateView();
         sim.changeBoxSize(realBoxSize);
         dev.queue.writeBuffer(renderUniformBuffer, 0, renderUniformsValues);
         const enc = dev.createCommandEncoder();

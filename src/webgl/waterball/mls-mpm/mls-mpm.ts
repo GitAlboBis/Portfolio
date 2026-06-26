@@ -65,6 +65,8 @@ export class MLSMPMSimulator {
     homeBuffer: GPUBuffer
     splashParamsBuffer: GPUBuffer
     splashParamsValues: Float32Array
+    splashInflate: number
+    splashGravity: number
     splashRestoreK: number
     splashSpeedGate: number
     splashDrag: number
@@ -81,12 +83,20 @@ export class MLSMPMSimulator {
         this.numParticles = 0
         this.homePositions = null
         this.homeCount = 0
-        this.splashRestoreK = 0.10
-        this.splashSpeedGate = 1.0
+        // churn engine (faithful to WaterBall's confined-sphere forces, adapted to the "A"
+        // medial axis): inflate fills + stirs the tube, gravity gently pulls to the centerline.
+        this.splashInflate = 4.0
+        this.splashGravity = 0.05   // gentle undertow -> water lingers/returns slowly (slow-mo)
         this.splashDrag = 0.0
-        this.splashLeashRadius = 50.0
-        this.pokeForce = 0.20
-        this.splashParamsValues = new Float32Array(4)
+        // confinement/splash recall scaled by `hold` (speed-gated): the gentle inner churn
+        // keeps a small grid velocity so it stays confined, while a fast mouse poke spikes the
+        // grid velocity past speedGate -> hold~0 -> the water sprays OUT, then is reeled home.
+        // restoreK kept LOW so the recall is a slow, soft pull (not a fast snap-back).
+        this.splashRestoreK = 0.1
+        this.splashSpeedGate = 2.5
+        this.splashLeashRadius = 60.0   // wide -> splashed water flies far + drifts back slowly
+        this.pokeForce = 1.0
+        this.splashParamsValues = new Float32Array(8)
         const clearGridModule = device.createShaderModule({ code: clearGrid });
         const spawnParticlesModule = device.createShaderModule({ code: spawnParticles });
         const p2g1Module = device.createShaderModule({ code: p2g_1 });
@@ -100,9 +110,9 @@ export class MLSMPMSimulator {
         const constants = {
             stiffness: 3.,
             restDensity: this.restDensity,
-            dynamic_viscosity: 0.25, // raised from 0.1 -> smoother, less jittery splash
-            dt: 0.20,
-            fixed_point_multiplier: 1e7, 
+            dynamic_viscosity: 0.45, // thicker, more realistic water + calmer, slower-mo motion
+            dt: 0.13,                // smaller time step -> slow-motion feel (was 0.20)
+            fixed_point_multiplier: 1e7,
         }
 
         this.clearGridPipeline = device.createComputePipeline({
@@ -221,7 +231,7 @@ export class MLSMPMSimulator {
         })
         this.splashParamsBuffer = device.createBuffer({
             label: 'splash params buffer',
-            size: 16, // restoreK, speedGate, drag, leashRadius
+            size: 32, // 6x f32 (inflate, gravity, drag, restoreK, speedGate, leashRadius) padded to 32
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
 
@@ -288,9 +298,7 @@ export class MLSMPMSimulator {
                 { binding: 2, resource: { buffer: this.realBoxSizeBuffer }},
                 { binding: 3, resource: { buffer: this.initBoxSizeBuffer }},
                 { binding: 4, resource: { buffer: this.numParticlesBuffer }},
-                { binding: 5, resource: { buffer: this.sphereRadiusBuffer }},
-                { binding: 6, resource: { buffer: this.homeBuffer }},
-                { binding: 7, resource: { buffer: this.splashParamsBuffer }},
+                { binding: 5, resource: { buffer: this.splashParamsBuffer }},
             ],
         })
         this.copyPositionBindGroup = device.createBindGroup({
@@ -459,11 +467,14 @@ export class MLSMPMSimulator {
         canvasInfoViews.pokeForce.set([this.pokeForce])
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
-        // live splash params (leva): restoreK, speedGate, drag, leashRadius
-        this.splashParamsValues[0] = this.splashRestoreK
-        this.splashParamsValues[1] = this.splashSpeedGate
+        // live splash params (leva) -- MUST match SplashParams struct order in g2p.wgsl:
+        // inflate, gravity, drag, restoreK, speedGate, leashRadius
+        this.splashParamsValues[0] = this.splashInflate
+        this.splashParamsValues[1] = this.splashGravity
         this.splashParamsValues[2] = this.splashDrag
-        this.splashParamsValues[3] = this.splashLeashRadius
+        this.splashParamsValues[3] = this.splashRestoreK
+        this.splashParamsValues[4] = this.splashSpeedGate
+        this.splashParamsValues[5] = this.splashLeashRadius
         this.device.queue.writeBuffer(this.splashParamsBuffer, 0, this.splashParamsValues)
 
         if (this.frameCount % 2 == 0 && this.numParticles < targetNumParticles) {

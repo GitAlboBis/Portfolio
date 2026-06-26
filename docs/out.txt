@@ -1,0 +1,876 @@
+               To appear in ACM TOG 33(4).
+
+Unified Particle Physics for Real-Time Applications
+
+Miles Macklin  Matthias Mu¨ller                                           Nuttapong Chentanez  Tae-Yong Kim§
+
+                                 NVIDIA
+
+Figure 1: Bunnies parachute into a pool of water. Cloth, rigid bodies and fluids coupled through constraints interact seamlessly in our
+framework.
+
+Abstract                                                                  were previously handled by specialized solvers means less code to
+                                                                          write, optimize, and maintain. Additionally, objects that were pre-
+We present a unified dynamics framework for real-time visual ef-          viously simulated in isolation can now interact with each other in
+fects. Using particles connected by constraints as our fundamental        a fully coupled way. In this paper we present a unified approach
+building block allows us to treat contact and collisions in a unified     that makes some compromises in realism to meet our goal of real-
+manner, and we show how this representation is flexible enough to         time performance, but enables a wider range of effects than was
+model gases, liquids, deformable solids, rigid bodies and cloth with      previously possible. Our framework is built on the position-based
+two-way interactions. We address some common problems with                dynamics method (PBD) [Mu¨ller et al. 2007] which is popular in
+traditional particle-based methods and describe a parallel constraint     computer games and interactive applications for its simplicity and
+solver based on position-based dynamics that is efficient enough for      stability.
+real-time applications.
+                                                                          Our paper is organized as follows: first we discuss our particle-
+CR Categories: I.3.5 [Computer Graphics]: Computational                   based representation (section 3), we then present our general pur-
+Geometry and Object Modeling--Physically based modeling I.3.7             pose parallel constraint solver (section 4) followed by the constraint
+[Computer Graphics]: Three-Dimensional Graphics and Realism--             types used in our solver (sections 5-8). Our main contributions are
+Animation;                                                                summarized below:
+
+Keywords: simulation, fluid simulation, unified solver, position-            · Extending constraint averaging to PBD to support parallel ex-
+based dynamics, two-way fluid coupling, cloth simulation                        ecution (section 4)
+
+1 Introduction                                                               · Approximate shock propagation to increase convergence of
+                                                                                rigid stacks (section 5.2)
+Unified solvers have become popular tools in offline visual effects
+in recent years. Notable examples include Maya's Nucleus solver              · Static and dynamic friction in PBD (section 6.1)
+[Stam 2009] and Softimage's Lagoa. We were inspired by the fea-
+tures of these packages, and our goal here is to create a unified            · Two-way fluid solid coupling (section 7.1)
+solver capable of simulating gases, liquids, deformable solids, rigid
+bodies, and cloth, interacting with one another in real-time.                · Gas simulation with PBD (section 7.2)
+
+The concept of a unified dynamics solver is attractive. Having a          2 Related Work
+single piece of software that can simulate multiple object types that
+                                                                          There has been increasing work towards unified simulation models
+   e-mail:mmacklin@nvidia.com                                             recently, and point-based methods are well suited to the problem.
+   e-mail:matthiasm@nvidia.com                                            Mu¨ller et al. [2004a] use a point based representation to model elas-
+   e-mail:nchentanez@nvidia.com                                           tic and plastic solids that can topologically deform. Solenthaler et
+   §e-mail:taeyongk@nvidia.com                                            al. [2007] described a method for simulating fluids and solids based
+                                                                          on smoothed particle hydrodynamics (SPH). Becker et al. [2009]
+                                                                          improve the rotational invariance of their method using a co-rotated
+
+                                                                       1
+To appear in ACM TOG 33(4).
+
+deformation model based on SPH. Martin et al. [2010] address is-            We extend the common dynamics quantities with a particle phase
+sues with degenerate particle configurations using elastons which           identifier. This integral value is used to organize particles into
+provide a more accurate measure of local deformation. In contrast           groups, and provides a convenient way to adjust their properties and
+to these methods we do not use a unified constitutive model based           control how they interact, for example, disabling collisions between
+on continuum mechanics. Rather, we prefer to combine custom                 groups of particles. We restrict ourselves to a fixed particle radius
+position-level constraints for each material we wish to simulate.           per scene in order to leverage efficient collision detection based on
+                                                                            uniform grids.
+Gascuel and Gascuel [1994] used displacement constraints to ani-
+mate rigid bodies and articulated figures. Their work was extended          4 Parallel SOR Solver
+by Faure [1999], and position-based dynamics [Mu¨ller et al. 2007]
+can be seen as a generalization of their method. To simulate rigid          4.1 Background
+bodies, Gascuel and Gascuel [1994] converted position displace-
+ments into rigid transformations by first finding a suitable rotation       Our system is built around a general purpose constraint solver that
+and then applying a matching translation. Their method favors               is derived from position-based dynamics. We give some back-
+rotation over translation, so we instead use rigid shape-matching           ground on position-based dynamics here, but refer the reader to
+[Mu¨ller et al. 2005] which finds the least-squares best transform.         [Mu¨ller et al. 2007] and [Bender et al. 2014] for more informa-
+Stam [2009] built a unified solver using constrained simplices,             tion. PBD solves a system of non-linear equality and inequality
+while in the context of real-time simulation, Jakobsen [2001] used          constraints such that
+particles connected by constraints to model articulated characters.
+Mu¨ller and Chentanez [2011b] use an oriented particle representa-          Ci(x + x) = 0, i = 1, . . . , n              (1)
+tion connected by shape matching and distance constraints to model
+elastic and plastic solids.                                                 Cj(x + x)  0, j = 1, . . . , n.              (2)
+
+One aspect of unified simulation of particular interest is two-way          where x = [x1, x2, . . . , xn]T is the vector of particle positions.
+interaction of fluids and solids. Carlson et al. [2004] presented a         Constraints are typically solved through Gauss-Seidel iteration,
+method to couple rigid bodies with a grid-based fluid simulation.           where each constraint is solved sequentially using the linearization
+Carlson [2004] also simulate rigid, melting and flowing materials           of C around x,
+in a unified way. Guendelman et al. [2005] show how to couple Eu-
+lerian fluid simulations to solid and thin-shell deformables. A full        Ci(x + x)  Ci(x) + Ci(x)x = 0.               (3)
+discussion of grid-based methods is, however, beyond the scope of
+our paper. Coupling particle fluids with rigid bodies was explored          The position change x, is restricted to lie along the constraint
+by Mu¨ller et al. [2004b] who couple a SPH fluid simulation to mesh         gradient, and is weighted by the inverse of the mass matrix M =
+based deformable objects. Clavet et al. [2005] couple fluids with           diag(m1, · · · , mn),
+rigid bodies by treating particles as hard spheres and applying im-
+pulses to a traditional rigid body simulator. Akinci et al. [2012]                    x = M-1Ci(x)T i.                   (4)
+couple SPH fluids with rigid bodies using more accurate boundary
+force calculations, and extend their method to handle deformable            Combining Eq. (3) and (4), i is given by
+solids in [Akinci et al. 2013b]. In contrast to these works, we sim-
+ulate fluids and rigid bodies inside the same framework.                    i         =     -      Ci(x)              .  (5)
+
+In addition to the work discussed here, we will refer to more specific                         Ci(x)M-1Ci(x)T
+related work in the respective sections.
+                                                                            Typically positions are updated after each constraint is processed,
+3 Particle Representation                                                   and after a number of iterations a change in velocity is computed
+                                                                            according to the total constraint delta
+We choose particles as the fundamental building block for all object
+types. Particles are attractive for their simplicity and ease of imple-                            x
+mentation, while being flexible enough to represent the range of                               v = .                     (6)
+objects we wish to simulate. By constructing all objects from parti-                                     t
+cles, we significantly reduce the number of collision types we need
+to process, and avoid complex algorithms for generating contacts            4.2 Optimization Viewpoint
+between mesh based representations. Particles also provide a natu-
+ral granularity at which to express parallelism. To take advantage          Here we present another perspective on position-based dynamics
+of modern graphics processors (GPUs) we prefer algorithms that              by viewing it as the solution to a constrained optimization problem.
+consider many simple particle interactions in parallel, over more           Considering only equality constraints, the problem to be solved can
+advanced algorithms that run serially.                                      be stated as:
+
+Our core particle state consists of the following properties:               minimize        1  xT  Mx                    (7)
+                                                                                            2
+struct Particle
+{                                                                           subject to Ci(x + x) = 0, i = 1, . . . , n
+
+       float x[3];                                                          The solution variable x is the change in position such that the
+       float v[3];                                                          constraints are satisfied. According to Eq. (6) the resulting change
+       float invmass ;                                                      in position is equivalent to applying an impulse at the beginning of
+       int phase ;                                                          the time-step. As such, the problem is equivalent to finding the min-
+};                                                                          imum change in kinetic energy that satisfies the constraints, which
+                                                                            is consistent with Gauss's principle of least constraint.
+
+                                                                         2
+                     To appear in ACM TOG 33(4).
+
+If the constraint functions were linear, then (7) would be a con-            origin). If the constraints are not identical but merely close, then
+strained quadratic minimization problem (QP) with a closed form              the condition number of the matrix is large and convergence will be
+solution. In practice, the constraints are arbitrary non-linear, non-        slow. Situations like this are common in practice.
+convex functions, for which fast and globally optimal solvers do
+not exist [Boyd and Vandenberghe 2004]. Position-based dynamics              To address this problem, we apply under-relaxation based on the
+proceeds in the spirit of sequential quadratic programming (SQP)             concept of constraint averaging [Bridson et al. 2002], or mass-
+by linearizing the constraints and solving a sequence of local con-          splitting [Tonge et al. 2012]. We first process each constraint in
+strained quadratic minimizations:                                            parallel and accumulate position deltas for each particle. At the end
+                                                                             of the iteration, once all constraints are processed, we divide each
+minimize  1  xT  Mx  (8)                                                     particle's total constraint delta by ni, the number of constraints af-
+          2                                                                  fecting the particle, to get the averaged position update x~:
+
+subject to Jx = b
+
+                                                                                                     1
+                                                                             x~i = ni xi.                    (12)
+
+where J = C(x), and b = [-C1, . . . , -Cn]T . Problems of this               This form of local relaxation is not guaranteed to conserve mo-
+type (minimizing a quadratic objective with linear constraints) can          mentum when neighboring particles have differing number of con-
+be transformed into the following optimality conditions:                     straints, however visual errors are typically not noticeable.
+
+Mx = JT              (9)
+
+Jx = b               (10)                                                    4.3 Successive Over-Relaxation
+
+The first condition comes from the theory of Lagrange multipliers            Averaging constraint forces as described above ensures conver-
+where the left-hand side is the gradient of the objective function,          gence, but in some cases this averaging is too aggressive and the
+and the second condition comes from from the feasibility require-            number of iterations required to reach a solution increases. To ad-
+ment. Equations (4) and (5) follow immediately from these condi-             dress this we introduce a global user-parameter  which controls
+tions, and when considering the system as a whole, we can elimi-             the rate of successive over-relaxation (SOR),
+nate x and write
+
+JM-1JT  = b.         (11)                                                                            
+                                                                             x~i = ni xi.                    (13)
+
+Eq. (11) is a matrix equation for the linearized problem. This is            In all our simulations we have used 1    2, although higher
+similar to the fast projection of Goldenthal et al. [2007]. However,         values may be used depending on the scene being simulated. Ad-
+in PBD, the matrix is never explicitly formed, and rather than solve         ditional under-relaxation ( < 1) is not typically required as the
+for  exactly, PBD applies a single Gauss-Seidel iteration over (11)          constraint averaging is sufficient to avoid divergence.
+before updating x and restarting the problem. Projected Gauss-
+Seidel is used in the presence of inequality constraints.                    In practice it can be desirable to have some constraint types take
+                                                                             precedence over others. To achieve this, we process constraints in
+Gauss-Seidel iteration is inherently serial, so to increase parallelism      groups and immediately apply the accumulated position delta to
+we solve constraints in a projected Gauss-Jacobi fashion. Unfortu-           the particle positions before the next constraint group is processed.
+nately, Jacobi iteration is not guaranteed to converge if the system         Typically, all constraints of the same type are processed in the same
+matrix is not positive definite. In some cases this is not a problem         group. For example, after processing all density constraints in par-
+and Macklin and Mu¨ller [2013] successfully used Jacobi iteration            allel, the accumulated delta can be applied to our candidate position
+to simulate fluids in the position-based framework using constraint          x before processing contact constraints in parallel (steps 17-21 in
+regularization. However, for many common constraint configura-               Algorithm 1). This method also propagates constraint corrections
+tions it is clear that a solution will not be reached. We illustrate the     faster which improves convergence speed.
+problem by considering a 1-dimensional particle constrained to the
+origin by two identical distance constraints (Figure 2).                     4.4 Initial Conditions
+
+Figure 2: A particle constrained to lie at the origin by two identical       A common situation is for constraints to be violated at the begin-
+distance constraints.                                                        ning of a time-step. This could occur, for example, due to conver-
+                                                                             gence not being reached at the end of the last step, or a kinematic
+In this example, the system of constraint equations to solve is:             object being moved to an invalid state in response to user input.
+                                                                             Due to the way position-based dynamics solves constraints, these
+                              C1(x) = x = 0                                  invalid initial conditions may cause kinetic energy to be added to
+                              C2(x) = x = 0                                  the system in an undesirable manner. To illustrate the problem, we
+                                                                             consider a particle initially interpenetrating the ground (Figure 4).
+Because the two constraints are identical, J is rank deficient, and          The position-based solver calculates the corrected position at the
+the system matrix is singular. Although Gauss-Seidel iteration               surface x, projects the particle there and updates the velocity ac-
+would find a solution, Jacobi iteration will oscillate between two           cording Eq. (6).
+fixed solutions indefinitely (the positive and negative side of the
+                                                                             This new velocity causes the particle to continue to travel upwards
+                                                                             and `pop' out of the ground. What's worse, this incorrect veloc-
+                                                                             ity becomes larger as the time-step decreases! This is a serious
+                                                                             problem for stable stacking and can cause obvious non-physical
+                                                                             behavior such as cloth bouncing off the ground. One way to view
+                                                                             this correction of initial error is as a Baumgarte stabilization [As-
+                                                                             cher et al. 1995] with a stiffness factor of 1. The differential al-
+                                                                             gebraic equations (DAE) community have long known about the
+
+                                                                          3
+                                      To appear in ACM TOG 33(4).
+
+                       Figure 3: Showing the Stanford bunny at different sizes sampled by particles.
+
+                                                                            Algorithm 1 Simulation Loop
+
+                                                                            1: for all particles i do
+
+                                                                            2: apply forces vi  vi + tfext(xi)
+                                                                            3: predict position xi  xi + tvi
+                                                                            4: apply mass scaling mi = mie-kh(xi)
+                                                                            5: end for
+
+                                                                            6: for all particles i do
+                                                                            7: find neighboring particles Ni(xi)
+
+                                                                            8: find solid contacts
+
+                                                                            9: end for
+
+                                                                            10: while iter < stabilizationIterations do
+
+Figure 4: A particle with zero velocity is interpenetrating the             11: x  0, n  0
+ground at the beginning of the time-step (left). Position-based dy-
+namics projects the particle to the surface and updates velocity ac-        12: solve contact constraints for x, n
+cording to this movement (middle). The resulting velocity causes a
+change of momentum and the particle to continue out of the ground           13: update xi  xi + x/n
+(right).                                                                    14: update x  x + x/n
+
+                                                                            15: end while
+
+                                                                            16: while iter < solverIterations do
+
+                                                                            17: for each constraint group G do
+
+                                                                            18:  x  0, n  0
+
+                                                                            19:  solve all constraints in G for x, n
+
+drawbacks of Baumgarte stabilization and have moved to pre- and             20:  update x  x + x/n
+post-stabilization techniques that modify position independent of
+velocity. For further reading we refer to [Weinstein et al. 2006],          21: end for
+which provides a good overview of stabilization methods from a
+computer graphics perspective.                                              22: end while
+
+We address this issue by optionally performing a pre-stabilization          23: for all particles i do
+pass on the initial positions in order to move particles to a valid
+state. The process involves first predicting new positions, generat-        24:  update  velocity  vi      1  (xi  -  xi)
+ing contacts, and then solving the resulting contact constraints with                                     t
+the original, rather than predicted positions. Any deltas applied           25: advect diffuse particles
+to the original positions are also applied to the predicted positions
+before the main constraint solving loop begins. In practice we per-         26: apply internal forces fdrag, fvort
+form this pre-stabilization only for contacts, as this is the most vis-     27: update positions xi  xi or apply sleeping
+ible source of error. If convergence is not fully reached during this       28: end for
+pre-stabilization pass then some energy may still be added to the
+system, however 1-2 iterations is usually sufficient to resolve most        5 Rigid Bodies
+visual artifacts.
+                                                                            Harada [2007] and Bell et al. [2005] used a particle representation
+4.5 Particle Sleeping                                                       to simulate rigid bodies with a penalty force model, while Tonge
+                                                                            et al. [2010] used particles to detect contacts for a constraint based
+Positional drift may occur when constraints are not fully satisfied         GPU rigid body solver. An alternative approach is to construct rigid
+at the end of a time-step. We address this by freezing particles in         bodies by connecting particles with a lattice of distance constraints,
+place if their velocity has dropped below a user-defined threshold,         however this method requires many iterations to appear stiff.
+
+x(t + t) = x, |x - x0| >              (14)                                  We represent non-convex rigid bodies using particles, and use rigid-
+                       x0, otherwise                                        shape matching constraints [Mu¨ller et al. 2005] to maintain particle
+                                                                            configurations. Shapes are created by first performing solid vox-
+                                                                            elization of a closed triangle mesh and placing particles at occupied
+                                                                            cells interior to the shape. We then assign all particles in the shape
+                                                                            the same phase-identifier, disable collision between them, and add
+                                                                            a shape-matching constraint to the system.
+
+                                                                            During simulation we treat particles as if they were unconnected,
+                                                                            subjecting them to displacements from the other constraint types.
+                                                                            We then find the least squares best transform that maps the rest-
+
+                                                                         4
+                                                      To appear in ACM TOG 33(4).
+
+positions to the deformed state and transform particles accordingly        problem using a new particle collision algorithm based on a sparse
+(Figure 5). This deformation and re-targeting is similar to the ap-        signed distance field (SDF) representation.
+proach taken by Bao et al. [2007] in the context of a finite element
+simulation.                                                                Guendelman et al. [2003] used signed distance fields to generate
+                                                                           contacts between non-convex rigid bodies by point sampling trian-
+The position delta due to a shape-matching constraint is given by          gle mesh features within each overlapping shape's SDF. Collisions
+                                                                           are then resolved using an sequential, iterative scheme where each
+xi = (Qri + c) - xi                                   (15)                 feature is projected out of the shape in order of deepest penetration
+                                                                           first. In contrast to Guendelman et al. [2003] who use grid-based
+where Q is a rotation matrix given by the polar-decomposition of           SDFs, we sample our field function onto each particle belonging to
+the deformed shape's covariance matrix A, calculated as:                   a rigid shape. By storing the SDF on particles we are able to re-use
+                                                                           all the machinery of our particle-particle collision detection to re-
+n                                                                          solve deeper overlaps between shapes. We store both the magnitude
+                                                                            and gradient  of the SDF at each particle's location (Figure 7)
+A = (xi - c) · rTi                                    (16)                 which can be viewed as an approximate first order, sparse represen-
+                                                                           tation of the underlying field. Higher order representations are also
+i                                                                          possible, as described in [Corbett 2005].
+
+where ri is the particle's offset from the center of the mass in the
+rest configuration, and c is the center of mass of the particles in
+the deformed configuration. The evaluation of Eq. (16) can be per-
+formed efficiently in parallel by assigning a thread per particle to
+calculate each outer product and then forming A using a parallel
+reduction across all threads in the shape.
+
+Figure 5: Showing how shape matching constraints map deformed              Figure 7: We store a signed distance field value and its gradient
+particles back to a rigid pose.                                            per particle to prevent rigid interpenetration and locking. Note that
+                                                                           particles on the medial axis are assigned a gradient direction arbi-
+                                                                           trarily.
+
+We note that using this method we never explicitly store the rigid         To resolve collisions with this representation we first detect over-
+body's linear or angular velocity, as these are given implicitly by        laps between particles with distance |xi - xj| < r. As the contact
+the particle state. The shape matching step automatically respects         normal we choose the SDF gradient corresponding to the minimum
+the inertial properties of the object, making this a very simple rigid     translation distance, d = min(|i|, |j|).
+body simulator.
+
+One limitation of this method is that, when using particles with a                               i        if |i| < |j |
+                                                                                                 -j       otherwise
+fixed radius r, the number of particles required to represent a given              nij =                                              (17)
+
+shape grows proportional to O(n3) where n    =  1  .  This places a
+                                                r
+limit on the maximum size ratio that can be efficiently represented,
+
+so for real-time simulations we suggest a rule of thumb of 1:10            The position delta for each particle is then given by
+
+between the smallest and largest feature (see Figure 3). Placing                                          wi
+                                                                                                          + wj
+particles in a thin layer around the surface can reduce the number                           xi  =  -           (d  ·  nij )          (18)
+of particles required to O(n2), although this places some time-step                                   wi
+
+restrictions in order to prevent tunneling.                                                  xj  =     wj    (d ·   nij ),            (19)
+                                                                                                    wi + wj
+
+                                                                           where wi = 1/mi.
+
+Figure 6: Rigid groups of particles can interpenetrate and become          The signed distance field is often undersampled near the surface of a
+locked together due to discrete collision handling.                        shape which can lead to discontinuous penetration depths and jitter-
+                                                                           ing. To address this we treat boundary particles (those with || < r)
+5.1 Sparse Signed Distance Field Collision                                 separately from the method for interior particles described above.
+                                                                           When a collision between a boundary particle and another particle
+To resolve collisions, Harada [2007] used discrete element forces          is detected, we modify the contact normal according to [Mu¨ller and
+between pairs of particles belonging to rigid bodies. The simplicity       Chentanez 2011a], and use d = |xi - xj| - r, effectively treating
+of this approach is attractive as only local collisions between par-       boundary particles as one-sided hard spheres.
+ticle pairs need be considered. However, if tunneling occurs then
+bodies can interlock and fail to separate (Figure 6). We address this      This modified boundary normal (Figure 8) can be computed effi-
+                                                                           ciently as the reflection of the collision direction around the SDF
+                                                                           gradient (from Eq. 17) when a particle lies in the negative half-
+                                                                           space of the particle.
+
+                                                                           nij =   xij - 2(xij · nij )nij              xij · nij < 0  (20)
+                                                                                   xij                                 otherwise
+
+                                                                        5
+To appear in ACM TOG 33(4).
+
+                                                                             each particle's mass such that lower particles have a larger mass
+                                                                             than the ones above. In our experiments, we found the following
+                                                                             exponential function works well as a scale factor for particle mass,
+
+                                                                             si(xi) = e-kh(xi)  (21)
+
+Figure 8: Left: regular particle collision normals. Right: one sided         where h(xi) is the stack height for a particle. In the case that h(xi)
+collision normals used for particles on the rigid shape's boundary.          is equal to height from the ground plane then this scaling function
+                                                                             provides a constant mass ratio of si/sj = e-kr for two particles
+A limitation of this approach is that particle surfaces are not entirely     i and j stacked a distance r apart. The resulting mass ratio causes
+smooth. To reduce bumping and artificial sticking, we ensure some            lower particles to feel less pressure and to resist compression. This
+overlap between particles in the rest pose.                                  causes stacks of bodies to converge to a solution much faster (Fig-
+                                                                             ure 10). In our rigid piling scenes we have typically used values of
+                                                                             k  [1 . . . 5].
+
+                                                                             The scaled particle mass mi = simi is used only during the con-
+                                                                             tact processing phase and is reset post-constraint solve. Because
+                                                                             each particle is processed independently, we can perform this mass
+                                                                             adjustment in parallel (step 4 in Algorithm 1).
+
+                                                                             We note that our method is not specific to particle-based solvers
+                                                                             and may be applied equally well in the context of a traditional rigid
+                                                                             body solver. However a potential limitation of this method is that
+                                                                             if the coefficient k is set too high then the lower particles will stop
+                                                                             responding to interaction from above. One solution to this problem
+                                                                             is to perform mass modification only in the final solver iteration,
+                                                                             however we have not found this to be necessary in order to achieve
+                                                                             good results.
+
+Figure 9: 1000 non-convex objects, each consisting of 44 parti-              Figure 10: Left: A 1x1x10 stack of rigid bodies 2m high com-
+cles, form a pile. Two-substeps and two-constraint iterations are            ing to rest under gravity. Particles are color coded by our stack
+computed in 4ms/frame.                                                       height function (section 5.2). Right: without our mass modification
+                                                                             the stack oscillates for a long time and shows significant compres-
+5.2 Stiff Stacks                                                             sion (blue). Using our method (red) the stack stabilizes quickly and
+                                                                             comes to rest closer to the true solution (green).
+Jacobi methods can only propagate information (collision deltas)
+over a distance of one particle per iteration. This can lead to large        5.3 Deformation
+of piles rigid bodies requiring many iterations to appear stiff. One
+method for increasing the rate of information propagation is shock           Each shape-matching constraint has an associated stiffness parame-
+propagation [Guendelman et al. 2003]. Shock propagation works                ter that allows us to model small scale elastic deformation. In addi-
+by iterating bodies from the ground upwards, fixing each layer               tion, we can deform objects plastically using the method described
+of bodies in place after they have been processed. Unfortunately             in [Mu¨ller and Chentanez 2011b]. Briefly, we detect when a particle
+this process is inherently serial (layers are processed one at a time        belonging to a rigid shape has been deformed past a user threshold.
+in a sequential fashion). Here we present a new, parallel-friendly           We then mix this deformation back into the particle's local-space
+method to improve the stability of rigid stacks that does not require        rest position according to a plastic creep coefficient. Because this
+changing iteration order.                                                    process invalidates our SDF field, we convert particles back to reg-
+                                                                             ular spherical particles if they deform past a certain threshold.
+First, we estimate the stack height of each particle, h. This may
+be done through a contact graph search, or field propagation, from           Currently we use a single shape-matching constraint per object,
+the solid boundary. The main requirement is that the height func-            which limits the amount of deformation possible. Larger defor-
+tion increases in the direction opposite gravity. In our examples we         mations can be supported by combining multiple shape-matching
+have used a simple heuristic function measuring height from a fixed          constraints, or using methods such as oriented particles or tetrahe-
+ground plane.                                                                dral volume constraints, both of which can be accommodated in our
+                                                                             constraint framework.
+Once we have an estimate of stack height, we temporarily modify
+
+                                                                          6
+                                             To appear in ACM TOG 33(4).
+
+                                                                             Coulomb friction, limiting the frictional position delta based on the
+
+                                                                             penetration depth of the particle. The position change on particle j
+
+                                                                             is given by         - wj
+                                                                                                   wi + wj
+                                                                                          xj  =                 xi.       (25)
+
+                                                                             Treating the frictional impulses this way allows us to generate large
+                                                                             particle piles with high angles of repose (Figure 11). However, as
+                                                                             with position-based dynamics generally, a limitation is that friction
+                                                                             strength is somewhat dependent on iteration count. Mu¨ller et al.
+                                                                             [2007] suggest a method to reduce this effect.
+
+Figure 11: A sand castle before collapse (left). After 300 frames            7 Fluids
+our position-based friction model maintains a steep pile (middle),
+while the original position-based dynamics friction model has al-            We simulate fluids in our framework using the position-based fluids
+most completely collapsed (right).                                           method [Macklin and Mu¨ller 2013], where the fluid density con-
+                                                                             straint (Eq. 26) is considered simply as another constraint in the
+6 Granular Materials and Friction                                            system. In contrast to [Macklin and Mu¨ller 2013] we clamp the
+                                                                             density constraint to be non-negative (unilateral), so that it only acts
+                                                                             to separate particles,
+
+We present our friction model in the context of granular materials                        C(x1, ..., xn)  =  i  -1    0,  (26)
+whose behavior is heavily dependent on frictional effects. We note,                                          0
+however, that the same method presented here is used for all object
+types in our framework.                                                      we then use the model of [Akinci et al. 2013a] to handle cohesion
+                                                                             and surface tension effects.
+Previous work by Bell et al. [2005] modeled granular materials
+using the discrete element method and irregular groups of parti-
+cles. Zhu and Bridson [2005] used the FLIP method to animate
+sand, while Aldua´n and Otaduy [2011], and Ihmsen et al. [2012b]
+used iterative Smoothed Particle Hydrodynamics (SPH) solvers to
+model granular materials with friction and cohesion. Position-
+based dynamics traditionally models friction by damping veloc-
+ity after the position-based constraint solve has completed [Mu¨ller
+et al. 2007]. This method cannot model static friction because the
+frictional damping forces cannot correct for the position changes
+already made during the constraint solve. Consequently, particle
+positions drift, and piles quickly collapse. We address this problem
+using a novel formulation that applies friction at the position level.
+
+6.1 Friction Model
+
+During contact handling, we first resolve interpenetration by pro-           Figure 12: Assigning particles different masses gives rise to buoy-
+jecting particles a distance d along the collision normal according          ancy.
+to the following non-penetration constraint,
+
+       C(xi, xj ) = |xij | - r  0.           (22)
+
+Once interpenetration has been resolved, we calculate a frictional
+position delta based on the relative tangential displacement of the
+particles during this time-step
+
+       x = (xi - xi) - (xj - xj )  n,        (23)
+
+where xi and xj are the current candidate positions for the collid-
+ing particles including any previously applied constraint deltas, xi
+
+and xj are the positions of the particles at the start of the time-step,
+and n = xij/|xij| is the contact normal. The frictional position
+delta for particle i is then computed as
+
+xi  =     wi    x,                           |x| < µsd                       Figure 13: Two-phase liquid with a density ratio of 4:1 showing
+       wi + wj                               otherwise                       the Rayleigh-Taylor instability.
+                x   ·  min(    µk d  ,  1),
+                             |x |                            (24)            7.1 Fluid-Solid Coupling
+
+where µk, µs are the coefficients of kinetic and static friction re-         Akinci et al. [2012] show how to accurately couple SPH fluids with
+spectively. The first case in Eq. (24) models static friction by re-         rigid bodies by placing particles at solid boundaries and calculating
+moving all tangential movement when the particle's relative veloc-
+ity is below the traction threshold. The second case models kinetic
+
+                                                                          7
+                       To appear in ACM TOG 33(4).
+
+fluid pressure forces which are then input to a traditional rigid body      Figure 14: A rising smoke plume simulated using position-based
+simulator. Our time-steps are typically large enough that we can-           fluids, this example uses 16k fluid particles (32x32x16) and 65k
+not rely on fluid pressure to prevent interpenetration and tunneling.       smoke particles.
+Consequently, when a fluid particle comes into contact with a solid
+particle, we treat both as solid particles with the fluid rest distance
+used as the contact distance r.
+
+We include solid particles in the fluid density estimation, so the
+density for a fluid particle is then given by
+
+i =          W (xi - xj, h) + s W (xi - xj, h) (27)
+
+     f luid     solid
+
+where h is width of the smoothing kernel W . The parameter s
+accounts for any difference in sampling density between solid par-
+ticles and fluid particles. If the distance between fluid particles at
+the rest density is the same as solid particles then s can be set to 1.
+If solids are sampled more densely than fluids then it should be set
+< 1. Because s is a constant, we assume solid particles are sampled
+at relatively uniform density. Akinci et al. [2012] use a per-particle
+correction, however we have not found this to be necessary, partly
+because we typically use regular particle samplings, and also be-
+cause we do not rely on fluid pressure forces to resolve fluid-solid
+interactions.
+
+7.1.1 Buoyancy
+
+The density constraint formulation of [Macklin and Mu¨ller 2013]            Figure 15: Slice from a smoke simulation with closed boundaries.
+treats fluid particles as having equal mass, but by using the mass          The domain is seeded with fluid particles (blue) and smoke particles
+weighted version of position-based dynamics (Eq. 4) we can sim-             (white) are passively advected through the velocity field.
+ulate fluids and rigid bodies with differing densities. This simple
+adjustment automatically gives rise to buoyancy and sinking of ob-          7.2.1 Closed Boundaries
+jects with differing mass ratios (Figure 12).
+                                                                            To model smoke in closed environments, we begin by filling
+For the fluid density constraints, we pre-compute the denominator           the computation domain with fluid particles and reducing grav-
+in Eq. (5) for a reference filled particle configuration. During this       ity for gas particles according to a user parameter , although
+pre-computation step we assume that neighboring particles have the          a temperature-based buoyancy model would work equally well if
+same mass, so to ensure the subsequent position corrections from            tracking temperature per particle. We treat the gas as incompress-
+Eq. (4) are conservative, the smallest expected particle mass in the        ible and use the unilateral density constraint to maintain a fixed rest
+system should be used.                                                      density.
+
+To simulate immiscible multi-phase liquids (Figure 13) we allow
+fluid particles of different phases to contribute to each other's den-
+sity estimation. We apply cohesive and surface tension forces only
+between particles of the same phase as in [Solenthaler and Pajarola
+2008].
+
+7.2 Gases
+
+                                                                            We inject visual smoke particles into the simulation domain and
+
+Grid-based methods have proved popular for animating gases and              passively advect them through the velocity field defined on the fluid
+smoke, in particular [Stam 1999] and [Fedkiw et al. 2001]. More
+recently, Lagrangian discretizations for smoke have gained interest         particles (Figure 14). To calculate the velocity at a smoke particle's
+in computer graphics, notably vortex methods such as [Park and
+Kim 2005], and mesh-tracking methods [Pfaff et al. 2012][Brochu             location xs we use the following weighted averaging over fluid par-
+et al. 2012]. Stam and Fiume [1995] were the first to apply SPH to
+the simulation of gas and fire, and Gao et al. [2009] combined SPH          ticles:                  j vj W (xs - xj )
+with a grid-based fluid solver to simulate fast moving gases.                                         j W (xs - xj )
+                                                                                     v(xs) =                            (28)
+We present a fully Lagrangian method for simulating gases based
+on position-based fluids. Our method is sparse in the sense that it         where W (x) is any symmetric kernel function, e.g. the cubic Poly6
+only computes fluid dynamics in areas of visual interest, and, in           kernel given in [Mu¨ller et al. 2003], and vj is the velocity of a fluid
+contrast to vortex particle methods which require special handling          particle which overlaps the sampling location. Note that we use
+for solid boundaries, our method handles solid boundary conditions          the velocity calculated immediately after the constraint solve to en-
+through simple position projection during the regular particle colli-       sure the velocity used for advection is consistent with the incom-
+sion constraint pipeline.                                                   pressibility constraints (step 24 in Algorithm 1). We note that these
+                                                                            passive visual marker particles are useful in other contexts, for ex-
+                                                                            ample we also use them to represent spray and foam particles in
+                                                                            liquid simulation as in [Ihmsen et al. 2012a].
+
+                                                                         8
+                                          To appear in ACM TOG 33(4).
+
+7.2.2 Open Boundaries                                                       instead we use the following unnormalized vector as an approxi-
+                                                                            mate surface normal
+
+To generate plumes of smoke, we inject fluid particles and smoke                      ni =            mj  W  (xi  -  xj ).  (30)
+particles together, ensuring a 1-2 layer thick boundary of fluid par-                                 j
+ticles surrounding the smoke particles at their emission point. Inte-                           j
+rior fluid particles are emitted with a higher velocity than the bound-
+ary particles, and to model the effect of fast moving air interacting       The magnitude of this vector provides a measure of how close to the
+with the surrounding environment we introduce a new drag force:
+                                                                            surface a particle is. Larger magnitudes indicate surface particles
+
+                                     i )                                    and smaller magnitudes indicate interior particles. We combine it
+                                     0
+fdragi  =  -k(vi       -  venv)(1 -       (29)                              with the Boussinesq pressure gradient approximation to evolve a
+
+                                                                            per-particle vortex strength according to the following differential
+
+where venv is the environmental velocity at the particle's location.        equation
+In our examples, venv has been taken to be 0 to model still air,
+however any procedural velocity field may be used. The last factor                    Di     =  i     · v + (ni      × g),  (31)
+on the right-hand side of Eq. (29) ensures that only particles near                    dt
+the free surface experience drag. If smoke particles become isolated
+from the fluid we revert them to ballistic motion, or advect them by        where the first term is due to vortex stretching, and the second term
+the procedural background velocity field. Additionally, fluid par-          represents the baroclinity.  is an exposed parameter used to con-
+ticles may be removed once they have no smoke particles within              trol the overall strength of the effect, and the velocity gradient v
+their kernel radius, or after a pre-defined lifetime.                       can be approximated using SPH gradient kernels. The final driving
+                                                                            force on a particle due to its neighbors is given by,
+
+Because we do not simulate fluid where smoke does not exist, this                     fvorti = (j × xij )W (xij ).          (32)
+technique is not well suited to simulating long range effects, e.g.:
+a gust of wind from a window disturbing smoke at the other end                                     j
+of the room. However these types of effects may be approximated
+using procedural techniques that modify the environment velocity            Good results can be obtained by using a high particle drag force
+in Eq. (29). It is also important to ensure that there is a sufficient      e.g.: k = 50, and allowing particle vorticity to drive the flow.
+sampling of fluid particles to provide accurate velocity estimates for
+smoke particle advection. We use weak cohesive forces to maintain           7.2.4 Rendering
+particle density, although dynamic particle seeding strategies such
+as Ghost SPH [Schechter and Bridson 2012] may be a better alter-            Unlike grid-based solvers there is no built-in diffusion to La-
+native.                                                                     grangian schemes. To visually approximate diffusion of smoke den-
+                                                                            sity, we increase smoke particle size and decrease opacity over the
+                                                                            lifetime of the particle, similar to [Brochu et al. 2012]. For our
+                                                                            real-time renderer, we sort smoke particles according to depth from
+                                                                            camera and render them as point sprites. Light transmission ef-
+                                                                            fects are approximated by rendering particles as opaque points into
+                                                                            a shadow map and treating the light-space depth delta as input to an
+                                                                            exponential scattering function.
+
+                                                                            8 Cloth and Ropes
+
+Figure 16: Smoke interacting with cloth (left). Fluid particles are         We build cloth models using networks of distance constraints (Fig-
+only present where smoke is located (right).                                ure 17) along triangle edges to model stretching, and across edges
+                                                                            to model bending. In addition to the basic distance constraint we
+7.2.3 Baroclinic Turbulence                                                 expose unilateral distance constraints ("tethers") and use them as
+                                                                            long-range attachments to reduce stretching [Kim et al. 2012b].
+Our drag model creates a velocity gradient that gives rise to some          Cloth self-collision and inter-collision with other cloth pieces is
+interesting motion at the fluid boundary, however it is often desir-        handled automatically by the particle collision pipeline, but we note
+able to introduce additional turbulent motion. Fedkiw et al. [2001]         this requires sampling the cloth surface with enough particles to
+introduced vorticity confinement to computer graphics in the con-           prevent tunneling. An aerodynamic model is applied to the cloth
+text of smoke simulation, and Selle et al. [2005] used vortex par-          by approximating each triangle as a thin airfoil and distributing lift
+ticles to add vorticity to grid-based smoke simulations. Pfaff et al.       and drag forces to the triangle's particles [Keckeisen et al. 2004] .
+[2012] use a mesh-based representation to model the smoke-air in-
+terface where vortex sheets are generated for each triangle and edge        To model ropes, we connect chains of particles with stretch and
+including a baroclinity term. [Kim et al. 2012a] use vortex particles       bending constraints, then extrude tessellated cylinders along their
+to model baroclinic turbulence in grid-based smoke simulations.             path. More advanced rope models such as [Rungjiratananon et al.
+                                                                            2011] may be integrated into our solver and would allow modeling
+In this section, we present a turbulence model inspired by the La-          of torsion. Inflatable objects can be modeled by combining a cloth
+grangian vortex sheets method [Pfaff et al. 2012]. Unlike mesh-             mesh with a volume constraint as described in [Mu¨ller et al. 2007].
+tracking methods, we do not have an explicit surface representation,
+                                                                            9 Implementation Details
+
+                                                                            For particle neighbor finding, we use an efficient parallel hash-grid
+                                                                            [Green 2008]. Particle interactions are found using discrete over-
+                                                                            lap tests at the beginning of a time step, however if particles move
+                                                                            significantly during constraint solving then subsequent new colli-
+                                                                            sions may be missed. To mitigate this, we allow expanding the
+
+                                                                         9
+To appear in ACM TOG 33(4).
+
+                                                                           Algorithm 2 Particle-Centric Solve (gather)
+
+                                                                           1: for all particles i in parallel do
+
+                                                                           2: initialize position delta xi = 0
+
+                                                                           3: for all constraints c affecting i do
+
+                                                                           4:  calculate constraint error c, and gradient xi C
+
+                                                                           5:  update delta xi += wicxi C
+
+                                                                           6: end for
+
+                                                                           7: end for
+
+                                                                           Algorithm 3 Constraint-Centric Solve (scatter)
+
+                                                                           1: for all particles i in parallel do
+
+                                                                           2: initialize position delta xi = 0
+
+Figure 17: A flag blowing in the wind. Self-collision is automati-         3: end for
+cally handled by our particle-based collision pipeline.
+                                                                           4: for all constraints c in parallel do
+collision radius by a fixed percentage during the overlap checks.
+This increases the number of potential colliders that are processed        5: calculate constraint error c
+so should be set as a small fraction of the particle radius.
+                                                                           6: for all particles i in c do
+Constraints may be solved in a particle-centric or constraint-centric
+manner. In the particle-centric approach (Algorithm 2), we assign          7:  calculate constraint gradient xi C
+a GPU thread per particle and loop over all constraints affecting
+it, performing a single write operation per particle once all con-         8:  atomically update particle delta xi += wicxi C
+straints are processed. Alternatively, we may solve constraints in
+a constraint-centric manner (Algorithm 3) where each thread pro-           9: end for
+cesses a constraint and uses atomic operations to scatter position
+deltas to each affected particle. In practice we use both methods          10: end for
+depending on the constraint type. For instance, fluid density con-
+straints are solved in a particle-centric manner, and distance con-        Table 1: Performance results for several examples. A frame time of
+straints are solved in a constraint-centric manner. Although scat-         16ms is used in all cases.
+tered writes based on atomic memory transactions are generally less
+efficient, we have found this approach to be quite practical on cur-       Scene           particles  diffuse     steps/frame  iters/step  ms/frame
+rent GPU hardware. Coherence in memory transactions is improved            Bunny Splash
+by re-ordering particle data according to the hash-grid cell index.        Bunny Pile       50k       30k             2           4         10.1
+                                                                           Smoke Cloth      44k         -             2           2          3.8
+Particles are an inefficient choice of collision primitive for large       Sandcastle       10k                       2           6          5.6
+shapes such as walls and floors. We represent these kinematic              Water Balloons   73k       100k            2          12         10.2
+shapes using traditional representations such as convex hulls,                              29k         -             3          12         12.1
+signed distance fields, and triangle meshes.                                                            -
+
+10 Results                                                                 11 Limitations and Future Work
+
+We have implemented our solver in CUDA and timings for vari-               In the future, we would like to remove the requirement of fixed par-
+ous scenes were measured on an NVIDIA GTX680 GPU (Table 1).                ticle sizes through the use of hierarchical acceleration structures.
+These times do not include rendering, however all our results were         This would allow rigid bodies and fluids to be simulated more ef-
+captured in real-time apart from the Rayleigh-Taylor scene which           ficiently. Solving certain constraint types at different frequencies
+consists of 300k particles and simulates in around 150ms per frame.        would also improve efficiency as in [Stam 2009].
+We render fluids using the ellipsoid splatting and screen-space sur-
+facing described in [Macklin and Mu¨ller 2013].                            Particles alone cannot accurately represent large flat surfaces, and
+                                                                           our first order SDF is not accurate enough to provide useful col-
+Figure 1 shows fluids, rigid bodies, cloth and ropes together with         lision normals near the surface of poorly sampled shapes. Using
+two-way interactions, the drag model on our cloth slows the rigid          a quadratic basis function, as in [Corbett 2005], and reconstructing
+bunnies descent via the connecting ropes. Figure 16 shows a frame          the signed distance value (instead of point sampling) could improve
+from a simulation where a cloth sheet falls knocking over rigid bod-       results for sparse samplings.
+ies and then interacting with a smoke plume rising due to baroclinic
+turbulence. Figure 18 shows water balloons built from a cloth mesh         Shape-matching convergence is dependent on the total number of
+filled with fluid particles. When the user pulls on the cloth mesh we      particles in the shape. This makes our method more suitable to
+dynamically remove constraints allowing them to tear the mesh and          smaller debris-like rigid bodies, and less suitable for large shapes.
+release the fluid. Because the fluid and cloth are two-way coupled,        Buoyancy is also affected by the number of particles in the shape
+the escaping fluid forces the balloon backwards.                           because the slower convergence makes the rigid body behave as if
+                                                                           it were heavier. Consequently, our mass ratios do not correspond to
+                                                                           real-world submergence depths.
+
+                                                                           12 Acknowledgments
+
+                                                                           The authors would like to thank NVIDIA and the PhysX team
+                                                                           for supporting our work, especially Richard Tonge, Simon Schirm
+                                                                           and Christian Sigg for many insightful discussions. We also thank
+                                                                           the anonymous reviewers for their valuable feedback. The Bunny
+                                                                           model is used courtesy of the Stanford Computer Graphics Labora-
+                                                                           tory.
+
+                                                                       10
+To appear in ACM TOG 33(4).
+
+Figure 18: A user interacts with water balloons built from a cloth      BENDER, J., M"ULLER, M., OTADUY, M. A., TESCHNER, M.,
+mesh and filled with fluid particles under pressure. The user can          AND MACKLIN, M. 2014. A survey on position-based simula-
+tear the balloons by pulling on the cloth, releasing the fluid.            tion methods in computer graphics. Computer Graphics Forum,
+                                                                           1­25.
+References
+                                                                        BOYD, S. P., AND VANDENBERGHE, L. 2004. Convex optimiza-
+AKINCI, N., IHMSEN, M., AKINCI, G., SOLENTHALER, B., AND                   tion. Cambridge university press.
+   TESCHNER, M. 2012. Versatile rigid-fluid coupling for incom-
+   pressible sph. ACM Trans. Graph. 31, 4 (July), 62:1­62:8.            BRIDSON, R., FEDKIW, R., AND ANDERSON, J. 2002. Robust
+                                                                           treatment of collisions, contact and friction for cloth animation.
+AKINCI, N., AKINCI, G., AND TESCHNER, M. 2013. Versatile                   ACM Trans. Graph. 21, 3 (July), 594­603.
+   surface tension and adhesion for sph fluids. ACM Trans. Graph.
+   32, 6 (Nov.), 182:1­182:8.                                           BROCHU, T., KEELER, T., AND BRIDSON, R. 2012. Linear-
+                                                                           time smoke animation with vortex sheet meshes. In Proceedings
+AKINCI, N., CORNELIS, J., AKINCI, G., AND TESCHNER, M.                     of the ACM SIGGRAPH/Eurographics Symposium on Computer
+   2013. Coupling elastic solids with smoothed particle hydrody-           Animation, Eurographics Association, Aire-la-Ville, Switzer-
+   namics fluids. Computer Animation and Virtual Worlds.                   land, Switzerland, SCA '12, 87­95.
+
+ALDUA´ N, I., AND OTADUY, M. A. 2011. Sph granular flow                 CARLSON, M., MUCHA, P. J., AND TURK, G. 2004. Rigid fluid:
+   with friction and cohesion. In Proceedings of the 2011 ACM              animating the interplay between rigid bodies and fluid. In ACM
+   SIGGRAPH/Eurographics Symposium on Computer Animation,                  Transactions on Graphics (TOG), vol. 23, ACM, 377­384.
+   ACM, New York, NY, USA, SCA '11, 25­32.
+                                                                        CARLSON, M. T. 2004. Rigid, melting, and flowing fluid. PhD
+ASCHER, U. M., CHIN, H., PETZOLD, L. R., AND REICH, S.                     thesis, Georgia Institute of Technology.
+   1995. Stabilization of constrained mechanical systems with daes
+   and invariant manifolds. Journal of Structural Mechanics 23, 2,      CLAVET, S., BEAUDOIN, P., AND POULIN, P. 2005. Particle-
+   135­157.                                                                based viscoelastic fluid simulation. In Proceedings of the 2005
+                                                                           ACM SIGGRAPH/Eurographics symposium on Computer ani-
+BAO, Z., HONG, J.-M., TERAN, J., AND FEDKIW, R. 2007. Frac-                mation, ACM, New York, NY, USA, SCA '05, 219­228.
+   turing rigid materials. Visualization and Computer Graphics,
+   IEEE Transactions on 13, 2, 370­378.                                 CORBETT, R. D. 2005. Point­Based Level Sets and Progress To-
+                                                                           wards Unorganised Particle Based Fluids. PhD thesis, The Uni-
+BECKER, M., IHMSEN, M., AND TESCHNER, M. 2009. Corotated                   versity of British Columbia.
+   sph for deformable solids. In Proceedings of the Fifth Euro-
+   graphics conference on Natural Phenomena, Eurographics As-           FAURE, F. 1999. Interactive solid animation using linearized
+   sociation, 27­34.                                                       displacement constraints. In Computer Animation and Simula-
+                                                                           tion98. Springer, 61­72.
+BELL, N., YU, Y., AND MUCHA, P. J. 2005. Particle-based sim-
+   ulation of granular materials. In Proceedings of the 2005 ACM        FEDKIW, R., STAM, J., AND JENSEN, H. W. 2001. Visual sim-
+   SIGGRAPH/Eurographics symposium on Computer animation,                  ulation of smoke. In Proceedings of the 28th annual conference
+   ACM, New York, NY, USA, SCA '05, 77­86.                                 on Computer graphics and interactive techniques, ACM, New
+                                                                           York, NY, USA, SIGGRAPH '01, 15­22.
+
+                                                                        GAO, Y., LI, C.-F., HU, S.-M., AND BARSKY, B. A. 2009. Simu-
+                                                                           lating gaseous fluids with low and high speeds. In Pacific Graph-
+                                                                           ics 2009, vol. 28, 1845­1852.
+
+                                                                        GASCUEL, J.-D., AND GASCUEL, M.-P. 1994. Displacement
+                                                                           constraints for interactive modeling and animation of articulated
+                                                                           structures. The Visual Computer 10, 4, 191­204.
+
+                                                                        GOLDENTHAL, R., HARMON, D., FATTAL, R., BERCOVIER, M.,
+                                                                           AND GRINSPUN, E. 2007. Efficient simulation of inextensible
+                                                                           cloth. In ACM Transactions on Graphics (TOG), vol. 26, ACM,
+                                                                           49.
+
+                                                                        GREEN, S. 2008. Cuda particles. nVidia Whitepaper 2, 3.2, 1.
+
+                                                                        GUENDELMAN, E., BRIDSON, R., AND FEDKIW, R. 2003. Non-
+                                                                           convex rigid bodies with stacking. ACM Trans. Graph. 22, 3
+                                                                           (July), 871­878.
+
+                                                                        GUENDELMAN, E., SELLE, A., LOSASSO, F., AND FEDKIW, R.
+                                                                           2005. Coupling water and smoke to thin deformable and rigid
+                                                                           shells. In ACM Transactions on Graphics (TOG), vol. 24, ACM,
+                                                                           973­981.
+
+                                                                        HARADA, T. 2007. Real-Time Rigid Body Simulation on GPUs.
+                                                                           In GPU Gems 3, H. Nguyen, Ed. Addison Wesley Professional,
+                                                                           Aug., ch. 29.
+
+                                                                    11
+To appear in ACM TOG 33(4).
+
+IHMSEN, M., AKINCI, N., AKINCI, G., AND TESCHNER, M.                      PARK, S. I., AND KIM, M. J. 2005. Vortex fluid for gaseous
+   2012. Unified spray, foam and air bubbles for particle-based              phenomena. In Proceedings of the 2005 ACM SIGGRAPH/Eu-
+   fluids. Vis. Comput. 28, 6-8 (June), 669­677.                             rographics symposium on Computer animation, ACM, 261­270.
+
+IHMSEN, M., WAHL, A., AND TESCHNER, M. 2012. High-                        PFAFF, T., THUEREY, N., AND GROSS, M. 2012. Lagrangian
+   resolution simulation of granular material with sph. In Workshop          vortex sheets for animating fluids. ACM Trans. Graph. 31, 4
+   on Virtual Reality Interaction and Physical Simulation, The Eu-           (July), 112:1­112:8.
+   rographics Association, 53­60.
+                                                                          RUNGJIRATANANON, W., KANAMORI, Y., METAAPHANON, N.,
+JAKOBSEN, T. 2001. Advanced character physics. In Game De-                   BANDO, Y., CHEN, B.-Y., AND NISHITA, T. 2011. Twisting,
+   velopers Conference, 383­401.                                             tearing and flicking effects in string animations. In Motion in
+                                                                             Games. Springer, 192­203.
+KECKEISEN, M., KIMMERLE, S., THOMASZEWSKI, B., AND
+   WACKER, M. 2004. Modelling effects of wind fields in cloth             SCHECHTER, H., AND BRIDSON, R. 2012. Ghost sph for animat-
+   animations.                                                               ing water. ACM Transactions on Graphics (TOG) 31, 4, 61.
+
+KIM, D., LEE, S. W., YOUNG SONG, O., AND KO, H.-S.                        SELLE, A., RASMUSSEN, N., AND FEDKIW, R. 2005. A vortex
+   2012. Baroclinic turbulence with varying density and tempera-             particle method for smoke, water and explosions. ACM Trans.
+   ture. IEEE Transactions on Visualization and Computer Graph-              Graph. 24, 3 (July), 910­914.
+   ics 18, 1488­1495.
+                                                                          SOLENTHALER, B., AND PAJAROLA, R. 2008. Density contrast
+KIM, T.-Y., CHENTANEZ, N., AND MU¨ LLER-FISCHER, M. 2012.                    sph interfaces. In Proceedings of the 2008 ACM SIGGRAPH/Eu-
+   Long range attachments - a method to simulate inextensible                rographics Symposium on Computer Animation, Eurographics
+   clothing in computer games. In Proceedings of the ACM SIG-                Association, Aire-la-Ville, Switzerland, Switzerland, SCA '08,
+   GRAPH/Eurographics Symposium on Computer Animation, Eu-                   211­218.
+   rographics Association, Aire-la-Ville, Switzerland, Switzerland,
+   SCA '12, 305­310.                                                      SOLENTHALER, B., SCHLA¨ FLI, J., AND PAJAROLA, R. 2007.
+                                                                             A unified particle model for fluid&ndash;solid interactions: Re-
+MACKLIN, M., AND MU¨ LLER, M. 2013. Position based fluids.                   search articles. Comput. Animat. Virtual Worlds 18, 1 (Feb.),
+   ACM Trans. Graph. 32, 4 (July), 104:1­104:12.                             69­82.
+
+MARTIN, S., KAUFMANN, P., BOTSCH, M., GRINSPUN, E., AND                   STAM, J., AND FIUME, E. 1995. Depicting fire and other gaseous
+   GROSS, M. 2010. Unified simulation of elastic rods, shells, and           phenomena using diffusion processes. In Proceedings of the
+   solids. In ACM SIGGRAPH 2010 Papers, ACM, New York, NY,                   22nd annual conference on Computer graphics and interactive
+   USA, SIGGRAPH '10, 39:1­39:10.                                            techniques, ACM, 129­136.
+
+MU¨ LLER, M., AND CHENTANEZ, N. 2011. Adding physics to an-               STAM, J. 1999. Stable fluids. In Proceedings of the 26th annual
+   imated characters with oriented particles. In Workshop in Virtual         conference on Computer graphics and interactive techniques,
+   Reality Interactions and Physical Simulation, The Eurographics            ACM Press/Addison-Wesley Publishing Co., 121­128.
+   Association, 83­91.
+                                                                          STAM, J. 2009. Nucleus: Towards a unified dynamics solver for
+MU¨ LLER, M., AND CHENTANEZ, N. 2011. Solid simulation with                  computer graphics. In Computer-Aided Design and Computer
+   oriented particles. In ACM Transactions on Graphics (TOG),                Graphics, 2009. CAD/Graphics' 09. 11th IEEE International
+   vol. 30, ACM, 92.                                                         Conference on, IEEE, 1­11.
+
+MU¨ LLER, M., CHARYPAR, D., AND GROSS, M. 2003. Particle-                 TONGE, R., WYATT, B., AND NICHOLSON, N. 2010. Physx gpu
+   based fluid simulation for interactive applications. In Proceed-          rigid bodies in batman: Arkham asylum. Game Programming
+   ings of the 2003 ACM SIGGRAPH/Eurographics symposium on                   Gems 8, 590­601.
+   Computer animation, Eurographics Association, Aire-la-Ville,
+   Switzerland, Switzerland, SCA '03, 154­159.                            TONGE, R., BENEVOLENSKI, F., AND VOROSHILOV, A. 2012.
+                                                                             Mass splitting for jitter-free parallel rigid body simulation. ACM
+MU¨ LLER, M., KEISER, R., NEALEN, A., PAULY, M., GROSS,                      Trans. Graph. 31, 4 (July), 105:1­105:8.
+   M., AND ALEXA, M. 2004. Point based animation of elastic,
+   plastic and melting objects. In Proceedings of the 2004 ACM            WEINSTEIN, R., TERAN, J., AND FEDKIW, R. 2006. Dynamic
+   SIGGRAPH/Eurographics symposium on Computer animation,                    simulation of articulated rigid bodies with contact and collision.
+   Eurographics Association, 141­151.                                        Visualization and Computer Graphics, IEEE Transactions on 12,
+                                                                             3, 365­374.
+MU¨ LLER, M., SCHIRM, S., TESCHNER, M., HEIDELBERGER,
+   B., AND GROSS, M. 2004. Interaction of fluids with deformable          ZHU, Y., AND BRIDSON, R. 2005. Animating sand as a fluid.
+   solids. In JOURNAL OF COMPUTER ANIMATION AND VIR-                         In ACM SIGGRAPH 2005 Papers, ACM, New York, NY, USA,
+   TUAL WORLDS (CAVW, 159­171.                                               SIGGRAPH '05, 965­972.
+
+MU¨ LLER, M., HEIDELBERGER, B., TESCHNER, M., AND
+   GROSS, M. 2005. Meshless deformations based on shape
+   matching. In ACM SIGGRAPH 2005 Papers, ACM, New York,
+   NY, USA, SIGGRAPH '05, 471­478.
+
+MU¨ LLER, M., HEIDELBERGER, B., HENNIX, M., AND RAT-
+   CLIFF, J. 2007. Position based dynamics. J. Vis. Comun. Image
+   Represent. 18, 2 (Apr.), 109­118.
+
+                                                                      12
+

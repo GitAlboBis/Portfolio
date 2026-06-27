@@ -45,9 +45,30 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const lang = ((await cookies()).get("lang")?.value as Lang) ?? "en";
 
+  // Person structured data (schema.org) — real links only (no invented profiles).
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Alberto Tuveri",
+    jobTitle: "Software Engineer (Full-Stack + AI)",
+    url: "https://albertotuveri.dev",
+    email: "mailto:albertotuveri@gmail.com",
+    sameAs: [
+      "https://github.com/GitAlboBis",
+      "https://linkedin.com/in/albertotuveri",
+    ],
+  };
+
   return (
     <html lang={lang} className={`${fraunces.variable} ${hanken.variable}`}>
       <body>
+        <script
+          type="application/ld+json"
+          // sanitized per Next.js JSON-LD guidance (escape `<` to prevent injection)
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
         <LanguageProvider initialLang={lang}>
           <CanvasHost />
           <ScrollProvider />

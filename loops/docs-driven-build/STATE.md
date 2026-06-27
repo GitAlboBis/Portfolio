@@ -21,11 +21,12 @@ P0 = active-gate blocker · P1 = next · P2 = later · ⚠ = touches hero WIP.
 
 | id | gate | item | prio | status |
 |----|------|------|------|--------|
-| seo-infra | 8 | sitemap.ts / robots.ts / JSON-LD Person / web manifest. | P0 | in-progress |
-| readme | 8 | Project README (setup/run/deploy/structure). | P0 | pending |
-| a11y-pass | 8 | AA contrast, keyboard nav, focus, aria-hidden on decorative canvas/frames. | P1 | pending |
-| lint-test-scripts | 8 | ESLint+Prettier config (ignore vendored waterball) + scripts; reconcile docs/01. | P1 | pending |
-| verify-contact-email | 7 | Confirm mailto is public address, not alberto.t@sersan.dev. | P2 | pending |
+| seo-infra | 8 | sitemap.ts + robots.ts + JSON-LD Person DONE. Web manifest + OG image deferred (need icon/image assets). | P0 | done* |
+| readme | 8 | Project README (setup/run/deploy/structure). | P0 | done |
+| verify-contact-email | 7 | Verified: all mailto use public albertotuveri@gmail.com (footer/nav/contact). No sersan.dev leak. | P2 | done |
+| a11y-pass | 8 | AA contrast, keyboard nav, focus, aria-hidden on decorative canvas/frames. | P1 | next |
+| lint-test-scripts | 8 | ESLint+Prettier config (ignore vendored waterball) + scripts; reconcile docs/01. | P1 | next |
+| seo-assets | 8 | Web app manifest + OG image (app/manifest.ts + opengraph-image) — need icon/image assets. | P2 | pending |
 | perf-tier-scaling ⚠ | 8 | Mobile tier scaling for MLS-MPM hero (NUM_PARTICLES fixed; detectTier() unused). | P2 | deferred (WIP/feel) |
 | lazy-load-hero ⚠ | 8 | Dynamic-import the heavy hero/cinematic. | P2 | deferred (WIP/feel) |
 | webgpu-fallback ⚠ | 8 | Real degraded hero or formally accept CSS gradient as only fallback. | P2 | gate |
@@ -44,19 +45,20 @@ P0 = active-gate blocker · P1 = next · P2 = later · ⚠ = touches hero WIP.
 | — | scaffold docs-driven-build loop | 92ba4d7 |
 | 1 | reconcile all 16 docs to shipped reality | 5b215f6 |
 | 2a | commit hero/cinematic WIP + 136 frames | 9445c18 |
-| 2b | cleanups: rm package-lock.json + orphan GLBs + dead homeBuffer machinery | (pending commit) |
+| 2b | cleanups: rm package-lock.json + orphan GLBs + dead homeBuffer machinery | 150f404 |
+| 3 | GATE 8 SEO: sitemap.ts + robots.ts + JSON-LD Person + README; verified contact email | (pending commit) |
 
 ## Last run
 
 ```
 timestamp : 2026-06-27
-iteration : 2
-action    : housekeeping — commit hero WIP + approved G6 cleanups
-outcome   : WIP+frames committed (9445c18); deleted stray package-lock.json + orphan GLBs
-            (a-mark/a-liquid) + dead homeBuffer/homes machinery in mls-mpm.ts
-verify    : typecheck + BUILD green (first build; compiled 1.9s, 3 static pages)
+iteration : 3
+action    : GATE 8 productionization — SEO infra + README
+outcome   : src/app/sitemap.ts + robots.ts (build shows /sitemap.xml + /robots.txt),
+            JSON-LD Person in layout.tsx (real links), README.md; contact email verified public
+verify    : typecheck + BUILD green (5 routes)
 exit code : 0
-status    : iteration-2 complete — proceeding to GATE 8 (seo-infra, readme)
+status    : iteration-3 complete — checkpoint with Alberto (3/12 iterations used)
 ```
 
 ## Gate requests / approvals (awaiting Alberto)
@@ -71,6 +73,6 @@ status    : iteration-2 complete — proceeding to GATE 8 (seo-infra, readme)
 ## Notes
 
 - Source of truth = repo (`CLAUDE.md` + `docs/`), reconciled 2026-06-27. Read fresh each run.
-- Budget: 12 iterations OR 4h per run (hard stop). Iterations used: 2.
+- Budget: 12 iterations OR 4h per run (hard stop). Iterations used: 3.
 - Context7 BEFORE touching versioned libs (Next 16 sitemap/robots APIs etc.).
 - Do not delete completed ledger rows — audit trail (git is the journal too).

@@ -75,8 +75,8 @@ export function DescendingWorld() {
     const HERO_FRACTION = 0.55; // ~hero share of total scroll; below this we hold near the top colour
     // The veil stays invisible through the hero footage and fades in across the
     // hero->content handoff, so the descending world never covers the cinematic.
-    const HERO_FADE_START = 0.48;
-    const HERO_FADE_END = 0.58;
+    const HERO_FADE_START = 0.44;
+    const HERO_FADE_END = 0.53;
 
     const paint = () => {
       const y = window.scrollY || window.pageYOffset || 0;

@@ -32,10 +32,24 @@ export function CanvasHost() {
   // during SSR). `null` = not yet checked -> render nothing for the centerpiece
   // to avoid an SSR/first-paint mismatch; true/false once known.
   const [hasWebGPU, setHasWebGPU] = useState<boolean | null>(null);
+  // The hero visuals are FIXED and would bleed behind the below-fold sections;
+  // fade the whole group out once the hero scrolls away.
+  const [heroVisible, setHeroVisible] = useState(true);
 
   useEffect(() => {
     setAnimate(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     setHasWebGPU(typeof navigator !== "undefined" && !!navigator.gpu);
+  }, []);
+
+  useEffect(() => {
+    const heroEl = document.getElementById("hero");
+    if (!heroEl) return;
+    const io = new IntersectionObserver(
+      (entries) => setHeroVisible(entries[0]?.isIntersecting ?? true),
+      { threshold: 0 },
+    );
+    io.observe(heroEl);
+    return () => io.disconnect();
   }, []);
 
   // Mount the live fluid only when WebGPU is present AND motion is allowed.
@@ -54,11 +68,18 @@ export function CanvasHost() {
         className="fixed inset-0 -z-10"
         style={{ background: SEA_GRADIENT }}
       />
-      {/* Pan di Zucchero footage = hero background; scrubs from the first scroll.
-          Mounted BEFORE the water so the (transparent) "A" composites over it. */}
-      <VideoBackdrop />
-      {showFluid && <WaterBallHero />}
-      {showFallback && <HeroMarkFallback />}
+      {/* Hero visuals (footage + fluid "A" + fallback) — fixed, so the whole
+          group fades out once the hero leaves the viewport; otherwise the fixed
+          canvases bleed behind the below-fold sections. */}
+      <div
+        aria-hidden
+        className="fixed inset-0 z-0 transition-opacity duration-[900ms] ease-out"
+        style={{ opacity: heroVisible ? 1 : 0 }}
+      >
+        <VideoBackdrop />
+        {showFluid && <WaterBallHero />}
+        {showFallback && <HeroMarkFallback />}
+      </div>
     </>
   );
 }

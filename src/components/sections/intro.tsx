@@ -3,7 +3,6 @@
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Reveal, RevealText } from "@/components/ui/reveal";
-import { ScrollText } from "@/components/scroll-text";
 import { useScrollParallax } from "@/components/descending-world";
 import { useLanguage } from "@/components/language-provider";
 
@@ -30,15 +29,13 @@ export function Intro() {
             <Eyebrow>{t.intro.eyebrow}</Eyebrow>
           </Reveal>
 
-          {/* The statement surfaces word-by-word, scrubbed by scroll, like a
-              tide-line breaking the surface (ui-layouts/Codrops scroll-text). */}
-          <ScrollText
-            as="h2"
+          {/* The statement surfaces word-by-word behind a tide-line mask. */}
+          <RevealText
             id="intro-heading"
+            text={t.intro.heading}
+            delay={90}
             className="heading-1 mt-6 max-w-[18ch] text-balance text-foam sm:mt-8"
-          >
-            {t.intro.heading}
-          </ScrollText>
+          />
 
           <Reveal variant="mask-wipe" delay={240}>
             <p className="mt-10 max-w-2xl text-pretty text-lg leading-relaxed text-foam sm:mt-12 sm:text-xl">

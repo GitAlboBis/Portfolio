@@ -33,13 +33,21 @@ export function WorkSection() {
           />
         </Reveal>
 
-        <div className="mx-auto mt-20 flex max-w-4xl flex-col gap-12 sm:mt-28 sm:gap-16 md:mt-32 md:gap-20">
-          {projectsSorted.map((project, i) => (
-            <Reveal key={project.slug} delay={i === 0 ? 0 : 120}>
-              <ProjectCard project={project} lang={lang} t={t} />
-            </Reveal>
+        {/* Cards rise in sequence — a measured, staggered surfacing. */}
+        <Reveal
+          variant="stagger"
+          stagger={140}
+          className="mx-auto mt-20 flex max-w-4xl flex-col gap-12 sm:mt-28 sm:gap-16 md:mt-32 md:gap-20"
+        >
+          {projectsSorted.map((project) => (
+            <ProjectCard
+              key={project.slug}
+              project={project}
+              lang={lang}
+              t={t}
+            />
           ))}
-        </div>
+        </Reveal>
       </Container>
     </section>
   );

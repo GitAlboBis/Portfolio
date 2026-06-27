@@ -37,15 +37,24 @@
   --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
   --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+
+  /* Layout — fixed nav height, used for anchor scroll-offset (.scroll-anchor) */
+  --nav-h: 4rem;
 }
 
 :root {
   color-scheme: dark;
 }
 
-html {
-  scroll-behavior: smooth;
+/* Larger fixed-nav allowance from the medium breakpoint up. */
+@media (min-width: 768px) {
+  :root {
+    --nav-h: 5rem;
+  }
 }
+
+/* No scroll-behavior here — Lenis (ScrollProvider) owns smooth scrolling;
+   in-page anchors are handled in JS. */
 
 html,
 body {
@@ -53,11 +62,39 @@ body {
   color: var(--color-foam);
 }
 
+/* Themed native scrollbar — abyss track, mist->celeste thumb (no default
+   light Windows bar). Firefox uses scrollbar-color/width; WebKit/Chromium
+   uses ::-webkit-scrollbar below. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-mist) var(--color-abyss);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-abyss);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-mist);
+  border: 2px solid var(--color-abyss);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-celeste);
+}
+::-webkit-scrollbar-corner {
+  background: var(--color-abyss);
+}
+
 body {
   font-family: var(--font-serif);
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
   overflow-x: hidden;
 }
 
@@ -97,11 +134,48 @@ body {
   letter-spacing: -0.01em;
 }
 
+.heading-3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.3rem, 2.4vw, 1.95rem);
+  line-height: 1.16;
+  letter-spacing: -0.008em;
+}
+
 .lead {
   font-family: var(--font-serif);
   font-size: clamp(1.1rem, 1.7vw, 1.45rem);
   line-height: 1.55;
   color: var(--color-mist);
+}
+
+/* Reading copy — Hanken sans, comfortable measure for body paragraphs. */
+.body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: clamp(1rem, 1.15vw, 1.1rem);
+  line-height: 1.7;
+  max-width: 62ch;
+  color: var(--color-mist);
+}
+.body-sm {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 62ch;
+  color: var(--color-mist);
+}
+
+/* Lining tabular numerals for metric figures (aligned columns). */
+.tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* In-page anchor offset so targets clear the fixed nav. */
+.scroll-anchor {
+  scroll-margin-top: var(--nav-h);
 }
 
 /* Small caps label — clean sans, letter-spaced (NatGeo chapter labels). */
@@ -168,9 +242,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  /* scroll-behavior intentionally unset (Lenis owns smoothing). */
   *,
   *::before,
   *::after {

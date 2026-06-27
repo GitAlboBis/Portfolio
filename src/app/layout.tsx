@@ -34,11 +34,42 @@ export const metadata: Metadata = {
   },
   description:
     "Portfolio of Alberto Tuveri — full-stack & AI software engineer. From the cliffs of Pan di Zucchero to production-grade systems.",
+  applicationName: "Alberto Tuveri",
+  // Web App Manifest (src/app/manifest.ts is served at /manifest.webmanifest).
+  manifest: "/manifest.webmanifest",
+  // Icons: src/app/icon.svg and src/app/apple-icon.tsx are also auto-detected by
+  // the file conventions; declared here explicitly so the manifest, OG, and head
+  // links stay an intentional, single source of truth.
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     title: "Alberto Tuveri — Software Engineer",
     description:
       "Full-stack & AI software engineer. A cinematic, ocean-themed portfolio.",
     type: "website",
+    siteName: "Alberto Tuveri",
+    locale: "en_US",
+    alternateLocale: "it_IT",
+    url: "/",
+    // src/app/opengraph-image.tsx is served at /opengraph-image and is also
+    // auto-detected; referenced here so the share card is explicit and stable.
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Alberto Tuveri — Software Engineer, Full-Stack & AI.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Alberto Tuveri — Software Engineer",
+    description:
+      "Full-stack & AI software engineer. A cinematic, ocean-themed portfolio.",
+    images: ["/opengraph-image"],
   },
 };
 

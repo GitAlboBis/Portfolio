@@ -2,7 +2,7 @@
 
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { Reveal } from "@/components/ui/reveal";
+import { Reveal, RevealText } from "@/components/ui/reveal";
 import { useLanguage } from "@/components/language-provider";
 
 /*
@@ -26,26 +26,25 @@ export function Intro() {
             <Eyebrow>{t.intro.eyebrow}</Eyebrow>
           </Reveal>
 
-          <Reveal delay={90}>
-            <h2
-              id="intro-heading"
-              className="heading-1 mt-6 max-w-[18ch] text-balance text-foam sm:mt-8"
-            >
-              {t.intro.heading}
-            </h2>
-          </Reveal>
+          {/* The statement surfaces word-by-word behind a tide-line mask. */}
+          <RevealText
+            id="intro-heading"
+            text={t.intro.heading}
+            delay={90}
+            className="heading-1 mt-6 max-w-[18ch] text-balance text-foam sm:mt-8"
+          />
 
-          <Reveal delay={180}>
+          <Reveal variant="mask-wipe" delay={240}>
             <p className="mt-10 max-w-2xl text-pretty text-lg leading-relaxed text-foam sm:mt-12 sm:text-xl">
               {t.intro.body1}
             </p>
           </Reveal>
 
-          <Reveal delay={240} className="max-w-2xl">
+          <Reveal variant="mask-wipe" delay={320} className="max-w-2xl">
             <div className="rule-node my-10 sm:my-12" aria-hidden />
           </Reveal>
 
-          <Reveal delay={320}>
+          <Reveal variant="mask-wipe" delay={400}>
             <p className="max-w-2xl text-pretty text-lg leading-relaxed text-mist sm:text-xl">
               {t.intro.body2}
             </p>

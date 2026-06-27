@@ -52,6 +52,15 @@ export const en: Dictionary = {
     location: "Camerino, Italy",
     rights: "All rights reserved.",
   },
+  notFound: {
+    eyebrow: "404 · Off the map",
+    title: "Lost at sea.",
+    body: "This page drifted past the edge of the chart. The current's already carrying you back.",
+    cta: "Return to surface",
+    errorTitle: "The current pulled under.",
+    errorBody: "Something broke beneath the surface. Catch your breath and try again.",
+    errorCta: "Try again",
+  },
   gauge: {
     surface: "Surface",
     seabed: "Seabed",

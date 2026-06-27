@@ -52,6 +52,15 @@ export const it: Dictionary = {
     location: "Camerino, Italia",
     rights: "Tutti i diritti riservati.",
   },
+  notFound: {
+    eyebrow: "404 · Fuori rotta",
+    title: "Perso in mare.",
+    body: "Questa pagina è andata oltre il bordo della carta. La corrente ti sta già riportando indietro.",
+    cta: "Torna in superficie",
+    errorTitle: "La corrente ha tirato giù.",
+    errorBody: "Qualcosa si è rotto sotto la superficie. Riprendi fiato e riprova.",
+    errorCta: "Riprova",
+  },
   gauge: {
     surface: "Superficie",
     seabed: "Fondale",

@@ -56,6 +56,15 @@ export type Dictionary = {
     location: string;
     rights: string;
   };
+  notFound: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    cta: string;
+    errorTitle: string;
+    errorBody: string;
+    errorCta: string;
+  };
   gauge: {
     surface: string;
     seabed: string;

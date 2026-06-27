@@ -245,14 +245,31 @@ export function LiquidText() {
     let raf = 0;
     const start = performance.now();
     let vel = 0;
+    let drewBlank = false; // ensure one clear so a stale frame never lingers
     const loop = () => {
       raf = requestAnimationFrame(loop);
       if (!heroVisible) return;
-      uniforms.uTime.value = (performance.now() - start) * 0.001;
-      uniforms.uReveal.value = reduce ? 1 : useHeroStore.getState().reveal;
+
+      const reveal = reduce ? 1 : useHeroStore.getState().reveal;
       // smoothed scroll velocity -> motion blur amount (kept low so text stays sharp)
       const raw = Math.min(Math.abs(useScrollStore.getState().velocity) * 0.18, 0.6);
       vel += (raw - vel) * 0.2;
+
+      // EARLY-OUT: for ~the first half of the hero the title is fully submerged
+      // (reveal===0) and nothing is moving (no meniscus shimmer, no motion blur),
+      // so the shader output is entirely transparent — skip the draw entirely.
+      // We still clear ONCE so no previous frame is left on the canvas.
+      if (reveal <= 0 && vel < 0.002) {
+        if (!drewBlank) {
+          renderer.clear();
+          drewBlank = true;
+        }
+        return;
+      }
+      drewBlank = false;
+
+      uniforms.uTime.value = (performance.now() - start) * 0.001;
+      uniforms.uReveal.value = reveal;
       uniforms.uVelocity.value = vel;
       renderer.render(scene, camera);
     };
@@ -270,9 +287,10 @@ export function LiquidText() {
   }, []);
 
   return (
+    // Decorative: the accessible hero title is the sr-only <h1> in hero.tsx.
     <canvas
       ref={canvasRef}
-      aria-label="Portfolio — Alberto Tuveri"
+      aria-hidden
       className="pointer-events-none absolute inset-0 h-full w-full"
     />
   );

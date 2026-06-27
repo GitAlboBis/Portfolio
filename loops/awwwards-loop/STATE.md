@@ -11,6 +11,14 @@
 | 1 | 6.0 | 6.2 | 6.5 | 6.5 | **4.5** | 6.0 | 5.5 | **4.5** | **5.7** |
 | 3 (after FIX 1+2b) | 6.5 | 6.5 | 6.5 | 6.5 | **4.5** | 7.5 | 7.4 | **4.5** | 5.8 |
 | 5 (after FIX 4) | 6.5 | 7.0 | 6.5 | 7.2 | **6.0** | 7.0 | 7.5 | **6.5** | **6.6** |
+| 7 (after FIX 6) | 7.1 | 7.0 | 6.5 | 6.5 | 6.5 | 7.0 | 7.5 | 6.5 | **6.8** |
+
+**Cycle-7 read:** art +0.6 (living world/climax), perf +0.5; but narrative REGRESSED 7.2→6.5
+(eyebrow re-sequence made a new Dive→Descent→Surface inversion; dive peaks on empty screen; empty
+SerSan cards + cliché "PORTFOLIO" climax word). Latent BUG found: .body/.tabular tokens defined but
+NEVER used → reading copy silently renders Fraunces serif. a11y flat (fixed thesis pill but nav
+focus-visible:outline-none killed the keyboard ring; nav links lack a scrim over bright footage).
+Next = "realize the system already built" (jury: highest-leverage/lowest-risk).
 
 **Cycle-5 read:** cycle-4 BROKE THE GATE — Performance +1.5 (→6.0), Responsive +2.0 (→6.5),
 narrative +0.7, motion +0.5; overall 5.8→**6.6**. BUT a11y regressed 7.5→7.0: the new hero thesis
@@ -64,17 +72,19 @@ art direction fractures after the hero · motion/type/a11y competent-but-conserv
 | 3 | RE-EVALUATE: 8-critic re-score → overall 5.8 (a11y 7.5, craft 7.4); perf+responsive pinned 4.5 | (wf_ef1d1396-58f) |
 | 4 | FIX perf/responsive: 960px mobile tier (25→4.2MB) + leva prod-gate + WebGPU static-A fallback + hero tagline/caption + cue pill + IT calque + nav order | 79ba2d9 |
 | 5 | RE-EVALUATE: GATE BROKEN → overall 6.6 (perf 4.5→6.0, responsive 4.5→6.5, narrative 7.2, motion 7.0); a11y regressed 7.5→7.0 (hero thesis contrast) | (wf_95ddef16-c99) |
+| 6 | FIX art/motion/a11y: synthetic dive climax (Ken Burns push-in) + descending-world bg + per-section parallax + a11y contrast pills + localized aria + eyebrow descent + variable Fraunces (opsz/WONK) + strip 10MB JPEG | a807761 |
+| 7 | RE-EVALUATE: overall 6.6→6.8 (art 7.1, perf 6.5); narrative regressed 7.2→6.5; serif-body bug + nav focus/scrim a11y gaps found | (wf_76c2e1b0-74f) |
 
 ## Last run
 
 ```
-cycle     : 5 (RE-EVALUATE) complete — GATE BROKEN: overall 5.8 -> 6.6 (perf 6.0, responsive 6.5)
-status    : checkpoint. a11y regression (hero thesis contrast) caught by the loop.
-next-6    : P0 FIX a11y regression (hero-thesis-veil + caption-pill abyss/70 + localize aria) +
-            strip 9.7MB unused JPEG; THEN big bets: synthetic-dive-climax (Ken Burns push-in on
-            existing frames = the "zoom-into-backflip" payoff w/o footage) + descending-world bg +
-            scroll-linked section motion + Fraunces variable axes. Targets art/type/motion + the
-            "world collapses after the fold" ceiling.
+cycle     : 7 (RE-EVALUATE) complete — overall 6.6 -> 6.8 (art 7.1, perf 6.5; narrative -0.7 regression)
+status    : checkpoint. Trajectory 5.7 -> 5.8 -> 6.6 -> 6.8.
+next-8    : "REALIZE THE SYSTEM" (highest-leverage/lowest-risk) + fix the 2 regressions:
+            serif-body-bug (wire .body/.body-sm), tabular-metrics, accent-token-cleanup (kill dead
+            --color-gold/sun aliases), nav-focus-visible + nav-scrim + thesis-eyebrow contrast,
+            depth-ladder-fix + it-eyebrow-parity + remove-provisional-cards + climax-word, shared
+            --ease-* tokens, lenis-synctouch touch-gate, cubemap recompress + frames immutable cache.
 ```
 
 ## Notes

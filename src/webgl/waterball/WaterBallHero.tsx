@@ -31,7 +31,10 @@ import { Leva, useControls } from "leva";
 // count is derived from the sampling spacing (and auto-widened to never exceed this cap
 // with a uniform fill). Lower if the "A" looks dense/heavy; the spacing in initFromHomes
 // controls per-volume density (overpressure/balloon).
-const NUM_PARTICLES = 40000;
+// Denser fill = smoother screen-space fluid: sparse particles render as spikes, so a
+// higher count keeps the "A" (and its dispersal) cohesive and clean. Raised 40k->120k
+// (cap is numParticlesMax = 200k). Pair with a tighter initFromHomes baseSpacing.
+const NUM_PARTICLES = 120000;
 // BIG box (Alberto's "two boxes": this is the splash BOUND; the "A" confinement inside is
 // the rest shape). Wide XY = room for the spray to fly out around the letter; thin Z keeps
 // the slab. Grid caps at 80/axis, so 80 wide is the max splash reach.

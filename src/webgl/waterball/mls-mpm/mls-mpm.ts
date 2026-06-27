@@ -351,7 +351,7 @@ export class MLSMPMSimulator {
     // keeps them there. Geometry MUST stay in sync with mls-mpm/g2p.wgsl
     // (apex / lfoot / rfoot / crossbar / halfW / zh) or the fill and the confinement
     // would disagree.
-    initFromHomes(initBoxSize: number[], maxParticles: number, baseSpacing = 0.66) {
+    initFromHomes(initBoxSize: number[], maxParticles: number, baseSpacing = 0.5) {
         const halfW = 5.0;
         const zh = 5.0;
         const apex = [40.0, 48.0];

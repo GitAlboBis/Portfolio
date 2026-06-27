@@ -64,6 +64,12 @@ const SPLASH_DEFAULTS = {
   speedGate: 1.5,
   leashRadius: 60,
   pokeForce: 0.5,
+  // EXPLODE-burst feel (the slow-mo water splash). Dial these live in the leva
+  // "splash" panel, then tell me the numbers to bake in.
+  explodeOut: 4.0, // radial burst force (0 = no burst)
+  explodeGrav: 2.5, // gravity pulling the burst down afterwards
+  explodeDamp: 0.08, // per-frame damping — higher = slower/more syrupy (slow-mo)
+  explodeCap: 16.0, // max particle speed at full explode (the slow-motion ceiling)
 } as const;
 
 const CAM_DEFAULTS = {
@@ -85,6 +91,10 @@ function useDevHeroControls(): { splash: SplashValues; cam: CamValues } {
     speedGate: { value: SPLASH_DEFAULTS.speedGate, min: 0.1, max: 60, step: 0.1 },
     leashRadius: { value: SPLASH_DEFAULTS.leashRadius, min: 5, max: 120, step: 1 },
     pokeForce: { value: SPLASH_DEFAULTS.pokeForce, min: 0, max: 4, step: 0.01 },
+    explodeOut: { value: SPLASH_DEFAULTS.explodeOut, min: 0, max: 20, step: 0.5 },
+    explodeGrav: { value: SPLASH_DEFAULTS.explodeGrav, min: 0, max: 15, step: 0.5 },
+    explodeDamp: { value: SPLASH_DEFAULTS.explodeDamp, min: 0, max: 0.4, step: 0.01 },
+    explodeCap: { value: SPLASH_DEFAULTS.explodeCap, min: 2, max: 60, step: 1 },
   });
   const cam = useControls("camera", {
     sway: { value: CAM_DEFAULTS.sway, min: 0, max: 0.6, step: 0.01 },
@@ -327,6 +337,10 @@ export function WaterBallHero() {
         sim.splashSpeedGate = sp.speedGate;
         sim.splashLeashRadius = sp.leashRadius;
         sim.pokeForce = sp.pokeForce;
+        sim.splashExplodeOut = sp.explodeOut;
+        sim.splashExplodeGrav = sp.explodeGrav;
+        sim.splashExplodeDamp = sp.explodeDamp;
+        sim.splashExplodeCap = sp.explodeCap;
 
         // DRAIN beat (Direction A) — scrub-driven + reversible. hero.tsx writes
         // heroStore.explode 0->1 as you scroll in; we feed it STRAIGHT to the sim so
@@ -342,8 +356,9 @@ export function WaterBallHero() {
           sim.initFromHomes(INIT_BOX, NUM_PARTICLES); // reform the "A"
           canvas.style.opacity = "1";
         }
-        // fade the fluid as the drain finishes pouring into the sea (tied to scroll)
-        const fade = explodeBeat <= 0.62 ? 1 : Math.max(0, 1 - (explodeBeat - 0.62) / 0.38);
+        // fade the fluid as the slow burst finishes dispersing into the sea (tied to
+        // scroll) — start late so the slow-motion dispersal is fully seen first.
+        const fade = explodeBeat <= 0.78 ? 1 : Math.max(0, 1 - (explodeBeat - 0.78) / 0.22);
         canvas.style.opacity = String(fade);
         // fully drained + faded -> idle the GPU (skip the heavy sim+render) until scrolled back
         if (explodeBeat >= 0.999 && fade <= 0.002) {

@@ -17,6 +17,10 @@ struct SplashParams {
     speedGate: f32,
     leashRadius: f32,
     explode: f32,
+    explodeOut: f32,
+    explodeGrav: f32,
+    explodeDamp: f32,
+    explodeCap: f32,
 }
 
 override fixed_point_multiplier: f32;
@@ -157,28 +161,30 @@ fn g2p(@builtin(global_invocation_id) id: vec3<u32>) {
         // optional damping (default 0 keeps the churn alive, like the original)
         particles[id.x].v *= (1.0 - splash.drag);
 
-        // DRAIN beat (Direction A): as splash.explode 0->1 the surface tension breaks
-        // and the letter POURS DOWNWARD back into the sea -- a directional drain, NOT
-        // an omnidirectional starburst. Confinement is already off (calm above), so the
-        // water is free to fall. A gentle horizontal spread makes it SHEET (not stream),
-        // and a little hashed jitter breaks it like water rather than a falling block.
+        // EXPLODE beat (Direction A): a NATURAL water burst in SLOW MOTION -- a RADIAL
+        // break in ALL directions (so it reads as an explosion of water, not a downward
+        // rush) that then falls under gravity. All four feel knobs are leva-driven so
+        // the slow-mo can be dialed live: explodeOut (radial force), explodeGrav
+        // (gravity), explodeDamp (per-frame damping = how syrupy/slow), explodeCap (max
+        // speed at full explode = the slow-motion ceiling). No white spikes (fluid.wgsl).
         if (splash.explode > 0.0) {
             let e = splash.explode;
             let center = real_box_size * 0.5;
-            let outxz = vec3f(particles[id.x].position.x - center.x, 0.0, particles[id.x].position.z - center.z);
-            let spread = outxz / max(length(outxz), 1e-3);
+            let outv = particles[id.x].position - center;
+            let dirOut = outv / max(length(outv), 1e-3);
             let jitter = vec3f(
                 sin(particles[id.x].position.y * 1.7 + particles[id.x].position.z),
-                0.0,
-                cos(particles[id.x].position.x * 1.3 + particles[id.x].position.y)
+                cos(particles[id.x].position.x * 1.3 + particles[id.x].position.y),
+                sin(particles[id.x].position.x * 0.9 - particles[id.x].position.z * 1.1)
             );
-            particles[id.x].v += vec3f(0.0, -26.0, 0.0) * e;   // fall (down = -Y)
-            particles[id.x].v += spread * 5.0 * e;             // gentle outward sheet
-            particles[id.x].v += jitter * 2.0 * e;             // organic break-up
+            particles[id.x].v += (dirOut + jitter * 0.4) * splash.explodeOut * e;  // radial burst
+            particles[id.x].v += vec3f(0.0, -splash.explodeGrav, 0.0) * e;         // gravity (falls after)
+            particles[id.x].v *= (1.0 - splash.explodeDamp * e);                   // slow-mo damping
         }
-        // hard safety: cap speed so a feedback loop can never blow a particle to infinity.
+        // hard safety + slow-mo: cap speed (low during the burst so nothing flings away,
+        // normal at rest so the churn lives).
         let sp2 = dot(particles[id.x].v, particles[id.x].v);
-        let maxSpeed = 60.0;
+        let maxSpeed = mix(60.0, splash.explodeCap, clamp(splash.explode, 0.0, 1.0));
         if (sp2 > maxSpeed * maxSpeed) {
             particles[id.x].v *= maxSpeed / sqrt(sp2);
         }

@@ -67,6 +67,10 @@ export class MLSMPMSimulator {
     splashLeashRadius: number
     pokeForce: number
     splashExplode: number   // 0..1 explode beat (phase 2): kills confinement + radial burst
+    splashExplodeOut: number   // radial burst force during the explode (leva-tunable)
+    splashExplodeGrav: number  // downward gravity during the burst (leva-tunable)
+    splashExplodeDamp: number  // per-frame velocity damping during the burst (leva, slow-mo)
+    splashExplodeCap: number   // max particle speed at full explode (leva, slow-mo)
 
     constructor (particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderDiameter: number, device: GPUDevice,
         renderUniformBuffer: GPUBuffer, depthMapTextureView: GPUTextureView, canvas: HTMLCanvasElement) 
@@ -90,7 +94,14 @@ export class MLSMPMSimulator {
         this.splashLeashRadius = 60.0   // wide -> splashed water flies far + drifts back slowly
         this.pokeForce = 1.0
         this.splashExplode = 0.0
-        this.splashParamsValues = new Float32Array(8)
+        // EXPLODE-burst tuning — leva-driven so the slow-mo water splash can be dialed
+        // live (the motion can't be judged headless). Defaults = a gentle, slow radial
+        // burst that then falls under light gravity.
+        this.splashExplodeOut = 4.0
+        this.splashExplodeGrav = 2.5
+        this.splashExplodeDamp = 0.08
+        this.splashExplodeCap = 16.0
+        this.splashParamsValues = new Float32Array(12)
         const clearGridModule = device.createShaderModule({ code: clearGrid });
         const spawnParticlesModule = device.createShaderModule({ code: spawnParticles });
         const p2g1Module = device.createShaderModule({ code: p2g_1 });
@@ -220,7 +231,7 @@ export class MLSMPMSimulator {
         })
         this.splashParamsBuffer = device.createBuffer({
             label: 'splash params buffer',
-            size: 32, // 6x f32 (inflate, gravity, drag, restoreK, speedGate, leashRadius) padded to 32
+            size: 48, // 11x f32 (7 confinement/explode + 4 explode-burst knobs) padded to 48
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
 
@@ -448,7 +459,8 @@ export class MLSMPMSimulator {
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
         // live splash params (leva) -- MUST match SplashParams struct order in g2p.wgsl:
-        // inflate, gravity, drag, restoreK, speedGate, leashRadius, explode
+        // inflate, gravity, drag, restoreK, speedGate, leashRadius, explode,
+        // explodeOut, explodeGrav, explodeDamp, explodeCap
         this.splashParamsValues[0] = this.splashInflate
         this.splashParamsValues[1] = this.splashGravity
         this.splashParamsValues[2] = this.splashDrag
@@ -456,6 +468,10 @@ export class MLSMPMSimulator {
         this.splashParamsValues[4] = this.splashSpeedGate
         this.splashParamsValues[5] = this.splashLeashRadius
         this.splashParamsValues[6] = this.splashExplode
+        this.splashParamsValues[7] = this.splashExplodeOut
+        this.splashParamsValues[8] = this.splashExplodeGrav
+        this.splashParamsValues[9] = this.splashExplodeDamp
+        this.splashParamsValues[10] = this.splashExplodeCap
         this.device.queue.writeBuffer(this.splashParamsBuffer, 0, this.splashParamsValues)
 
         if (this.frameCount % 2 == 0 && this.numParticles < targetNumParticles) {

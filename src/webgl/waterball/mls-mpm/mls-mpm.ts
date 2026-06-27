@@ -55,14 +55,8 @@ export class MLSMPMSimulator {
 
     restDensity: number
 
-    // step 1a: "home" positions that fill the solid "A" (one per particle), kept on CPU
-    // for the soft restore (step 1b). null until initFromHomes() runs.
-    homePositions: Float32Array | null
-    homeCount: number
-
-    // step 1b: GPU home buffer (g2p binding 6) + live splash uniform (g2p binding 7),
-    // plus the CPU-side live params (driven by leva each frame, written in execute()).
-    homeBuffer: GPUBuffer
+    // live splash uniform (g2p binding 5) + CPU-side live params (driven by leva each
+    // frame, written in execute()).
     splashParamsBuffer: GPUBuffer
     splashParamsValues: Float32Array
     splashInflate: number
@@ -82,8 +76,6 @@ export class MLSMPMSimulator {
         this.frameCount = 0
         this.spawned = false
         this.numParticles = 0
-        this.homePositions = null
-        this.homeCount = 0
         // churn engine (faithful to WaterBall's confined-sphere forces, adapted to the "A"
         // medial axis): inflate fills + stirs the tube, gravity gently pulls to the centerline.
         this.splashInflate = 4.0
@@ -226,11 +218,6 @@ export class MLSMPMSimulator {
             size: 4, // single f32
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
-        this.homeBuffer = device.createBuffer({
-            label: 'home positions buffer',
-            size: 12 * numParticlesMax, // vec3 packed as 3x f32 (12B); read as array<f32> in g2p
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        })
         this.splashParamsBuffer = device.createBuffer({
             label: 'splash params buffer',
             size: 32, // 6x f32 (inflate, gravity, drag, restoreK, speedGate, leashRadius) padded to 32
@@ -346,12 +333,11 @@ export class MLSMPMSimulator {
         return particles;
     }
 
-    // --- step 1a: home-position fill -------------------------------------------------
-    // Sample "home" positions that FILL the solid "A" volume (3 capsule strokes of
-    // half-width halfW within the Z slab), seed every particle ON its home, and keep
-    // the homes (CPU) for the soft restore wired up in step 1b. Replaces the slow jet
-    // spawn: the solver has NO gravity, so particles seeded on their homes hold the
-    // shape on their own. Geometry MUST stay in sync with mls-mpm/g2p.wgsl
+    // --- procedural "A" fill ---------------------------------------------------------
+    // Sample positions that FILL the solid "A" volume (3 capsule strokes of half-width
+    // halfW within the Z slab) and seed every particle there. The solver has NO gravity,
+    // so particles seeded inside the shape hold it on their own; the g2p churn/confinement
+    // keeps them there. Geometry MUST stay in sync with mls-mpm/g2p.wgsl
     // (apex / lfoot / rfoot / crossbar / halfW / zh) or the fill and the confinement
     // would disagree.
     initFromHomes(initBoxSize: number[], maxParticles: number, baseSpacing = 0.66) {
@@ -404,7 +390,6 @@ export class MLSMPMSimulator {
         }
 
         const particlesBuf = new ArrayBuffer(mlsmpmParticleStructSize * numParticlesMax);
-        const homes = new Float32Array(cap * 3);
         let idx = 0;
         for (let z = z0; z <= z1 && idx < cap; z += s) {
             for (let y = y0; y <= y1 && idx < cap; y += s) {
@@ -416,19 +401,12 @@ export class MLSMPMSimulator {
                     const off = mlsmpmParticleStructSize * idx;
                     new Float32Array(particlesBuf, off + 0, 3).set([jx, jy, jz]);
                     // v (off+16) and C (off+32) stay zero -- the ArrayBuffer is zero-filled
-                    homes[idx * 3 + 0] = jx;
-                    homes[idx * 3 + 1] = jy;
-                    homes[idx * 3 + 2] = jz;
                     idx++;
                 }
             }
         }
 
         this.device.queue.writeBuffer(this.particleBuffer, 0, particlesBuf, 0, mlsmpmParticleStructSize * idx);
-        // upload the packed homes (3x f32 per particle) for the g2p soft restore (step 1b)
-        this.device.queue.writeBuffer(this.homeBuffer, 0, homes, 0, idx * 3);
-        this.homePositions = homes.subarray(0, idx * 3);
-        this.homeCount = idx;
         this.changeNumParticles(idx);
         return idx;
     }

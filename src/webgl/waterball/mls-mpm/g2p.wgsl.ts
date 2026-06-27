@@ -16,6 +16,7 @@ struct SplashParams {
     restoreK: f32,
     speedGate: f32,
     leashRadius: f32,
+    explode: f32,
 }
 
 override fixed_point_multiplier: f32;
@@ -137,19 +138,40 @@ fn g2p(@builtin(global_invocation_id) id: vec3<u32>) {
         let leash = clamp(overflow / max(splash.leashRadius, 1e-3), 0.0, 1.0);
         let hold = max(conf, leash);
 
+        // EXPLODE gate: as splash.explode 0->1 the confinement (inflate/gravity/recall)
+        // is switched OFF so there are NO forces holding the water in the "A" -- it is
+        // free to fly apart. calm = 1 at rest, 0 at full explode.
+        let calm = clamp(1.0 - splash.explode, 0.0, 1.0);
+
         // CHURN ENGINE (inner, ALWAYS free -> perpetual self-motion like the original):
         // inside the tube push OUTWARD to fill the cross-section; this force never settles.
         if (dAxis < halfW) {
-            particles[id.x].v += -(halfW - dAxis) * dirIn * splash.inflate;
+            particles[id.x].v += -(halfW - dAxis) * dirIn * splash.inflate * calm;
         }
         // gravity toward the centerline + recall of strayed water, BOTH scaled by hold so a
         // fast mouse poke escapes (splash) and slow/far water is reeled home (the undertow).
-        particles[id.x].v += dirIn * (splash.gravity * hold);
+        particles[id.x].v += dirIn * (splash.gravity * hold) * calm;
         if (dAxis > halfW) {
-            particles[id.x].v += dirIn * (overflow * splash.restoreK * hold);
+            particles[id.x].v += dirIn * (overflow * splash.restoreK * hold) * calm;
         }
         // optional damping (default 0 keeps the churn alive, like the original)
         particles[id.x].v *= (1.0 - splash.drag);
+
+        // EXPLODE burst: push every particle radially OUTWARD from the "A" centroid,
+        // ramped by explode. With confinement off (above) and no gravity, the water
+        // sprays apart like a splash -- a little hashed jitter breaks the perfect sphere.
+        if (splash.explode > 0.0) {
+            let center = real_box_size * 0.5;
+            let outv = particles[id.x].position - center;
+            let dout = max(length(outv), 1e-3);
+            let dirOut = outv / dout;
+            let jitter = vec3f(
+                sin(particles[id.x].position.y * 1.7 + particles[id.x].position.z),
+                cos(particles[id.x].position.x * 1.3 + particles[id.x].position.y),
+                sin(particles[id.x].position.x * 0.9 - particles[id.x].position.z * 1.1)
+            );
+            particles[id.x].v += (dirOut + jitter * 0.28) * 20.0 * splash.explode;
+        }
         // hard safety: cap speed so a feedback loop can never blow a particle to infinity.
         let sp2 = dot(particles[id.x].v, particles[id.x].v);
         let maxSpeed = 60.0;
@@ -162,7 +184,7 @@ fn g2p(@builtin(global_invocation_id) id: vec3<u32>) {
         // the "A" axis by POSITION (bypassing the grid) so they never glue to the box wall.
         let pEdge = particles[id.x].position;
         if (any(pEdge < vec3f(2.2)) || any(pEdge > real_box_size - vec3f(2.2))) {
-            particles[id.x].position += toAxis * 0.05;
+            particles[id.x].position += toAxis * 0.05 * calm;
         }
 
         let k = 3.0;

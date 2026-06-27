@@ -427,7 +427,7 @@ export class FluidRenderer {
             colorAttachments: [
                 {
                     view: context.getCurrentTexture().createView(),
-                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, // transparent -> video shows through
                     loadOp: 'clear',
                     storeOp: 'store',
                 },

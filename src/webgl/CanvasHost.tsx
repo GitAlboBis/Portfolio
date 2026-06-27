@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
+import { VideoBackdrop } from "@/components/video-backdrop";
 
 /*
   Hero host. The animated visual is now a faithful embed of matsuoka-601/WaterBall
@@ -27,13 +28,16 @@ export function CanvasHost() {
 
   return (
     <>
-      {/* CSS sea backdrop — static fallback (reduced-motion / no-WebGPU). */}
+      {/* CSS sea backdrop — ultimate fallback (no canvas at all). */}
       <div
         id="sea-backdrop"
         aria-hidden
         className="fixed inset-0 -z-10"
         style={{ background: SEA_GRADIENT }}
       />
+      {/* Pan di Zucchero footage = hero background; scrubs from the first scroll.
+          Mounted BEFORE the water so the (transparent) "A" composites over it. */}
+      <VideoBackdrop />
       {animate && <WaterBallHero />}
     </>
   );

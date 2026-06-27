@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import { LanguageProvider } from "@/components/language-provider";
 import { CanvasHost } from "@/webgl/CanvasHost";
+import { ScrollProvider } from "@/components/scroll-provider";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import type { Lang } from "@/data/translations/types";
@@ -49,6 +50,7 @@ export default async function RootLayout({
       <body>
         <LanguageProvider initialLang={lang}>
           <CanvasHost />
+          <ScrollProvider />
           <SiteNav />
           {children}
           <SiteFooter />

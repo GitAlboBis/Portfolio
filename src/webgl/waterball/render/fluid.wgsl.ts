@@ -41,7 +41,9 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let bgColor: vec3f = vec3f(0.7, 0.7, 0.75);
 
     if (depth >= 1e4) {
-        return vec4f(bgColor, 1.);
+        // no fluid here -> TRANSPARENT so the video backdrop shows through. The "A"
+        // pixels below are unchanged (they still refract bgColor + reflect the env).
+        return vec4f(0.0, 0.0, 0.0, 0.0);
     }
 
     var viewPos: vec3f = computeViewPosFromUVDepth(input.uv, depth); // z は負

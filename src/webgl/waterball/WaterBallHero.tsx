@@ -2,10 +2,12 @@
 /// <reference types="@webgpu/types" />
 
 import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 import { Camera } from "./camera";
 import { MLSMPMSimulator, mlsmpmParticleStructSize } from "./mls-mpm/mls-mpm";
 import { FluidRenderer } from "./render/fluidRender";
 import { renderUniformsViews, renderUniformsValues, numParticlesMax } from "./common";
+import { useHeroStore } from "@/webgl/store/heroStore";
 import { useControls } from "leva";
 
 /*
@@ -41,7 +43,34 @@ const AUTO_ROTATE = false; // the "A" should read head-on, not spin out of legib
 
 export function WaterBallHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fxWrapRef = useRef<HTMLDivElement>(null);
+  const lensRef = useRef<HTMLDivElement>(null);
   const [unsupported, setUnsupported] = useState(false);
+
+  // Entry animation (point 1): a brief lens "focus pull" — the water "A" zooms in
+  // from slightly large + blurred while a lens vignette clears. Plays once on
+  // mount; honored only when the sim is mounted (reduced-motion never mounts us).
+  useEffect(() => {
+    const wrap = fxWrapRef.current;
+    if (!wrap) return;
+    gsap.set(wrap, { opacity: 0, scale: 1.14, filter: "blur(16px)" });
+    gsap.set(lensRef.current, { opacity: 0.95 });
+    const tl = gsap.timeline({
+      delay: 0.15,
+      onComplete: () => {
+        // CRITICAL for sharpness: drop the filter/transform once the focus-pull
+        // finishes. A lingering CSS filter/transform forces the canvas onto a
+        // composited layer that gets rasterized + scaled -> the "A" looks soft.
+        gsap.set(wrap, { clearProps: "filter,transform" });
+      },
+    });
+    tl.to(wrap, { opacity: 1, duration: 0.5, ease: "power1.out" }, 0);
+    tl.to(wrap, { scale: 1, filter: "blur(0px)", duration: 1.9, ease: "power3.out" }, 0);
+    tl.to(lensRef.current, { opacity: 0, duration: 1.5, ease: "power2.out" }, 0.1);
+    return () => {
+      tl.kill();
+    };
+  }, []);
 
   // live water tuning (leva panel, top-right). The RAF loop reads the latest values through
   // a ref so edits take effect instantly, without rebuilding the sim.
@@ -54,9 +83,9 @@ export function WaterBallHero() {
     gravity: { value: 0.05, min: 0, max: 2, step: 0.01 },
     drag: { value: 0, min: 0, max: 0.2, step: 0.005 },
     restoreK: { value: 0.1, min: 0, max: 3, step: 0.01 },
-    speedGate: { value: 2.5, min: 0.1, max: 60, step: 0.1 },
+    speedGate: { value: 1.5, min: 0.1, max: 60, step: 0.1 },
     leashRadius: { value: 60, min: 5, max: 120, step: 1 },
-    pokeForce: { value: 1.0, min: 0, max: 4, step: 0.01 },
+    pokeForce: { value: 0.5, min: 0, max: 4, step: 0.01 },
   });
   const splashRef = useRef(splash);
   splashRef.current = splash;
@@ -86,6 +115,10 @@ export function WaterBallHero() {
     let rafId = 0;
     let device: GPUDevice | null = null;
     let camera: Camera | null = null;
+    let io: IntersectionObserver | null = null;
+    // perf: only run the (expensive) MLS-MPM compute + SSF render while the hero
+    // section is actually on screen. Off-screen -> idle the GPU entirely.
+    let heroVisible = true;
 
     const run = async () => {
       const adapter = await navigator.gpu!.requestAdapter();
@@ -115,7 +148,9 @@ export function WaterBallHero() {
       canvas.height = Math.max(1, Math.floor(ratio * ch));
 
       const presentationFormat = navigator.gpu!.getPreferredCanvasFormat();
-      context.configure({ device: dev, format: presentationFormat, alphaMode: "opaque" });
+      // premultiplied alpha so the fluid renders OVER the video backdrop (the
+      // non-fluid pixels are transparent — see render/fluid.wgsl).
+      context.configure({ device: dev, format: presentationFormat, alphaMode: "premultiplied" });
 
       // sky cubemap [+X,-X,+Y,-Y,+Z,-Z] from /public/cubemap
       const imgSrcs = ["posx", "negx", "posy", "negy", "posz", "negz"].map((n) => `/cubemap/${n}.png`);
@@ -207,6 +242,20 @@ export function WaterBallHero() {
       camera.prevHoverY = camera.currentHoverY;
       const realBoxSize = [...INIT_BOX];
       const swayStart = performance.now();
+      // one-shot explode latch (see the explode beat in frame())
+      let burstActive = false;
+      let burstT0 = 0;
+
+      const heroEl = document.getElementById("hero");
+      if (heroEl) {
+        io = new IntersectionObserver(
+          (entries) => {
+            heroVisible = entries[0]?.isIntersecting ?? true;
+          },
+          { threshold: 0 },
+        );
+        io.observe(heroEl);
+      }
 
       if (cancelled) {
         dev.destroy();
@@ -215,6 +264,11 @@ export function WaterBallHero() {
 
       const frame = () => {
         if (cancelled || !device || !camera) return;
+        // hero scrolled out of view -> idle the GPU (no compute, no render)
+        if (!heroVisible) {
+          rafId = requestAnimationFrame(frame);
+          return;
+        }
         // push the latest leva values into the sim before stepping (live tuning)
         const sp = splashRef.current;
         sim.splashInflate = sp.inflate;
@@ -224,6 +278,36 @@ export function WaterBallHero() {
         sim.splashSpeedGate = sp.speedGate;
         sim.splashLeashRadius = sp.leashRadius;
         sim.pokeForce = sp.pokeForce;
+
+        // EXPLODE beat (hero.tsx writes heroStore.explode 0->1 as you scroll in).
+        // Crossing the threshold latches a ONE-SHOT, real-time ~1s burst (NOT scrubbed):
+        // the water sprays apart and the canvas fades, so it "explodes and vanishes
+        // after ~1s" on its own clock. Scrolling back up re-arms it (the "A" reforms).
+        const explodeBeat = useHeroStore.getState().explode;
+        if (explodeBeat > 0.05 && !burstActive) {
+          burstActive = true;
+          burstT0 = performance.now();
+        }
+        if (explodeBeat <= 0.02 && burstActive) {
+          burstActive = false;
+          sim.splashExplode = 0;
+          sim.initFromHomes(INIT_BOX, NUM_PARTICLES); // refill the "A"
+          canvas.style.opacity = "1";
+        }
+        let canvasOp = 1;
+        if (burstActive) {
+          const tt = (performance.now() - burstT0) * 0.001;
+          sim.splashExplode = Math.min(1, tt / 0.6);
+          const k = Math.min(1, tt / 1.0);
+          canvasOp = 1 - k * k * (3 - 2 * k); // smoothstep fade over ~1s
+          canvas.style.opacity = String(canvasOp);
+        }
+        // fully dissipated -> idle the GPU (skip the heavy sim+render) until re-armed
+        if (burstActive && canvasOp <= 0.002) {
+          rafId = requestAnimationFrame(frame);
+          return;
+        }
+
         // step 1c: drive the camera-sway ellipse (yaw via sin, pitch via cos) and rebuild
         // the view BEFORE the uniform upload below, so THIS frame renders from the swayed
         // camera. Eased in over ~2.5s so the "A" starts exactly head-on (yaw=pitch=0) and
@@ -263,6 +347,7 @@ export function WaterBallHero() {
     return () => {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
+      io?.disconnect();
       camera?.dispose();
       device?.destroy();
     };
@@ -270,10 +355,18 @@ export function WaterBallHero() {
 
   if (unsupported) return null;
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 h-full w-full"
-    />
+    <div ref={fxWrapRef} aria-hidden className="pointer-events-none fixed inset-0 z-0">
+      <canvas ref={canvasRef} className="block h-full w-full" />
+      {/* lens vignette — clears during the entry "focus pull" (point 1) */}
+      <div
+        ref={lensRef}
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(120% 92% at 50% 48%, transparent 46%, rgba(4,16,24,.5) 86%, rgba(3,12,20,.78) 100%)",
+        }}
+      />
+    </div>
   );
 }

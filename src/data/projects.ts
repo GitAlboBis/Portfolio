@@ -46,7 +46,7 @@ export const projects: Project[] = [
     },
     result: {
       en: "Zero known auth vulnerabilities at launch, full offline support with push notifications, and solo deploy cycles under five minutes.",
-      it: "Zero vulnerabilità auth note al lancio, supporto offline completo con notifiche push e cicli di deploy in solo sotto i cinque minuti.",
+      it: "Zero vulnerabilità auth note al lancio, supporto offline completo con notifiche push e cicli di deploy in autonomia sotto i cinque minuti.",
     },
     stack: [
       "Next.js 15",
@@ -63,7 +63,7 @@ export const projects: Project[] = [
     metrics: [
       { value: "0", label: { en: "known auth vulns at launch", it: "vulnerabilità auth note al lancio" } },
       { value: "<1s", label: { en: "geospatial search", it: "ricerca geospaziale" } },
-      { value: "<5min", label: { en: "solo deploy cycle", it: "ciclo di deploy in solo" } },
+      { value: "<5min", label: { en: "solo deploy cycle", it: "ciclo di deploy in autonomia" } },
     ],
   },
   {

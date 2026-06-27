@@ -3,16 +3,23 @@
 import { useEffect, useState } from "react";
 import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
 import { VideoBackdrop } from "@/components/video-backdrop";
+import { HeroMarkFallback } from "@/components/hero-mark-fallback";
 
 /*
   Hero host. The animated visual is now a faithful embed of matsuoka-601/WaterBall
   (raw WebGPU MLS-MPM fluid, vendored under src/webgl/waterball). It runs on its own
-  WebGPU canvas — NOT R3F — and self-guards WebGPU support (renders null when absent,
-  so the CSS sea gradient below is the static fallback). The old R3F/SSF/photo-backdrop
-  hero was removed. R3F stays available in the repo for the scroll cinematic (later).
+  WebGPU canvas — NOT R3F — and self-guards WebGPU support (renders null when absent).
+  The old R3F/SSF/photo-backdrop hero was removed. R3F stays available in the repo for
+  the scroll cinematic (later).
 
-  Accessibility: the canvas is aria-hidden + pointer-events:none; on
-  prefers-reduced-motion we skip the simulation entirely and show the gradient.
+  Fallback: when WebGPU is unavailable the fluid "A" returns null and the hero
+  centerpiece would vanish — so we render a static foam "A" mark (HeroMarkFallback)
+  in its place, over the CSS sea gradient. The same static mark stands in when the
+  user prefers reduced motion (the sim is intentionally never mounted there).
+
+  Accessibility: the canvas + fallback mark are aria-hidden + pointer-events:none;
+  the hero's sr-only <h1> carries meaning. On prefers-reduced-motion we skip the
+  simulation entirely and show the (non-animated) static mark.
 */
 
 const SEA_GRADIENT =
@@ -21,10 +28,22 @@ const SEA_GRADIENT =
 export function CanvasHost() {
   // false during SSR + when prefers-reduced-motion; flips on after mount otherwise.
   const [animate, setAnimate] = useState(false);
+  // WebGPU support, resolved client-side AFTER mount (navigator.gpu is unknown
+  // during SSR). `null` = not yet checked -> render nothing for the centerpiece
+  // to avoid an SSR/first-paint mismatch; true/false once known.
+  const [hasWebGPU, setHasWebGPU] = useState<boolean | null>(null);
 
   useEffect(() => {
     setAnimate(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    setHasWebGPU(typeof navigator !== "undefined" && !!navigator.gpu);
   }, []);
+
+  // Mount the live fluid only when WebGPU is present AND motion is allowed.
+  const showFluid = hasWebGPU === true && animate;
+  // Static foam "A" stands in whenever the fluid can't/shouldn't run:
+  // no WebGPU, or reduced-motion (sim intentionally skipped). Wait until the
+  // client checks resolve so we never flash the fallback over a supported hero.
+  const showFallback = hasWebGPU !== null && !showFluid;
 
   return (
     <>
@@ -38,7 +57,8 @@ export function CanvasHost() {
       {/* Pan di Zucchero footage = hero background; scrubs from the first scroll.
           Mounted BEFORE the water so the (transparent) "A" composites over it. */}
       <VideoBackdrop />
-      {animate && <WaterBallHero />}
+      {showFluid && <WaterBallHero />}
+      {showFallback && <HeroMarkFallback />}
     </>
   );
 }

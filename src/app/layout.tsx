@@ -103,6 +103,31 @@ export default async function RootLayout({
 
   return (
     <html lang={lang} className={`${fraunces.variable} ${hanken.variable}`}>
+      <head>
+        {/*
+          LCP boost: the hero's largest paint is the first cinematic frame drawn
+          by VideoBackdrop. Preload it during HTML parse so the byte stream is in
+          flight before the 2D canvas component mounts. Two media-scoped links
+          ensure phones fetch only the lightweight 960px tier and large screens
+          fetch the 1920px tier — never both. fetchpriority="high" on the mobile
+          link nudges it ahead of other discoverable resources on metered links.
+        */}
+        <link
+          rel="preload"
+          as="image"
+          href="/frames/m/f_000.webp"
+          type="image/webp"
+          media="(max-width: 820px)"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="/frames/f_000.webp"
+          type="image/webp"
+          media="(min-width: 821px)"
+        />
+      </head>
       <body>
         <a
           href="#main"

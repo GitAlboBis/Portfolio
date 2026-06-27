@@ -8,7 +8,12 @@ import { MLSMPMSimulator, mlsmpmParticleStructSize } from "./mls-mpm/mls-mpm";
 import { FluidRenderer } from "./render/fluidRender";
 import { renderUniformsViews, renderUniformsValues, numParticlesMax } from "./common";
 import { useHeroStore } from "@/webgl/store/heroStore";
-import { useControls } from "leva";
+// leva (the debug GUI) is a DEV-ONLY authoring tool. Its bindings are referenced ONLY
+// inside `if (IS_DEV) { ... }` branches below; because IS_DEV resolves from
+// process.env.NODE_ENV — a build-time literal in Next.js — Terser drops the dead dev
+// branch in production, leaving these imports unused so the bundler tree-shakes leva
+// out of the prod bundle entirely. No leva markup is ever rendered in prod.
+import { Leva, useControls } from "leva";
 
 /*
   WaterBall hero — a faithful embed of matsuoka-601/WaterBall's raw-WebGPU MLS-MPM
@@ -41,6 +46,61 @@ const MLS_DIAMETER = 2 * MLS_RADIUS;
 const ZOOM_RATE = 0.7;
 const AUTO_ROTATE = false; // the "A" should read head-on, not spin out of legibility
 
+// Build-time literal (Next.js inlines process.env.NODE_ENV). Lets Terser
+// dead-code-eliminate every IS_DEV branch — and the leva import — in production.
+const IS_DEV = process.env.NODE_ENV !== "production";
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Tuned defaults — the single source of truth for the fluid feel.
+// These are the EXACT values that the leva panel used to seed; production reads them
+// directly (no GUI), and in dev the leva panel is initialized FROM them so Alberto's
+// panel shows + tunes the identical numbers. DO NOT change any value here without an
+// explicit retune: the rendered feel is calibrated to these.
+const SPLASH_DEFAULTS = {
+  inflate: 4.0,
+  gravity: 0.05,
+  drag: 0,
+  restoreK: 0.1,
+  speedGate: 1.5,
+  leashRadius: 60,
+  pokeForce: 0.5,
+} as const;
+
+const CAM_DEFAULTS = {
+  sway: 0.18,
+  swaySpeed: 0.35,
+} as const;
+
+type SplashValues = { [K in keyof typeof SPLASH_DEFAULTS]: number };
+type CamValues = { [K in keyof typeof CAM_DEFAULTS]: number };
+
+// Dev-only: live leva panels seeded from the frozen defaults, so the panel shows and
+// tunes the exact same numbers. Returns the live (editable) values each frame.
+function useDevHeroControls(): { splash: SplashValues; cam: CamValues } {
+  const splash = useControls("splash", {
+    inflate: { value: SPLASH_DEFAULTS.inflate, min: 0, max: 12, step: 0.1 },
+    gravity: { value: SPLASH_DEFAULTS.gravity, min: 0, max: 2, step: 0.01 },
+    drag: { value: SPLASH_DEFAULTS.drag, min: 0, max: 0.2, step: 0.005 },
+    restoreK: { value: SPLASH_DEFAULTS.restoreK, min: 0, max: 3, step: 0.01 },
+    speedGate: { value: SPLASH_DEFAULTS.speedGate, min: 0.1, max: 60, step: 0.1 },
+    leashRadius: { value: SPLASH_DEFAULTS.leashRadius, min: 5, max: 120, step: 1 },
+    pokeForce: { value: SPLASH_DEFAULTS.pokeForce, min: 0, max: 4, step: 0.01 },
+  });
+  const cam = useControls("camera", {
+    sway: { value: CAM_DEFAULTS.sway, min: 0, max: 0.6, step: 0.01 },
+    swaySpeed: { value: CAM_DEFAULTS.swaySpeed, min: 0, max: 2, step: 0.01 },
+  });
+  return { splash, cam };
+}
+
+// Prod: no GUI, no hooks, no leva — just the frozen defaults. Selecting the impl at
+// module scope (not per-render) keeps React's hook order stable within a build.
+function useProdHeroControls(): { splash: SplashValues; cam: CamValues } {
+  return { splash: SPLASH_DEFAULTS, cam: CAM_DEFAULTS };
+}
+
+const useHeroControls = IS_DEV ? useDevHeroControls : useProdHeroControls;
+
 export function WaterBallHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fxWrapRef = useRef<HTMLDivElement>(null);
@@ -72,34 +132,23 @@ export function WaterBallHero() {
     };
   }, []);
 
-  // live water tuning (leva panel, top-right). The RAF loop reads the latest values through
-  // a ref so edits take effect instantly, without rebuilding the sim.
+  // live water + camera tuning. In DEV this is the leva panel (top-right), seeded from
+  // SPLASH_DEFAULTS/CAM_DEFAULTS so the GUI shows + edits the exact tuned numbers; in
+  // PROD it is those frozen consts directly (no GUI, leva tree-shaken out). Either way
+  // the RAF loop reads the latest values through refs so dev edits take effect instantly,
+  // without rebuilding the sim — and prod renders the identical calibrated feel.
   //   inflate/gravity = the CHURN ENGINE (the water moves on its own, like the original
   //     WaterBall): inflate fills + stirs the "A" tube, gravity gently pulls to its centerline.
   //   restoreK/speedGate/leashRadius = confinement + splash recall (speedGate high so the
   //     gentle inner churn is NOT recalled; only fast mouse pokes escape, then get reeled home).
-  const splash = useControls("splash", {
-    inflate: { value: 4.0, min: 0, max: 12, step: 0.1 },
-    gravity: { value: 0.05, min: 0, max: 2, step: 0.01 },
-    drag: { value: 0, min: 0, max: 0.2, step: 0.005 },
-    restoreK: { value: 0.1, min: 0, max: 3, step: 0.01 },
-    speedGate: { value: 1.5, min: 0.1, max: 60, step: 0.1 },
-    leashRadius: { value: 60, min: 5, max: 120, step: 1 },
-    pokeForce: { value: 0.5, min: 0, max: 4, step: 0.01 },
-  });
+  //   sway/swaySpeed = the gentle 3D camera "sway" — the only safe way to give the resting
+  //     "A" life. Moving the FLUID at rest disperses it (motion lifts speed past the gate so
+  //     the restore switches off and the water scatters — proven/reverted twice; see HANDOFF
+  //     gotcha). Orbiting the CAMERA never touches the sim. Yaw+pitch trace a small ellipse so
+  //     the flat letter "floats" in 3D yet stays legible. sway=0 -> static head-on.
+  const { splash, cam: camCtl } = useHeroControls();
   const splashRef = useRef(splash);
   splashRef.current = splash;
-
-  // step 1c: gentle 3D camera "sway" — the only safe way to give the resting "A" life.
-  // Moving the FLUID at rest disperses it (any motion lifts speed past the gate so the
-  // restore switches off and the water scatters — proven/reverted twice; see HANDOFF
-  // gotcha). Orbiting the CAMERA never touches the sim. Yaw+pitch trace a small ellipse so
-  // the flat letter "floats" in 3D yet stays legible (a full rotation would show it edge-
-  // on). sway=0 -> static head-on. Read live via ref so the leva edits apply instantly.
-  const camCtl = useControls("camera", {
-    sway: { value: 0.18, min: 0, max: 0.6, step: 0.01 },
-    swaySpeed: { value: 0.35, min: 0, max: 2, step: 0.01 },
-  });
   const camCtlRef = useRef(camCtl);
   camCtlRef.current = camCtl;
 
@@ -355,18 +404,24 @@ export function WaterBallHero() {
 
   if (unsupported) return null;
   return (
-    <div ref={fxWrapRef} aria-hidden className="pointer-events-none fixed inset-0 z-0">
-      <canvas ref={canvasRef} className="block h-full w-full" />
-      {/* lens vignette — clears during the entry "focus pull" (point 1) */}
-      <div
-        ref={lensRef}
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(120% 92% at 50% 48%, transparent 46%, rgba(4,16,24,.5) 86%, rgba(3,12,20,.78) 100%)",
-        }}
-      />
-    </div>
+    <>
+      {/* Dev-only debug GUI. Rendered ONLY when IS_DEV; the whole subtree (and the
+          leva import) is dead-code-eliminated in production. Explicit mount keeps the
+          panel deterministic and lets us collapse it by default. */}
+      {IS_DEV ? <Leva collapsed /> : null}
+      <div ref={fxWrapRef} aria-hidden className="pointer-events-none fixed inset-0 z-0">
+        <canvas ref={canvasRef} className="block h-full w-full" />
+        {/* lens vignette — clears during the entry "focus pull" (point 1) */}
+        <div
+          ref={lensRef}
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 92% at 50% 48%, transparent 46%, rgba(4,16,24,.5) 86%, rgba(3,12,20,.78) 100%)",
+          }}
+        />
+      </div>
+    </>
   );
 }

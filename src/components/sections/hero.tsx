@@ -44,12 +44,32 @@ if (!gsap.parseEase(EASE_EXPLODE)) {
     ~86-100%  hold     — the title card holds before the hero unpins
   Throughout, heroStore.video = raw scroll progress so the footage never stops.
 */
+/*
+  CINEMATIC CAPTION window — the eyebrow + caption are pinned over the silent
+  footage scrub. They fade IN as the explosion clears, HOLD through the lone
+  cinematic beat, and are gone before the title starts surfacing. Driven by
+  heroStore.video (raw scroll progress), mirroring the scrim/fade pattern.
+*/
+const CAPTION_IN_START = 0.24;
+const CAPTION_IN_END = 0.34;
+const CAPTION_OUT_START = 0.46;
+const CAPTION_OUT_END = 0.52;
+
+function captionOpacity(v: number): number {
+  if (v <= CAPTION_IN_START || v >= CAPTION_OUT_END) return 0;
+  if (v < CAPTION_IN_END) return (v - CAPTION_IN_START) / (CAPTION_IN_END - CAPTION_IN_START);
+  if (v <= CAPTION_OUT_START) return 1;
+  return 1 - (v - CAPTION_OUT_START) / (CAPTION_OUT_END - CAPTION_OUT_START);
+}
+
 export function Hero() {
   const { t } = useLanguage();
   const rootRef = useRef<HTMLElement>(null);
   const scrimRef = useRef<HTMLDivElement>(null);
   const cueRef = useRef<HTMLDivElement>(null);
   const cueDotRef = useRef<HTMLSpanElement>(null);
+  const thesisRef = useRef<HTMLDivElement>(null);
+  const captionRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
@@ -60,9 +80,29 @@ export function Hero() {
       if (reduce) {
         gsap.set(cueRef.current, { autoAlpha: 0 });
         gsap.set(scrimRef.current, { opacity: 1 });
+        // final state: thesis surfaced with the title; caption (a mid-scrub-only
+        // beat) is not part of the resting frame, so it stays hidden.
+        if (thesisRef.current) thesisRef.current.style.opacity = "1";
+        if (captionRef.current) captionRef.current.style.opacity = "0";
         setHero({ explode: 1, reveal: 1, video: 0.5 });
         return;
       }
+
+      // DOM overlay opacities are driven imperatively off the store (no React
+      // re-render per scroll frame): the thesis surfaces WITH the name (reveal),
+      // the cinematic caption rides the footage scrub window (video).
+      const applyOverlays = (reveal: number, video: number) => {
+        if (thesisRef.current) {
+          // ease the last stretch of reveal so the lines arrive just behind the name
+          const o = Math.max(0, Math.min(1, (reveal - 0.35) / 0.5));
+          thesisRef.current.style.opacity = String(o);
+        }
+        if (captionRef.current) {
+          captionRef.current.style.opacity = String(captionOpacity(video));
+        }
+      };
+      applyOverlays(useHeroStore.getState().reveal, useHeroStore.getState().video);
+      const unsubOverlays = useHeroStore.subscribe((s) => applyOverlays(s.reveal, s.video));
 
       // standalone, looping "breath": a celeste dot glides down the hairline while
       // the user is still at the top. Lives outside the scrub timeline (time-based,
@@ -134,6 +174,7 @@ export function Hero() {
 
       return () => {
         cueLoop.kill();
+        unsubOverlays();
       };
     },
     { scope: rootRef },
@@ -165,27 +206,54 @@ export function Hero() {
           }}
         />
 
+        {/* Cinematic caption — pinned over the footage during the silent scrub.
+            Decorative (the words are atmosphere, not document content); opacity is
+            driven by heroStore.video via the imperative subscription above. */}
+        <div
+          ref={captionRef}
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-[14%] z-20 flex flex-col items-center px-6 text-center"
+          style={{ opacity: 0 }}
+        >
+          <div className="inline-flex flex-col items-center gap-3 rounded-2xl bg-abyss/55 px-7 py-5 backdrop-blur-sm">
+            <span className="eyebrow text-celeste">{t.cinematic.eyebrow}</span>
+            <span
+              className="lead max-w-[28ch] text-foam"
+              style={{ textShadow: "0 1px 14px rgba(4,16,24,.6)" }}
+            >
+              {t.cinematic.caption}
+            </span>
+          </div>
+        </div>
+
         {/* Liquid-reveal title (Portfolio + Alberto Tuveri) */}
         <LiquidText />
+
+        {/* Hero thesis — real, selectable, translatable copy below the WebGL title.
+            Surfaces WITH the name: opacity driven by heroStore.reveal (subscription
+            above). Sits in the lower band so it never fights the liquid letters. */}
+        <div
+          ref={thesisRef}
+          className="absolute inset-x-0 bottom-[18%] z-20 flex flex-col items-center gap-3 px-6 text-center"
+          style={{ opacity: 0 }}
+        >
+          <p className="eyebrow text-celeste">{t.hero.role}</p>
+          <p
+            className="lead max-w-[34ch] text-foam"
+            style={{ textShadow: "0 1px 14px rgba(4,16,24,.55)" }}
+          >
+            {t.hero.tagline}
+          </p>
+        </div>
 
         {/* Scroll cue (entry only) — a celeste dot breathes down the hairline */}
         <div
           ref={cueRef}
           className="absolute inset-x-0 bottom-10 z-30 flex flex-col items-center gap-3"
         >
-          {/* Local scrim: guarantees AA contrast even over the brightest sea frame */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -inset-x-10 -bottom-6 -top-3"
-            style={{
-              background:
-                "radial-gradient(60% 80% at 50% 60%, rgba(4,16,24,.45), transparent 72%)",
-            }}
-          />
-          <span
-            className="label relative text-foam"
-            style={{ textShadow: "0 1px 10px rgba(4,16,24,.7)" }}
-          >
+          {/* Controlled dark surface: a blurred abyss pill keeps the cue >=4.5:1
+              even over the brightest sea frame (no fragile gradient guesswork). */}
+          <span className="label rounded-full bg-abyss/70 px-4 py-2 text-foam backdrop-blur-sm">
             {t.hero.scrollCue}
           </span>
           {/* the hairline track + the descending celeste dot */}

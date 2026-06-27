@@ -15,7 +15,7 @@ import type { Lang } from "@/data/translations/types";
   is reserved for the primary CTA and one hairline micro-marker.
 */
 
-const SECTIONS = ["work", "about", "skills", "contact"] as const;
+const SECTIONS = ["about", "work", "skills", "contact"] as const;
 type SectionKey = (typeof SECTIONS)[number];
 
 const HREF: Record<SectionKey, string> = {

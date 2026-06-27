@@ -1,403 +1,469 @@
 "use client";
 
 /*
-  TechCloud — "Tech Constellation"
+  TechCloud — "Tech Constellation" (WP-4)
 
-  An ocean-adapted reimagining of the Magic UI Icon Cloud
-  (https://magicui.design/docs/components/icon-cloud). The reference renders a
-  rotating, draggable 3D sphere of ICONS onto a <canvas>, distributing nodes via
-  a Fibonacci (golden-angle) sphere, then per-frame applying a rotation matrix
-  and a z-depth scale/opacity projection inside a requestAnimationFrame loop;
-  idle = auto-rotate biased by cursor position, drag = rotate by pointer delta.
+  A real three.js icon cloud: the stack rendered as luminous brand marks
+  suspended in the abyss. Each tech is a billboarded Sprite carrying a canvas
+  texture drawn from a simple-icons path (no CDN), backed by an additive celeste
+  halo so the marks read like bioluminescent plankton. A perspective camera gives
+  true 3D foreshortening; a depth pass tints + dims marks toward the deep as they
+  rotate away (near = bright foam, far = cool celeste). The sphere auto-drifts,
+  follows the cursor, takes inertial drag, and flicks a clicked mark to face you.
 
-  We KEEP that technique (Fibonacci sphere · rotX/rotY matrix · z-depth
-  scale+opacity · rAF · drag + idle drift) but DROP the canvas + external icon
-  CDN. Instead each node is a real DOM text-chip carrying a live skill name from
-  src/data/skills.ts — glowing celeste like bioluminescent plankton suspended in
-  the abyss. DOM lets us render crisp variable-font text, do real hover/keyboard
-  focus highlight, and lean on the site's @theme tokens. Decorative depth cues
-  are aria-hidden; the chips themselves are a real, keyboard-reachable list.
-
-  prefers-reduced-motion: no rAF — a single static, tastefully tilted sphere.
-  SSR-safe (no window access at module scope; all browser work in effects).
+  Architecture matches the repo's WebGL conventions: a section-scoped raw renderer
+  (NOT R3F), one persistent rAF gated by a level `inView` flag (set by an
+  IntersectionObserver AND a passive-scroll recompute — robust against smooth-
+  scroll edge races), DPR capped at 1.5, full dispose. It is DECORATIVE
+  (aria-hidden) — the accessible, complete skill list is the bento beneath it.
+  prefers-reduced-motion → one static frame, no loop, no input. no-WebGL → the
+  cloud quietly unmounts and the bento stands alone.
 */
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
-import { skillGroups } from "@/data/skills";
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { techIcons } from "@/data/skill-icons";
+
+// @theme ocean tokens (globals.css) as three colors.
+const FOAM = new THREE.Color("#f4fafb");
+const CELESTE = new THREE.Color("#9bd3ee");
+const CELESTE_DEEP = new THREE.Color("#3f7f97"); // celeste pushed toward the deep
+
+const SPHERE_R = 4.0;
+const ICON_SCALE = 1.05; // world units at rest
+const HALO_SCALE = 2.45;
+const FOV = 45;
+
+/** Draw a simple-icons 24×24 path to a white canvas texture (tinted by material.color). */
+function makeIconTexture(path: string, size = 144): THREE.CanvasTexture | null {
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = size;
+  const ctx = cv.getContext("2d");
+  if (!ctx) return null;
+  const pad = size * 0.15;
+  const scale = (size - pad * 2) / 24;
+  ctx.translate(pad, pad);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#ffffff";
+  try {
+    ctx.fill(new Path2D(path));
+  } catch {
+    return null;
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/** Soft radial gradient for the additive glow behind each mark. */
+function makeHaloTexture(size = 128): THREE.CanvasTexture | null {
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = size;
+  const ctx = cv.getContext("2d");
+  if (!ctx) return null;
+  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  g.addColorStop(0, "rgba(255,255,255,0.85)");
+  g.addColorStop(0.4, "rgba(255,255,255,0.28)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
 
 type Node = {
-  /** unit-sphere coordinates from the Fibonacci distribution */
-  x: number;
-  y: number;
-  z: number;
+  base: THREE.Vector3; // unit-sphere position
+  icon: THREE.Sprite;
+  halo: THREE.Sprite;
   label: string;
-  /** index of the owning skill group (drives the celeste hue band) */
-  group: number;
-  id: number;
-};
-
-type Rotation = { x: number; y: number };
-
-/** A flick-to-face target the way Icon Cloud eases toward a clicked node. */
-type TargetRotation = {
-  x: number;
-  y: number;
-  startX: number;
-  startY: number;
-  startTime: number;
-  duration: number;
+  highlight: number; // eased 0..1 hover state
 };
 
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
-/**
- * Flatten skillGroups into a single node list and lay them out on a unit
- * sphere with the golden-angle Fibonacci spiral (identical math to the
- * reference, just feeding real labels). Stable across renders.
- */
-function buildNodes(): Node[] {
-  const flat: { label: string; group: number }[] = [];
-  skillGroups.forEach((g, gi) => {
-    g.items.forEach((label) => flat.push({ label, group: gi }));
-  });
-
-  const n = flat.length;
-  const increment = Math.PI * (3 - Math.sqrt(5)); // golden angle
-  const offset = 2 / n;
-
-  return flat.map((item, i) => {
-    const y = i * offset - 1 + offset / 2;
-    const r = Math.sqrt(Math.max(0, 1 - y * y));
-    const phi = i * increment;
-    return {
-      x: Math.cos(phi) * r,
-      y,
-      z: Math.sin(phi) * r,
-      label: item.label,
-      group: item.group,
-      id: i,
-    };
-  });
-}
-
-/** Slight hue spread across groups, all within the celeste family. */
-function chipHue(group: number, total: number): number {
-  // 188 (teal-cyan) -> 205 (sky) — never leaves the ocean accent band.
-  const t = total <= 1 ? 0 : group / (total - 1);
-  return 188 + t * 17;
-}
-
 export function TechCloud({ className }: { className?: string }) {
-  const nodes = useMemo(buildNodes, []);
-  const groupCount = skillGroups.length;
-
   const containerRef = useRef<HTMLDivElement>(null);
-  const rotationRef = useRef<Rotation>({ x: -0.35, y: 0 }); // gentle initial tilt
-  const targetRef = useRef<TargetRotation | null>(null);
-  const draggingRef = useRef(false);
-  const lastPointer = useRef({ x: 0, y: 0 });
-  // Normalized cursor offset from centre (-1..1) — biases idle drift speed/dir.
-  const cursorBias = useRef({ x: 0, y: 0 });
-  const rafRef = useRef<number>(0);
-  const reducedRef = useRef(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [hoverLabel, setHoverLabel] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
-  const [radius, setRadius] = useState(190);
-  const [active, setActive] = useState<number | null>(null);
-  const [reduced, setReduced] = useState(false);
-
-  // Per-chip DOM refs so the rAF loop can mutate transforms imperatively
-  // (no React re-render per frame — only `active` hover state re-renders).
-  const chipRefs = useRef<(HTMLLIElement | null)[]>([]);
-
-  // --- responsive radius (sphere scales with its container) ---
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect.width ?? 0;
-      // keep the sphere comfortably inside the box
-      setRadius(Math.max(120, Math.min(260, w * 0.42)));
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+    const container = containerRef.current;
+    if (!container) return;
 
-  // --- reduced-motion preference ---
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => {
-      reducedRef.current = mq.matches;
-      setReduced(mq.matches);
-    };
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /** Project every node for the current rotation and write transforms/depth. */
-  const project = useCallback(
-    (rot: Rotation) => {
-      const cosX = Math.cos(rot.x);
-      const sinX = Math.sin(rot.x);
-      const cosY = Math.cos(rot.y);
-      const sinY = Math.sin(rot.y);
-      const R = radius;
-
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        const el = chipRefs.current[i];
-        if (!el) continue;
-
-        // Same rotation matrix the Icon Cloud uses (Y then X).
-        const rx = node.x * cosY - node.z * sinY;
-        const rz = node.x * sinY + node.z * cosY;
-        const ry = node.y * cosX + rz * sinX;
-
-        // z in [-1,1] -> depth in [0,1] (1 = nearest the viewer).
-        const depth = (rz + 1) / 2;
-        const scale = 0.55 + depth * 0.75;
-        const opacity = 0.2 + depth * 0.8;
-
-        const tx = rx * R;
-        const ty = ry * R;
-
-        el.style.transform = `translate3d(calc(${tx}px - 50%), calc(${ty}px - 50%), 0) scale(${scale})`;
-        el.style.opacity = String(opacity);
-        el.style.zIndex = String(Math.round(depth * 1000));
-        // glow strength tracks depth so near plankton burn brighter
-        el.style.setProperty("--glow", (0.15 + depth * 0.55).toFixed(3));
-        el.style.filter = `blur(${(1 - depth) * 1.1}px)`;
-      }
-    },
-    [nodes, radius],
-  );
-
-  // --- main animation loop (skipped entirely under reduced motion) ---
-  useEffect(() => {
-    if (reduced) {
-      // Static, tastefully tilted projection — one pass, no rAF.
-      project({ x: -0.4, y: 0.5 });
+    // --- renderer (guarded: no-WebGL → unmount cloud) ---
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    } catch {
+      setFailed(true);
       return;
     }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setClearColor(0x000000, 0);
+    const canvas = renderer.domElement;
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.display = "block";
+    canvas.style.touchAction = "none";
+    canvas.style.cursor = reduced ? "default" : "grab";
+    container.appendChild(canvas);
 
-    const animate = () => {
-      const rot = rotationRef.current;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100);
+    camera.position.z = 13;
 
-      if (targetRef.current) {
-        // Ease toward a focused/clicked node (Icon Cloud "flick-to-face").
-        const tgt = targetRef.current;
-        const elapsed = performance.now() - tgt.startTime;
-        const p = Math.min(1, elapsed / tgt.duration);
-        const e = easeOutCubic(p);
-        rot.x = tgt.startX + (tgt.x - tgt.startX) * e;
-        rot.y = tgt.startY + (tgt.y - tgt.startY) * e;
-        if (p >= 1) targetRef.current = null;
-      } else if (!draggingRef.current) {
-        // Idle drift — slow base + cursor-biased nudge, like the reference.
-        const bx = cursorBias.current.x;
-        const by = cursorBias.current.y;
-        rot.y += 0.0016 + bx * 0.006;
-        rot.x += by * 0.006;
-        // ease tilt back toward the pleasant resting angle
-        rot.x += (-0.35 - rot.x) * 0.002;
+    const group = new THREE.Group();
+    group.rotation.order = "YXZ"; // Y (azimuth) then X (tilt) — matches flick math
+    scene.add(group);
+
+    // --- build nodes on a Fibonacci (golden-angle) sphere ---
+    const haloTex = makeHaloTexture();
+    const n = techIcons.length;
+    const increment = Math.PI * (3 - Math.sqrt(5));
+    const offset = 2 / n;
+    const nodes: Node[] = [];
+    const iconSprites: THREE.Sprite[] = [];
+    const disposables: { dispose: () => void }[] = [];
+    if (haloTex) disposables.push(haloTex);
+
+    for (let i = 0; i < n; i++) {
+      const y = i * offset - 1 + offset / 2;
+      const r = Math.sqrt(Math.max(0, 1 - y * y));
+      const phi = i * increment;
+      const base = new THREE.Vector3(Math.cos(phi) * r, y, Math.sin(phi) * r);
+
+      const iconTex = makeIconTexture(techIcons[i].path);
+      if (!iconTex) continue;
+      disposables.push(iconTex);
+
+      const iconMat = new THREE.SpriteMaterial({
+        map: iconTex,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        color: FOAM.clone(),
+      });
+      const haloMat = new THREE.SpriteMaterial({
+        map: haloTex ?? undefined,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        blending: THREE.AdditiveBlending,
+        color: CELESTE.clone(),
+        opacity: 0.5,
+      });
+      disposables.push(iconMat, haloMat);
+
+      const icon = new THREE.Sprite(iconMat);
+      icon.position.copy(base).multiplyScalar(SPHERE_R);
+      icon.scale.setScalar(ICON_SCALE);
+      icon.renderOrder = 2;
+
+      const halo = new THREE.Sprite(haloMat);
+      halo.position.copy(icon.position);
+      halo.scale.setScalar(HALO_SCALE);
+      halo.renderOrder = 1;
+
+      group.add(halo, icon);
+      iconSprites.push(icon);
+      nodes.push({ base, icon, halo, label: techIcons[i].label, highlight: 0 });
+    }
+
+    // --- interaction state ---
+    const rot = { x: -0.32, y: 0 };
+    const vel = { x: 0, y: 0 };
+    const cursor = { x: 0, y: 0 }; // normalized -1..1 from container centre
+    let dragging = false;
+    let pointerDownAt = { x: 0, y: 0, t: 0 };
+    let moved = 0;
+    const last = { x: 0, y: 0 };
+    let flick: { x: number; y: number; sx: number; sy: number; t0: number; dur: number } | null = null;
+    let hovered: Node | null = null;
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const tmp = new THREE.Vector3();
+    const colNear = new THREE.Color();
+
+    // --- sizing ---
+    const resize = () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w === 0 || h === 0) return;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      // fit the sphere into the FOV with margin; pull back further when narrow
+      const halfExtent = SPHERE_R + ICON_SCALE;
+      const vFit = halfExtent / Math.tan((FOV * Math.PI) / 180 / 2) / 0.82;
+      const hFit = vFit / Math.min(1, camera.aspect);
+      camera.position.z = Math.max(vFit, hFit);
+      camera.updateProjectionMatrix();
+    };
+    const ro = new ResizeObserver(resize);
+    ro.observe(container);
+    resize();
+
+    // --- per-frame projection: depth fog + hover easing ---
+    const updateNodes = (dt: number) => {
+      group.rotation.x = rot.x;
+      group.rotation.y = rot.y;
+      group.updateMatrixWorld(true);
+
+      for (const node of nodes) {
+        node.icon.getWorldPosition(tmp);
+        const depth = THREE.MathUtils.clamp((tmp.z + SPHERE_R) / (2 * SPHERE_R), 0, 1);
+
+        const target = node === hovered ? 1 : 0;
+        node.highlight += (target - node.highlight) * Math.min(1, dt * 12);
+        const hl = node.highlight;
+
+        // near = bright foam + bigger; far = cool celeste + smaller + faint
+        colNear.copy(CELESTE_DEEP).lerp(FOAM, depth);
+        colNear.lerp(FOAM, hl);
+        const iconMat = node.icon.material as THREE.SpriteMaterial;
+        iconMat.color.copy(colNear);
+        iconMat.opacity = 0.32 + depth * 0.68 + hl * 0.2;
+        node.icon.scale.setScalar(ICON_SCALE * (0.7 + depth * 0.42 + hl * 0.45));
+
+        const haloMat = node.halo.material as THREE.SpriteMaterial;
+        haloMat.opacity = 0.12 + depth * 0.3 + hl * 0.55;
+        haloMat.color.copy(CELESTE).lerp(FOAM, hl * 0.6);
+        node.halo.scale.setScalar(HALO_SCALE * (0.75 + depth * 0.3 + hl * 0.5));
       }
-
-      project(rot);
-      rafRef.current = requestAnimationFrame(animate);
     };
 
-    rafRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [reduced, project]);
+    const renderTooltip = () => {
+      const tip = tooltipRef.current;
+      if (!tip || !hovered) return;
+      hovered.icon.getWorldPosition(tmp).project(camera);
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      const x = (tmp.x * 0.5 + 0.5) * w;
+      const y = (-tmp.y * 0.5 + 0.5) * h;
+      tip.style.transform = `translate(-50%, calc(-100% - 14px)) translate(${x}px, ${y}px)`;
+    };
 
-  // --- pointer drag to rotate ---
-  const onPointerDown = (e: ReactPointerEvent) => {
-    if (reducedRef.current) return;
-    draggingRef.current = true;
-    targetRef.current = null;
-    lastPointer.current = { x: e.clientX, y: e.clientY };
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-  };
+    const renderOnce = () => {
+      updateNodes(0.016);
+      renderer.render(scene, camera);
+      renderTooltip();
+    };
 
-  const onPointerMove = (e: ReactPointerEvent) => {
-    const el = containerRef.current;
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      // cursor offset from centre, normalized to [-1, 1]
-      cursorBias.current = {
-        x: ((e.clientX - rect.left) / rect.width - 0.5) * 2,
-        y: ((e.clientY - rect.top) / rect.height - 0.5) * 2,
-      };
+    // --- main loop: one persistent rAF, renders only while in view & visible ---
+    let raf = 0;
+    let prev = performance.now();
+    let inView = false;
+    let gateTick = 0;
+
+    const tick = () => {
+      raf = requestAnimationFrame(tick);
+      if (reduced) return;
+      // Self-gate by geometry every 8 frames: Lenis drives scroll via transform,
+      // which does NOT reliably fire IntersectionObserver or window 'scroll', but
+      // getBoundingClientRect always reflects the true on-screen position.
+      if ((gateTick++ & 7) === 0) {
+        const r = container.getBoundingClientRect();
+        const next = r.bottom > -120 && r.top < window.innerHeight + 120;
+        if (next && !inView) prev = performance.now();
+        inView = next;
+      }
+      if (!inView || document.hidden) return;
+
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - prev) / 1000);
+      prev = now;
+
+      if (flick) {
+        const p = Math.min(1, (now - flick.t0) / flick.dur);
+        const e = easeOutCubic(p);
+        rot.x = flick.sx + (flick.x - flick.sx) * e;
+        rot.y = flick.sy + (flick.y - flick.sy) * e;
+        if (p >= 1) flick = null;
+      } else if (!dragging) {
+        rot.y += (0.0019 + cursor.x * 0.0042) * (dt * 60);
+        rot.x += cursor.y * 0.0042 * (dt * 60);
+        rot.x += (-0.32 - rot.x) * 0.02; // ease back to resting tilt
+        rot.y += vel.y;
+        rot.x += vel.x;
+        vel.x *= 0.92;
+        vel.y *= 0.92;
+      }
+
+      updateNodes(dt);
+      renderer.render(scene, camera);
+      renderTooltip();
+    };
+
+    // initial in-view state (the rAF self-gate keeps it current thereafter)
+    {
+      const r = container.getBoundingClientRect();
+      inView = r.bottom > -120 && r.top < window.innerHeight + 120;
     }
-    if (!draggingRef.current) return;
-    const dx = e.clientX - lastPointer.current.x;
-    const dy = e.clientY - lastPointer.current.y;
-    rotationRef.current.y += dx * 0.005;
-    rotationRef.current.x += dy * 0.005;
-    lastPointer.current = { x: e.clientX, y: e.clientY };
-  };
 
-  const endDrag = (e: ReactPointerEvent) => {
-    draggingRef.current = false;
-    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-  };
+    // --- pointer / raycast ---
+    const setPointerFromEvent = (e: PointerEvent) => {
+      const rect = container.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      cursor.x = pointer.x;
+      cursor.y = -pointer.y;
+    };
 
-  /** Rotate the sphere so a given node faces the viewer (focus/Enter). */
-  const faceNode = useCallback((node: Node) => {
-    if (reducedRef.current) return;
-    const targetY = Math.atan2(node.x, node.z);
-    const targetX = -Math.atan2(
-      node.y,
-      Math.sqrt(node.x * node.x + node.z * node.z),
-    );
-    const cur = rotationRef.current;
-    const dist = Math.hypot(targetX - cur.x, targetY - cur.y);
-    targetRef.current = {
-      x: targetX,
-      y: targetY,
-      startX: cur.x,
-      startY: cur.y,
-      startTime: performance.now(),
-      duration: Math.min(1600, Math.max(700, dist * 900)),
+    const pickHover = () => {
+      raycaster.setFromCamera(pointer, camera);
+      const hit = raycaster.intersectObjects(iconSprites, false)[0];
+      const node = hit ? nodes.find((nd) => nd.icon === hit.object) ?? null : null;
+      if (node !== hovered) {
+        hovered = node;
+        setHoverLabel(node?.label ?? null);
+        canvas.style.cursor = node ? "pointer" : dragging ? "grabbing" : "grab";
+      }
+    };
+
+    function faceNode(node: Node) {
+      const b = node.base;
+      const ty = Math.atan2(b.x, b.z);
+      const tx = -Math.atan2(b.y, Math.sqrt(b.x * b.x + b.z * b.z));
+      const dist = Math.hypot(tx - rot.x, ty - rot.y);
+      flick = { x: tx, y: ty, sx: rot.x, sy: rot.y, t0: performance.now(), dur: Math.min(1500, Math.max(650, dist * 850)) };
+    }
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (reduced) return;
+      dragging = true;
+      flick = null;
+      moved = 0;
+      pointerDownAt = { x: e.clientX, y: e.clientY, t: performance.now() };
+      last.x = e.clientX;
+      last.y = e.clientY;
+      canvas.setPointerCapture?.(e.pointerId);
+      canvas.style.cursor = "grabbing";
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (reduced) return;
+      setPointerFromEvent(e);
+      if (dragging) {
+        const dx = e.clientX - last.x;
+        const dy = e.clientY - last.y;
+        moved += Math.abs(dx) + Math.abs(dy);
+        rot.y += dx * 0.006;
+        rot.x += dy * 0.006;
+        vel.y = dx * 0.0009;
+        vel.x = dy * 0.0009;
+        last.x = e.clientX;
+        last.y = e.clientY;
+      } else {
+        pickHover();
+      }
+    };
+    const onPointerUp = (e: PointerEvent) => {
+      if (reduced) return;
+      dragging = false;
+      canvas.releasePointerCapture?.(e.pointerId);
+      // a near-stationary press = click → flick the mark under the cursor to face us
+      if (moved < 6 && performance.now() - pointerDownAt.t < 500) {
+        setPointerFromEvent(e);
+        raycaster.setFromCamera(pointer, camera);
+        const hit = raycaster.intersectObjects(iconSprites, false)[0];
+        const node = hit ? nodes.find((nd) => nd.icon === hit.object) ?? null : null;
+        if (node) faceNode(node);
+      }
+      pickHover();
+    };
+    const onPointerLeave = () => {
+      cursor.x = 0;
+      cursor.y = 0;
+      dragging = false;
+      hovered = null;
+      setHoverLabel(null);
+      canvas.style.cursor = reduced ? "default" : "grab";
+    };
+
+    canvas.addEventListener("pointerdown", onPointerDown);
+    canvas.addEventListener("pointermove", onPointerMove);
+    canvas.addEventListener("pointerup", onPointerUp);
+    canvas.addEventListener("pointerleave", onPointerLeave);
+
+    // --- initial paint + loop start ---
+    if (reduced) {
+      rot.x = -0.4;
+      rot.y = 0.6;
+      renderOnce();
+    } else {
+      renderOnce(); // static sphere visible immediately, before the loop ramps
+      raf = requestAnimationFrame(tick);
+    }
+
+    // --- teardown ---
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointerleave", onPointerLeave);
+      for (const d of disposables) d.dispose();
+      renderer.dispose();
+      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
   }, []);
 
-  const onChipKeyDown = (e: ReactKeyboardEvent, node: Node) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      faceNode(node);
-    }
-  };
+  if (failed) return null;
 
   return (
     <div
       ref={containerRef}
+      aria-hidden
       className={className}
-      style={
-        {
-          position: "relative",
-          width: "100%",
-          aspectRatio: "1 / 1",
-          maxWidth: "min(80vw, 30rem)",
-          margin: "0 auto",
-          touchAction: "none",
-          cursor: reduced ? "default" : "grab",
-          // soft abyssal vignette behind the constellation
-          background:
-            "radial-gradient(circle at 50% 45%, rgb(155 211 238 / 0.10), rgb(11 44 58 / 0.0) 62%)",
-        } as CSSProperties
-      }
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      onPointerLeave={(e) => {
-        cursorBias.current = { x: 0, y: 0 };
-        endDrag(e);
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "clamp(20rem, 46vw, 32rem)",
+        touchAction: "none",
       }}
     >
-      {/* faint core glow — purely decorative */}
+      {/* faint abyssal core glow behind the constellation */}
       <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          width: "32%",
-          height: "32%",
-          transform: "translate(-50%, -50%)",
-          borderRadius: "9999px",
-          background:
-            "radial-gradient(circle, rgb(155 211 238 / 0.22), transparent 70%)",
-          filter: "blur(14px)",
-          pointerEvents: "none",
-        }}
-      />
-
-      <ul
-        aria-label="Technologies and tools"
         style={{
           position: "absolute",
           inset: 0,
-          listStyle: "none",
-          margin: 0,
-          padding: 0,
-          // anchor the projection origin at the sphere centre
-          transformStyle: "preserve-3d",
+          pointerEvents: "none",
+          background:
+            "radial-gradient(circle at 50% 48%, rgb(155 211 238 / 0.12), transparent 60%)",
+        }}
+      />
+      <div
+        ref={tooltipRef}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          pointerEvents: "none",
+          opacity: hoverLabel ? 1 : 0,
+          transition: "opacity 180ms ease",
+          padding: "0.3em 0.7em",
+          borderRadius: "9999px",
+          border: "1px solid rgb(155 211 238 / 0.35)",
+          background: "rgb(7 34 46 / 0.78)",
+          backdropFilter: "blur(6px)",
+          color: "var(--color-foam)",
+          fontFamily: "var(--font-sans)",
+          fontSize: "0.74rem",
+          fontWeight: 500,
+          letterSpacing: "0.01em",
+          whiteSpace: "nowrap",
+          boxShadow: "0 0 18px rgb(155 211 238 / 0.25)",
+          willChange: "transform",
         }}
       >
-        {nodes.map((node, i) => {
-          const hue = chipHue(node.group, groupCount);
-          const isActive = active === node.id;
-          return (
-            <li
-              key={node.id}
-              ref={(el) => {
-                chipRefs.current[i] = el;
-              }}
-              style={
-                {
-                  position: "absolute",
-                  left: "50%",
-                  top: "50%",
-                  willChange: "transform, opacity",
-                  // initial transform set imperatively by project()
-                } as CSSProperties
-              }
-            >
-              <button
-                type="button"
-                onMouseEnter={() => setActive(node.id)}
-                onMouseLeave={() => setActive((a) => (a === node.id ? null : a))}
-                onFocus={() => {
-                  setActive(node.id);
-                  faceNode(node);
-                }}
-                onBlur={() => setActive((a) => (a === node.id ? null : a))}
-                onClick={() => faceNode(node)}
-                onKeyDown={(e) => onChipKeyDown(e, node)}
-                style={
-                  {
-                    display: "inline-block",
-                    whiteSpace: "nowrap",
-                    padding: "0.28em 0.7em",
-                    borderRadius: "9999px",
-                    border: `1px solid hsl(${hue} 70% 78% / ${isActive ? 0.9 : 0.32})`,
-                    background: isActive
-                      ? `hsl(${hue} 65% 60% / 0.22)`
-                      : `hsl(${hue} 60% 40% / 0.10)`,
-                    color: isActive
-                      ? "var(--color-foam)"
-                      : `hsl(${hue} 75% 86%)`,
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "0.78rem",
-                    fontWeight: 500,
-                    letterSpacing: "0.01em",
-                    lineHeight: 1.1,
-                    cursor: "pointer",
-                    transition:
-                      "color 200ms ease, background 200ms ease, border-color 200ms ease, box-shadow 200ms ease",
-                    boxShadow: isActive
-                      ? `0 0 18px hsl(${hue} 80% 70% / 0.65), 0 0 4px hsl(${hue} 90% 85% / 0.9)`
-                      : `0 0 calc(10px * var(--glow, 0.3)) hsl(${hue} 80% 70% / var(--glow, 0.3))`,
-                    textShadow: `0 0 6px hsl(${hue} 85% 80% / ${isActive ? 0.9 : 0.45})`,
-                  } as CSSProperties
-                }
-              >
-                {node.label}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+        {hoverLabel}
+      </div>
     </div>
   );
 }

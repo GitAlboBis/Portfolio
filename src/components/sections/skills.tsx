@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { useScrollParallax } from "@/components/descending-world";
 import { useLanguage } from "@/components/language-provider";
+import { TechCloud } from "@/components/tech-cloud";
 import { skillGroups } from "@/data/skills";
 import { cn } from "@/lib/utils";
 
@@ -132,7 +133,13 @@ export function SkillsSection() {
           </header>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-1 gap-4 sm:mt-20 md:grid-cols-12">
+        {/* Signature 3D icon cloud — the curated visual of the stack (decorative;
+            the bento below is the complete, screen-reader-accessible list). */}
+        <Reveal variant="clip-up" delay={120}>
+          <TechCloud className="mt-10 sm:mt-14" />
+        </Reveal>
+
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-16 md:grid-cols-12">
           {skillGroups.map((group, i) => (
             <Reveal
               key={group.label.en}

@@ -8,6 +8,7 @@ export type Lang = "en" | "it";
 */
 export type Dictionary = {
   meta: { eyebrow: string };
+  a11y: { skipToContent: string };
   nav: {
     work: string;
     about: string;

@@ -56,7 +56,7 @@ function LangToggle({
             onClick={() => setLang(l)}
             aria-pressed={lang === l}
             className={cn(
-              "uppercase transition-colors duration-300",
+              "inline-flex min-h-[44px] items-center px-1 uppercase transition-colors duration-300",
               lang === l ? "text-foam" : "text-mist hover:text-foam",
             )}
           >
@@ -90,7 +90,7 @@ export function SiteNav() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-colors duration-500",
+        "fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top)] transition-colors duration-500",
         scrolled
           ? "border-b border-rule bg-abyss/80 backdrop-blur-md"
           : "border-b border-transparent",
@@ -147,7 +147,7 @@ export function SiteNav() {
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             aria-controls="mobile-nav"
-            className="flex h-9 w-9 flex-col items-center justify-center gap-[5px] text-foam"
+            className="flex h-11 w-11 flex-col items-center justify-center gap-[5px] text-foam"
           >
             <span
               className={cn(

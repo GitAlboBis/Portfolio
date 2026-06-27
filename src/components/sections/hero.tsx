@@ -81,8 +81,10 @@ export function Hero() {
   );
 
   return (
-    <section ref={rootRef} id="hero" className="relative z-10 h-[600vh]">
-      <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
+    <section ref={rootRef} id="hero" className="relative z-10 h-[600dvh]">
+      <div className="sticky top-0 flex h-dvh w-full items-center justify-center overflow-hidden">
+        {/* Real document heading for SR / SEO — the visible title is the WebGL LiquidText */}
+        <h1 className="sr-only">Alberto Tuveri — {t.hero.role}</h1>
         {/* Base legibility veil over the footage (subtle) */}
         <div
           aria-hidden

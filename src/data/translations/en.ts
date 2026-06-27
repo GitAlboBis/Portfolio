@@ -2,6 +2,7 @@ import type { Dictionary } from "./types";
 
 export const en: Dictionary = {
   meta: { eyebrow: "Software Engineer · Full-Stack + AI" },
+  a11y: { skipToContent: "Skip to content" },
   nav: {
     work: "Work",
     about: "About",

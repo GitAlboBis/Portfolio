@@ -8,23 +8,51 @@
 
 | cycle | art-dir | motion | type | narrative | perf | a11y | craft | responsive | overall |
 |-------|---------|--------|------|-----------|------|------|-------|------------|---------|
-| 1 | (evaluating…) | | | | | | | | |
+| 1 | 6.0 | 6.2 | 6.5 | 6.5 | **4.5** | 6.0 | 5.5 | **4.5** | **5.7** |
 
-Target: every dimension ≥ 9, overall ≥ 9 (SOTD-level).
+Target: every dimension ≥ 9, overall ≥ 9 (SOTD). Top themes holding it back (cycle 1):
+unfinished-correctness gaps · mobile is second-class · perf hygiene at integration layer ·
+art direction fractures after the hero · motion/type/a11y competent-but-conservative.
 
-## Open backlog
+## Cycle 2 — FIX in progress
 
-_(seeded by cycle-1 synthesizer)_
+**Batch 1 (a11y + responsive + perf — weakest dims), implemented, verifying:**
+- hero-sr-h1 — sr-only `<h1>` (real heading) ✓ · skip-link + `<main id>` landmark ✓
+- hero-dvh-pin (h-dvh) ✓ · viewport+themeColor+viewport-fit ✓ · safe-area nav ✓ · touch-targets ≥44px ✓
+- defer-frame-preload (idle, not first paint; reduced-motion = 1 still) ✓
+
+**Rejected (integrator override):**
+- `fix-contact-email` — jury had it BACKWARDS (wanted sersan.dev). gmail is the intended public
+  address (golden rule: don't expose work email). → QUESTION for Alberto, not a fix.
+
+**Deferred — gated / need decision or your eye:**
+- `gate-leva-prod` (touches the fluid file you're tuning → after G4 sign-off)
+- aesthetic/content: `liquid-title-warm-grade`, `warm-token-bridge`, `drop-tbd-cards` (your call)
+- `responsive-frame-sets` / `hero-mobile-fallback` (need generated assets)
+- cinematic zoom-into-backflip beat → needs a dive clip (G5 Higgsfield spend) or real footage
+
+## Backlog (next batches, impact-ranked — full detail in cycle-1 workflow output)
+
+| batch | items | dims |
+|-------|-------|------|
+| 2b craft/meta | add-favicon-og-manifest, not-found+error-pages, themed-scrollbar, scroll-behavior-fix | craft |
+| 3 perf | tier-gate-fluid-mount, defer-webgpu-init, preload-lcp-frame, liquidtext-render-earlyout, responsive-frame-sets | perf |
+| 4 motion | reveal-variants, hero-custom-ease, pointer-craft, frame-crossfade-smooth, tune-lenis, animate-scroll-cue | motion |
+| 5 typography | fraunces-variable (opsz/WONK), body-token-sans, heading-3-tabular, editorial-type-spread | type |
+| 6 narrative+a11y | wire-cinematic-caption, hero-title-tagline (from i18n), focus-trap-mobile-menu, nav-active-section, lang-toggle-a11y, it-copy-nits | narrative, a11y |
+| big bets | continuous warm→abyss color grade down-page; captioned descent climax; video-codec scrub vs 25MB frames; pointer-alive identity | art, perf, motion |
 
 ## Done
 
 | cycle | item | commit |
 |-------|------|--------|
+| — | scaffold awwwards-loop | dce700e |
+| 1 | jury evaluate + plan (8 critics, overall 5.7) | (wf_cef2eb6a-aa8) |
 
 ## Last run
 
 ```
-cycle     : 1 (EVALUATE + PLAN running — wf_cef2eb6a-aa8)
+cycle     : 2 (FIX batch 1) — verifying
 status    : in-progress
 ```
 
@@ -32,7 +60,4 @@ status    : in-progress
 
 - Constraints: hero fluid OFF-LIMITS (G4); bilingual; Context7; @theme tokens; perf+a11y budgets.
 - Budget: 12 cycles OR 4h OR token target per run. Stop on quality plateau.
-- Pending asset gate (G5): the "zoom-into-backflip" cinematic beat needs a dive clip that does
-  NOT exist (all 5 Higgsfield sources are Pan di Zucchero aerials). Generate (Higgsfield spend)
-  or supply real footage → then build the two-sequence zoom transition. Mechanism can be built first.
-- See also [[docs-driven-build]] loop (docs↔code + gate build).
+- See [[docs-driven-build]] loop.

@@ -6,7 +6,7 @@ import { Contact } from "@/components/sections/contact";
 
 export default function Home() {
   return (
-    <main className="relative">
+    <main id="main" tabIndex={-1} className="relative outline-none">
       {/* Hero is transparent so the fixed WebGL canvas reads through it. */}
       <Hero />
 

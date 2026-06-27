@@ -74,7 +74,9 @@ export function VideoBackdrop() {
       images[i] = im;
     };
 
-    loadFrame(0);
+    // reduced-motion shows a single mid still; otherwise frame 0 paints first
+    const reduceIdx = Math.round(0.5 * (FRAME_COUNT - 1));
+    loadFrame(reduce ? reduceIdx : 0);
     resize();
 
     // throttled preload (don't decode all 136 1920px stills at once)
@@ -98,7 +100,14 @@ export function VideoBackdrop() {
         images[i] = im;
       }
     };
-    pump();
+    if (!reduce) {
+      // defer the heavy 136-frame preload off the critical path (idle, not first paint)
+      const w = window as typeof window & {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      };
+      if (w.requestIdleCallback) w.requestIdleCallback(() => pump(), { timeout: 1500 });
+      else window.setTimeout(() => pump(), 800);
+    }
 
     window.addEventListener("resize", resize);
 

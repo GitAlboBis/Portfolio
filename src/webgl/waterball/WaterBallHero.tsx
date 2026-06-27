@@ -2,6 +2,7 @@
 /// <reference types="@webgpu/types" />
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import gsap from "gsap";
 import { Camera } from "./camera";
 import { MLSMPMSimulator, mlsmpmParticleStructSize } from "./mls-mpm/mls-mpm";
@@ -119,6 +120,12 @@ export function WaterBallHero() {
   const fxWrapRef = useRef<HTMLDivElement>(null);
   const lensRef = useRef<HTMLDivElement>(null);
   const [unsupported, setUnsupported] = useState(false);
+  // The leva panel renders inside CanvasHost's `fixed inset-0 z-0` wrapper, which traps
+  // its z-index BELOW the site header (z-50) -> the header eats its clicks. Portal it to
+  // <body> (dev only) so its z-index actually wins and the panel is clickable. The
+  // mounted gate avoids an SSR/hydration mismatch from the portal.
+  const [levaReady, setLevaReady] = useState(false);
+  useEffect(() => setLevaReady(true), []);
 
   // Entry animation (point 1): a brief lens "focus pull" — the water "A" zooms in
   // from slightly large + blurred while a lens vignette clears. Plays once on
@@ -420,7 +427,7 @@ export function WaterBallHero() {
       {/* Dev-only debug GUI. Rendered ONLY when IS_DEV; the whole subtree (and the
           leva import) is dead-code-eliminated in production. Explicit mount keeps the
           panel deterministic and lets us collapse it by default. */}
-      {IS_DEV ? <Leva collapsed /> : null}
+      {IS_DEV && levaReady ? createPortal(<Leva collapsed={false} />, document.body) : null}
       <div ref={fxWrapRef} aria-hidden className="pointer-events-none fixed inset-0 z-0">
         <canvas ref={canvasRef} className="block h-full w-full" />
         {/* lens vignette — clears during the entry "focus pull" (point 1) */}

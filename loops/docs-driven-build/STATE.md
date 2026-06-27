@@ -58,7 +58,9 @@ outcome   : src/app/sitemap.ts + robots.ts (build shows /sitemap.xml + /robots.t
             JSON-LD Person in layout.tsx (real links), README.md; contact email verified public
 verify    : typecheck + BUILD green (5 routes)
 exit code : 0
-status    : iteration-3 complete — checkpoint with Alberto (3/12 iterations used)
+status    : PAUSED by Alberto (3/12 iterations) — awaiting 4 gate decisions before resume:
+            (1) hero feel sign-off G4, (2) cinematic scope, (3) dead-R3F fate, (4) SerSan data.
+            Resume via /docs-driven-build. Next non-gated work: a11y-pass, then eslint/prettier.
 ```
 
 ## Gate requests / approvals (awaiting Alberto)

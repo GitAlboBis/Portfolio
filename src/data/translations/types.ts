@@ -82,5 +82,7 @@ export type Dictionary = {
   gauge: {
     surface: string;
     seabed: string;
+    depthLabel: string;
+    unit: string;
   };
 };

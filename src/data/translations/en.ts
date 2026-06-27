@@ -72,5 +72,7 @@ export const en: Dictionary = {
   gauge: {
     surface: "Surface",
     seabed: "Seabed",
+    depthLabel: "Dive to",
+    unit: "m",
   },
 };

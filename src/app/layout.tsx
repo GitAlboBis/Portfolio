@@ -6,6 +6,9 @@ import { CanvasHost } from "@/webgl/CanvasHost";
 import { ScrollProvider } from "@/components/scroll-provider";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { CausticsLayer } from "@/components/caustics-layer";
+import { WaterCursor } from "@/components/water-cursor";
+import { DepthGauge } from "@/components/depth-gauge";
 import type { Lang } from "@/data/translations/types";
 import { en } from "@/data/translations/en";
 import { it } from "@/data/translations/it";
@@ -152,8 +155,14 @@ export default async function RootLayout({
         />
         <LanguageProvider initialLang={lang}>
           <CanvasHost />
+          {/* Ambient signature layers — decorative, aria-hidden, perf-gated (rAF
+              idles offscreen / under reduced-motion). Paint above the canvases,
+              below nav + content. */}
+          <CausticsLayer />
+          <WaterCursor />
           <ScrollProvider />
           <SiteNav />
+          <DepthGauge />
           {children}
           <SiteFooter />
         </LanguageProvider>

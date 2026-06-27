@@ -1,20 +1,24 @@
 # 07 — PROJECTS & BIO
 
-> Scopo: fonte di verita unica per tutto il **copy di contenuto** del portfolio — biografia di Alberto Tuveri, raggruppamento delle skill, e schede progetto — in **EN + IT pronti all'uso**. Gli agenti che costruiscono le sezioni S2 ABOUT, S4 WORK/PROJECTS e S5 SKILLS (vedi `docs/00-PRD.md` e `docs/03-ARCHITECTURE.md`) copiano da qui, non inventano. Le stringhe vivono in `src/data/translations` (en/it) e `src/data/projects`. Le label tecniche, i nomi di stack e gli slug restano in inglese; la prosa di queste direttive e in italiano.
+> Aggiornato 2026-06-27 per riflettere il codice (content model `src/data/projects.ts` + `src/data/skills.ts` come effettivamente shippati). Riconciliato dal loop docs-driven-build. I **fatti** bio/progetti confermati NON sono stati toccati; sono state allineate solo le PRESCRIZIONI del content model (tipo TS al posto di zod, file singolo, skills, periodi/metriche come da codice).
+
+> Scopo: fonte di verita unica per tutto il **copy di contenuto** del portfolio — biografia di Alberto Tuveri, raggruppamento delle skill, e schede progetto — in **EN + IT pronti all'uso**. Gli agenti che costruiscono le sezioni S2 ABOUT, S4 WORK/PROJECTS e S5 SKILLS (vedi `docs/00-PRD.md` e `docs/03-ARCHITECTURE.md`) copiano da qui, non inventano. Le stringhe di sezione vivono in `src/data/translations` (en/it); le schede progetto in `src/data/projects.ts` e i gruppi skill in `src/data/skills.ts`. Le label tecniche, i nomi di stack e gli slug restano in inglese; la prosa di queste direttive e in italiano.
 
 ---
 
 ## 0. Regole d'uso di questo documento
 
 1. **Confermato vs Da confermare.** Ogni blocco e marcato con `[CONFIRMED]` (dato dal CV/LinkedIn, usabile subito) o `[PROVISIONAL]` (placeholder da validare con Alberto — vedi sezione 6 "Open questions"). Un agente NON deve pubblicare contenuto `[PROVISIONAL]` come fosse definitivo: usare i placeholder testuali esatti riportati qui.
-2. **Bilingue.** Per ogni testo c'e la coppia EN (primaria, default) e IT. Le chiavi i18n sono identiche tra le due lingue. Sorgente i18n: `src/data/translations/en.ts` e `src/data/translations/it.ts`.
-3. **Content model progetti.** Ogni progetto e un oggetto `Project` tipizzato (schema in sezione 4.0). Lo schema runtime e validato con `zod` (vedi `docs/01-TECHSTACK.md`). I dati vivono in `src/data/projects/<slug>.ts`.
+2. **Bilingue.** Per ogni testo c'e la coppia EN (primaria, default) e IT. Le chiavi i18n sono identiche tra le due lingue. Sorgente i18n: `src/data/translations/en.ts` e `src/data/translations/it.ts`. Nota: il dizionario e **nidificato per-sezione** (`hero`, `intro`, `work`, `skills`, …), non flat.
+3. **Content model progetti.** Ogni progetto e un oggetto `Project` (plain TypeScript `type`, NO zod) — vedi schema reale in sezione 4.0. Tutti i progetti vivono in **un solo file** `src/data/projects.ts` (array `projects`, piu `projectsSorted`). NON ci sono file per-slug, ne `index.ts`/`types.ts` dedicati, ne validazione `ProjectSchema.parse()`. La verifica e affidata a `tsc` (script `typecheck`), non a Vitest.
 4. **Voce del copy.** Tono: tecnico, asciutto, orientato al risultato. Niente superlativi vuoti ("amazing", "cutting-edge"). Struttura Problem → Action → Result. Metriche concrete dove esistono. Per le linee guida estetiche del copy vedi `docs/02-DESIGN.md`.
 5. **Privacy / verita.** Non inventare metriche. Se un numero non e nel knowledge pack, lascialo come placeholder `[[TBD: ...]]`, mai un valore inventato.
 
 ---
 
 ## 1. BIO — Alberto Tuveri
+
+> Nota sul mapping i18n (stato del codice 2026-06-27): la bio attualmente **shippata** e una versione *condensata* sotto la chiave `intro.*` di `src/data/translations/{en,it}.ts` — `intro.eyebrow`, `intro.heading`, `intro.body1`, `intro.body2` — piu `hero.tagline`. Le chiavi prescrittive `bio.tagline` / `bio.short` / `bio.long` / `bio.thesis` qui sotto rappresentano il copy *completo* di riferimento (CV-grade), non ancora interamente cablato. Quando la S2 ABOUT verra estesa, queste chiavi vanno aggiunte/riconciliate. I **testi** confermati restano la fonte di verita; cio che e provvisorio e solo *quali* di questi blocchi sono gia montati nel sito (openQuestion).
 
 ### 1.0 Dati anagrafici e contatti `[CONFIRMED]`
 
@@ -140,34 +144,38 @@ propone strategie difensive Zero-Trust.
 
 ## 2. SKILLS — raggruppate per dominio `[CONFIRMED]`
 
-Sorgente per la sezione **S5 SKILLS/STACK**. Chiave i18n radice: `skills.groups`. I nomi tecnologici NON si traducono; si traducono solo le label di gruppo. Ogni gruppo ha un `id` stabile (usato come anchor e per ordinare le colonne/card).
+Sorgente per la sezione **S5 SKILLS/STACK**: `src/data/skills.ts`. I nomi tecnologici NON si traducono; si traduce solo la `label` di gruppo (`Localized` = `{ en, it }`). Lo shape effettivo e `SkillGroup = { label: Localized; items: string[] }` — **niente** campo `id` ne `provenBySite`; l'ordine e quello dell'array `skillGroups`.
 
-| Group id | Label EN | Label IT | Items (English, do not translate) |
-|---|---|---|---|
-| `core` | Core Languages | Linguaggi core | TypeScript, JavaScript (ES2024), Python, Java, C/C++, C# |
-| `frontend` | Front-End | Front-End | React 19, Next.js 15/16, Angular, Tailwind CSS, Framer Motion, GSAP, Three.js / WebGPU |
-| `backend` | Back-End & Data | Back-End e Dati | Node.js, Spring / Spring Boot, Supabase, PostgreSQL, PostGIS, MySQL, REST, JWT |
-| `cloud` | Cloud & DevOps | Cloud e DevOps | Azure (AD, Speech), GitHub Actions, Vercel, Sentry, Git |
-| `ai` | AI & Low-Code | AI e Low-Code | Microsoft Copilot Studio, Power Automate, Dataverse, Dynamics 365, RAG, MCP, multi-agent orchestration |
-| `testing` | Testing & Tooling | Testing e Tooling | Vitest, Playwright, ESLint, Prettier, Zod |
+| Label EN | Label IT | Items (English, do not translate) |
+|---|---|---|
+| Core | Core | TypeScript, JavaScript, Python, Java, C / C++, C# |
+| Front-End | Front-End | React, Next.js, Angular, Tailwind CSS, Three.js / WebGL, GSAP, Framer Motion |
+| Back-End & Data | Back-End & Dati | Node.js, Spring, Supabase, PostgreSQL, PostGIS, MySQL |
+| Cloud & DevOps | Cloud & DevOps | Azure (AD, Speech), Vercel, GitHub Actions, Sentry, Docker |
+| AI & Agents | AI & Agenti | Copilot Studio, Dataverse, Dynamics 365, Power Automate, MCP, RAG, Multi-agent orchestration |
+| Testing & Tooling | Testing & Tooling | Vitest, Playwright, ESLint, Prettier, Git |
 
-> Nota: `Three.js / WebGPU` e incluso in `frontend` perche e una competenza dimostrata **dallo stesso portfolio** (il logo ad acqua GPGPU, vedi `docs/04-3D-HERO-WATER-LOGO.md`). Marcare come `[CONFIRMED — proven by this site]` nel data file via flag `provenBySite: true`.
+> Nota: `Three.js / WebGL` (non WebGPU) e incluso in `Front-End` — corrisponde al codice. Il portfolio gira su WebGPU (hero MLS-MPM), ma la skill dichiarata resta `Three.js / WebGL`; se si vuole esporre WebGPU come competenza "provata dal sito" e una decisione di copy aperta (openQuestion), oggi NON c'e alcun flag `provenBySite` nel data file.
 >
-> Nota: Framer Motion e una competenza personale di Alberto; lo stack del PORTFOLIO usa GSAP, non Framer Motion (vedi `docs/01-TECHSTACK.md`).
+> Nota: Framer Motion e una competenza personale di Alberto; lo stack del PORTFOLIO usa GSAP, non Framer Motion (vedi `docs/01-TECHSTACK.md`). Entrambe restano elencate in `Front-End`.
 
-Snippet del data file:
+Snippet del data file (shape reale):
 
 ```ts
 // src/data/skills.ts
-export const SKILL_GROUPS = [
-  { id: "core",     items: ["TypeScript", "JavaScript", "Python", "Java", "C/C++", "C#"] },
-  { id: "frontend", items: ["React 19", "Next.js", "Angular", "Tailwind CSS", "Framer Motion", "GSAP", "Three.js / WebGPU"] },
-  { id: "backend",  items: ["Node.js", "Spring Boot", "Supabase", "PostgreSQL", "PostGIS", "MySQL", "REST", "JWT"] },
-  { id: "cloud",    items: ["Azure", "GitHub Actions", "Vercel", "Sentry", "Git"] },
-  { id: "ai",       items: ["Copilot Studio", "Power Automate", "Dataverse", "Dynamics 365", "RAG", "MCP", "Multi-agent orchestration"] },
-  { id: "testing",  items: ["Vitest", "Playwright", "ESLint", "Prettier", "Zod"] },
-] as const;
+export type SkillGroup = { label: Localized; items: string[] };
+
+export const skillGroups: SkillGroup[] = [
+  { label: { en: "Core",            it: "Core" },            items: ["TypeScript", "JavaScript", "Python", "Java", "C / C++", "C#"] },
+  { label: { en: "Front-End",       it: "Front-End" },       items: ["React", "Next.js", "Angular", "Tailwind CSS", "Three.js / WebGL", "GSAP", "Framer Motion"] },
+  { label: { en: "Back-End & Data", it: "Back-End & Dati" }, items: ["Node.js", "Spring", "Supabase", "PostgreSQL", "PostGIS", "MySQL"] },
+  { label: { en: "Cloud & DevOps",  it: "Cloud & DevOps" },  items: ["Azure (AD, Speech)", "Vercel", "GitHub Actions", "Sentry", "Docker"] },
+  { label: { en: "AI & Agents",     it: "AI & Agenti" },     items: ["Copilot Studio", "Dataverse", "Dynamics 365", "Power Automate", "MCP", "RAG", "Multi-agent orchestration"] },
+  { label: { en: "Testing & Tooling", it: "Testing & Tooling" }, items: ["Vitest", "Playwright", "ESLint", "Prettier", "Git"] },
+];
 ```
+
+> openQuestion: il data file elenca `Vitest` / `Playwright` / `ESLint` / `Prettier` in `Testing & Tooling` come *competenze* di Alberto, ma il tooling del REPOSITORY non installa eslint/prettier/vitest (script `package.json` = solo `dev`/`build`/`start`/`typecheck`; vedi `docs/01-TECHSTACK.md`). Sono claim di skill personali, non di stack del progetto — lasciare come sono salvo diversa indicazione di Alberto.
 
 ---
 
@@ -188,55 +196,56 @@ Sorgente per un'eventuale mini-timeline nella S2 ABOUT o S4 WORK. Ordine: piu re
 
 ## 4. PROJECT CARDS — sezione S4 WORK
 
-### 4.0 Content model `Project` (schema)
+### 4.0 Content model `Project` (schema reale)
+
+Plain TypeScript `type` in `src/data/projects.ts` — **niente zod**, niente `ProjectSchema`. `Localized = Record<Lang, string>` (chiavi `en`/`it`). Lo shape effettivo:
 
 ```ts
-// src/data/projects/types.ts
-import { z } from "zod";
+// src/data/projects.ts
+export type Localized = Record<Lang, string>;
+export type ProjectStatus = "confirmed" | "provisional";
+export type ProjectMetric = { value: string; label: Localized };
+export type ProjectLink = { label: string; href: string };
 
-export const ProjectSchema = z.object({
-  slug: z.string(),                       // url + anchor, kebab-case, English
-  status: z.enum(["confirmed", "provisional"]),
-  order: z.number().int(),                // display order in S4 (ascending)
-  title: z.object({ en: z.string(), it: z.string() }),
-  company: z.string(),
-  role: z.object({ en: z.string(), it: z.string() }),
-  period: z.string(),                     // free text, language-neutral ("Jan 2026")
-  context: z.object({ en: z.string(), it: z.string() }),
-  problem: z.object({ en: z.string(), it: z.string() }),
-  action: z.object({ en: z.string(), it: z.string() }),
-  result: z.object({ en: z.string(), it: z.string() }),
-  stack: z.array(z.string()),             // English tech names
-  metrics: z.array(z.object({
-    value: z.string(),                    // "<1s", "10 roles", "96"
-    label: z.object({ en: z.string(), it: z.string() }),
-  })),
-  links: z.array(z.object({
-    kind: z.enum(["repo", "live", "case-study"]),
-    href: z.string().url().or(z.literal("")),   // "" = TBD, hide button
-    label: z.string(),
-  })),
-});
+export type Project = {
+  slug: string;                 // url + anchor, kebab-case, English
+  status: ProjectStatus;
+  /** Brand/product name — NOT localized (plain string) */
+  title: string;
+  org: string;                  // company/org, not localized
+  period: string;               // free text, language-neutral ("2026", "2025–2026")
+  role: Localized;
+  problem: Localized;
+  action: Localized;
+  result: Localized;
+  stack: string[];              // English tech names
+  metrics?: ProjectMetric[];    // optional
+  links?: ProjectLink[];        // optional; { label, href } — no `kind` enum
+  order: number;                // display order (ascending)
+};
 
-export type Project = z.infer<typeof ProjectSchema>;
+export const projects: Project[] = [ /* ... */ ];
+export const projectsSorted = [...projects].sort((a, b) => a.order - b.order);
 ```
 
-Regola di rendering: se `links[].href === ""` il bottone NON si mostra. Se `status === "provisional"` la card mostra un badge `WORK IN PROGRESS` (EN) / `IN LAVORAZIONE` (IT) e i campi placeholder restano visibili come tali.
+Differenze rispetto alla vecchia prescrizione (allineate al codice): `title` e una **string** (non `Localized`); il campo azienda si chiama **`org`** (non `company`); **non** esiste un campo `context` (la scheda usa Problem → Action → Result); `links` non ha il campo `kind`; `metrics` e `links` sono **opzionali**; non c'e `z.string().url()` — `href` e una stringa qualsiasi.
 
-Ordine display in S4: `order` 1=Badante24h, 2=DOIT Voice AI, 3=SerSan #1, 4=SerSan #2, 5=Agricultural Supply Chain.
+Regola di rendering: per nascondere un link, **ometterlo** dall'array `links` (campo opzionale) anziche passare `href: ""`. Se `status === "provisional"` la card mostra un badge `WORK IN PROGRESS` (EN) / `IN LAVORAZIONE` (IT) e i campi `[[TBD]]` restano visibili come tali.
+
+Ordine display in S4 (`projectsSorted`): `order` 1=Badante24h, 2=DOIT Voice AI, 3=SerSan Project I, 4=SerSan Project II, 5=Agricultural Supply Chain.
 
 ---
 
 ### 4.1 Badante24h — ALS MCL Civitanova `[CONFIRMED]`
 
-`slug: "badante24h"` · `status: "confirmed"` · `order: 1`
+`slug: "badante24h"` · `status: "confirmed"` · `order: 1` · `title: "Badante24h"` · `org: "ALS MCL Civitanova"` · `period: "2026"`
 
 | Field | EN | IT |
 |---|---|---|
-| Title | Badante24h | Badante24h |
-| Company | ALS MCL Civitanova | ALS MCL Civitanova |
-| Role | Full-Stack Developer (Freelance) | Sviluppatore Full-Stack (Freelance) |
-| Period | Jan 2026 | Gen 2026 |
+| Title (string) | Badante24h | Badante24h |
+| Org | ALS MCL Civitanova | ALS MCL Civitanova |
+| Role | Full-Stack Developer · Freelance | Full-Stack Developer · Freelance |
+| Period | 2026 | 2026 |
 
 ```
 CONTEXT
@@ -287,30 +296,31 @@ IT: Rilasciata in produzione con piena capacita offline, messaggistica in tempo
     lancio.
 ```
 
-**Stack:** `Next.js 15`, `React 19`, `TypeScript`, `Supabase`, `PostgreSQL`, `PostGIS 3`, `Serwist`, `Web Push (VAPID)`, `Leaflet`, `Photon`, `Nominatim`, `Sharp`, `Sentry`, `GitHub Actions`.
+**Stack (come da codice):** `Next.js 15`, `React 19`, `TypeScript`, `Supabase`, `PostGIS`, `Serwist (PWA)`, `Web Push (VAPID)`, `Leaflet`, `Sentry`, `GitHub Actions`. La prosa ACTION sopra cita anche `Photon`/`Nominatim`/`Sharp`/`PostgreSQL`: descrittivi nel copy ma NON nell'array `stack` shippato.
 
-**Metrics:**
+**Metrics (come da codice, 3 voci):**
 | value | label EN | label IT |
 |---|---|---|
-| `<1s` | Geospatial search | Ricerca geospaziale |
-| `0` | Known auth vulns at launch | Vulnerabilita auth note al lancio |
-| `<5 min` | CI/CD deploy time | Tempo di deploy CI/CD |
-| `100%` | Offline-capable PWA | PWA con capacita offline |
+| `0` | known auth vulns at launch | vulnerabilità auth note al lancio |
+| `<1s` | geospatial search | ricerca geospaziale |
+| `<5min` | solo deploy cycle | ciclo di deploy in solo |
 
-**Links:** repo `[[TBD: private?]]` → href `""` (hide); live `[[TBD: production URL]]` → href `""` (hide). Vedi open questions.
+**Links:** nessuno nel data file (campo `links` omesso → nessun bottone). Repo pubblico/privato e URL di produzione restano openQuestion (sezione 6).
 
 ---
 
 ### 4.2 Voice AI Agent for Microsoft Teams — DOIT S.r.l `[CONFIRMED]`
 
-`slug: "doit-voice-ai-agent"` · `status: "confirmed"` · `order: 2`
+`slug: "doit-voice-ai-agent"` · `status: "confirmed"` · `order: 2` · `title: "Voice AI Agent for Microsoft Teams"` · `org: "DOIT · Lodestar Group"` · `period: "2025–2026"`
 
 | Field | EN | IT |
 |---|---|---|
-| Title | Voice AI Agent for Microsoft Teams | Agente vocale AI per Microsoft Teams |
-| Company | DOIT S.r.l (Lodestar Group), Fabriano | DOIT S.r.l (Lodestar Group), Fabriano |
-| Role | AI & Software Developer (Internship) | AI & Software Developer (Tirocinio) |
-| Period | Nov 2025 – Feb 2026 | Nov 2025 – Feb 2026 |
+| Title (string) | Voice AI Agent for Microsoft Teams | Voice AI Agent for Microsoft Teams |
+| Org | DOIT · Lodestar Group | DOIT · Lodestar Group |
+| Role | AI & Software Developer · Internship | AI & Software Developer · Tirocinio |
+| Period | 2025–2026 | 2025–2026 |
+
+> Nota: il codice usa `org: "DOIT · Lodestar Group"` (senza "S.r.l, Fabriano") e `period: "2025–2026"`. La forma estesa "DOIT S.r.l (Lodestar Group), Fabriano · Nov 2025 – Feb 2026" resta valida come dato anagrafico/CV ma NON e cio che renderizza la card.
 
 ```
 CONTEXT
@@ -348,83 +358,73 @@ IT: Un assistente hands-free funzionante che trasforma l'intento vocale in azion
     reali su calendario e CRM, con un'esperienza coerente tra Teams e web.
 ```
 
-**Stack:** `Azure Speech Services`, `Microsoft Copilot Studio`, `Power Automate`, `Dynamics 365`, `Angular`, `TypeScript`, `Microsoft Teams`.
+**Stack (come da codice):** `Azure Speech`, `Copilot Studio`, `Power Automate`, `Dynamics 365`, `Angular`, `TypeScript`.
 
-**Metrics:** principalmente qualitativo. Un'unica metrica sicura:
-| value | label EN | label IT |
-|---|---|---|
-| `100%` | Hands-free workflow | Flusso hands-free |
+**Metrics:** nessuna nel data file (campo `metrics` omesso) — il progetto e qualitativo. Eventuali numeri (es. riduzione tempo di scheduling) sono openQuestion — non inventare.
 
-> Altre metriche (es. riduzione tempo di scheduling) sono `[[TBD]]` — non inventare.
-
-**Links:** repo/live non pubblici (progetto aziendale interno) → href `""`. Eventuale case-study testuale solo.
+**Links:** nessuno (campo `links` omesso): progetto aziendale interno, repo/live non pubblici.
 
 ---
 
-### 4.3 SerSan — AI Studio · Project #1 `[PROVISIONAL]`
+### 4.3 SerSan — Project I `[PROVISIONAL]`
 
-`slug: "sersan-project-1"` · `status: "provisional"` · `order: 3`
+`slug: "sersan-project-1"` · `status: "provisional"` · `order: 3` · `org: "SerSan · AI Studio"` · `period: "2026 – present"`
 
 > ATTENZIONE AGENTE: contenuto PLACEHOLDER. Non pubblicare come definitivo. Mostrare badge `WORK IN PROGRESS` / `IN LAVORAZIONE`. Compilare solo dopo conferma di Alberto (vedi sezione 6).
 
 | Field | EN | IT |
 |---|---|---|
-| Title | `[[TBD: SerSan project #1 title]]` | `[[TBD: titolo progetto SerSan #1]]` |
-| Company | SerSan — AI Studio | SerSan — AI Studio |
+| Title (string, current code) | SerSan — Project I | SerSan — Project I |
+| Org | SerSan · AI Studio | SerSan · AI Studio |
 | Role | Software Engineer | Software Engineer |
 | Period | 2026 – present | 2026 – present |
 
-```
-CONTEXT  EN/IT: [[TBD — confirm with Alberto]]
-PROBLEM  EN/IT: [[TBD — confirm with Alberto]]
-ACTION   EN/IT: [[TBD — confirm with Alberto]]
-RESULT   EN/IT: [[TBD — confirm with Alberto]]
-```
+> Il `title` shippato e il placeholder "SerSan — Project I"; il titolo *reale* del progetto resta openQuestion (`problem`/`action`/`result` sono `[[TBD]]` nel codice).
 
-Copy di riempimento da mostrare finche e provvisorio (chiave `projects.placeholder.body`):
+Nel codice i campi `problem`/`action`/`result` sono valorizzati con i placeholder letterali (`[[TBD …]]` EN / `[[DA DEFINIRE …]]` IT). NON c'e un campo `context` ne una chiave i18n separata `projects.placeholder.body`: il copy di riempimento, se serve, va aggiunto in fase di build delle card o direttamente nei campi `[[TBD]]`. Testo di riempimento suggerito finche e provvisorio:
 
 ```
-EN: Details coming soon. This project was built at SerSan — AI Studio and is
+EN: Details coming soon. This project was built at SerSan · AI Studio and is
     being prepared for the portfolio.
-IT: Dettagli in arrivo. Questo progetto e stato realizzato in SerSan — AI Studio
+IT: Dettagli in arrivo. Questo progetto e stato realizzato in SerSan · AI Studio
     ed e in fase di preparazione per il portfolio.
 ```
 
-**Stack:** `[[TBD]]` (probabilmente AI/full-stack — non assumere). **Metrics:** `[[TBD]]`. **Links:** `""`.
+**Stack (code):** `["TBD"]` (placeholder; non assumere AI/full-stack). **Metrics:** assenti (campo omesso). **Links:** assenti (campo omesso).
 
 ---
 
-### 4.4 SerSan — AI Studio · Project #2 `[PROVISIONAL]`
+### 4.4 SerSan — Project II `[PROVISIONAL]`
 
-`slug: "sersan-project-2"` · `status: "provisional"` · `order: 4`
+`slug: "sersan-project-2"` · `status: "provisional"` · `order: 4` · `org: "SerSan · AI Studio"` · `period: "2026 – present"`
 
 > Identico trattamento di 4.3. Placeholder fino a conferma.
 
 | Field | EN | IT |
 |---|---|---|
-| Title | `[[TBD: SerSan project #2 title]]` | `[[TBD: titolo progetto SerSan #2]]` |
-| Company | SerSan — AI Studio | SerSan — AI Studio |
+| Title (string, current code) | SerSan — Project II | SerSan — Project II |
+| Org | SerSan · AI Studio | SerSan · AI Studio |
 | Role | Software Engineer | Software Engineer |
 | Period | 2026 – present | 2026 – present |
 
 ```
-CONTEXT / PROBLEM / ACTION / RESULT  EN/IT: [[TBD — confirm with Alberto]]
+PROBLEM / ACTION / RESULT  EN/IT: [[TBD — confirm with Alberto]]
 ```
 
-Usa la stessa chiave placeholder `projects.placeholder.body` della 4.3. **Stack / Metrics / Links:** `[[TBD]]` / `[[TBD]]` / `""`.
+**Stack (code):** `["TBD"]`. **Metrics / Links:** assenti (campi omessi).
 
 ---
 
 ### 4.5 Agricultural Supply Chain Platform — Academic `[CONFIRMED]`
 
-`slug: "agricultural-supply-chain"` · `status: "confirmed"` · `order: 5`
+`slug: "agricultural-supply-chain"` · `status: "confirmed"` · `order: 5` · `title: "Agricultural Supply Chain Platform"` · `org: "University of Camerino · Academic"` · `period: "2024"`
 
 | Field | EN | IT |
 |---|---|---|
-| Title | Agricultural Supply Chain Platform | Piattaforma per la Filiera Agricola |
-| Company | University of Camerino (academic project) | Universita di Camerino (progetto accademico) |
-| Role | Backend Developer (team of 3) | Sviluppatore Backend (team di 3) |
-| Period | University project | Progetto universitario |
+| Title (string) | Agricultural Supply Chain Platform | Agricultural Supply Chain Platform |
+| Org | University of Camerino · Academic | University of Camerino · Academic |
+| Role | Backend Engineer · Team of 3 | Backend Engineer · Team di 3 |
+| Period | 2024 | 2024 |
 
 ```
 CONTEXT
@@ -457,27 +457,21 @@ IT: Una piattaforma multi-ruolo funzionante con architettura documentata e
     pattern-driven e una REST API pulita — consegnata come team.
 ```
 
-**Stack:** `Java`, `Spring Boot`, `Spring Security`, `PostgreSQL`, `JWT`, `REST`, `UML`, `GoF Design Patterns`, `Unified Process`.
+**Stack (come da codice):** `Java`, `Spring Boot`, `Spring Security`, `PostgreSQL`, `JWT`, `REST`, `UML`. (`GoF Design Patterns` / `Unified Process` restano citati nella prosa ACTION, non nell'array `stack`.)
 
-**Metrics:**
-| value | label EN | label IT |
-|---|---|---|
-| `10` | Distinct actor roles | Ruoli attore distinti |
-| `3` | Team size | Dimensione del team |
-| `96` | Commits | Commit |
+**Metrics:** nel codice il campo `metrics` e **assente** per questo progetto. I valori `10 ruoli` / `team di 3` / `96 commit` sono fatti confermati citati nella prosa; se si vogliono esporre come badge metrici vanno aggiunti esplicitamente all'array `metrics` (decisione aperta).
 
-**Links:** repo `https://github.com/daveeCity/IDS_GROUP_PROJECT` (kind `repo`, label `Source`). Live: none → `""`.
+**Links (come da codice):** `[{ label: "GitHub", href: "https://github.com/daveeCity/IDS_GROUP_PROJECT" }]`. Lo shape e `{ label, href }` — non c'e il campo `kind`.
 
 ---
 
 ## 5. CHECKLIST DI BUILD per la sezione S4 (per l'agente)
 
-- [ ] Creare `src/data/projects/types.ts` con lo `ProjectSchema` (sezione 4.0).
-- [ ] Creare un file per progetto: `badante24h.ts`, `doit-voice-ai-agent.ts`, `sersan-project-1.ts`, `sersan-project-2.ts`, `agricultural-supply-chain.ts`.
-- [ ] Esportare un array ordinato `PROJECTS` da `src/data/projects/index.ts` (ordinato per `order`).
-- [ ] Validare ogni oggetto con `ProjectSchema.parse()` in fase di build/test (Vitest).
-- [ ] Le card `provisional` mostrano il badge WIP e il body placeholder; non emettere i bottoni link con `href === ""`.
-- [ ] Bio (1.1–1.4) e skills (sezione 2) vanno in `src/data/translations/{en,it}.ts` con le chiavi i18n indicate.
+- [x] Content model in **un solo file** `src/data/projects.ts`: `type Project` (plain TS, no zod), array `projects`, export `projectsSorted` (ordinato per `order`). NIENTE `types.ts`/`index.ts` dedicati ne file per-slug.
+- [x] Gruppi skill in `src/data/skills.ts` (`type SkillGroup`, array `skillGroups`).
+- [ ] Tipi garantiti da `tsc` (`bun run typecheck`). NON usare `ProjectSchema.parse()` ne Vitest (non installato — vedi `docs/01-TECHSTACK.md`).
+- [ ] Le card `provisional` mostrano il badge WIP; per nascondere un link **omettere** il campo `links` (opzionale) anziche usare `href === ""`.
+- [ ] Bio va in `src/data/translations/{en,it}.ts` (dizionario nidificato per-sezione). Stato attuale: bio condensata sotto `intro.*` (`eyebrow`/`heading`/`body1`/`body2`) + `hero.tagline`; le chiavi `bio.*` complete sono da cablare quando la S2 ABOUT si estende. Le skills NON stanno nelle translations: vivono in `src/data/skills.ts`.
 - [ ] Non esporre `alberto.t@sersan.dev`; email pubblica = `albertotuveri@gmail.com`.
 - [ ] Nessuna metrica inventata: ogni `[[TBD]]` resta tale finche Alberto conferma.
 - [ ] Copy passa per le skill `copywriting` / `avoid-ai-writing` / `professional-proofreader` prima del merge (vedi `docs/10-SKILLS.md`).
@@ -502,10 +496,10 @@ Decisioni e asset da raccogliere prima di considerare questo documento "completo
 ## 7. CROSS-REFERENCES
 
 - Visione, sitemap, content model d'insieme → `docs/00-PRD.md`
-- Stack, versioni, struttura `src/data` → `docs/01-TECHSTACK.md`
+- Stack, versioni, struttura `src/data`, tooling (no zod/Vitest a runtime) → `docs/01-TECHSTACK.md`
 - Voce del copy, token, estetica delle card → `docs/02-DESIGN.md`
 - Store i18n, mappa scena↔sezione, routing `/work/[slug]` → `docs/03-ARCHITECTURE.md`
-- Skill `Three.js / WebGPU` provata dal sito → `docs/04-3D-HERO-WATER-LOGO.md`
+- Skill `Three.js / WebGL` (hero gira su WebGPU MLS-MPM) → `docs/04-3D-HERO-WATER-LOGO.md`
 - Asset video del tuffo (open question #5) → `docs/05-CINEMATIC-SCROLL.md`
 - Routing skill di copy/QA → `docs/10-SKILLS.md`
 - Gates e disciplina di pubblicazione → `docs/11-WORKFLOW.md`

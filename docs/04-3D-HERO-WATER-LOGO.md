@@ -1,505 +1,219 @@
-# 04 — 3D Hero Water Logo (GPGPU AT/A particle mark)
+# 04 — 3D Hero Water Logo (MLS-MPM WebGPU fluid "A")
 
-> Scopo: direttive operative complete per costruire il logo `AT/A` della Hero (S1) come nuvola di particelle d'acqua GPGPU a due strati (`body` + `skin`), con doppio backend WebGPU/WebGL2, fisica a molla under-damped (risacca), shading "acqua" (deep teal → foam white), Bloom selettivo + DOF locale, tiering performance e pipeline asset GLB. Questo è il documento tecnico più importante della suite: gli agenti lo seguono alla lettera. Stack e versioni in [`docs/01-TECHSTACK.md`](./01-TECHSTACK.md); token e colori in [`docs/02-DESIGN.md`](./02-DESIGN.md); montaggio scena/store/canvas globale in [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md).
+> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica frame-sequence). Riconciliato dal loop docs-driven-build.
+
+> Scopo: direttive operative per la Hero (S1) come **fluido vivo a griglia MLS-MPM** che disegna e tiene in forma la lettera **"A"**, reso in **Screen-Space-Fluid** su **WebGPU raw** (non R3F, non particelle GPGPU a due strati). L'impianto è vendorizzato da `matsuoka-601/WaterBall` (i loro `.ts` + `.wgsl` esatti) sotto `src/webgl/waterball/`, riadattato al monogramma "A" e composto **sopra** la cinematica `VideoBackdrop`. Stack e versioni in [`docs/01-TECHSTACK.md`](./01-TECHSTACK.md); token e colori in [`docs/02-DESIGN.md`](./02-DESIGN.md); montaggio runtime in [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md); fisica del solver in [`docs/12-PARTICLE-PHYSICS.md`](./12-PARTICLE-PHYSICS.md).
+
+---
+
+## 0. Cosa è cambiato (nota di riconciliazione)
+
+La spec storica descriveva un logo "AT/A" a **particelle GPGPU a due strati** (`body` + `skin`), campionate da `at-mark.glb` con `MeshSurfaceSampler`, con doppio backend WebGPU-TSL / WebGL2-FBO, molla per-particella (`zeta`), point-sprite colorati per velocità e Bloom/DOF. **Quel design non è ciò che è stato spedito.**
+
+La realtà spedita (branch `feat/hero-scroll-narrative`) è:
+
+- La marca è **"A"** (non "AT/A").
+- È un **fluido MLS-MPM a griglia** (Material Point Method) renderizzato in **Screen-Space-Fluid**, vendorizzato da `matsuoka-601/WaterBall`. Niente particelle a due strati, niente molla per-particella, niente Bloom/DOF.
+- **Nessun GLB caricato a runtime**: la "A" è riempita **proceduralmente** via `initFromHomes()` (3 tratti capsulari). `a-mark.glb` / `a-liquid.glb` esistono ma non vengono caricati.
+- Backend **solo WebGPU**: guard `navigator.gpu` → se assente il componente ritorna `null` e il fallback è il **gradiente mare CSS** in `CanvasHost`. **Non** c'è un percorso WebGL2.
+- Non gira nel Canvas R3F persistente: ha un **proprio loop RAF** + `IntersectionObserver` per andare idle fuori vista.
+
+Le sezioni che seguono descrivono questo impianto. Tutti i numeri di tuning sono **valori live-tuned via leva, soggetti a sign-off GATE-6**: non trattarli come finali.
 
 ---
 
 ## 1. Obiettivo e riferimento
 
-Il logo `AT/A` non è una mesh renderizzata: è una **massa d'acqua viva fatta di particelle**, campionata dalla superficie di un GLB e tenuta in forma da una molla. A riposo "respira" con un moto ondoso lento; al passaggio del puntatore la superficie **schizza, si disperde, indugia e rientra come una risacca**. È lo stesso impianto tecnico di `ParticleDissolve` di Sersan, riadattato dal look "spore ciano" a un look **acqua/oceano della Sardegna**.
+La "A" della Hero non è una mesh né una nuvola di punti pinnati: è una **massa d'acqua che circola in continuazione** confinata dentro la sagoma della lettera. A riposo "ribolle" da sola (churn perpetuo, come la sfera confinata originale di WaterBall); al passaggio veloce del puntatore una porzione **schizza fuori** dalla sagoma e viene poi **riportata a casa** lentamente (undertow / risacca). Scorrendo, un beat di **explode** la fa esplodere e svanire in ~1s, e risalendo si ricompone.
 
-Architettura a **due strati sovrapposti** che condividono la stessa geometria di campionamento ma hanno fisica e materiale diversi:
-
-- **`body` (corpo / volume)** — denso, opaco, `NormalBlending`, `depthWrite: true`. È la massa scura/teal della lettera, quasi ferma: molla alta, damping alto (`zeta ~0.5–0.6`, vicino al critico), push/raggio piccoli. Fa da volume solido e scrive il depth.
-- **`skin` (pelle / spray)** — superficie offsettata lungo la normale, `AdditiveBlending`, `depthWrite: false`, semitrasparente, punto più grande e luminoso (target del Bloom). **È lo strato protagonista**: molla bassa, damping basso (`zeta ~0.35–0.4`, under-damped), push/raggio grandi → parte per prima, vola lontano, rientra lenta. Sono le goccioline/schiuma ciano-bianca.
-
-**Render order vincolante**: prima il `body` (scrive depth), poi la `skin` additiva sopra. Vedi §3.
-
-Riferimento estetico di qualità: Lusion "Surface Floater" (SDF + curl noise + velocity-color) e i case study Awwwards (vedi [`docs/06-REFERENCES.md`](./06-REFERENCES.md)). Studiare, non copiare.
+Riferimento estetico e tecnico: **`matsuoka-601/WaterBall`** (Splash SSF: env cubemap reflect/refract, Beer-Lambert, fresnel). Vedi anche [`docs/06-REFERENCES.md`](./06-REFERENCES.md). Studiare, non reinventare: il solver e la catena di render sono una copia fedele (`@ts-nocheck`, "do not lint"); l'unico lavoro nostro è il **confinement sulla "A"**, il **fill procedurale**, l'**embed React** e la **composizione sopra il video**.
 
 ---
 
-## 2. Architettura target (scene graph)
+## 2. Inventario file (cosa esiste davvero)
 
-Gruppo `HeroLogo` montato nel Canvas R3F persistente globale (vedi [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md), sezione Canvas globale + overlay DOM). Struttura:
+Tutto sotto `src/webgl/waterball/` (vendor) + il montaggio in `CanvasHost`.
 
-```
-<group name="HeroLogo">           // posizione/scala guidate da scrollStore (parallax leggero)
-  <points name="body" />          // renderOrder = 0, NormalBlending,   depthWrite true
-  <points name="skin" />          // renderOrder = 1, AdditiveBlending,  depthWrite false
-</group>
-```
-
-Regole non negoziabili:
-
-- **`frustumCulled = false`** su entrambi i `<points>`: le particelle escono dal bounding box originale quando si disperdono; senza questo flag spariscono a metà schizzo.
-- Entrambi gli strati usano una `BufferGeometry` con `size * size` vertici (un vertice = una particella). L'attributo posizione iniziale è irrilevante: la posizione reale arriva dalla simulazione (texture FBO su WebGL2, storage buffer su WebGPU — vedi §5).
-- Un solo `HeroLogo` monta **entrambe** le simulazioni con `gpgpuConfig` diverso (`BODY_LAYER` / `SKIN_LAYER`, vedi §8).
-- Il puntatore arriva da `pointerStore` (Zustand) già proiettato sul piano della Hero in coordinate mondo; non leggere `window` dentro il loop. Vedi store in [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md).
-- Il loop di update (sim + uniform) gira nel **FrameDriver** condiviso, sincronizzato con Lenis in un unico `requestAnimationFrame` (vedi [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md)). La sim non deve registrare un proprio rAF.
-
----
-
-## 3. Render order, blending, depth
-
-Sequenza per frame (entrambi gli strati nello stesso pass del Canvas globale):
-
-1. **`body`** — `renderOrder = 0`, `NormalBlending`, `depthTest: true`, `depthWrite: true`. Stabilisce il depth della massa.
-2. **`skin`** — `renderOrder = 1`, `AdditiveBlending`, `depthTest: true`, `depthWrite: false`. Si somma sopra senza occludere se stessa; il `depthWrite: false` evita l'ordinamento patologico delle particelle additive.
-
-```ts
-// estratto materiale (vale per ShaderMaterial GLSL e per il NodeMaterial TSL)
-body.material.blending  = THREE.NormalBlending;
-body.material.depthWrite = true;
-body.renderOrder = 0;
-
-skin.material.blending  = THREE.AdditiveBlending;
-skin.material.depthWrite = false;
-skin.material.transparent = true;
-skin.renderOrder = 1;
-```
-
-Motivo: la schiuma additiva deve "accendersi" sopra il volume; se scrivesse depth, le particelle veloci nasconderebbero quelle dietro creando buchi neri nel Bloom.
-
----
-
-## 4. Sampling del GLB → posizioni "home"
-
-Le posizioni bersaglio della molla ("home") si ottengono campionando la **superficie** del GLB `at-mark.glb` con `MeshSurfaceSampler` (Three.js), front-biased verso la camera. Una passata genera `size * size` campioni; ogni campione produce una `home` + una `normal` usate per derivare l'offset di strato.
-
-Funzione di campionamento condivisa `sampleMarkLayerField`:
-
-- **`frontBias`** — pesa il campionamento verso le facce rivolte alla camera (normale ⋅ viewDir > 0), così la nuvola "guarda" l'utente e non spreca particelle sul retro. Per il `body` il bias è minore (riempie più volume); per la `skin` è maggiore (resta in superficie visibile).
-- **`normalOffset`** — spinge la `home` verso l'esterno lungo la normale. **Skin**: offset positivo apprezzabile (la pelle vive sopra il volume). **Body**: offset ~0.
-- **`volumeJitter`** — solo per il `body`: piccolo jitter verso l'interno lungo la normale per dare **fake-volume** (la lettera non è una buccia cava ma una massa). Skin: `volumeJitter = 0`.
-
-```ts
-import { MeshSurfaceSampler } from "three/examples/jsm/math/MeshSurfaceSampler.js";
-import * as THREE from "three";
-
-type LayerFieldOptions = {
-  size: number;          // lato della griglia: 256 / 448 (full), 128 / 224 (lite)
-  frontBias: number;     // 0..1 — quanto pesare le facce front-facing
-  normalOffset: number;  // offset lungo la normale (world units)
-  volumeJitter: number;  // jitter interno per fake-volume (solo body)
-  viewDir: THREE.Vector3;
-};
-
-/** Ritorna home RGBA float (xyz = posizione, w = seed per-particella) + normali. */
-export function sampleMarkLayerField(mesh: THREE.Mesh, o: LayerFieldOptions) {
-  const count = o.size * o.size;
-  const sampler = new MeshSurfaceSampler(mesh).build();
-
-  const home = new Float32Array(count * 4);   // -> DataTexture RGBA float
-  const normals = new Float32Array(count * 3);
-
-  const p = new THREE.Vector3();
-  const n = new THREE.Vector3();
-
-  let written = 0, guard = 0;
-  while (written < count && guard < count * 8) {
-    guard++;
-    sampler.sample(p, n);
-    // front-bias: scarta probabilisticamente le facce rivolte via dalla camera
-    const facing = n.dot(o.viewDir);            // >0 = verso camera
-    if (Math.random() > THREE.MathUtils.lerp(1 - o.frontBias, 1, (facing + 1) * 0.5)) continue;
-
-    const i4 = written * 4, i3 = written * 3;
-    const offset = o.normalOffset - Math.random() * o.volumeJitter; // jitter solo verso l'interno
-    home[i4 + 0] = p.x + n.x * offset;
-    home[i4 + 1] = p.y + n.y * offset;
-    home[i4 + 2] = p.z + n.z * offset;
-    home[i4 + 3] = Math.random();               // seed: fase del curl-noise, variazione punto
-    normals[i3 + 0] = n.x; normals[i3 + 1] = n.y; normals[i3 + 2] = n.z;
-    written++;
-  }
-  return { home, normals, count };
-}
-```
-
-**`aRef` — griglia di riferimento per-istanza.** A ogni particella va dato un riferimento stabile `(u, v)` nella griglia `size × size`, usato:
-- su **WebGL2** come UV per leggere la propria posizione dalla texture FBO ping-pong;
-- su **WebGPU** come `instanceIndex` per indicizzare lo storage buffer.
-
-```ts
-// aRef: coordinate di cella normalizzate [0..1], una per particella
-const aRef = new Float32Array(count * 2);
-for (let i = 0; i < count; i++) {
-  aRef[i * 2 + 0] = (i % size) / size;
-  aRef[i * 2 + 1] = Math.floor(i / size) / size;
-}
-geometry.setAttribute("aRef", new THREE.BufferAttribute(aRef, 2));
-```
-
-Le `home` vanno caricate in una `DataTexture` RGBA float (`THREE.FloatType`, `nearest`, no mipmaps) lato WebGL2, e nello storage buffer `home` lato WebGPU. La generazione del campo va fatta **una sola volta** dopo il load del GLB (non per frame).
-
----
-
-## 5. Fisica a molla del 2° ordine (per-particella, sul GPU)
-
-Stessa equazione per i due backend; cambiano solo i numeri (vedi tabella tuning §9). Integrazione esplicita per particella, damping frame-rate-independent:
-
-```
-toHome   = home - pos
-acc      = SPRING * toHome
-
-fromMouse = pos - mouse
-d         = length(fromMouse)
-if (d < RADIUS) {
-    acc += normalize(fromMouse) * pow(1.0 - d / RADIUS, 2.0) * PUSH
-}
-
-acc      += curlNoise(pos * NOISE_SCALE + seed) * (TURB_BASE + TURB_MOVE * dispersion)
-
-vel      += acc * dt
-vel      *= exp(-DAMPING * dt)        // damping frame-rate independent
-if (length(vel) > MAX_SPEED) vel = normalize(vel) * MAX_SPEED   // clamp
-pos      += vel * dt
-```
-
-- **`dispersion`** è un fattore 0..1 che misura quanto la particella è lontana da `home` (o un global "agitation" che sale con il movimento del mouse): aumenta la turbolenza quando la nuvola è disturbata, così lo spray "ribolle" mentre vola e si calma quando rientra.
-- **`curlNoise`** è il campo curl-noise condiviso in `src/webgl/curves/curlNoise` (divergence-free → moto fluido, non caotico). Lo stesso noise dà il moto ondoso a riposo (vedi §6).
-
-**Feel = `zeta`.** Il carattere della molla è governato dal rapporto di smorzamento:
-
-```
-zeta = DAMPING / (2 * sqrt(SPRING))
-```
-
-- `zeta ≈ 1` → critico (rientro netto, niente oscillazione).
-- **`body`: `zeta ≈ 0.5–0.6`** → quasi critico, massa solida che torna in forma senza ballonzolare.
-- **`skin`: `zeta ≈ 0.35–0.4`** → **under-damped**: la pelle **oltrepassa la home, si ritira e rientra ondeggiando** — è esattamente la **risacca**. È ciò che rende il logo "acqua" e non "fumo". Mantieni la skin under-damped; se la regoli, ricalcola `zeta` da `SPRING`/`DAMPING` e verifica che resti in `[0.35, 0.42]`.
-
-`dt` va clampato (es. `min(realDt, 1/30)`) per evitare esplosioni quando la tab perde frame.
-
----
-
-## 6. Doppio backend (il punto critico)
-
-Il rendering deve essere **identico** tra WebGPU e WebGL2. Cambia solo *dove vive lo stato* delle particelle.
-
-### 6.1 Detection del backend
-
-Il `WebGPURenderer` di three lascia `isWebGLBackend` **`undefined`** (non `false`) quando gira su WebGPU, ed espone `gl.compute`. Detection canonica:
-
-```ts
-// src/webgl/renderer/createRenderer.ts (vedi docs/03-ARCHITECTURE.md)
-const backend = renderer.backend as any;
-const gl = renderer as any;
-export const webgpuEnabled =
-  backend?.isWebGLBackend !== true && typeof gl.compute === "function";
-```
-
-`webgpuEnabled === true` → percorso TSL/compute (§6.2). `false` → percorso GLSL/FBO (§6.3). Questo flag decide quale `gpgpuNodeSim` / `gpgpuSim` montare.
-
-### 6.2 WebGPU — compute shader + storage buffer (TSL) — PERCORSO PREFERITO
-
-Su WebGPU **NON si usa l'FBO ping-pong**. Lo scramble dell'FBO nasce dal leggere la render-target nel **vertex stage** con `textureSample`, che richiede le derivate (dFdx/dFdy): nel vertex stage non esistono, quindi il sampler si comporta in modo non definito e le posizioni si "orientano"/mescolano. La soluzione WebGPU-native elimina il bug alla radice:
-
-- Stato in `instancedArray` (storage buffer): `positionBuffer`, `velocityBuffer`, `homeBuffer`, dimensione `count`.
-- La fisica è una `Fn().compute(count)` lanciata con `renderer.compute(simNode)` una volta per frame **prima** del render.
-- Il render legge la posizione **direttamente dallo storage** nel vertex stage: `positionBuffer.element(instanceIndex)`. Niente sampler, niente texture, niente orientamento → bug impossibile.
-
-```ts
-// src/webgl/gpgpu/gpgpuNodeSim.ts (TSL)
-import {
-  Fn, instancedArray, instanceIndex, uniform,
-  vec3, float, length, normalize, pow, exp, min, max,
-} from "three/tsl";
-
-export function makeNodeSim(count: number, home: Float32Array, cfg: LayerConfig) {
-  const positionBuffer = instancedArray(count, "vec3");
-  const velocityBuffer = instancedArray(count, "vec3");
-  const homeBuffer     = instancedArray(count, "vec3");
-
-  const uMouse = uniform(vec3(0));
-  const uDt    = uniform(float(0));
-  const uDisp  = uniform(float(0)); // dispersion / agitation globale
-
-  // init: copia home nei buffer pos/home (eseguito una volta)
-  const init = Fn(() => {
-    const h = /* read home[instanceIndex] caricato come attribute/array */ vec3();
-    positionBuffer.element(instanceIndex).assign(h);
-    homeBuffer.element(instanceIndex).assign(h);
-    velocityBuffer.element(instanceIndex).assign(vec3(0));
-  })().compute(count);
-
-  const update = Fn(() => {
-    const pos  = positionBuffer.element(instanceIndex);
-    const vel  = velocityBuffer.element(instanceIndex);
-    const home = homeBuffer.element(instanceIndex);
-
-    const toHome = home.sub(pos);
-    const acc = toHome.mul(cfg.SPRING).toVar();
-
-    const fromMouse = pos.sub(uMouse);
-    const d = length(fromMouse);
-    // push radiale ammorbidito quadraticamente
-    const f = pow(max(float(0), float(1).sub(d.div(cfg.RADIUS))), float(2));
-    acc.addAssign(normalize(fromMouse).mul(f).mul(cfg.PUSH));
-
-    // curl-noise: TURB_BASE + TURB_MOVE * dispersion
-    acc.addAssign(curlNoiseTSL(pos.mul(cfg.NOISE_SCALE)).mul(
-      float(cfg.TURB_BASE).add(uDisp.mul(cfg.TURB_MOVE))
-    ));
-
-    vel.addAssign(acc.mul(uDt));
-    vel.mulAssign(exp(float(-cfg.DAMPING).mul(uDt))); // damping FR-indep
-    const sp = length(vel);
-    vel.assign(sp.greaterThan(cfg.MAX_SPEED).select(normalize(vel).mul(cfg.MAX_SPEED), vel));
-    pos.addAssign(vel.mul(uDt));
-  })().compute(count);
-
-  return { positionBuffer, velocityBuffer, uMouse, uDt, uDisp, init, update };
-}
-```
-
-Loop per frame (dentro FrameDriver):
-
-```ts
-uMouse.value.copy(pointer.world);
-uDt.value = Math.min(dt, 1 / 30);
-uDisp.value = agitation;
-renderer.compute(sim.update);   // gl.compute()
-// poi il render dei <points> legge positionBuffer.element(instanceIndex)
-```
-
-Render shader (vertex stage), nessun sampler:
-
-```ts
-// posizione della particella letta dallo storage, non da texture
-material.positionNode = sim.positionBuffer.element(instanceIndex);
-```
-
-### 6.3 WebGL2 — GLSL con FBO ping-pong (fallback)
-
-Su WebGL2 si usa il classico GPGPU stile `GPUComputationRenderer`: due render target float che si scambiano (ping-pong); la fisica gira in un fragment shader; il vertex shader del render legge la posizione dalla texture **usando `aRef` come UV** (lettura puntuale, `texelFetch`/`texture` con filtro nearest — qui siamo nel render, non c'è il problema delle derivate del caso WebGPU).
-
-```glsl
-// gpgpuSim.ts — fragment (compute) WebGL2
-uniform sampler2D uPos;     // posizioni correnti (RGBA float)
-uniform sampler2D uVel;     // velocità correnti
-uniform sampler2D uHome;    // posizioni home
-uniform vec3  uMouse;
-uniform float uDt, uDisp;
-uniform float SPRING, DAMPING, PUSH, RADIUS, MAX_SPEED, TURB_BASE, TURB_MOVE, NOISE_SCALE;
-varying vec2 vUv;
-
-void main() {
-  vec3 pos  = texture(uPos,  vUv).xyz;
-  vec3 vel  = texture(uVel,  vUv).xyz;
-  vec3 home = texture(uHome, vUv).xyz;
-
-  vec3 acc = SPRING * (home - pos);
-
-  vec3 fromMouse = pos - uMouse;
-  float d = length(fromMouse);
-  if (d < RADIUS) acc += normalize(fromMouse) * pow(1.0 - d / RADIUS, 2.0) * PUSH;
-
-  acc += curlNoise(pos * NOISE_SCALE) * (TURB_BASE + TURB_MOVE * uDisp);
-
-  vel += acc * uDt;
-  vel *= exp(-DAMPING * uDt);
-  float sp = length(vel);
-  if (sp > MAX_SPEED) vel = normalize(vel) * MAX_SPEED;
-  pos += vel * uDt;
-
-  // due MRT / due pass: scrive pos in RT0, vel in RT1
-  gl_FragColor = vec4(pos, 1.0);
-}
-```
-
-```glsl
-// render vertex WebGL2 — legge la propria posizione dalla texture via aRef
-attribute vec2 aRef;
-uniform sampler2D uPos;
-void main() {
-  vec3 p = texture(uPos, aRef).xyz;   // lettura puntuale: aRef = cella nella griglia size×size
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-  gl_PointSize = uPointSize * (1.0 / -mvPosition.z); // attenuazione prospettica
-}
-```
-
-### 6.4 Fallback statico analitico (estremo)
-
-Per GPU senza vertex-texture affidabile o per `prefers-reduced-motion`: **non montare la sim**. I `<points>` restano alle posizioni `home` con dispersione **analitica** calcolata nel vertex shader (billboard alle home + piccolo offset deterministico da `seed`/curl-noise valutato a costo zero, niente stato persistente, niente puntatore). Nessun `compute`, nessun FBO. È statico/quasi-statico ma in forma e leggibile. Vedi gating §10.
-
----
-
-## 7. Shading acqua
-
-L'obiettivo è leggere come **acqua**, non come polvere: gradiente profondità→superficie, colore per velocità, fresnel sul bordo, accenni di caustiche e micro-rifrazione, moto ondoso a riposo.
-
-### 7.1 Colore per velocità (deep teal → foam white)
-
-Colore guidato dalla velocità: ferma = profondità scura/teal, veloce = schiuma ciano-bianca.
-
-```glsl
-// COL_COLD / COL_HOT dal Knowledge Pack (vedi docs/02-DESIGN.md)
-const vec3 COL_COLD = vec3(0.06, 0.30, 0.34); // teal scuro (a riposo, profondità)
-const vec3 COL_HOT  = vec3(0.75, 0.98, 1.00); // ciano-bianco (in moto, schiuma)
-
-float speed = length(vVel);
-vec3 col = mix(COL_COLD, COL_HOT, smoothstep(0.0, MAX_SPEED, speed));
-```
-
-`COL_COLD`/`COL_HOT` mappano su `--aqua`/`--aqua-hot`/`--abyss-glow` del sistema token (vedi [`docs/02-DESIGN.md`](./02-DESIGN.md)). Il `--gold` (golden-hour) si usa **solo** per rari picchi sole-su-acqua sulla schiuma più veloce, con estrema parsimonia.
-
-### 7.2 Fresnel + micro-rifrazione sul bordo
-
-Sul bordo del punto e in funzione dell'angolo di vista, alza la luminosità (riflesso speculare/fresnel) e introduci una micro-distorsione dell'alpha per simulare la rifrazione della goccia:
-
-```glsl
-float fres = pow(1.0 - max(dot(vNormalView, viewDir), 0.0), 3.0);
-col += fres * 0.25 * COL_HOT;                  // bordo luminoso
-float edge = smoothstep(0.5, 0.0, length(gl_PointCoord - 0.5)); // punto rotondo soft
-float alpha = edge * vAlpha * (0.85 + 0.15 * fres);
-```
-
-### 7.3 Caustiche accennate + moto ondoso a riposo
-
-- **Caustiche**: modulazione lieve della luminanza con un noise a bassa frequenza scrollato lentamente (solo accenno, non un pattern marcato).
-- **Moto ondoso a riposo**: anche con mouse fermo, applica una spinta lungo la normale guidata dal curl-noise a bassa ampiezza (`TURB_BASE`), così la massa "respira" come acqua ferma mossa dalla corrente. È la stessa `curlNoise` della fisica (§5).
-
-### 7.4 Per strato
-
-| Aspetto | `body` | `skin` |
-|---|---|---|
-| Blending | `NormalBlending` | `AdditiveBlending` |
-| depthWrite | `true` | `false` |
-| Point size | piccolo, costante | grande, varia con la velocità |
-| Alpha | opaco/alto | semitrasparente |
-| Emissive | basso | alto (è il target del Bloom) |
-| Ruolo colore | gradiente profondità (più freddo) | foam: salta verso `COL_HOT` |
-
-La **skin** è ciò che brilla nel Bloom; il **body** dà la silhouette leggibile della lettera.
-
----
-
-## 8. File da creare
-
-Tutti sotto `src/webgl/` (struttura in [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md)):
-
-| File | Contenuto |
+| File | Ruolo |
 |---|---|
-| `src/webgl/geometry/atMark.ts` | Load `at-mark.glb`, estrazione mesh, `sampleMarkLayerField`, costruzione `home`/`aRef`/normali per i due strati. |
-| `src/webgl/gpgpu/gpgpuConfig.ts` | `BODY_LAYER` e `SKIN_LAYER`: tutti i numeri della tabella §9 + `size` per tier. |
-| `src/webgl/gpgpu/gpgpuSim.ts` | Simulazione GLSL FBO ping-pong (percorso WebGL2). |
-| `src/webgl/gpgpu/gpgpuNodeSim.ts` | Simulazione TSL compute + storage buffer (percorso WebGPU). |
-| `src/webgl/gpgpu/gpgpuRenderShader.ts` | Materiale di render condiviso (vertex legge pos da texture o storage; fragment = shading acqua §7). |
-| `src/webgl/HeroLogo.tsx` | Componente R3F: monta GLB, sceglie backend (`webgpuEnabled`), istanzia le due sim + i due `<points>`, applica render order/blending, collega `pointerStore`/`scrollStore`, registra l'update nel FrameDriver. |
+| `src/webgl/waterball/WaterBallHero.tsx` | Componente client React. Re-implementa il `main()` del demo: canvas ref, init async abortabile (StrictMode-safe), loop RAF cancelabile, teardown GPU completo su unmount. Guard `navigator.gpu`, `IntersectionObserver` idle, pannelli `leva` `splash` + `camera`, entry GSAP focus-pull + camera sway, lettura `heroStore`. |
+| `src/webgl/waterball/camera.ts` | Camera con orbit/zoom **disabilitati** (la pagina deve scrollare); resta solo il poke del cursore + lo sway. Round-trip coordinate mouse. |
+| `src/webgl/waterball/common.ts` | `numParticlesMax`, `renderUniformsViews` / `renderUniformsValues` (uniform buffer di render condiviso). |
+| `src/webgl/waterball/mls-mpm/mls-mpm.ts` | `MLSMPMSimulator`: pipeline compute, buffer, `reset()`, `initFromHomes()` (fill "A"), `execute()` (step del solver). |
+| `src/webgl/waterball/mls-mpm/*.wgsl.ts` | Gli step del solver MLS-MPM come stringhe WGSL: `clearGrid`, `spawnParticles`, `p2g_1`, `p2g_2`, `updateGrid`, **`g2p`** (il motore di confinement/churn), `copyPosition`. |
+| `src/webgl/waterball/render/fluidRender.ts` | `FluidRenderer`: catena Screen-Space-Fluid (pipeline + texture + bind group), compone in `alphaMode: premultiplied`. |
+| `src/webgl/waterball/render/*.wgsl.ts` | Shader della catena SSF: `sphere`, `depthMap`, `bilateral`, `thicknessMap`, `gaussian`, `fluid`, `fullScreen`. |
+| `src/webgl/store/heroStore.ts` | Bus FX non-reattivo (zustand): `explode` / `reveal` / `video`. Scritto dalla timeline GSAP in `hero.tsx`, letto dal loop RAF via `getState()`. |
+| `src/webgl/CanvasHost.tsx` | Monta il gradiente mare CSS (fallback), `VideoBackdrop` (cinematica 2D) e — solo se non `prefers-reduced-motion` — `WaterBallHero`. |
 
-`gpgpuConfig.ts` esporta una shape tipizzata:
+> **openQuestion**: `a-mark.glb` / `a-liquid.glb` restano in `public/models` ma **non sono caricati a runtime**. Da decidere a GATE-6 se rimuoverli del tutto o tenerli come asset sorgente per ricavare le costanti geometriche della "A".
 
-```ts
-export type LayerConfig = {
-  SIZE: number; SPRING: number; DAMPING: number; PUSH: number; RADIUS: number;
-  MAX_SPEED: number; TURB_BASE: number; TURB_MOVE: number; NOISE_SCALE: number;
-  POINT_SIZE: number; POINT_ALPHA: number; EMISSIVE: number;
-  blending: "Normal" | "Additive"; depthWrite: boolean;
-  COL_COLD: [number, number, number]; COL_HOT: [number, number, number];
-};
+---
+
+## 3. Riempimento procedurale della "A" (`initFromHomes`)
+
+Nessun `MeshSurfaceSampler`, nessun GLB. La "A" è definita **analiticamente** come 3 segmenti (asse mediale) + un raggio di tratto, in `mls-mpm.ts → initFromHomes()`; la **stessa geometria** è ridefinita in `g2p.wgsl` e le due **DEVONO restare in sync**.
+
+Geometria della "A" (in unità di griglia, dentro `INIT_BOX = [80, 60, 18]`):
+
+- `apex = (40, 48)`, `lfoot = (26, 12)`, `rfoot = (54, 12)` — i due montanti.
+- crossbar `cl→cr`, calcolato a `tcross = (48-26)/(48-12)` lungo i montanti.
+- `halfW = 5` (mezza larghezza del tratto), `zh = 5` (mezzo spessore dello slab Z), centrato a `zc = box.z/2`.
+- Un punto è "dentro la A" se è entro `halfW` dal segmento più vicino dei tre **e** entro `zh` da `zc`.
+
+Procedura:
+
+1. `reset(INIT_BOX, SPHERE_RADIUS)` inizializza griglia/uniform.
+2. `initFromHomes(INIT_BOX, NUM_PARTICLES)`:
+   - sceglie uno **spacing** del fill così che un riempimento **uniforme** del volume della "A" stia sotto il cap (`numParticlesMax`); se lo spacing base sovraffolla, lo allarga una volta (densità ~ `1/s³`) invece di troncare spazialmente (che lascerebbe mezza lettera vuota);
+   - scandisce il bounding box della "A", per ogni cella `inA` semina **una particella sulla sua "home"** (con piccolo jitter), velocità e matrice `C` a zero;
+   - carica le **home** in un buffer GPU (`homeBuffer`, 3× f32 per particella) e ne tiene una copia CPU (`homePositions`). **NB — codice in flux:** questo `homeBuffer` è di fatto **seed-only**. Il `g2p` spedito **non lo lega** (bind group a 6 voci, `binding 0–5`, con `splash` a `binding 5`); il restore è **velocity-based verso l'asse mediale**, non verso le home fisse (vedi `g2p.wgsl` riga ~104 — i punti-home fissi sono stati rimossi perché «congelavano» il moto — e [`docs/12-PARTICLE-PHYSICS.md`](./12-PARTICLE-PHYSICS.md)). I commenti in `mls-mpm.ts` che citano «`g2p binding 6/7`» sono **stale**: `homeBuffer` è orfano. Da verificare/pulire a GATE-6.
+3. La camera è puntata **head-on** (+Z) e inquadra il centro della lettera (`INIT_DISTANCE`).
+
+Conseguenza chiave: il solver **non ha gravità reale**, quindi le particelle seminate sulle loro home **tengono la forma da sole**; il jet di spawn temporizzato dell'originale WaterBall è **disattivato** (il count è già al target).
+
+> **Regola di sync vincolante**: se cambi `apex` / `lfoot` / `rfoot` / `halfW` / `zh` / `zc`, aggiorna **entrambi** `initFromHomes` (in `mls-mpm.ts`) e il blocco confinement di `g2p.wgsl`, altrimenti fill e confinamento divergono e la "A" si sfalda. Valori live-tuned, soggetti a sign-off GATE-6.
+
+---
+
+## 4. Confinement + churn: il motore in `g2p.wgsl`
+
+Il cuore "vivo" è nello stage **`g2p`** (grid-to-particle) del solver, **dopo** l'integrazione MLS-MPM standard. Non è una molla che muove la **posizione**: è un insieme di forze che **modificano la velocità** della particella, sfruttando l'incomprimibilità del fluido per produrre circolazione perpetua. È fedele al "confined sphere" di WaterBall, ma il **centro** è l'**asse mediale della "A"** invece del centro di una sfera.
+
+Per ogni particella, `g2p`:
+
+1. ricostruisce la `position`/`v` dal grid (P2G→grid→G2P canonico), clampa la posizione dentro `real_box_size`;
+2. trova il punto più vicino sull'asse mediale della "A" (i 3 segmenti, in XY) → `axis`, `toAxis`, `dAxis`, `dirIn`;
+3. misura la `speed` dal grid (il **poke del mouse arriva qui** come velocità di griglia) **prima** delle forze di confinamento, così un poke veloce "apre il cancello";
+4. calcola due fattori di tenuta:
+   - `conf = clamp(1 - speed/speedGate)` — il churn lento resta confinato; un poke veloce → `conf≈0`;
+   - `leash = clamp(overflow/leashRadius)` con `overflow = max(dAxis - halfW, 0)` — più lontano dalla sagoma, più forte il richiamo;
+   - `hold = max(conf, leash)` — scala **sia** la gravità verso l'asse **sia** il recall;
+5. applica le forze (tutte gated da `calm = 1 - explode`):
+   - **inflate** (churn): dentro il tubo (`dAxis < halfW`) spinge **verso l'esterno** per riempire la sezione — questa forza non si assesta mai → moto perpetuo;
+   - **gravity**: pull gentile verso l'asse, scalato da `hold` (l'undertow);
+   - **restoreK**: recall dell'acqua strayata (`dAxis > halfW`), scalato da `overflow * hold`;
+   - **drag** opzionale (default 0 per non spegnere il churn);
+6. **EXPLODE burst**: quando `splash.explode > 0`, il confinamento è spento (`calm→0`) e ogni particella riceve una spinta **radiale verso l'esterno** dal centroide (+ jitter) → la "A" si disperde come uno splash;
+7. **safety**: cap di velocità (`maxSpeed = 60`), un "un-stick" per le particelle finite nelle celle di bordo morte, e le wall force del box.
+
+`SplashParams` (uniform, ordine vincolante condiviso da `mls-mpm.ts` e `g2p.wgsl`):
+`inflate, gravity, drag, restoreK, speedGate, leashRadius, explode`.
+
+> Mantra di tuning (live, GATE-6): il feel "acqua viva" sta nel rapporto `speedGate` ↔ churn. `speedGate` **alto** = il churn interno NON viene mai richiamato (solo i poke veloci scappano e poi rientrano); `restoreK` **basso** = il recall è un pull lento e morbido (non uno snap). Se il churn muore, alza `inflate`; se l'acqua scappa da sola a riposo, alza `speedGate`.
+
+---
+
+## 5. Render: Screen-Space-Fluid sopra il video
+
+Il rendering è la catena SSF di WaterBall in `FluidRenderer.execute()` (percorso `sphereRenderFl = false`), eseguita per frame **dopo** lo step del solver:
+
+```
+sphere/depthMap  -> depth dei "blob" delle particelle (r32float)
+bilateral (x4)   -> smoothing edge-preserving del depth (X/Y ping-pong)
+thicknessMap     -> spessore accumulato (r16float, blend additivo)
+gaussian (x1)    -> blur dello spessore (X/Y)
+fluid            -> shading finale: ricostruisce la normale dal depth,
+                    cubemap reflect + refract, Beer-Lambert sullo spessore,
+                    fresnel; scrive nel canvas in alphaMode premultiplied
 ```
 
----
+Composizione **sopra** la cinematica:
 
-## 9. Tabella TUNING (valori di partenza)
+- il contesto WebGPU è configurato `alphaMode: "premultiplied"`; il pass `fluid` pulisce a `clearValue` **trasparente** (`a: 0`) → tutti i pixel non-fluido lasciano passare il `VideoBackdrop` sottostante.
+- `WaterBallHero` è `position: fixed; inset-0; z-0; pointer-events:none; aria-hidden`. La cinematica frame-sequence (`VideoBackdrop`) sta **dietro** (vedi [`docs/05-CINEMATIC-SCROLL.md`](./05-CINEMATIC-SCROLL.md)); il testo liquido e i contenuti DOM stanno **sopra**.
+- **Cubemap**: `public/cubemap/{posx,negx,posy,negy,posz,negz}.png` caricata in una texture cube per reflect/refract. Costanti di render (rest density, stretch, ecc.) live-tuned, soggette a sign-off GATE-6.
 
-Numeri di partenza orientati all'acqua, derivati dai range Sersan. `zeta` calcolato da `DAMPING / (2*sqrt(SPRING))`. Sono **starting points** da rifinire a occhio in `leva` (tree-shaken in prod).
-
-| Parametro | `BODY` (volume) | `SKIN` (spray/foam) | Note |
-|---|---|---|---|
-| `SIZE` (lato griglia) | 256 (full) / 128 (lite) | 448 (full) / 224 (lite) | skin più densa = look |
-| `SPRING` | 36 | 20 | body rigido, skin morbida |
-| `DAMPING` | 6.2 | 3.5 | — |
-| `zeta` risultante | **0.52** (6.2 / 2√36) | **0.39** (3.5 / 2√20) | body ~critico, skin under-damped |
-| `PUSH` | 22 | 62 | skin schizza lontano |
-| `RADIUS` | 0.55 | 1.35 | skin reagisce su area ampia |
-| `MAX_SPEED` | 6.0 | 14.0 | clamp velocità |
-| `TURB_BASE` | 0.15 | 0.45 | moto ondoso a riposo |
-| `TURB_MOVE` | 0.4 | 1.6 | ribollio quando disturbata |
-| `NOISE_SCALE` | 0.6 | 0.9 | frequenza curl-noise |
-| `POINT_SIZE` | 1.5 px | 3.0 px (→ velocità) | skin più grande |
-| `POINT_ALPHA` | 0.95 | 0.45 | skin semitrasparente |
-| `EMISSIVE` | 0.1 | 0.9 | skin = target Bloom |
-| `blending` | `NormalBlending` | `AdditiveBlending` | — |
-| `depthWrite` | `true` | `false` | — |
-| `COL_COLD` | `[0.04, 0.22, 0.27]` | `[0.06, 0.30, 0.34]` | body più scuro/profondo |
-| `COL_HOT` | `[0.40, 0.85, 0.92]` | `[0.75, 0.98, 1.00]` | skin = foam quasi bianco |
-
-Regola di tuning: se il feel "acqua" si perde, **abbassa lo `zeta` della skin** (più under-damped → più risacca) prima di toccare altro; se diventa caotica, alza `DAMPING` skin o abbassa `TURB_MOVE`.
+Non ci sono Bloom né DOF: la lettura "acqua" viene interamente dalla SSF (refract + Beer-Lambert + fresnel).
 
 ---
 
-## 10. Tier / performance & reduced-motion
+## 6. Backend, loop e idle (solo WebGPU)
 
-Tre tier (lo store `fxStore` espone il tier corrente; vedi [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md)):
-
-| Tier | `body SIZE` | `skin SIZE` | PostFX | Quando |
-|---|---|---|---|---|
-| **full** | 256 | 448 | Bloom + DOF | desktop recente, 60fps stabili |
-| **lite** | 128 | 224 | solo Bloom leggero | mobile / GPU media |
-| **off** | — | — | nessuno | reduced-motion o GPU debole → fallback statico §6.4 |
-
-- **Budget**: 60fps su desktop recente. Se non regge, **scala prima la densità della `skin`** (è il costo dominante e il degrado è meno visibile sul body). Poi riduci PostFX, poi il body.
-- **`prefers-reduced-motion`** e il toggle "reduce motion": tier `off` → non montare la sim, monta il fallback statico analitico (§6.4), niente push del mouse.
-- **Lazy**: la scena Hero e il GLB sono lazy-loaded; il preloader mostra la percentuale (vedi motion language in [`docs/02-DESIGN.md`](./02-DESIGN.md)).
-- **A11y**: il Canvas è decorativo → `aria-hidden`; il nome/ruolo testuale vive nell'overlay DOM leggibile dagli screen reader (vedi [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md)).
+- **Detection / fallback**: `if (typeof navigator === "undefined" || !navigator.gpu) { setUnsupported(true); return; }`. In assenza di adapter/device/context il componente ritorna `null`. Il fallback visivo è il **gradiente mare CSS** (`#sea-backdrop`) in `CanvasHost`. **Non esiste un percorso WebGL2/FBO.**
+- **Loop proprio**: la sim+render girano in un `requestAnimationFrame` interno al componente (non nel FrameDriver R3F, che è dead code nel tree attivo — vedi [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md)). Il loop è cancelabile (`cancelled` + `cancelAnimationFrame`).
+- **Idle fuori vista**: `IntersectionObserver` su `#hero`; quando la Hero esce dallo schermo il frame fa solo `requestAnimationFrame` e **salta del tutto compute + render** (GPU idle). Anche dopo che l'explode ha dissolto il canvas (`opacity ≈ 0`) il frame va idle finché non viene ri-armato.
+- **DPR clamp**: backing resolution = `min(devicePixelRatio, 1.5)`; `canvas.width/height` settati **prima** che simulator/renderer leggano le dimensioni (servono a dimensionare texture e round-trip del mouse).
+- **Teardown**: su unmount → `cancelled = true`, `cancelAnimationFrame`, `io.disconnect()`, `camera.dispose()`, `device.destroy()`.
+- **StrictMode**: init async abortabile (controlli `if (cancelled) { dev.destroy(); return; }` dopo ogni await).
 
 ---
 
-## 11. Pipeline asset del GLB `AT/A`
+## 7. Beat letti da `heroStore`
 
-Output finale obbligatorio: `public/models/at-mark.glb`. Catena (dettaglio setup MCP e passi manuali in [`docs/09-MCP.md`](./09-MCP.md)):
+Il loop legge `useHeroStore.getState()` una volta per frame (nessun re-render React):
 
-1. **Genera** la mesh con **Blender MCP** (Hyper3D Rodin / Hunyuan3D text-to-3D). Prompt di riferimento:
-   > `A sculpted monogram letter mark combining "A" and "T" (AT), bold geometric serif, solid carved volume like polished stone, smooth closed manifold surface, centered, neutral, no base, no text label.`
-   Obiettivo: una lettera/monogramma `AT` **scolpito**, volume pieno, superficie chiusa e pulita (serve per il `MeshSurfaceSampler`).
-2. **Pulisci in Blender**: scala normalizzata (~2 unità di altezza), origine al centro, normali coerenti verso l'esterno, mesh manifold, decimazione a una densità ragionevole (il dettaglio fine arriva dalle particelle, non dai poligoni).
-3. **Export GLB** da Blender.
-4. **Ottimizza** con `gltf-transform`: Draco/Meshopt sulla mesh, KTX2/Basis sulle texture (anche se il sampling usa solo la geometria, mantieni la pipeline standard).
-   ```bash
-   bunx @gltf-transform/cli optimize at-mark.raw.glb at-mark.glb \
-     --compress meshopt --texture-compress ktx2
-   ```
-5. **Tipizza** con `gltfjsx` per ottenere un componente R3F tipizzato di riferimento (non lo si renderizza come mesh: serve solo per accedere alla geometria in modo tipato).
-   ```bash
-   bunx gltfjsx public/models/at-mark.glb --types --transform
-   ```
-6. Colloca il file finale in `public/models/at-mark.glb`.
-
-> **Nota**: Alberto deve eseguire una-tantum i passi manuali di Blender MCP (install `uv`, Blender 3.0+, addon BlenderMCP, "Connect to Claude", chiave Hyper3D/fal.ai). Gli agenti **non possono** installare/avviare Blender da soli. Procedura completa in [`docs/09-MCP.md`](./09-MCP.md).
+- **`explode` (0..1)** — scritto dalla timeline GSAP di `hero.tsx` mentre si scrolla dentro. Il loop ne rileva il **fronte di salita** e fa scattare un **burst one-shot real-time ~1s** (NON scrubbato): l'acqua si spruzza via (`splashExplode 0→1` su ~0.6s) e il canvas svanisce (smoothstep su ~1s) sul proprio clock. Scrollando indietro (`explode ≤ 0.02`) si ri-arma: `splashExplode = 0`, `initFromHomes()` ricarica la "A", `canvas.opacity = 1`.
+- **`reveal` (0..1)** — progresso del reveal del testo liquido (letto da `LiquidText`, vedi [`docs/05-CINEMATIC-SCROLL.md`](./05-CINEMATIC-SCROLL.md)); non tocca il solver.
+- **`video` (0..1)** — progresso grezzo di scroll che pilota lo scrub della frame-sequence Pan di Zucchero (`VideoBackdrop`, dietro l'acqua). Vedi [`docs/05-CINEMATIC-SCROLL.md`](./05-CINEMATIC-SCROLL.md).
 
 ---
 
-## 12. QA / Done-when
+## 8. Entry animation + camera sway
 
-Checklist di accettazione (QA visivo via `claude-in-chrome`, vedi [`docs/11-WORKFLOW.md`](./11-WORKFLOW.md)):
+Due gesti, **solo CSS/camera** (mai muovere il fluido a riposo — qualsiasi moto del fluido alza la `speed` oltre `speedGate` e disattiva il restore, disperdendo l'acqua; gotcha provato/revertito due volte):
 
-- [ ] Il logo `AT/A` è leggibile come lettera a riposo (silhouette del body chiara).
-- [ ] A riposo c'è un **moto ondoso lento** (respira), niente immobilità innaturale.
-- [ ] Al passaggio del puntatore la **skin si disperse**, vola lontano, **indugia e rientra** con oscillazione (risacca verificabile: la skin oltrepassa la home prima di assestarsi).
-- [ ] Il colore vira da deep teal (fermo) a foam ciano-bianco (veloce); la schiuma veloce **brilla nel Bloom**, il body no.
-- [ ] **Render identico** tra WebGPU e WebGL2 (stesso frame, stessa lettura visiva — confronto screenshot affiancati). Nessun "scramble"/orientamento delle particelle su WebGPU.
-- [ ] `prefers-reduced-motion`: nessuna sim, fallback statico in forma, niente reazione al mouse.
-- [ ] **60fps** su desktop recente (tier full); degrado a `lite`/`off` corretto su mobile.
-- [ ] **Console pulita**: nessun warning WebGPU/TSL, nessun errore di shader, nessun `NaN` nelle posizioni.
-- [ ] Particelle non spariscono ai bordi quando si disperdono (`frustumCulled = false` verificato).
-- [ ] DOF locale alla Hero non sfoca l'overlay DOM (testo nitido).
+- **Focus-pull (entry, una volta)**: GSAP anima il wrapper da `scale 1.14` + `blur(16px)` + `opacity 0` a nitido, con una lens-vignette che si schiarisce. **Critico per la nitidezza**: a fine animazione `clearProps: "filter,transform"` — un filtro/transform CSS residuo forzerebbe il canvas su un layer composito riscalato → "A" molle.
+- **Camera sway (continuo)**: yaw via `sin`, pitch via `cos` (ampiezza pitch più bassa, ~0.55×) tracciano una piccola ellisse → la lettera piatta "galleggia" in 3D restando leggibile. Eased-in su ~2.5s così parte esattamente head-on. Orbita la **camera**, mai la sim. `sway = 0` → statico head-on.
+
+Parametri (`leva` panel `camera`: `sway`, `swaySpeed`) live-tuned, soggetti a sign-off GATE-6.
 
 ---
 
-## 13. Riferimenti tecnici (dal Knowledge Pack)
+## 9. Parametri live (leva) — soggetti a GATE-6
 
-Da citare/consultare anche in [`docs/06-REFERENCES.md`](./06-REFERENCES.md):
+Tutti i numeri sotto sono **valori live-tuned via leva** (pannelli `splash` e `camera`, letti per frame via ref). Sono **soggetti a sign-off GATE-6**: NON sono finali, NON hardcodarli come definitivi altrove.
 
-- Three.js Journey — **GPGPU Flow Field Particles**
-- Three.js Journey — **Particles Morphing Shader**
-- Codrops — **"Crafting a Dreamy Particle Effect with Three.js and GPGPU"**
-- Codrops — **"Dissolve Effect with Shaders and Particles"**
-- Codrops — **"Surface Sampling in Three.js"**
-- Codrops — **"WebGPU Gommage Effect (TSL dissolve)"**
-- Wawa Sensei — **"GPGPU particles with TSL & WebGPU"**
-- Lusion — **"Surface Floater"** (SDF + curl noise + velocity) e il case study Awwwards
+| Pannello / parametro | Ruolo | Note |
+|---|---|---|
+| `splash.inflate` | forza di churn verso l'esterno dentro il tubo | il motore del moto perpetuo |
+| `splash.gravity` | undertow verso l'asse mediale | gentile → l'acqua indugia e rientra lenta |
+| `splash.drag` | smorzamento opzionale | default basso per non spegnere il churn |
+| `splash.restoreK` | recall dell'acqua strayata | basso → pull morbido, non snap |
+| `splash.speedGate` | soglia di velocità che "apre il cancello" | alto → solo i poke veloci scappano |
+| `splash.leashRadius` | distanza oltre cui il recall sale a pieno | ampio → splash vola lontano e drifta indietro |
+| `splash.pokeForce` | intensità del poke del cursore | — |
+| `camera.sway` / `camera.swaySpeed` | ampiezza/velocità dell'ellisse di sway | `sway = 0` = statico |
 
-Skill da attivare (routing in [`docs/10-SKILLS.md`](./10-SKILLS.md)): `threejs-shaders`, `shader-programming-glsl`, `threejs-postprocessing`, `threejs-loaders`, `threejs-interaction`, `fixing-motion-performance`, `web-performance-optimization`, `ui-visual-validator`. Per le versioni esatte delle API (three 0.184, TSL) consultare Context7 prima di scrivere shader (vedi [`docs/08-CONTEXT7.md`](./08-CONTEXT7.md)).
+Costanti non-leva rilevanti (in `WaterBallHero.tsx` / `mls-mpm.ts`), anch'esse soggette a GATE-6: `INIT_BOX = [80,60,18]`, `NUM_PARTICLES` (cap del fill), `SPHERE_RADIUS`, `MOUSE_RADIUS`, `FOV`, `MLS_RADIUS`, `dt`/`viscosity`/`stiffness` del solver, `maxSpeed = 60` (safety hard nel `g2p`).
+
+---
+
+## 10. Performance, a11y, reduced-motion
+
+- **WebGPU-only**: nessun render se manca `navigator.gpu` → fallback gradiente CSS. Niente budget WebGL2 da mantenere.
+- **Idle aggressivo**: `IntersectionObserver` mette la GPU a riposo fuori dalla Hero; dopo l'explode il canvas dissolto va idle. È la leva perf primaria.
+- **DPR clamp 1.5**: tetto alla risoluzione di backing.
+- **`prefers-reduced-motion`**: `CanvasHost` **non monta affatto** `WaterBallHero` (mostra solo il gradiente mare CSS). Quindi reduced-motion = nessuna sim, nessun poke, zero GPU.
+- **A11y**: il canvas è `aria-hidden` + `pointer-events:none`; nome/ruolo testuale vivono nell'overlay DOM leggibile (vedi [`docs/03-ARCHITECTURE.md`](./03-ARCHITECTURE.md)).
+- **Budget**: 60fps su desktop recente; se non regge, scala prima `NUM_PARTICLES` (densità del fill) e poi il DPR. Vedi budget in [`docs/01-TECHSTACK.md`](./01-TECHSTACK.md).
+
+> **openQuestion**: nessun "tier" `full/lite/off` esplicito è implementato (la spec storica lo prevedeva). Il degrado attuale è binario: WebGPU full ↔ gradiente CSS. Se serve un tier mobile intermedio, da definire a GATE-6 (probabilmente abbassando `NUM_PARTICLES`/DPR per GPU deboli).
+
+---
+
+## 11. QA / Done-when
+
+Checklist di accettazione (QA visivo via `claude-in-chrome`, vedi [`docs/11-WORKFLOW.md`](./11-WORKFLOW.md)). Vale la regola d'oro: niente "fatto" senza prova visiva (desktop + mobile) e console pulita.
+
+- [ ] La marca è leggibile come **lettera "A"** head-on a riposo (sagoma chiara, fill uniforme dei 3 tratti).
+- [ ] A riposo l'acqua **ribolle/circola** da sola (churn perpetuo), senza disperdersi né congelarsi.
+- [ ] Un **poke veloce** del cursore fa **schizzare** una porzione fuori dalla sagoma; l'acqua poi **rientra lentamente** (undertow), senza congestione di ricomposizione.
+- [ ] Il **camera sway** fa "galleggiare" la lettera restando leggibile (mai edge-on); parte esattamente head-on.
+- [ ] L'acqua legge come **fluido SSF** (reflect/refract da cubemap, spessore Beer-Lambert, fresnel), composta **sopra** la cinematica `VideoBackdrop` (i pixel non-fluido sono trasparenti).
+- [ ] Beat **explode**: scrollando dentro la "A" esplode e svanisce in ~1s sul proprio clock; risalendo si **ricompone** (`initFromHomes` rifill).
+- [ ] **Fallback**: senza WebGPU (o con `prefers-reduced-motion`) si vede il **gradiente mare CSS**, nessun errore in console, nessuna sim montata.
+- [ ] **Idle**: scrollando fuori dalla Hero la GPU va a riposo (frame-rate del resto della pagina invariato).
+- [ ] **Nitidezza**: nessun filtro/transform CSS residuo dopo l'entry (la "A" non è molle/riscalata).
+- [ ] **Console pulita**: nessun warning WebGPU/WGSL, nessun `NaN`/blow-up delle posizioni (il cap `maxSpeed` regge).
+- [ ] **Teardown**: navigando via / unmount, nessun warning di device/resource leak.
+
+---
+
+## 12. Riferimenti tecnici
+
+- **`matsuoka-601/WaterBall`** — fonte vendorizzata del solver MLS-MPM + catena SSF (env reflect/refract, Beer-Lambert, fresnel). Vedi anche `matsuoka-601/Splash`.
+- MLS-MPM (Moving Least Squares Material Point Method) — P2G / grid update / G2P; mappatura sul nostro confinamento in [`docs/12-PARTICLE-PHYSICS.md`](./12-PARTICLE-PHYSICS.md).
+- Screen-Space Fluid Rendering (depth → bilateral smooth → thickness → shading) — letteratura classica SSF.
+
+Skill da attivare (routing in [`docs/10-SKILLS.md`](./10-SKILLS.md)): `threejs-shaders`, `shader-programming-glsl`, `fixing-motion-performance`, `web-performance-optimization`, `ui-visual-validator`. Per le API WebGPU/WGSL version-specific consultare Context7 prima di scrivere shader (vedi [`docs/08-CONTEXT7.md`](./08-CONTEXT7.md)).

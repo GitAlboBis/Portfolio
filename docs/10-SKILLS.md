@@ -1,5 +1,7 @@
 # 10 - SKILLS: Routing delle Skill Claude Code per task
 
+> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica frame-sequence). Riconciliato dal loop docs-driven-build.
+
 > Scopo: mappare le skill Claude Code installate e RILEVANTI per il portfolio di Alberto Tuveri al task/fase giusti, cosi che ogni agente le invochi autonomamente al momento opportuno. Questo file e una direttiva di routing, non un tutorial: dice QUALE skill, QUANDO (trigger) e PER QUALE file della suite.
 
 ## Premessa operativa
@@ -34,16 +36,16 @@ Legenda colonna "File": documento della suite (path da MANIFEST) o fase di lavor
 |---|---|---|
 | `3d-web-experience` | Inizio di qualsiasi scena 3D interattiva nel browser; planning della pipeline GLB->R3F. | `docs/03-ARCHITECTURE.md`, `docs/04` |
 | `threejs-skills` | Indice/orchestratore delle sotto-skill three; caricala quando non sai quale three-skill serve. | `docs/04`, `docs/05` |
-| `threejs-fundamentals` | Setup scene/camera/renderer, render loop, basi prima di toccare GPGPU. | `docs/03`, `docs/04` |
-| `threejs-geometry` | Costruzione/edit di `src/webgl/geometry/atMark.ts`; merge/instancing della geometria del logo AT/A. | `docs/04` |
-| `threejs-materials` | Materiale acqua del CORPO e della PELLE (NormalBlending vs AdditiveBlending, depthWrite, render order). | `docs/04` |
-| `threejs-shaders` | Scrittura GLSL/TSL: shader di rendering particelle, colore per velocita, fresnel/caustiche acqua. | `docs/04`, `docs/05` |
-| `shader-programming-glsl` | Quando serve GLSL puro (backend WebGL2, FBO ping-pong GPUComputationRenderer-style). | `docs/04` |
-| `threejs-lighting` | Illuminazione hero/cinematica, golden-hour `--gold` con parsimonia. | `docs/04`, `docs/05` |
-| `threejs-loaders` | Caricamento `public/models/at-mark.glb` (Draco/Meshopt/KTX2), DRACOLoader/GLTFLoader. | `docs/04` |
-| `threejs-textures` | KTX2/Basis, texture caustiche/foam, gestione mipmaps e colorspace. | `docs/04`, `docs/05` |
-| `threejs-postprocessing` | Bloom selettivo (HDR) sulla schiuma, DOF/Bokeh, color grade; `src/webgl/PostFX`. | `docs/04`, `docs/05` |
-| `threejs-interaction` | Pointer->mouse force GPGPU; raycast/coordinate normalizzate; `pointerStore`. | `docs/04` |
+| `threejs-fundamentals` | Setup scene/camera/renderer, render loop, basi WebGPU prima di toccare il compute/WGSL. | `docs/03`, `docs/04` |
+| `threejs-geometry` | Riferimento per ragionare sulla forma della 'A' (medial axis / capsule strokes riempiti in `initFromHomes()` in `src/webgl/waterball/mls-mpm/mls-mpm.ts`); nessun GLB caricato a runtime, la geometria e procedurale. | `docs/04` |
+| `threejs-materials` | Modello di materiale acqua per il render Screen-Space-Fluid (translucenza teal, Beer-Lambert, fresnel, reflect/refract cubemap) — utile come glossario concettuale anche se l'hero e raw WebGPU/WGSL, non un materiale three. | `docs/04` |
+| `threejs-shaders` | Scrittura WGSL/TSL: passi SSF in `src/webgl/waterball/render/*.wgsl.ts` (sphere->depth->bilateral->thickness->gaussian->fluid) e churn engine in `mls-mpm/g2p.wgsl.ts` (velocity-based). | `docs/04`, `docs/05` |
+| `shader-programming-glsl` | Riferimento per GLSL/algoritmi shader portabili a WGSL; l'hero NON ha backend WebGL2/FBO (e WebGPU-only, fallback = gradiente CSS in `CanvasHost`). | `docs/04` |
+| `threejs-lighting` | Illuminazione/ambiente per il render acqua (cubemap reflect/refract); palette `--color-celeste` + bianco, GOLD rimosso. | `docs/04` |
+| `threejs-loaders` | Solo per asset GLB sorgente in pipeline Blender (`public/models/a-mark.glb`, `a-liquid.glb`); NON caricati a runtime nell'hero spedito. | `docs/04` |
+| `threejs-textures` | KTX2/Basis, cubemap (`public/cubemap`), gestione mipmaps e colorspace per il render acqua. | `docs/04` |
+| `threejs-postprocessing` | Riferimento concettuale a Bloom/DOF/grade; NB: `postprocessing` + `@react-three/postprocessing` sono installati ma UNUSED nell'hero spedito (il blur/compositing e fatto nei passi WGSL SSF). | `docs/04`, opzionale |
+| `threejs-interaction` | Pointer/raycast e coordinate normalizzate; NB: l'interazione hero passa per `heroStore` (explode/reveal/video), non per `pointerStore` (dead code). | `docs/04` |
 | `threejs-animation` | Animazioni di scena, clip, mixaggio temporizzato (non lo scrub Lenis, quello e GSAP). | `docs/05` |
 | `spline-3d-integration` | SOLO se si valuta un import Spline come scorciatoia prototipale; non e la pipeline canonica (Blender lo e). | valutazione opzionale |
 
@@ -67,12 +69,12 @@ Legenda colonna "File": documento della suite (path da MANIFEST) o fase di lavor
 | `react-patterns` | Pattern avanzati (provider, context per i18n, portal per overlay DOM sul canvas). | `docs/03` |
 | `react-component-performance` | Memoizzazione, evitare re-render del Canvas persistente, `useFrame` discipline. | QA perf, `docs/03` |
 | `react-state-management` | Decisione su confini di stato globale vs locale; precede `zustand-store-ts`. | `docs/03` |
-| `zustand-store-ts` | Implementazione store tipizzati: `pointerStore`, `heroDragStore`, `fxStore`, `audioStore`, `scrollStore`. | `docs/03` |
+| `zustand-store-ts` | Implementazione store tipizzati ATTIVI: `scrollStore`, `heroStore` (explode/reveal/video). NB: `pointerStore`/`heroDragStore`/`fxStore` esistono ma sono dead code (nessun import nell'albero attivo). | `docs/03` |
 | `native-data-fetching` | Caricamento `src/data` (translations EN/IT, projects) lato server senza fetch client inutili. | `docs/03`, `docs/07` |
 | `typescript-pro` | TS strict generale, tipi dei componenti R3F, props delle sezioni. | tutta la codebase |
 | `typescript-expert` | Quando servono pattern TS non banali su API three/R3F tipizzate. | `docs/04` |
 | `typescript-advanced-types` | Tipi generici complessi (es. mappe scena<->sezione, dizionari i18n type-safe). | `docs/03` |
-| `zod-validation-expert` | Validazione del form contatti e parsing di `src/data` con schemi zod 4. | `docs/03`, `docs/07`, S6 |
+| `zod-validation-expert` | SOLO per il form contatti (S6) se si introduce zod. NB: `src/data/projects.ts` e plain TS (type, single file), NESSUN zod a oggi. | `docs/07`, S6, opzionale |
 
 ### Design / UI
 
@@ -81,14 +83,14 @@ Legenda colonna "File": documento della suite (path da MANIFEST) o fase di lavor
 | `high-end-visual-design` | Prima di qualsiasi lavoro estetico premium (livello Awwwards); calibrazione del gusto. | `docs/02`, `docs/06` |
 | `frontend-design` | Traduzione art direction oceano in layout/componenti reali. | `docs/02` |
 | `frontend-dev-guidelines` | Convenzioni di implementazione front-end coerenti su tutta la codebase. | `docs/01`, `docs/03` |
-| `design-taste-frontend` | Code review estetico: spacing, gerarchia, ritmo tipografico Editorial New/Switzer/JetBrains Mono. | `docs/02`, QA visivo |
+| `design-taste-frontend` | Code review estetico: spacing, gerarchia, ritmo tipografico Fraunces (display/serif) + Hanken Grotesk (sans). | `docs/02`, QA visivo |
 | `web-design-guidelines` | Linee guida generali di design web quando si decide una sezione da zero. | `docs/02` |
 | `ui-ux-pro-max` | Decisioni UX di alto livello su flusso, affordance, gerarchia delle CTA. | `docs/00`, `docs/02` |
 | `uxui-principles` | Principi fondamentali quando un pattern e dubbio. | `docs/02` |
 | `minimalist-ui` | Mantenere il sito "less is more": il 3D e protagonista, il chrome DOM e essenziale. | `docs/02` |
 | `tailwind-design-system` | Setup token CSS-first Tailwind v4 in `src/app/globals.css`, mapping hex oceano -> CSS variables. | `docs/01`, `docs/02` |
 | `tailwind-patterns` | Pattern di utility ricorrenti (layout, responsive, dark-first). | `docs/02`, `docs/03` |
-| `ui-tokens` | Definizione formale dei design token (`--abyss`, `--foam`, `--aqua`, ...) e scale spazio/tipo. | `docs/02` |
+| `ui-tokens` | Definizione formale dei design token in `@theme` con prefisso `--color-*` (`--color-abyss`, `--color-foam`, `--color-celeste`, ...) e scale spazio/tipo. GOLD rimosso. | `docs/02` |
 | `ui-setup` | Bootstrap della cartella `src/components/ui` e delle primitive. | `docs/03` |
 | `core-components` | Implementazione delle primitive riutilizzabili (Button magnetic, Eyebrow, SectionShell). | `docs/02`, `docs/03` |
 | `ui-component` / `ui-pattern` / `ui-page` | Costruzione granulare componente/pattern/pagina secondo i token bloccati. | sezioni S1-S6 |
@@ -101,7 +103,7 @@ Legenda colonna "File": documento della suite (path da MANIFEST) o fase di lavor
 | Skill | Quando invocarla (trigger) | File / fase |
 |---|---|---|
 | `web-performance-optimization` | Lighthouse < 80 mobile, LCP/CLS/INP fuori budget, lazy-load scene 3D e video. | QA perf, `docs/01` |
-| `application-performance-performance-optimization` | Profiling end-to-end (bundle, runtime, GPU tier), scaling densita pelle se < 60fps. | QA perf, `docs/04`, `docs/05` |
+| `application-performance-performance-optimization` | Profiling end-to-end (bundle, runtime, GPU tier); se < 60fps scala il NUMERO di particelle del fluido MLS-MPM (e la risoluzione dei passi SSF), non una "densita pelle". | QA perf, `docs/04`, `docs/05` |
 
 ### Accessibilita (A11y)
 
@@ -117,9 +119,9 @@ Legenda colonna "File": documento della suite (path da MANIFEST) o fase di lavor
 
 | Skill | Quando invocarla (trigger) | File / fase |
 |---|---|---|
-| `webapp-testing` | Strategia di test della web app (unit Vitest, integrazione). | `docs/11` |
-| `e2e-testing` / `e2e-testing-patterns` | Flussi end-to-end (nav, toggle EN/IT, form contatti, route progetto). | `docs/11` |
-| `playwright-skill` | SOLO per test automatizzati headless in CI; per la QA VISIVA usa claude-in-chrome (vedi `docs/09`). | CI, `docs/11` |
+| `webapp-testing` | Strategia di test della web app. NB: NESSUN runner installato a oggi (no Vitest/Playwright test; gli script `package.json` sono solo dev/build/start/typecheck) — usare prima di introdurre un framework di test. | `docs/11` |
+| `e2e-testing` / `e2e-testing-patterns` | Flussi end-to-end (nav, toggle EN/IT, form contatti, route progetto) se/quando si adotta un runner E2E. | `docs/11` |
+| `playwright-skill` | SOLO se si introduce Playwright per test headless in CI (non installato come test runner oggi; per la QA VISIVA usa claude-in-chrome, vedi `docs/09`). | CI, opzionale |
 | `ui-visual-validator` | Validazione visiva contro l'art direction; usato in tandem con screenshot claude-in-chrome. | gate QA visivo, `docs/11` |
 | `ui-review` / `ux-audit` | Review di una sezione finita: estetica, ritmo, coerenza dei token. | gate QA visivo |
 | `verification-before-completion` | Checklist done-when prima di dichiarare un task concluso. | `docs/11`, ogni gate |
@@ -201,28 +203,40 @@ Prima di un task non banale, l'agente DEVE, in quest'ordine:
 3. Combinarla con Context7 per l'API esatta della versione bloccata (`docs/08-CONTEXT7.md`) e con l'MCP giusto per l'azione/verifica (`docs/09-MCP.md`).
 4. Chiudere il task con verifica: `verification-before-completion` + QA visivo via claude-in-chrome (`docs/11-WORKFLOW.md`).
 
-Anti-pattern: scrivere shader/scene/animazioni "a memoria" senza caricare la skill e senza Context7. Le versioni dello stack (three 0.184 con TSL/WebGPU, R3F 9.6, Next 16) cambiano API rispetto alla conoscenza pregressa: la skill + Context7 evitano regressioni.
+Anti-pattern: scrivere shader/scene/animazioni "a memoria" senza caricare la skill e senza Context7. Le versioni dello stack (three 0.184 con TSL/WebGPU, WebGPU raw + WGSL per l'hero MLS-MPM, Next 16, GSAP 3.15, Lenis 1.3) cambiano API rispetto alla conoscenza pregressa: la skill + Context7 evitano regressioni.
 
 ## Combo concrete per i task chiave
 
-Hero acqua (logo AT/A particelle GPGPU 2 strati) - `docs/04`:
+Hero acqua (fluido MLS-MPM WebGPU, mark 'A') - `docs/04`:
 
 ```text
-Skill: threejs-skills -> threejs-shaders + threejs-materials + threejs-postprocessing
-       + zustand-store-ts (pointerStore/heroDragStore/fxStore)
-Context7: three@0.184 (TSL: instancedArray, Fn().compute(), positionBuffer.element;
-          WebGPURenderer; MeshSurfaceSampler), @react-three/fiber@9.6, @react-three/postprocessing
-MCP: Blender (genera/ottimizza at-mark.glb) -> claude-in-chrome (screenshot hero, FPS, console)
-Verifica: ui-visual-validator + fixing-motion-performance se < 60fps (scala prima la densita pelle)
+Skill: threejs-shaders + shader-programming-glsl (algoritmi shader -> WGSL)
+       + zustand-store-ts (heroStore: explode/reveal/video) + scroll-experience
+Context7: WebGPU/WGSL (compute pipeline, storage buffers), three@0.184 (TSL come riferimento),
+          wgpu-matrix (math camera). NB: niente R3F/MeshSurfaceSampler/FBO nell'hero.
+Codice: src/webgl/waterball/ — mls-mpm/*.wgsl.ts + mls-mpm.ts (sim + initFromHomes() per la 'A'),
+        render/*.wgsl.ts + fluidRender.ts (SSF: sphere->depth->bilateral->thickness->gaussian->fluid,
+        reflect/refract cubemap), camera.ts, common.ts. WaterBallHero WebGPU-only (guard navigator.gpu;
+        fallback = gradiente CSS in CanvasHost).
+MCP: claude-in-chrome (screenshot hero, FPS, console pulita). Blender solo per asset sorgente a-mark.glb.
+Verifica: ui-visual-validator + fixing-motion-performance se < 60fps
+          (scala il NUMERO di particelle, non una densita di "foam"; valori live-tuned via leva,
+          soggetti a sign-off GATE-6)
 ```
 
-Cinematica Pan di Zucchero + backflip - `docs/05`:
+Cinematica Pan di Zucchero + backflip (FUSA nell'hero, frame-sequence WebP) - `docs/05`:
 
 ```text
-Skill: scroll-experience + threejs-postprocessing (DOF/grade) + threejs-textures
-       (+ remotion se serve frame-sequence per scrub deterministico)
-Context7: gsap@3.15 ScrollTrigger + @gsap/react useGSAP, lenis@1.3 (sync rAF)
-MCP: Higgsfield (genera la clip del tuffo) -> claude-in-chrome (scrub QA + network/video)
+Skill: scroll-experience + fixing-motion-performance (+ remotion / image-studio per (ri)generare
+       o ottimizzare la frame-sequence WebP dai sorgenti Higgsfield)
+Context7: gsap@3.15 ScrollTrigger + @gsap/react useGSAP, lenis@1.3 (sync via gsap.ticker)
+Codice: public/frames/f_000..f_135.webp (136 frame) -> src/components/video-backdrop.tsx
+        (canvas 2D, indicizzato da heroStore.video; preload concurrency 6, DPR clamp 1.5);
+        timeline GSAP sticky ~600vh in src/components/sections/hero.tsx. reduced-motion congela
+        un frame a meta sequenza (~0.5). NESSUNA sezione S3 separata, niente zoom-into-clip,
+        niente VideoPlane WebGL.
+MCP: Higgsfield = SOLA fonte dei frame (mp4 sorgente in public/video/, untracked) ->
+     claude-in-chrome (scrub QA + network/asset)
 Verifica: fixing-motion-performance, ui-review
 ```
 

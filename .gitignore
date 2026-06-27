@@ -3,6 +3,10 @@
 /.pnp
 .pnp.*
 
+# package manager: bun is canonical (bun.lock). Keep stray npm/yarn lockfiles out.
+/package-lock.json
+/yarn.lock
+
 # next.js
 /.next/
 /out/

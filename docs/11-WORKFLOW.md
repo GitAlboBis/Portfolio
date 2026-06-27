@@ -1,5 +1,7 @@
 # 11 - WORKFLOW
 
+> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica frame-sequence). Riconciliato dal loop docs-driven-build.
+
 > Scopo: definire il workflow operativo che ogni agente AI deve seguire per costruire il portfolio di Alberto Tuveri — gates numerati con punti di conferma, loop di QA visivo obbligatorio, criteri di "done", orchestrazione dei sub-agenti e disciplina di commit. Questo file e la procedura; i contenuti di merito vivono negli altri documenti della suite (vedi `docs/README.md`).
 
 Questo documento si legge insieme a `CLAUDE.md` (regole d'oro e routing) e presuppone che le fonti di verita restino i file in `docs/`. Quando una decisione tocca contenuti (cosa scrivere, quali colori, quale fisica) NON improvvisare: rimanda al documento competente. Quando tocca processo (quando fermarsi, come verificare, quando chiedere) la regola e qui.
@@ -73,40 +75,49 @@ bun add -d leva
 
 **Obiettivo:** l'impalcatura runtime su cui poggiano tutte le sezioni.
 
-**Deliverable:**
-- `CanvasHost` R3F persistente globale + `FrameDriver` (un solo `requestAnimationFrame`).
-- Sync Lenis <-> R3F: Lenis guida lo smooth scroll virtualizzato, il loop R3F e l'unico driver del frame (vedi `docs/03-ARCHITECTURE.md`).
-- Store Zustand: `scrollStore` (almeno), piu gli store previsti (`pointerStore`, `fxStore`, ecc.) man mano che servono.
-- Preloader con percentuale.
-- i18n EN/IT (translations in `src/data`, toggle lingua).
-- Header/footer e transizioni di sezione/route (curtain + crossfade scena).
+**Nota sul pivot (2026-06):** l'architettura runtime ha abbandonato il Canvas R3F persistente. Lo stato shipped (branch `feat/hero-scroll-narrative`) NON monta nessun `<Canvas>` R3F: `CanvasHost` compone tre layer DOM/WebGPU puri. Vedi `docs/03-ARCHITECTURE.md` per la mappa aggiornata.
 
-**STOP — conferma Alberto:** preview deployata; scroll fluido verificato, lingua commutabile, preloader funzionante. QA visivo (vedi loop) prima di chiudere il gate.
+**Deliverable (stato shipped):**
+- `CanvasHost` (`src/webgl/CanvasHost.tsx`): monta in stack il gradiente mare CSS (fallback base sempre presente), `VideoBackdrop` (`src/components/video-backdrop.tsx`, 2D `<canvas>`) e `WaterBallHero` (`src/webgl/waterball/WaterBallHero.tsx`, WebGPU raw). Nessun `<Canvas>` R3F.
+- Scroll: `ScrollProvider` (`src/components/scroll-provider.tsx`) guida Lenis tramite `gsap.ticker` (un solo loop). Lo smooth scroll virtualizzato alimenta `scrollStore` e `heroStore`.
+- Store Zustand effettivamente in uso: `scrollStore` e `heroStore` (campi `explode` / `reveal` / `video`).
+- i18n EN/IT: provider `src/components/language-provider.tsx`, hook `useLanguage`, persistenza via cookie; dictionary nested per-sezione in `src/data`.
+
+**Codice dormiente / da NON usare come riferimento attivo (openQuestion: rimuovere o riattivare — sign-off Alberto):** `FrameDriver.tsx`, `renderer/createRenderer.ts`, `SceneErrorBoundary.tsx`, `pointerStore`, `fxStore`, `heroDragStore` sono dead code nell'albero attivo (nessun import li raggiunge, nessun `<Canvas>` montato). Il loop del frame vive dentro `WaterBallHero` (RAF proprio + `IntersectionObserver` per l'idle).
+
+**Non costruito (deliverable rimandati):** preloader con percentuale e transizioni di sezione/route (curtain + crossfade) NON sono implementati. Restano come openQuestion di GATE 7/rifinitura.
+
+**STOP — conferma Alberto:** preview deployata; scroll fluido verificato, lingua commutabile. QA visivo (vedi loop) prima di chiudere il gate.
 
 ### GATE 4 — HERO acqua (priorita visiva massima)
 
-**Obiettivo:** il logo AT/A a particelle d'acqua GPGPU a due strati. Questo e il pezzo che decide la percezione "Awwwards" del sito: **falla eccellente prima di proseguire**.
+**Obiettivo:** la lettera "A" come fluido d'acqua su WebGPU. Questo e il pezzo che decide la percezione "Awwwards" del sito: **falla eccellente prima di proseguire**. Il mark e "A" (non "AT/A").
 
-**Deliverable (tutto da `docs/04-3D-HERO-WATER-LOGO.md`):**
-- Architettura GPGPU a due strati: CORPO (denso, opaco, NormalBlending, molla alta, zeta ~0.5-0.6) + PELLE (offset normale, AdditiveBlending, depthWrite false, molla bassa under-damped zeta ~0.35-0.4, schiuma luminosa). Render order: corpo prima (scrive depth), poi pelle additiva.
-- Doppio backend: WebGPU-native via **compute shader + storage buffer (TSL)**, fallback WebGL2 GLSL FBO ping-pong, fallback estremo statico/reduced-motion. Detection: `backend.isWebGLBackend !== true && typeof gl.compute === "function"`.
-- Shading acqua: gradiente deep teal -> foam white, fresnel sul bordo, accenni di caustiche, bloom sulla schiuma, DOF locale all'hero. Colori `COL_COLD` / `COL_HOT` da `docs/02-DESIGN.md`.
-- Tier performance: full ~256^2/448^2, lite ~128^2/224^2, off/reduced-motion. Se non regge 60fps, scalare prima la densita della PELLE.
-- Pipeline Blender per `public/models/at-mark.glb` (vedi `docs/04-...` e `docs/09-MCP.md`).
+**Nota sul pivot (2026-06):** l'hero NON e piu il sistema a particelle GPGPU a due strati con doppio backend descritto nelle prime stesure. Lo stato shipped e un solver **MLS-MPM su griglia, WebGPU raw**, vendorizzato da `matsuoka-601/WaterBall`. Riferimento d'architettura: `docs/04-3D-HERO-WATER-LOGO.md` e `docs/12-PARTICLE-PHYSICS.md`.
 
-**STOP — conferma Alberto:** demo dell'hero su preview, con QA visivo desktop + mobile e prova che il fallback funzioni. Non si passa al GATE 5 finche l'hero non e giudicato "eccellente" da Alberto. E il gate dove conviene investire piu iterazioni.
+**Deliverable (stato shipped):**
+- Solver fluido MLS-MPM in `src/webgl/waterball/mls-mpm/` (`*.wgsl.ts` + `mls-mpm.ts`). La "A" e riempita proceduralmente via `initFromHomes()` (tre tratti a capsula sull'asse mediale); **nessun GLB caricato a runtime**.
+- `g2p.wgsl` e un motore di churn/confinamento velocity-based sull'asse mediale della "A" (inflate / gravity / restore / speedGate / leashRadius): modifica la **velocita**, non direttamente la posizione.
+- Render chain Screen-Space-Fluid in `src/webgl/waterball/render/` (`*.wgsl.ts` + `fluidRender.ts`): sphere -> depth -> bilateral -> thickness -> gaussian -> fluid; reflect/refract via cubemap; output premultiplied composito sopra il `VideoBackdrop`.
+- **WebGPU-only**: guard `navigator.gpu` -> se assente ritorna `null`. NON esiste path WebGL2; il fallback e il gradiente mare CSS montato da `CanvasHost`. Loop proprio (RAF) con idle via `IntersectionObserver`.
+- Input dallo store: legge `explode` / `reveal` / `video` da `heroStore`.
+- Valori di tuning (forze del churn, confinamento, soglie velocity-gate, parametri SSF/shading) sono **live-tuned via leva, soggetti a sign-off GATE-6**: non trattarli come finali in questo doc.
+
+**STOP — conferma Alberto:** demo dell'hero su preview, con QA visivo desktop + mobile e prova che il fallback CSS-gradient funzioni dove manca WebGPU. **Feel dell'hero NON ancora firmato** (tuning leva aperto). Non si passa oltre finche l'hero non e giudicato "eccellente" da Alberto. E il gate dove conviene investire piu iterazioni.
 
 ### GATE 5 — Cinematica
 
-**Obiettivo:** la sequenza scroll-scrub Pan di Zucchero + backflip Higgsfield (`docs/05-CINEMATIC-SCROLL.md`).
+**Obiettivo:** la sequenza cinematica Pan di Zucchero + backflip/tuffo, scrubbata dallo scroll (`docs/05-CINEMATIC-SCROLL.md`).
 
-**Deliverable:**
-- Video Pan di Zucchero scrubbato dallo scroll, transizione-zoom dentro la clip Higgsfield del backflip/tuffo, anch'essa animata dallo scroll.
-- Overlay WebGL: DOF, particelle, color grade, transizione-zoom.
-- Asset video in `public/video/`, generati/preparati via Higgsfield MCP.
-- Perf e fallback (poster statico / clip ridotta su mobile e reduced-motion).
+**Nota sul pivot (2026-06):** la cinematica NON e piu una sezione S3 separata con `<video>` Higgsfield + zoom-into-clip + overlay WebGL. E **fusa nell'hero** (`src/components/sections/hero.tsx`, timeline GSAP sticky ~600vh). `cinematic-placeholder.tsx` e stato eliminato.
 
-**STOP — conferma Alberto:** QA visivo dello scrub (desktop + mobile), nessun jank evidente, fallback verificato.
+**Deliverable (stato shipped):**
+- Sequenza di **136 frame WebP** in `public/frames/f_000.webp` .. `f_135.webp`, disegnati su un `<canvas>` 2D in `src/components/video-backdrop.tsx`, indicizzati da `heroStore.video` (progresso scroll dell'hero).
+- Preload throttlato (concorrenza 6, per non decodificare tutte le 136 still 1920px insieme), DPR clampato a 1.5.
+- `prefers-reduced-motion`: congela un frame a meta sequenza (~0.5), nessuno scrub.
+- Le sorgenti grezze Higgsfield (`public/video/hf_20260624_*.mp4`) sono **SOURCE-ONLY** (untracked): servono solo per estrarre i frame, non vengono caricate a runtime.
+
+**STOP — conferma Alberto:** QA visivo dello scrub (desktop + mobile), nessun jank evidente durante lo scroll, frame freezato corretto a reduced-motion.
 
 ### GATE 6 — Sezioni rimanenti
 
@@ -154,6 +165,8 @@ Nessuna sezione e "fatta" senza prova visiva e console pulita. Dopo ogni sezione
 
 Applica le skill `verification-before-completion` e `ui-visual-validator` come gate finale di ogni sezione. La frase "sembra a posto" senza screenshot + console non e accettabile.
 
+**Nota tooling (2026-06):** `package.json` espone SOLO gli script `dev` / `build` / `start` / `typecheck` — NON sono installati eslint / prettier / vitest / `@playwright/test` (`playwright` e presente solo come libreria browser, non come test runner). Di conseguenza il QA automatizzabile e: `bun run typecheck` (zero errori TS) + la verifica visiva via **claude-in-chrome**. Non c'e una suite di test o un linter da far girare in CI; la prova visiva + console pulita resta il gate vincolante.
+
 **Definizione di "done" per una sezione:**
 - [ ] Screenshot desktop e mobile catturati e confrontati col riferimento.
 - [ ] Console pulita; nessun 404 sugli asset.
@@ -171,13 +184,13 @@ Applica le skill `verification-before-completion` e `ui-visual-validator` come g
 - **Preview deploy a ogni milestone** (fine di ogni gate, e ogni volta che serve QA visivo su URL reale).
 - Usa le skill `commit`, `create-branch`, `create-pr` per coerenza di messaggi e flusso PR.
 - Apri PR a fine gate; il merge avviene dopo il QA visivo e l'ok di Alberto.
-- Messaggi di commit in inglese, imperativi e concisi (es. `add gpgpu skin layer with additive blending`).
+- Messaggi di commit in inglese, imperativi e concisi (es. `add velocity-gated restore to mls-mpm churn`).
 
 ---
 
 ## Orchestrazione dei sub-agenti
 
-**Quando parallelizzare:** solo per task indipendenti DENTRO lo stesso gate, dove non ci sono dipendenze di file o di stato. Esempi validi: mentre un agente lavora sullo shader della PELLE (GATE 4), un altro prepara i dati delle card progetto (`src/data`, GATE 6 anticipabile a livello dati); oppure un agente scrive il copy EN/IT mentre un altro costruisce i componenti di layout. Esempi NON validi: due agenti sullo stesso store Zustand, o sul medesimo componente Canvas.
+**Quando parallelizzare:** solo per task indipendenti DENTRO lo stesso gate, dove non ci sono dipendenze di file o di stato. Esempi validi: mentre un agente tara il solver fluido (`src/webgl/waterball/mls-mpm/*`, GATE 4), un altro prepara i dati delle card progetto (`src/data`, GATE 6 anticipabile a livello dati); oppure un agente scrive il copy EN/IT mentre un altro costruisce i componenti di layout. Esempi NON validi: due agenti sullo stesso store Zustand (`heroStore`/`scrollStore`), o sui medesimi `*.wgsl.ts` del render chain SSF.
 
 **Pattern di riferimento (skill):** `dispatching-parallel-agents`, `subagent-driven-development`, `multi-agent-patterns`. Ogni sub-agente riceve: il gate corrente, i documenti `docs/` rilevanti, e un done-when esplicito. Il coordinatore raccoglie, fa il QA visivo unificato e integra.
 

@@ -2,6 +2,8 @@
 
 > Scopo: definire COSA deve essere il portfolio di Alberto Tuveri (visione, audience, narrativa, content model, requisiti, criteri di successo, scope) prima ancora di decidere COME costruirlo. Questo file e la fonte di verita sul "prodotto"; il "come" tecnico vive in `docs/01-TECHSTACK.md`, `docs/03-ARCHITECTURE.md` e nei doc 3D/cinematica. Ogni agente AI che lavora al sito deve leggere questo documento prima di scrivere codice.
 
+> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica frame-sequence fusa nell'hero). Riconciliato dal loop docs-driven-build.
+
 ---
 
 ## 0. Come leggere questo documento
@@ -17,7 +19,7 @@
 
 Il portfolio e un'esperienza web immersiva, single-page, scroll-driven, a tema MARE/OCEANO della Sardegna, con qualita visiva da **Awwwards Site of the Day** (riferimento di livello: `lusion.co`).
 
-L'obiettivo di prodotto e UNO e misurabile: **in meno di 10 secondi dal primo paint, chi atterra sul sito deve percepire Alberto Tuveri come un Software Engineer full-stack + AI di alto livello, e ricordarsi del sito.** Il "colpo d'occhio" e il logo 3D ad acqua (hero GPGPU a due strati, vedi `docs/04-3D-HERO-WATER-LOGO.md`) e la cinematica di Pan di Zucchero (vedi `docs/05-CINEMATIC-SCROLL.md`); insieme raccontano in modo non verbale "questa persona sa costruire cose difficili e ha gusto".
+L'obiettivo di prodotto e UNO e misurabile: **in meno di 10 secondi dal primo paint, chi atterra sul sito deve percepire Alberto Tuveri come un Software Engineer full-stack + AI di alto livello, e ricordarsi del sito.** Il "colpo d'occhio" e la lettera `A` ad acqua reale renderizzata in WebGPU (fluido MLS-MPM con render Screen-Space-Fluid, vedi `docs/04-3D-HERO-WATER-LOGO.md`) sospesa sopra la cinematica di Pan di Zucchero (frame-sequence fusa nell'hero, vedi `docs/05-CINEMATIC-SCROLL.md`); insieme raccontano in modo non verbale "questa persona sa costruire cose difficili e ha gusto".
 
 Obiettivi specifici, in ordine di priorita:
 
@@ -58,14 +60,17 @@ Vincoli derivati dall'audience:
 
 ## 4. Narrativa scroll — sezione per sezione (S1..S6)
 
-Esperienza principale: una long-page immersiva guidata dallo scroll virtualizzato (Lenis guida le transizioni di scena, non l'altezza del DOM; vedi `docs/03-ARCHITECTURE.md`). Un unico Canvas R3F persistente sotto un overlay DOM con il contenuto. La mappa scena<->sezione e dettagliata in `docs/03-ARCHITECTURE.md`.
+Esperienza principale: una long-page immersiva guidata dallo scroll virtualizzato (Lenis guida le transizioni di scena, non l'altezza del DOM; vedi `docs/03-ARCHITECTURE.md`). Lo sfondo visivo e composito (gradiente CSS "sea" + `VideoBackdrop` su canvas 2D + `WaterBallHero` su WebGPU raw), NON un Canvas R3F persistente. La mappa scena<->sezione e dettagliata in `docs/03-ARCHITECTURE.md`.
+
+> Nota architetturale (codice): S1 HERO e S3 CINEMATICA sono **fusi in un'unica sezione pinnata** (`src/components/sections/hero.tsx`, sticky ~600vh con timeline GSAP scrubbata). Non esiste piu una sezione cinematica autonoma. Il modello narrativo qui sotto resta valido a livello di prodotto (cosa percepisce l'utente), ma la cinematica e implementata come beat interno all'hero, non come scena separata.
 
 ### S1 — HERO
 
 - **Scopo:** colpo d'occhio + identita in <10s. E la sezione che "vende" l'intero sito.
-- **Contenuto:** logo 3D `AT` / `A` reso come nuvola di particelle d'acqua (GPGPU a due strati: body = volume d'acqua scuro/teal, skin = goccioline/spray luminosi ciano-bianchi). Nome `Alberto Tuveri`. Ruolo: `Software Engineer — Full-Stack + AI`. Tagline marina breve (EN/IT). CTA primario `View work`, secondario `Get in touch`.
-- **Cosa succede allo scroll:** a riposo le particelle ondeggiano leggermente (moto guidato da curl-noise). Al movimento del puntatore/drag, la skin schizza come spray e rientra come risacca (molla under-damped). Iniziando a scrollare, l'hero si "ritira" (il logo si disperde/affonda parzialmente) e cede spazio a S2 con crossfade di scena. Dettaglio fisica/shading/tier in `docs/04-3D-HERO-WATER-LOGO.md`.
-- **Done-when (sezione):** 60fps desktop sull'interazione hero; reduced-motion mostra una versione statica leggibile; CTA accessibili da tastiera.
+- **Contenuto:** la lettera `A` resa come **acqua reale** — fluido MLS-MPM su WebGPU (vendorizzato da `matsuoka-601/WaterBall` in `src/webgl/waterball/`), riempita proceduralmente via `initFromHomes()` (tre tratti a capsula sull'asse medio della `A`; nessun GLB caricato a runtime), con render chain Screen-Space-Fluid (depth -> bilateral -> thickness -> gaussian -> fluid), reflect/refract su cubemap, composito premultiplied sopra la footage. Il mark e la sola lettera `A` (non `AT/A`). Titolo liquido (`LiquidText`): `Portfolio` poi `Alberto Tuveri`. Ruolo: `Software Engineer — Full-Stack & AI`. Tagline marina breve (EN/IT). Cue di scroll (`Scroll to dive`). NB: **nessuna CTA inline** `View work` / `Get in touch` nell'hero — le CTA vivono in nav (`Get in touch`) e nel footer S6.
+- **Cosa succede allo scroll:** una sola timeline GSAP scrubbata scrive `heroStore` (`explode` / `reveal` / `video`) che i tre layer leggono. Beat: entry (la `A` d'acqua sul primo frame) -> ~8-24% **explode** (la `A` "scoppia" sulla footage e svanisce) -> ~24-56% la footage scrubba da sola (il beat cinematico) -> ~56-86% **reveal** (`Portfolio` poi `Alberto Tuveri` emergono dall'acqua) -> ~86-100% hold del title card prima dell'unpin. La fisica del fluido e un motore velocity-based (inflate/gravity/restore/speedGate/leashRadius confinato sull'asse medio della `A`); parametri **live-tuned via leva, soggetti a sign-off GATE-6**. Dettaglio fisica/shading/tier in `docs/04-3D-HERO-WATER-LOGO.md`.
+- **Done-when (sezione):** 60fps desktop sull'hero; `prefers-reduced-motion` congela un frame centrale della sequenza (~0.5) e mostra il title card statico; cue/contenuto accessibili da tastiera.
+- **Fallback (codice):** l'hero WebGPU e **WebGPU-only**. In assenza di `navigator.gpu`, `WaterBallHero` ritorna `null` e resta visibile il solo gradiente "sea" CSS (in `CanvasHost`). **Non esiste un path WebGL2.** Questo aggiorna i requisiti storici "doppio backend / fallback WebGL2": vedi nota in sez. 7.1.
 
 ### S2 — INTRO / ABOUT
 
@@ -74,12 +79,14 @@ Esperienza principale: una long-page immersiva guidata dallo scroll virtualizzat
 - **Cosa succede allo scroll:** reveal del testo con split-text GSAP (parole/righe che emergono dal "fondo"); parallax leggero; lo sfondo WebGL transita dalla dispersione dell'hero verso un tono d'acqua piu calmo/profondo che prepara la cinematica.
 - **Done-when:** testo leggibile da screen reader nell'ordine corretto; nessun layout shift; reveal disattivato in reduced-motion.
 
-### S3 — CINEMATICA
+### S3 — CINEMATICA (fusa nell'hero)
+
+> Stato (codice): NON e piu una sezione standalone. La cinematica e il beat centrale dell'hero pinnato (sez. S1). `cinematic-placeholder.tsx` e stato eliminato; non esiste zoom-into-clip ne overlay WebGL VideoPlane.
 
 - **Scopo:** picco emotivo e firma del sito. Lega persona + luogo + abilita.
-- **Contenuto:** video immersivo di **Pan di Zucchero** (Masua), scrubbato dallo scroll, che transita con uno **zoom** dentro la clip Higgsfield del **backflip/tuffo di Alberto dallo scoglio** (anch'essa animata dallo scroll). Overlay WebGL: DOF, particelle, color grade oceanico, transizione-zoom. Asset in `public/video/`.
-- **Cosa succede allo scroll:** lo scroll fa da timeline (scrub) sul primo clip; raggiunta una soglia, parte la transizione-zoom che entra nel secondo clip; al termine la scena ricede verso il contenuto progetti. Spec completa (scrub, soglie, fallback poster, perf) in `docs/05-CINEMATIC-SCROLL.md`.
-- **Done-when:** su mobile/reduced-motion il video e sostituito da poster statico (no autoplay pesante); nessun blocco dello scroll; budget di rete rispettato (lazy-load).
+- **Contenuto:** sequenza immersiva di **Pan di Zucchero** (Masua) scrubbata dallo scroll. Implementata come **frame-sequence WebP**: 136 frame `public/frames/f_000.webp` … `f_135.webp` disegnati su un canvas 2D in `src/components/video-backdrop.tsx`, indicizzati da `heroStore.video` (preload con concorrenza 6, DPR clampato a 1.5). La `A` d'acqua "scoppia" sopra la footage durante il beat explode. NB: gli mp4 raw Higgsfield in `public/video/` (`hf_20260624_*.mp4`) sono **source-only** (untracked), non serviti a runtime; la sorgente di verita renderizzata e la sequenza WebP.
+- **Cosa succede allo scroll:** lo scroll fa da timeline (scrub) sulla frame-sequence dal primo movimento; la `A` d'acqua esplode e svanisce, poi la footage scrubba da sola, poi emerge il title card. Nessuna transizione-zoom in un secondo clip. Spec completa (scrub, preload, fallback) in `docs/05-CINEMATIC-SCROLL.md`.
+- **Done-when:** su `prefers-reduced-motion` la sequenza e congelata su un frame centrale (~0.5) — nessun autoplay pesante; nessun blocco dello scroll; budget di rete rispettato (preload limitato).
 
 ### S4 — WORK / PROJECTS
 
@@ -112,12 +119,14 @@ Esperienza principale: una long-page immersiva guidata dallo scroll virtualizzat
 ## 5. Sitemap e route
 
 ```text
-/                      Long-page scrollytelling (S1 HERO -> S6 CONTACT). Default EN.
-/work/[slug]           (OPZIONALE) Dettaglio progetto. slug ∈ { badante24h, doit-voice-ai-agent, sersan-<tbd>, supply-chain }
-/sitemap.xml           Generato (src/app/sitemap)
-/robots.txt            Generato (src/app/robots)
-/opengraph-image       OG image (statica o generata)
+/                      Long-page scrollytelling (S1 HERO -> S6 CONTACT). Default EN.  [costruita]
+/work/[slug]           (OPZIONALE) Dettaglio progetto. slug ∈ { badante24h, doit-voice-ai-agent, sersan-project-1, sersan-project-2, agricultural-supply-chain }  [non costruita]
+/sitemap.xml           Generato (src/app/sitemap)        [non costruito — GATE 8]
+/robots.txt            Generato (src/app/robots)          [non costruito — GATE 8]
+/opengraph-image       OG image (statica o generata)      [non costruita — GATE 8]
 ```
+
+> Stato (codice): solo `/` e attualmente costruita. `sitemap.xml`, `robots.txt`, OG image e JSON-LD `Person` sono **non ancora implementati** e ricadono nel gate perf/a11y/SEO (GATE 8 in `docs/11-WORKFLOW.md`, not-started). Gli slug effettivi dei progetti sono quelli in `src/data/projects.ts` (vedi sopra).
 
 - La home e la priorita assoluta. Le route `/work/[slug]` sono **OPZIONALI in v1**: si implementano solo se le card non bastano a raccontare il progetto. Se non implementate, le card restano self-contained.
 - i18n via cookie + toggle, una sola URL per pagina (vedi `docs/03-ARCHITECTURE.md`): nessun routing `/en` `/it`. Il PRD richiede solo che EN e IT siano entrambi raggiungibili e che il default sia EN.
@@ -126,65 +135,87 @@ Esperienza principale: una long-page immersiva guidata dallo scroll virtualizzat
 
 ## 6. Content model
 
-Tutti i contenuti del sito vivono in `src/data` (vedi `docs/03-ARCHITECTURE.md`), tipizzati e validati con `zod` (`docs/01-TECHSTACK.md`). Il copy e bilingue: ogni stringa visibile ha varianti `en` e `it`.
+Tutti i contenuti del sito vivono in `src/data` (vedi `docs/03-ARCHITECTURE.md`). Il copy e bilingue: ogni stringa visibile ha varianti `en` e `it`. **Nota (codice):** i tipi sono plain TypeScript, **non zod** — niente schema runtime; `projects.ts` e un singolo file con i tipi e l'array esportato.
 
 ### 6.1 Project
 
 ```ts
-// src/data/projects.ts (forma indicativa; lo schema zod canonico vive in src/data)
-type LocalizedText = { en: string; it: string };
+// src/data/projects.ts — forma reale nel codice
+type Localized = Record<Lang, string>;           // Lang = "en" | "it"
+type ProjectStatus = "confirmed" | "provisional";
+type ProjectMetric = { value: string; label: Localized };  // es. value "<1s", label "geospatial search"
+type ProjectLink = { label: string; href: string };
 
 type Project = {
-  slug: string;                 // "badante24h" | "doit-voice-ai-agent" | ...
-  name: string;                 // brand/nome (NON localizzato)
-  org: string;                  // "ALS MCL Civitanova" | "DOIT S.r.l (Lodestar Group)" | "SerSan — AI Studio" | "Universita di Camerino"
-  role: LocalizedText;          // es. "Full-Stack Developer (Freelance)"
-  period: string;               // "Jan 2026" | "Nov 2025 – Feb 2026"
-  problem: LocalizedText;       // contesto / problema
-  action: LocalizedText;        // cosa ha fatto Alberto
-  result: LocalizedText;        // esito / impatto
+  slug: string;                 // "badante24h" | "doit-voice-ai-agent" | "sersan-project-1" | "sersan-project-2" | "agricultural-supply-chain"
+  status: ProjectStatus;        // Sersan = "provisional"
+  title: string;                // brand/nome (NON localizzato)
+  org: string;                  // "ALS MCL Civitanova" | "DOIT · Lodestar Group" | "SerSan · AI Studio" | "University of Camerino · Academic"
+  period: string;               // "2026" | "2025–2026" | "2026 – present" | "2024"
+  role: Localized;              // es. "Full-Stack Developer · Freelance"
+  problem: Localized;           // contesto / problema
+  action: Localized;            // cosa ha fatto Alberto
+  result: Localized;            // esito / impatto
   stack: string[];              // tag tecnici (EN, non localizzati): "Next.js 15", "PostGIS", ...
-  metrics?: string[];           // es. "sub-second geo search", "zero known auth vulns at launch"
-  links?: { label: string; href: string }[];
-  status: "confirmed" | "provisional"; // Sersan = "provisional" (schema zod canonico in docs/07-PROJECTS.md)
-  cover?: string;               // path asset in /public (immagine/poster)
+  metrics?: ProjectMetric[];    // value + label LOCALIZZATA (non string[])
+  links?: ProjectLink[];
+  order: number;                // ordine di display ascendente (1..5)
 };
+
+// export: projects: Project[]  +  projectsSorted (ordinato per order)
 ```
 
 Regole:
 - I contenuti dei progetti sono la trascrizione fedele di `docs/07-PROJECTS.md`. Non inventare metriche.
-- I progetti Sersan hanno `status: "provisional"` finche Alberto non fornisce i dettagli (sez. 11).
-- Nota: lo "stato di pubblicazione" (`confirmed`/`provisional`) NON indica se un progetto ha una URL live. La presenza di una URL pubblica si rappresenta col campo opzionale `liveUrl` (o un entry in `links`), non con `status`.
+- I progetti Sersan hanno `status: "provisional"` con placeholder `[[TBD]]` / `[[DA DEFINIRE]]` finche Alberto non fornisce i dettagli (sez. 11). **Mantenerli provisional — non inventare.**
+- Differenze rispetto a versioni storiche di questo doc: il campo si chiama `title` (non `name`), esiste `order` (non c'era), `metrics` e `ProjectMetric[]` con label localizzata (non `string[]`), non esistono i campi `cover` / `liveUrl`, non c'e validazione `zod`.
 
 ### 6.2 Skill group
 
 ```ts
+// src/data/skills.ts — forma reale nel codice (NESSUN campo id)
 type SkillGroup = {
-  id: "core" | "frontend" | "backend-db" | "cloud-devops" | "ai";
-  label: LocalizedText;         // titolo del gruppo
-  items: string[];              // skill in EN: "TypeScript", "React 19", "PostgreSQL", "Azure Speech", ...
+  label: Localized;             // titolo del gruppo (bilingue)
+  items: string[];              // proper nouns NON localizzati: "TypeScript", "React", "Azure (AD, Speech)", ...
 };
+
+// export: skillGroups: SkillGroup[]  — 6 gruppi:
+//   "Core" · "Front-End" · "Back-End & Data" · "Cloud & DevOps" · "AI & Agents" · "Testing & Tooling"
 ```
+
+> Aggiornamento rispetto al doc storico: i gruppi sono **6** (aggiunto `Testing & Tooling`), le label sono quelle sopra (es. `Back-End & Data`, `AI & Agents`), e **non esiste il campo `id`**.
 
 ### 6.3 Copy / i18n
 
 ```ts
-// src/data/translations/{en,it}.ts
-type Dictionary = Record<string, string>; // chiavi stabili EN; valori localizzati
-// Esempio chiavi: hero.role, hero.cta.viewWork, hero.cta.contact, about.body, contact.cta
+// src/data/translations/{en,it}.ts — il Dictionary e NESTED per-sezione, non flat
+type Dictionary = {
+  meta: { eyebrow: string };
+  nav: { work: string; about: string; skills: string; contact: string; cta: string };
+  hero: { role: string; tagline: string; scrollCue: string };
+  intro: { ... };
+  cinematic: { ... };
+  work: { ... };
+  skills: { ... };
+  // ... una chiave per sezione
+};
+// accesso via hook useLanguage(): t.hero.role, t.nav.cta, ...
 ```
 
 - Default EN. Parita di contenuto tra EN e IT (nessuna sezione "solo IT" o "solo EN").
 - I nomi tecnici, gli stack tag e i brand restano in EN in entrambe le lingue.
+- **Nota (codice):** il `Dictionary` e un oggetto nidificato per-sezione, NON un `Record<string, string>` piatto. L'i18n e gestito da `src/components/language-provider.tsx` (hook `useLanguage`, cookie-based).
 
 ### 6.4 Asset
 
 | Asset | Path | Note |
 | --- | --- | --- |
-| Logo 3D | `public/models/at-mark.glb` | GLB ottimizzato (Draco/Meshopt + KTX2). Pipeline Blender in `docs/04-3D-HERO-WATER-LOGO.md`. |
-| Cinematica | `public/video/` | Clip Pan di Zucchero + backflip Higgsfield. Spec/scrub in `docs/05-CINEMATIC-SCROLL.md`. |
-| Poster fallback | `public/video/` | Frame statico per mobile/reduced-motion. |
-| OG / favicon | `src/app/` + `public/` | OG image + favicon/manifest (vedi sez. 7 SEO/PWA). |
+| Mark `A` (GLB) | `public/models/a-mark.glb` · `public/models/a-liquid.glb` | Presenti nel repo ma **NON caricati a runtime**: la `A` d'acqua e riempita proceduralmente via `initFromHomes()` (vedi S1 / `docs/04-3D-HERO-WATER-LOGO.md`). Non esiste `at-mark.glb`. |
+| Cinematica (frames) | `public/frames/f_000.webp` … `f_135.webp` | 136 frame WebP serviti su canvas 2D (`video-backdrop.tsx`). Sorgente di verita renderizzata. Spec/scrub in `docs/05-CINEMATIC-SCROLL.md`. |
+| Cinematica (sorgente) | `public/video/hf_20260624_*.mp4` | mp4 raw Higgsfield, **source-only / untracked** — non serviti a runtime. |
+| Cubemap | `public/cubemap/` | Env map per reflect/refract del fluido. |
+| Reduced-motion | (frame ~0.5 della sequenza) | Nessun poster dedicato: in reduced-motion si congela un frame centrale (vedi S1/S3). |
+| OG / favicon | `src/app/` + `public/` | OG image + favicon/manifest **non ancora costruiti** (GATE 8; vedi sez. 7 SEO/PWA). |
 
 ### 6.5 Backend del form contatti (condizionale)
 
@@ -197,17 +228,17 @@ type Dictionary = Record<string, string>; // chiavi stabili EN; valori localizza
 
 ### 7.1 Funzionali (DEVE)
 
-- DEVE essere una single-page scrollytelling con le sezioni S1..S6 nell'ordine della sez. 4.
+- DEVE essere una single-page scrollytelling con le sezioni S1..S6 nell'ordine della sez. 4 (con S1 ed S3 fusi in un'unica sezione pinnata, vedi sez. 4).
 - DEVE essere bilingue EN/IT con toggle e default EN; parita di contenuto.
-- DEVE avere il logo 3D ad acqua nell'hero con doppio backend (WebGPU-native via compute/TSL, fallback WebGL2, fallback statico) — spec in `docs/04-3D-HERO-WATER-LOGO.md`.
-- DEVE avere la sezione cinematica scroll-scrubbed con fallback poster — spec in `docs/05-CINEMATIC-SCROLL.md`.
+- DEVE avere l'hero ad acqua reale (fluido MLS-MPM WebGPU) — spec in `docs/04-3D-HERO-WATER-LOGO.md`. **Nota di realta (codice):** l'implementazione e **WebGPU-only**; il fallback in assenza di `navigator.gpu` e il solo gradiente CSS "sea" (NON c'e path WebGL2). Il requisito storico "doppio backend / WebGL2" e quindi superato; un fallback piu ricco resta una decisione aperta (sez. 11).
+- DEVE avere la cinematica scroll-scrubbed (frame-sequence WebP fusa nell'hero) con stato statico in reduced-motion — spec in `docs/05-CINEMATIC-SCROLL.md`.
 - DEVE mostrare i progetti con formato problema/azione/risultato + stack + metriche.
-- DEVE esporre contatti reali (email, LinkedIn, GitHub) raggiungibili senza scroll fino in fondo (es. anche in nav/hero CTA).
+- DEVE esporre contatti reali (email, LinkedIn, GitHub) raggiungibili senza scroll fino in fondo. **Nota (codice):** l'hero NON ha CTA inline `View work` / `Get in touch`; il requisito e attualmente soddisfatto da nav (`Get in touch`) + footer S6. Le CTA hero restano opzionali, non un requisito vincolante.
 
 ### 7.2 Non-funzionali (DEVE salvo dove indicato)
 
 - **Performance:** 60fps su desktop recente durante hero e scroll. Degrado elegante su mobile (riduci densita particellari/postprocessing) e con `prefers-reduced-motion`. Lazy-load di scene 3D e video. **Lighthouse Performance >= 80 su mobile** (target di gate). Budget dettagliati in `docs/01-TECHSTACK.md`.
-- **Accessibilita (AA):** contenuto leggibile da screen reader; 3D/video decorativi `aria-hidden`; focus states visibili; navigazione completa da tastiera; contrasto testo AA sui token oceano (verificare `--foam` su `--abyss`/`--deep`). `prefers-reduced-motion` DEVE disattivare la sim GPGPU pesante e gli scrub video (mostra stati statici).
+- **Accessibilita (AA):** contenuto leggibile da screen reader; 3D/video decorativi `aria-hidden`; focus states visibili; navigazione completa da tastiera; contrasto testo AA sui token oceano (verificare `--foam` su `--abyss`/`--deep`). `prefers-reduced-motion` DEVE neutralizzare la sim fluida WebGPU e gli scrub della frame-sequence (mostra stati statici: title card + frame centrale).
 - **SEO / OG:** metadata per `/` (title, description, canonical), `sitemap.xml`, `robots.txt`, OpenGraph image, structured data `Person`. Title e description in EN di default, localizzati dove possibile. (Skill: `seo`, `schema-markup`, `fixing-metadata`.)
 - **PWA:** OPZIONALE in v1. Se attivata, manifest + favicon set + theme-color oceano. Non e un requisito di lancio.
 - **Browser/Device:** ultimi Chrome/Edge/Safari/Firefox desktop; iOS Safari e Android Chrome recenti su mobile. WebGPU dove disponibile, altrimenti fallback automatico (no errori visibili all'utente).
@@ -220,11 +251,11 @@ type Dictionary = Record<string, string>; // chiavi stabili EN; valori localizza
 Il prodotto e "done" per la v1 quando TUTTI i seguenti sono veri (gate di lancio):
 
 - [ ] Le 6 sezioni S1..S6 esistono, nell'ordine, con il contenuto della sez. 4.
-- [ ] L'hero 3D ad acqua gira a 60fps su desktop recente e ha i tre livelli di fallback funzionanti (WebGPU / WebGL2 / statico).
-- [ ] La cinematica scroll-scrubbed funziona su desktop e degrada a poster su mobile/reduced-motion senza bloccare lo scroll.
+- [ ] L'hero ad acqua (MLS-MPM WebGPU) gira a 60fps su desktop recente; in assenza di WebGPU il fallback (gradiente CSS "sea") e pulito e senza errori visibili. (Path WebGL2 NON previsto — vedi sez. 7.1 / open question sez. 11.)
+- [ ] La cinematica scroll-scrubbed (frame-sequence WebP) funziona su desktop e in reduced-motion congela un frame centrale senza bloccare lo scroll.
 - [ ] Bilingue EN/IT completo, default EN, parita di contenuto, toggle funzionante.
-- [ ] Tutti i progetti reali (Badante24h, DOIT, supply chain) presenti con problema/azione/risultato + stack + metriche. Sersan presente come `provisional`.
-- [ ] Contatti reali e copiabili; CTA `Get in touch` e `View work` raggiungibili da tastiera.
+- [ ] Tutti i progetti reali (Badante24h, DOIT, supply chain) presenti con problema/azione/risultato + stack + metriche. Sersan (2 card) presente come `provisional` con placeholder `[[TBD]]`.
+- [ ] Contatti reali e copiabili; CTA `Get in touch` raggiungibile da tastiera (in nav + footer). CTA inline nell'hero opzionale.
 - [ ] Lighthouse Performance mobile >= 80; nessun errore in console; nessun layout shift evidente (CLS basso).
 - [ ] A11y: navigazione tastiera completa, focus states, screen-reader order corretto, reduced-motion rispettato, contrasto AA.
 - [ ] SEO/OG: metadata, sitemap, robots, OG image presenti.
@@ -238,8 +269,8 @@ Metriche di esito (post-lancio, non bloccanti per il merge ma da osservare): tem
 
 Il PRD non descrive il "come" tecnico (vedi i doc dedicati), ma fissa le dipendenze di contenuto che bloccano lo sviluppo:
 
-- **Logo `at-mark.glb`** prodotto via Blender MCP (text-to-3D + ottimizzazione gltf-transform). Senza GLB, l'hero usa un placeholder. Vedi `docs/04-3D-HERO-WATER-LOGO.md` e `docs/09-MCP.md`.
-- **Video cinematica** generati con Higgsfield MCP. Senza clip, S3 usa poster placeholder. Vedi `docs/05-CINEMATIC-SCROLL.md` e `docs/09-MCP.md`.
+- **Mark `A`**: i GLB `a-mark.glb` / `a-liquid.glb` esistono nel repo ma NON sono caricati a runtime — la `A` d'acqua e generata proceduralmente (`initFromHomes()`). Nessuna dipendenza bloccante da un GLB per l'hero. Vedi `docs/04-3D-HERO-WATER-LOGO.md`.
+- **Cinematica (frames)**: la footage e una sequenza di 136 WebP in `public/frames/` (renderizzate da sorgenti Higgsfield mp4 in `public/video/`, source-only). Vedi `docs/05-CINEMATIC-SCROLL.md` e `docs/09-MCP.md`.
 - **Copy progetti** da `docs/07-PROJECTS.md`; dettagli Sersan = bloccanti per quelle due card (restano `provisional`).
 
 ---
@@ -276,6 +307,8 @@ Il PRD non descrive il "come" tecnico (vedi i doc dedicati), ma fissa le dipende
 6. **Analytics / cookie banner**: si introduce analytics (e quindi banner) o si resta a zero cookie?
 7. **Asset reali del backflip**: esiste girato reale da usare/ricreare con Higgsfield, o si genera interamente AI? (impatta `docs/05-CINEMATIC-SCROLL.md`).
 8. **Dominio**: dominio finale per OG/canonical e deploy Vercel.
+9. **Fallback hero su device senza WebGPU**: oggi l'hero e WebGPU-only e il fallback e il solo gradiente CSS "sea" (niente WebGL2, niente `A` statica). Va bene per la v1 o serve un fallback visivo piu ricco (es. immagine statica della `A`) per Safari/Firefox senza WebGPU e per mobile? (impatta `docs/04-3D-HERO-WATER-LOGO.md` e i criteri di sez. 8).
+10. **Parametri fluido (leva)**: i valori inflate/gravity/restore/speedGate/leashRadius dell'hero sono live-tuned via leva e attendono sign-off a GATE-6.
 
 ---
 
@@ -286,8 +319,8 @@ Il PRD non descrive il "come" tecnico (vedi i doc dedicati), ma fissa le dipende
 - `docs/01-TECHSTACK.md` — stack + versioni, convenzioni, struttura file, budget perf/a11y, deploy.
 - `docs/02-DESIGN.md` — art direction oceano, token, tipografia, motion, voce del copy, ispirazioni.
 - `docs/03-ARCHITECTURE.md` — cartelle, Canvas globale + overlay DOM, sync Lenis<->R3F, store Zustand, i18n EN/IT, routing, mappa scena<->sezione.
-- `docs/04-3D-HERO-WATER-LOGO.md` — logo AT/A particelle d'acqua GPGPU, doppio backend, fisica, shading, tier, pipeline Blender.
-- `docs/05-CINEMATIC-SCROLL.md` — cinematica Pan di Zucchero + backflip, scroll-scrub, transizione-zoom, fallback.
+- `docs/04-3D-HERO-WATER-LOGO.md` — hero `A` ad acqua reale (fluido MLS-MPM WebGPU, render Screen-Space-Fluid), fisica velocity-based, shading, tier, fallback.
+- `docs/05-CINEMATIC-SCROLL.md` — cinematica Pan di Zucchero (frame-sequence WebP fusa nell'hero), scroll-scrub, preload, fallback reduced-motion.
 - `docs/06-REFERENCES.md` — riferimenti di qualita (studiare, non copiare).
 - `docs/07-PROJECTS.md` — bio Alberto + schede progetto + voci Sersan provvisorie.
 - `docs/08-CONTEXT7.md` — Context7 MCP: setup, regola operativa, librerie.

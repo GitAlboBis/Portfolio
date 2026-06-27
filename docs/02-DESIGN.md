@@ -1,322 +1,320 @@
 # 02 — DESIGN: Art Direction & Design System
 
-Scopo: definire la direzione artistica e il design system canonico del portfolio di Alberto Tuveri (tema oceano sardo, qualita Awwwards). Questo file e la fonte di verita per palette, tipografia, spazio, motion, estetica dei componenti e voce del copy. Ogni agente che costruisce UI segue ESATTAMENTE i token qui definiti: niente hex inventati, niente font fuori lista, niente animazioni gratuite.
+> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica frame-sequence). Riconciliato dal loop docs-driven-build. La fonte di verita dei token e ora `src/app/globals.css` (blocco `@theme`, prefisso `--color-*`); questo file documenta quel sistema "Cinematic Ocean / NatGeo".
 
-Documenti correlati: `docs/00-PRD.md` (visione/narrativa), `docs/01-TECHSTACK.md` (stack/versioni), `docs/03-ARCHITECTURE.md` (canvas globale + overlay DOM, store, i18n), `docs/04-3D-HERO-WATER-LOGO.md` (logo ad acqua, usa COL_COLD/COL_HOT definiti qui), `docs/05-CINEMATIC-SCROLL.md` (color grade della cinematica), `docs/06-REFERENCES.md` (librerie di ispirazione), `docs/07-PROJECTS.md` (copy delle schede).
+Scopo: definire la direzione artistica e il design system canonico del portfolio di Alberto Tuveri (tema oceano sardo, qualita Awwwards). Questo file e la fonte di verita per palette, tipografia, motion, estetica dei componenti e voce del copy. Ogni agente che costruisce UI segue ESATTAMENTE i token qui definiti: niente hex inventati, niente font fuori lista, niente animazioni gratuite.
+
+Documenti correlati: `docs/00-PRD.md` (visione/narrativa), `docs/01-TECHSTACK.md` (stack/versioni), `docs/03-ARCHITECTURE.md` (canvas host + overlay DOM, store, i18n), `docs/04-3D-HERO-WATER-LOGO.md` (hero ad acqua MLS-MPM WebGPU), `docs/05-CINEMATIC-SCROLL.md` (cinematica fusa nella hero, frame-sequence WebP), `docs/06-REFERENCES.md` (librerie di ispirazione), `docs/07-PROJECTS.md` (copy delle schede).
 
 ---
 
 ## 1. Mood / Concept
 
-Una sola frase guida: **"Il mare di Pan di Zucchero reso codice."** Il sito deve dare la sensazione di guardare l'oceano della Sardegna sud-occidentale (Masua, Iglesias) all'ora dorata: profondo, calmo in superficie, vivo sotto. Tre aggettivi vincolanti, in ordine di priorita:
+Una sola frase guida: **"Il mare di Pan di Zucchero reso codice."** Lineage dichiarato nel codice: NatGeo "Into the Amazon" — full-bleed media-driven, grande serif bianco, un solo accento freddo raro. Il sito deve dare la sensazione di guardare l'oceano della Sardegna sud-occidentale (Masua, Iglesias): profondo, calmo in superficie, vivo sotto. Tre aggettivi vincolanti, in ordine di priorita:
 
 1. **Cinematografico** — profondita di campo, color grade coerente, transizioni fluide. Niente "pagina web", e un film interattivo.
 2. **Premium / editoriale** — serif da rivista per i titoli, spazio negativo abbondante, ritmo tipografico curato. Lusso percepito, non saturazione.
 3. **Calmo ma vivo** — a riposo tutto respira lento (micro-moto ondoso, parallax leggero); all'interazione l'acqua reagisce (schizzo, risacca). Mai frenetico.
 
-Antipattern da evitare: gradient viola/SaaS generici, glassmorphism a caso, emoji nell'UI, neon RGB da gaming, parallax aggressivo che induce nausea, drop-shadow morbide ovunque. La luce e quella dell'acqua, non del neon.
+Antipattern da evitare: gradient viola/SaaS generici, glassmorphism a caso, emoji nell'UI, **electric/neon cyan** (esplicitamente bandito nel codice), neon RGB da gaming, parallax aggressivo che induce nausea, drop-shadow morbide ovunque. La luce e quella dell'acqua, non del neon. **Niente oro/gold**: l'accento warm e stato rimosso per direzione (vedi §2).
 
 Riferimento di livello: `lusion.co` (vedi `docs/06-REFERENCES.md`). Studiare, non copiare.
 
 ---
 
-## 2. Palette (token canonici OCEANO)
+## 2. Palette (token canonici — `@theme`, prefisso `--color-*`)
 
-Dark-first. I valori hex sono **vincolanti**: non introdurre colori fuori da questa lista senza aggiornare prima questo file. Definiti come CSS custom properties nel layer `:root` di `src/app/globals.css` (Tailwind v4 e config CSS-first: i token diventano automaticamente disponibili come utility via `@theme`).
+Dark-first con superfici chiare consentite per sezioni "light". I token vivono nel blocco **`@theme`** di `src/app/globals.css` (Tailwind v4, config CSS-first: ogni `--color-*` diventa automaticamente una utility — `bg-abyss`, `text-foam`, `border-rule`, ecc.). NON sono in `:root`. I valori hex sono **vincolanti**: non introdurre colori fuori da questa lista senza aggiornare prima questo file e `globals.css`.
 
 ```css
-/* src/app/globals.css */
-:root {
-  /* --- Surfaces (dark-first, dal piu profondo al piu in superficie) --- */
-  --abyss: #05131A;          /* page base: il fondale, sfondo di default <body> */
-  --deep: #0A2430;           /* surface: card, pannelli, sezioni sollevate di 1 livello */
-  --surface-elev: #103240;   /* surface elevata: hover di card, dropdown, modali, nav sticky */
+/* src/app/globals.css — @theme */
+@theme {
+  /* --- Palette: natural ocean, light surface -> deep --- */
+  --color-abyss: #07222e;        /* deep sea base (sezioni scure / <body>) */
+  --color-deep: #0b2c3a;         /* surface piu profonda */
+  --color-tide: #5aa7be;         /* mid sea-blue naturale (accenti sobri, MAI neon) */
+  --color-foam: #f4fafb;         /* near-white: testo su scuro, superfici chiare */
+  --color-mist: #9fbac6;         /* testo muto su scuro */
 
-  /* --- Ink / foreground --- */
-  --foam: #EAF6F6;           /* foreground primario: testo/heading su sfondo scuro (la schiuma) */
-  --ink-mute: #88A2A8;       /* foreground muto (sea grey): body secondario, caption, label inattive */
-  --rule: rgba(234,246,246,0.10); /* hairline: bordi, divider, griglie a 1px (foam al 10%) */
+  /* --- Light-surface ink (sezioni chiare) --- */
+  --color-ink: #0b2731;          /* testo profondo per sezioni LIGHT */
+  --color-ink-mute: #5c7884;     /* testo muto su chiaro */
 
-  /* --- Accent / signal --- */
-  --aqua: #1FC8C8;           /* accent freddo primario: link, CTA, focus ring, accenti UI */
-  --aqua-hot: #7DF9FF;       /* foam-cyan: hover dell'accent, glow, picchi di schiuma luminosa */
-  --abyss-glow: #0E5A6B;     /* accent profondo: gradienti di sfondo, glow soffusi, stati attivi scuri */
+  /* --- Accent: celeste + bianco (NO electric cyan) --- */
+  --color-celeste: #9bd3ee;      /* light sky-blue: l'accento, sempre in coppia col bianco */
+  --color-celeste-soft: #c7e6f4;
+  --color-sun: #9bd3ee;          /* back-compat: alias -> celeste (gold rimosso per direzione) */
 
-  /* --- Special: golden hour --- */
-  --gold: #FFC27A;           /* USO PARSIMONIOSO: solo per i picchi "sole su acqua" (1 accento per vista max) */
+  /* --- Bright Mediterranean surface (hero) — colori reali Pan di Zucchero --- */
+  --color-sky: #8fc1e2;          /* cielo azzurro */
+  --color-shallow: #2f93ab;      /* bassi fondali turchese */
+  --color-limestone: #e3dac6;    /* roccia pallida illuminata dal sole */
+
+  /* --- Hairlines --- */
+  --color-rule: rgb(244 250 251 / 0.14);     /* hairline su scuro */
+  --color-rule-ink: rgb(11 39 49 / 0.14);    /* hairline su chiaro */
+
+  /* --- Back-compat aliases (utility vecchie risolvono a toni naturali, mai cyan) --- */
+  --color-aqua: #5aa7be;
+  --color-aqua-hot: #cfeaf0;
+  --color-surface-elev: #123a4a;
+  --color-abyss-glow: #0e5a6b;
+  --color-gold: #f2b45a;         /* DEAD back-compat: non usare in UI nuova */
 }
 ```
 
 Regole d'uso della palette:
 
-- **Sfondo di default** sempre `--abyss`. Le superfici salgono di livello solo per gerarchia (`--deep` -> `--surface-elev`), mai per decorazione.
-- **`--gold` e un evento, non un colore di sistema.** Massimo un elemento gold per viewport (es. il glow del sole sull'orizzonte nella hero, o un singolo dato chiave). Mai testo lungo, mai bordi diffusi.
-- **`--aqua` vs `--aqua-hot`**: `--aqua` e lo stato di riposo dell'accento; `--aqua-hot` e lo stato eccitato (hover, focus, particelle veloci). Pensa "freddo a riposo, caldo in moto".
-- **Contrasto AA obbligatorio**: `--foam` su `--abyss`/`--deep` supera AA per body e large text. `--ink-mute` su `--abyss` e per testo secondario >= 16px; non usarlo per micro-copy critico. `--aqua` su scuro va bene per link/icone; verificare ogni coppia testo/sfondo con il check del `docs/11-WORKFLOW.md` (gate a11y).
+- **Sfondo di default** sempre `--color-abyss` (impostato su `html, body`). Le superfici scure salgono verso `--color-deep`/`--color-surface-elev` solo per gerarchia, mai per decorazione.
+- **Accento = celeste + bianco.** L'accento operativo e `--color-celeste` (`#9bd3ee`), abbinato a `--color-foam` (bianco-near). Non esiste piu un cyan elettrico: la famiglia `--color-aqua*` e back-compat verso toni naturali, non neon.
+- **Gold RIMOSSO.** `--color-sun` e un alias verso `--color-celeste`; `--color-gold` resta solo come token morto di back-compat e **non va usato in UI nuova**. Le vecchie direttive "max 1 gold per viewport" sono superate: non c'e oro.
+- **Sezioni light vs dark.** Per blocchi a fondo chiaro usare `--color-foam` come superficie e `--color-ink`/`--color-ink-mute` come testo (+ `--color-rule-ink` per gli hairline). Per blocchi scuri: `--color-abyss`/`--color-deep` + `--color-foam`/`--color-mist` (+ `--color-rule`).
+- **Hero Mediterraneo.** I token `--color-sky` / `--color-shallow` / `--color-limestone` sono i colori reali di Pan di Zucchero per la superficie luminosa della hero; il fallback CSS (sea gradient, quando WebGPU non e disponibile — vedi `docs/03-ARCHITECTURE.md`) attinge a questa famiglia.
+- **Contrasto AA obbligatorio**: `--color-foam` su `--color-abyss`/`--color-deep` supera AA; `--color-ink` su `--color-foam` per le sezioni chiare. `--color-mist`/`--color-ink-mute` sono per testo secondario, non per micro-copy critico. Verificare ogni coppia testo/sfondo col check del `docs/11-WORKFLOW.md` (gate a11y).
 
-### Particelle acqua (velocity-driven) — usate dal logo 3D
-
-Le particelle del logo (vedi `docs/04-3D-HERO-WATER-LOGO.md`) interpolano il colore in base alla velocita: `mix(COL_COLD, COL_HOT, smoothstep(0.0, MAX_SPEED, length(vel)))`. Valori linear-space (NON sRGB hex), tripli RGB normalizzati:
-
-```ts
-// src/webgl/gpgpu/gpgpuConfig.ts
-export const COL_COLD = [0.06, 0.30, 0.34] as const; // a riposo: deep teal (profondita / volume d'acqua scuro)
-export const COL_HOT  = [0.75, 0.98, 1.00] as const; // in moto: cyan-white (schiuma/spray illuminato, va in bloom)
-```
-
-`COL_COLD` corrisponde concettualmente alla famiglia `--deep`/`--abyss-glow`; `COL_HOT` alla famiglia `--aqua-hot`/`--foam`. Mantenere questa coerenza percettiva: il logo deve "appartenere" alla palette del sito.
+> openQuestion: l'hero non e piu un sistema GPGPU di particelle a 2 strati. E un fluido MLS-MPM su griglia (WebGPU, vendored da matsuoka-601/WaterBall) che fa render Screen-Space-Fluid con cubemap reflect/refract sopra la cinematica (`src/webgl/waterball/*`). Lo shading del fluido e tarato nei suoi shader WGSL, NON tramite i `--color-*` di questo file: i due COL_COLD/COL_HOT (ex `src/webgl/gpgpu/gpgpuConfig.ts`) NON esistono piu nel tree attivo. La mappatura colore acqua e materia di `docs/04` e resta live-tuned via leva, soggetta a sign-off GATE-6.
 
 ---
 
 ## 3. Tipografia
 
-Tre famiglie, ruoli netti. Caricamento via `next/font/local` (i file Fontshare si self-hostano per performance e per evitare richieste a host esterni; scaricare i .woff2 e metterli in `src/app/fonts/`).
+Due famiglie, ruoli netti. Caricamento via **`next/font/google`** in `src/app/layout.tsx` (NON self-host, NON `src/app/fonts.ts`, NON `next/font/local`). Le variabili CSS sono esposte sul `<html>` e referenziate dai token `@theme`.
 
-- **Display = "Editorial New"** (Fontshare) — serif premium con corsivo. Solo heading grandi (hero, titoli di sezione). E la voce editoriale del sito.
-- **Body = "Switzer"** (Fontshare) — grotesque moderno. Paragrafi, UI, bottoni, navigazione.
-- **Mono = "JetBrains Mono"** — eyebrow/label uppercase, numeri tabellari (metriche progetto), micro-copy tecnico (stack, versioni).
+- **Display + reading = "Fraunces"** (serif premium, con corsivo) — heading grandi (hero, titoli di sezione) E testo di lettura (`.lead`, body). E la voce editoriale del sito.
+- **Sans / label = "Hanken Grotesk"** — small-caps label uppercase, eyebrow, copy UI breve. **Non esiste un mono dedicato**: `--font-mono` e aliasato a Hanken (niente JetBrains Mono).
 
 ```ts
-// src/app/fonts.ts
-import localFont from "next/font/local";
+// src/app/layout.tsx
+import { Fraunces, Hanken_Grotesk } from "next/font/google";
 
-export const editorial = localFont({
-  src: [
-    { path: "./fonts/EditorialNew-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/EditorialNew-Italic.woff2",  weight: "400", style: "italic" },
-  ],
-  variable: "--font-display",
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-fraunces",
   display: "swap",
 });
 
-export const switzer = localFont({
-  src: [
-    { path: "./fonts/Switzer-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/Switzer-Medium.woff2",  weight: "500", style: "normal" },
-    { path: "./fonts/Switzer-Semibold.woff2", weight: "600", style: "normal" },
-  ],
-  variable: "--font-body",
+const hanken = Hanken_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-hanken",
   display: "swap",
 });
-
-export const jetbrains = localFont({
-  src: [{ path: "./fonts/JetBrainsMono-Regular.woff2", weight: "400", style: "normal" }],
-  variable: "--font-mono",
-  display: "swap",
-});
+// applicare `${fraunces.variable} ${hanken.variable}` sul <html>
 ```
 
-Applicare le variabili sul `<html>` in `src/app/layout.tsx`: `className={`${editorial.variable} ${switzer.variable} ${jetbrains.variable}`}`. In `globals.css`:
+I token font vivono nel blocco `@theme` e puntano alle variabili `next/font`:
 
 ```css
-:root {
-  --font-display: "Editorial New", Georgia, serif; /* sovrascritto da next/font */
-  --font-body: "Switzer", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-}
-body { font-family: var(--font-body); background: var(--abyss); color: var(--foam); }
+/* src/app/globals.css — @theme */
+--font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+--font-serif:   var(--font-fraunces), ui-serif, Georgia, serif;
+--font-sans:    var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+--font-mono:    var(--font-hanken), ui-sans-serif, system-ui, sans-serif; /* alias: no mono reale */
+
+/* body usa il serif */
+body { font-family: var(--font-serif); background-color: var(--color-abyss); color: var(--color-foam); }
 ```
 
-### Scala tipografica (fluida con `clamp()`)
+### Classi tipografiche reali
 
-Tutti i titoli sono fluidi tra mobile e desktop. Riferimento: viewport 360px -> 1440px. `line-height` stretto sui display, comodo sul body.
+Le classi sono definite direttamente in `globals.css` (non sotto `@layer components`) e portano il `clamp()` **inline** nella classe — **non esistono token `--fs-*`**. Sono queste, e solo queste:
 
 ```css
-:root {
-  /* display & headings (Editorial New) */
-  --fs-display: clamp(3rem, 9vw, 8.5rem);   /* hero "Alberto Tuveri" */
-  --fs-h1: clamp(2.25rem, 5.5vw, 4.5rem);   /* titolo di sezione */
-  --fs-h2: clamp(1.75rem, 3.5vw, 3rem);
-  --fs-h3: clamp(1.25rem, 2vw, 1.75rem);
-  /* body (Switzer) */
-  --fs-lead: clamp(1.125rem, 1.6vw, 1.5rem); /* paragrafo introduttivo */
-  --fs-body: clamp(1rem, 1.1vw, 1.125rem);
-  --fs-small: 0.9375rem;
-  /* mono (JetBrains) */
-  --fs-eyebrow: 0.8125rem; /* uppercase, letter-spacing largo */
+.display-hero {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  font-size: clamp(3.5rem, 13vw, 13rem);   /* hero "A" / wordmark */
+}
+.heading-1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.25rem, 5.5vw, 4.75rem);
+  line-height: 1.0;
+  letter-spacing: -0.015em;
+}
+.heading-2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.7rem, 3.6vw, 2.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+.lead {
+  font-family: var(--font-serif);
+  font-size: clamp(1.1rem, 1.7vw, 1.45rem);
+  line-height: 1.55;
+  color: var(--color-mist);
+}
+.label {  /* small-caps label, sans, lettera-spaziata (NatGeo chapter labels) */
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+}
+.eyebrow { /* alias legacy di .label, stessa resa */
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--color-mist);
 }
 ```
 
-Classi utility (definirle in `globals.css` con `@layer components`):
-
-```css
-@layer components {
-  .heading-display {
-    font-family: var(--font-display);
-    font-size: var(--fs-display);
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    font-weight: 400;
-  }
-  .heading-1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: 1.02; letter-spacing: -0.015em; }
-  .heading-2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: 1.05; letter-spacing: -0.01em; }
-  .heading-3 { font-family: var(--font-body); font-size: var(--fs-h3); line-height: 1.2; font-weight: 600; }
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: var(--fs-eyebrow);
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--aqua);
-  }
-  .lead { font-size: var(--fs-lead); line-height: 1.5; color: var(--foam); }
-  .body { font-size: var(--fs-body); line-height: 1.65; color: var(--ink-mute); }
-}
-```
-
-Regola: il corsivo di Editorial New si usa per UNA parola enfatica nei titoli (es. il nome della tesi, "*ocean*" nella tagline), non per intere righe. I numeri delle metriche usano sempre `--font-mono` con `font-variant-numeric: tabular-nums`.
+Regole:
+- Per i titoli usare `.display-hero` / `.heading-1` / `.heading-2`. Per la prosa introduttiva `.lead`. Per le etichette `.label` (o `.eyebrow`, alias legacy). Body lungo: serif a peso 400, line-height ~1.55–1.65.
+- Il corsivo di Fraunces si usa per UNA parola enfatica nei titoli, non per intere righe.
+- I numeri delle metriche usano `font-variant-numeric: tabular-nums` (in Hanken — non c'e mono dedicato).
 
 ### Nota alternative
 
-Default bloccato: Editorial New / Switzer / JetBrains Mono. Alternative ammesse SOLO se Alberto lo decide esplicitamente, mantenendo i ruoli: per il Display, **Cormorant** o **Gambetta** (Fontshare) come serif premium con corsivo; per il Body, **General Sans** o **Inter**; il Mono resta JetBrains Mono. Cambiare font significa aggiornare questo file e i `--font-*`, non i singoli componenti.
+Default bloccato: **Fraunces** (display/serif) + **Hanken Grotesk** (sans/label). Cambiare font significa aggiornare questo file, l'import in `src/app/layout.tsx` e i token `@theme`, non i singoli componenti. Non reintrodurre Editorial New / Switzer / JetBrains Mono ne `src/app/fonts.ts`: sono stati rimossi.
 
 ---
 
 ## 4. Spaziatura e layout
 
-Scala di spazio basata su una unita di 4px (token semantici, non valori sparsi):
+> openQuestion: NON esistono token `--space-*`, `--container`, ne `--radius*` nel `@theme` corrente. La spaziatura e gestita con la scala Tailwind v4 di default (utility `p-*`, `gap-*`, `py-*`, ecc.) e i raggi con `rounded-*` (i bottoni usano `rounded-full`). Le direttive seguenti restano valide come PRINCIPI di ritmo; gli specifici valori semantici vanno espressi con utility Tailwind, non con custom property dedicate.
 
-```css
-:root {
-  --space-2: 0.5rem;   /* 8px  - gap interni minimi */
-  --space-3: 0.75rem;  /* 12px */
-  --space-4: 1rem;     /* 16px - gap base */
-  --space-6: 1.5rem;   /* 24px */
-  --space-8: 2rem;     /* 32px */
-  --space-12: 3rem;    /* 48px */
-  --space-16: 4rem;    /* 64px */
-  --space-24: 6rem;    /* 96px  - padding verticale di sezione (mobile) */
-  --space-32: 8rem;    /* 128px - padding verticale di sezione (desktop) */
-  --space-48: 12rem;   /* 192px - respiro extra tra blocchi maggiori */
-}
-```
+Principi di ritmo (implementare con utility Tailwind, scala 4px):
 
-Griglia e contenitori:
+- **Content width**: contenitore centrato (`mx-auto`) con `max-w-*` da catalogo Tailwind; padding orizzontale fluido `px-[clamp(1.25rem,5vw,4rem)]`. Per blocchi full-bleed contenuti, usare un wrapper piu largo.
+- **Griglia editoriale**: 12 colonne con `gap` medio. Le sezioni testuali occupano 6–8 colonne (mai 12 piene di testo). Misura di riga ideale: 60–75 caratteri.
+- **Ritmo verticale**: ogni `<section>` ha padding-block generoso (mobile piu compatto, desktop piu ampio); tra hero/cinematica e le sezioni successive lasciare respiro extra per "decompressione".
+- **Spazio negativo abbondante**: e una scelta di design, non spazio sprecato. Non riempire.
+- **Full-bleed**: la hero (con cinematica fusa) e `100vw`/sticky multi-viewport (timeline GSAP ~600vh, vedi `docs/05`); il contenuto editoriale sta dentro il container.
 
-- **Content width**: `--container: 1200px`; `--container-wide: 1440px` per blocchi full-bleed contenuti. Centrare con `margin-inline: auto` e `padding-inline: clamp(1.25rem, 5vw, 4rem)`.
-- **Griglia editoriale**: 12 colonne, `gap: var(--space-6)`. Le sezioni testuali occupano 6-8 colonne (mai 12 piene di testo: il testo lungo edge-to-edge uccide il ritmo editoriale). Misura di riga ideale: 60-75 caratteri.
-- **Ritmo verticale**: ogni sezione (`<section>`) ha `padding-block: var(--space-24)` mobile, `var(--space-32)` desktop. Tra hero e sezioni successive, respiro extra (`--space-48`) per "decompressione" dopo la scena 3D.
-- **Spazio negativo abbondante**: e una scelta di design, non spazio sprecato. Un titolo grande circondato da vuoto comunica premium. Non riempire.
-- **Full-bleed**: la cinematica (S3) e la hero (S1) sono `100vw`/`100vh`; il contenuto editoriale (S2/S4/S5/S6) sta dentro il container.
-
-Breakpoint (allineati a Tailwind v4 default): `sm 640`, `md 768`, `lg 1024`, `xl 1280`, `2xl 1536`. Il sito e desktop-first nell'ambizione visiva ma deve degradare con eleganza (vedi budget perf in `docs/01-TECHSTACK.md`).
+Breakpoint: Tailwind v4 default — `sm 640`, `md 768`, `lg 1024`, `xl 1280`, `2xl 1536`. Desktop-first nell'ambizione visiva, degrado elegante su mobile (vedi budget perf in `docs/01-TECHSTACK.md`).
 
 ---
 
 ## 5. Motion language
 
-Principio cardine: **ogni animazione e intenzionale e ingegnerizzata.** Nessuna transizione "perche carina". Lo scroll guida la narrazione (scroll-driven, virtualizzato via Lenis sincronizzato con il loop R3F — un solo `requestAnimationFrame`, vedi `docs/03-ARCHITECTURE.md`).
+Principio cardine: **ogni animazione e intenzionale e ingegnerizzata.** Lo scroll guida la narrazione (scroll-driven, virtualizzato via **Lenis**, pilotato da `src/components/scroll-provider.tsx` tramite `gsap.ticker` — un solo loop; vedi `docs/03-ARCHITECTURE.md`).
+
+> openQuestion: NON esiste `src/lib/easings.ts` ne una mappa `EASE` esportata nel tree attivo. Le curve qui sotto restano i VALORI CANONICI di riferimento da passare inline a GSAP / transizioni CSS, ma non sono centralizzate in un modulo.
 
 Pattern vincolanti:
 
-- **Smooth scroll virtualizzato (Lenis)**: lo scroll non muove l'altezza del DOM in modo grezzo; Lenis interpola e guida le transizioni di scena. Easing di default Lenis: lerp `~0.1`. Mantenere coerente con il driver R3F.
-- **Split-text reveal (GSAP)**: i titoli display entrano per parole/righe con stagger. Stagger tipico `0.06s`, durata `0.8s`, ease `power3.out`, `y` da `1.1em` a `0`, clip dall'alto. Trigger via `ScrollTrigger` quando l'elemento entra al ~75% del viewport.
-- **Parallax leggero**: sfondi/immagini si muovono a velocita diversa dal contenuto, fattore `0.1`-`0.3`. Mai oltre: parallax forte = nausea + look amatoriale.
-- **Magnetic hover sui CTA**: i bottoni primari attraggono leggermente il cursore (desktop, pointer fine). Spostamento max `8px`, lerp `0.2`, ritorno elastico. Disattivare su touch e con `prefers-reduced-motion`.
-- **Cursore custom (opzionale, desktop)**: piccolo dot `--aqua` che lerpa verso il puntatore (lerp `0.15`) e si espande sugli elementi interattivi. Opzionale: se aggiunge debito senza valore, ometterlo. Mai su touch.
-- **Preloader con percentuale**: schermo `--abyss` con contatore `0 -> 100` in `--font-mono`, mentre carica GLB + font + prima clip video. All'uscita: tendina (curtain) che sale rivelando la hero, sincronizzata con il fade-in del logo ad acqua.
-- **Transizioni di sezione/route**: curtain + crossfade della scena 3D (la scena persiste, cambia stato; vedi mappa scena<->sezione in `docs/03-ARCHITECTURE.md`). Le route `/work/[slug]` entrano con un wipe verticale dall'`--abyss`.
+- **Smooth scroll virtualizzato (Lenis)**: lo scroll non muove l'altezza del DOM in modo grezzo; Lenis interpola. Mantenere coerente col ticker GSAP.
+- **Hero + cinematica fuse**: la hero contiene una timeline GSAP sticky (~600vh) che indicizza una **sequenza di 136 frame WebP** (`public/frames/f_000..f_135.webp`) disegnati su un canvas 2D (`src/components/video-backdrop.tsx`), guidata da `heroStore.video`. Sotto `prefers-reduced-motion` si congela un frame centrale (~0.5). Niente sezione cinematica separata, niente zoom-into-clip, niente VideoPlane WebGL (vedi `docs/05`).
+- **Split-text reveal (GSAP)**: i titoli display entrano per parole/righe con stagger. Riferimento: stagger ~`0.06s`, durata ~`0.8s`, ease `power3.out`, `y` da `1.1em` a `0`. Trigger via `ScrollTrigger` quando l'elemento entra al ~75% del viewport.
+- **Title shimmer**: keyframe `title-shimmer` (in `globals.css`) fa scorrere lentamente un'onda celeste tra le lettere del titolo hero (background-position).
+- **Water-sheen (hover bottoni)**: keyframe `water-sheen` — un caustic sweep obliquo che attraversa il bottone all'hover (vedi §6). Disattivo sotto `prefers-reduced-motion` (`motion-reduce:hidden`).
+- **Parallax leggero**: fattore `0.1`–`0.3`. Mai oltre.
 
-Curve di easing canoniche (usare queste, non inventare):
+Curve di easing canoniche (passare inline; NON centralizzate in un modulo):
 
-```ts
-// src/lib/easings.ts
-export const EASE = {
-  out: "power3.out",       // entrate di contenuto
-  inOut: "power2.inOut",   // transizioni di scena / curtain
-  expo: "expo.out",        // reveal d'impatto (hero)
-  // per CSS transitions:
-  cssOut: "cubic-bezier(0.16, 1, 0.3, 1)",
-  cssInOut: "cubic-bezier(0.65, 0, 0.35, 1)",
-} as const;
+```
+out:      power3.out                          // entrate di contenuto (GSAP)
+inOut:    power2.inOut                         // transizioni di scena / curtain (GSAP)
+expo:     expo.out                            // reveal d'impatto (hero) (GSAP)
+cssOut:   cubic-bezier(0.16, 1, 0.3, 1)       // CSS transitions
+cssInOut: cubic-bezier(0.65, 0, 0.35, 1)
 ```
 
-Durate di riferimento: micro-interazioni UI `0.2s`-`0.3s`; reveal di contenuto `0.6s`-`0.9s`; transizioni di scena/curtain `0.9s`-`1.4s`. **`prefers-reduced-motion`**: disattivare split-text, parallax, magnetic e cursore custom; sostituire con fade semplici (`opacity` `0.3s`); il logo 3D passa al build statico (vedi `docs/04`). Questo e un gate, non un'opzione.
+Durate di riferimento: micro-interazioni UI `0.2s`–`0.3s`; reveal di contenuto `0.6s`–`0.9s`; transizioni di scena/curtain `0.9s`–`1.4s`. **`prefers-reduced-motion`** (gate, gestito globalmente in `globals.css` che azzera `animation-duration`/`transition-duration` e mette `scroll-behavior: auto`): disattivare split-text, parallax, water-sheen; la cinematica si congela su un frame; sostituire i movimenti con fade semplici.
 
 ---
 
 ## 6. Estetica dei componenti
 
-Linea generale: bordi sottili (`1px` di `--rule`), angoli appena arrotondati (`--radius: 0.5rem`; `--radius-lg: 1rem` per le card), nessuna ombra morbida diffusa; la "profondita" viene dal colore di superficie e da glow `--aqua` mirati. Stati di focus sempre visibili (`outline: 2px solid var(--aqua); outline-offset: 2px`).
-
-### Button — varianti signature
-
-```tsx
-// Variante "primary": riempimento aqua, magnetic, glow su hover
-// <button class="btn btn-primary">View work</button>
-```
+Linea generale: bordi sottili (`1px` di `--color-rule` su scuro, `--color-rule-ink` su chiaro), angoli arrotondati (bottoni `rounded-full`, card con raggio ampio via utility Tailwind), nessuna ombra morbida diffusa; la "profondita" viene dal colore di superficie e dall'accento celeste. Focus sempre visibile — gestito globalmente:
 
 ```css
-@layer components {
-  .btn {
-    font-family: var(--font-body); font-weight: 500;
-    font-size: var(--fs-body);
-    padding: var(--space-3) var(--space-6);
-    border-radius: var(--radius);
-    transition: transform .25s var(--ease-out, cubic-bezier(0.16,1,0.3,1)),
-                background-color .25s, color .25s, box-shadow .25s;
-    will-change: transform;
-  }
-  .btn-primary {
-    background: var(--aqua); color: var(--abyss);
-  }
-  .btn-primary:hover {
-    background: var(--aqua-hot);
-    box-shadow: 0 0 0 1px var(--aqua-hot), 0 8px 30px rgba(125,249,255,0.25);
-  }
-  .btn-ghost {
-    background: transparent; color: var(--foam);
-    box-shadow: inset 0 0 0 1px var(--rule);
-  }
-  .btn-ghost:hover { box-shadow: inset 0 0 0 1px var(--aqua); color: var(--aqua-hot); }
-  .btn-link { /* per "Get in touch" testuale */
-    background: none; color: var(--aqua); padding-inline: 0;
-    position: relative;
-  }
-  .btn-link::after {
-    content: ""; position: absolute; left: 0; bottom: -2px; height: 1px; width: 100%;
-    background: currentColor; transform: scaleX(0); transform-origin: left;
-    transition: transform .3s var(--ease-out, cubic-bezier(0.16,1,0.3,1));
-  }
-  .btn-link:hover::after { transform: scaleX(1); }
+:focus-visible {
+  outline: 2px solid var(--color-sun); /* = celeste */
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+::selection { background: var(--color-sun); color: var(--color-abyss); }
+```
+
+### Superficie "water glass"
+
+Utility riusabile in `globals.css` — frosted bianco-based per bottoni e card:
+
+```css
+.water-glass {
+  background: rgb(244 250 251 / 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgb(244 250 251 / 0.22);
 }
 ```
 
-Le due varianti signature sono **`primary`** (CTA forte, magnetic, una per vista) e **`ghost`** (CTA secondaria, hairline che si accende in `--aqua`). `link` per inline. La logica magnetic vive in un hook React (`useMagnetic`) condiviso, non duplicata.
+### Button — varianti CVA
+
+Il bottone NON e definito con classi `.btn-*` in CSS e **non usa un hook `useMagnetic`** (rimosso). E un componente React in `src/components/ui/button.tsx` che usa **CVA** (`class-variance-authority`) con utility Tailwind. Quattro varianti, nomi stabili:
+
+```tsx
+// src/components/ui/button.tsx (estratto)
+const buttonVariants = cva(
+  "group relative inline-flex items-center justify-center gap-2 overflow-hidden " +
+  "rounded-full font-sans text-xs font-semibold uppercase tracking-[0.2em] " +
+  "transition-all duration-300 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        signal:  "bg-foam text-abyss hover:bg-celeste", // CTA primaria: bianco -> celeste su hover
+        outline: "water-glass text-foam hover:border-celeste/60", // secondaria frosted
+        ghost:   "text-foam/80 hover:text-foam",
+        link:    "text-foam/90 underline-offset-4 hover:underline",
+      },
+      size: { md: "h-12 px-7", sm: "h-9 px-5" },
+    },
+    defaultVariants: { variant: "signal", size: "md" },
+  },
+);
+```
+
+- **`signal`** = CTA primaria (riempimento `--color-foam` bianco, testo `--color-abyss`, hover -> `--color-celeste`).
+- **`outline`** = secondaria, superficie `water-glass`, bordo che si accende in `celeste/60` su hover.
+- **`ghost`** / **`link`** = inline / testuali.
+- Ogni variante include un **`<Sheen>`** interno: il caustic sweep `water-sheen` all'hover, nascosto sotto reduced-motion. Niente glow gold, niente magnetic.
 
 ### Project card (S4)
 
-Struttura: superficie `--deep`, hairline `--rule`, su hover sale a `--surface-elev` con bordo `--aqua` e leggero `translateY(-4px)`. Contenuto in ordine: **eyebrow** (ruolo + anno, mono uppercase) -> **titolo** (heading-3) -> **descrizione P/A/R** (problem / action / result, body) -> **stack** (chip mono) -> **metriche** (numeri `tabular-nums` in `--aqua`/`--gold` per il dato chiave). Una sola metrica puo usare `--gold`. Immagine/preview con `overflow:hidden` e leggero zoom su hover (`scale(1.04)`, `0.6s`).
+Struttura: superficie scura (`--color-deep`) con hairline `--color-rule`, oppure superficie chiara (`--color-foam`) con `--color-rule-ink`; su hover bordo `--color-celeste` e leggero `translateY(-4px)`. Contenuto in ordine: **eyebrow/label** (ruolo + anno, `.label`) -> **titolo** (`.heading-2`/`heading-1`) -> **descrizione R/P/A/R** (role / problem / action / result, body) -> **stack** (chip) -> **metriche** (`tabular-nums`, accento `--color-celeste`). **Niente metrica gold** (oro rimosso). Immagine/preview con `overflow:hidden` e leggero zoom su hover (`scale(1.04)`).
+
+> Nota dati: le schede SerSan sono `status: 'provisional'` con segnaposto `[[TBD]]` in `src/data/projects.ts`. Trattarle come provvisorie, non inventare metriche (vedi `docs/07-PROJECTS.md`).
 
 ### Section heading (pattern riusabile)
 
-Tre parti, sempre nello stesso ordine: **eyebrow** (mono, `--aqua`) + **title** (heading-1/2, Editorial New) + **description** (lead, opzionale). Allineamento a sinistra di default; centrato solo per hero e contact. Componente unico `<SectionHeading eyebrow title description />`.
+Tre parti, sempre nello stesso ordine: **eyebrow/label** (`.label`, `--color-mist`) + **title** (`.heading-1`/`.heading-2`, Fraunces) + **description** (`.lead`, opzionale). Allineamento a sinistra di default; centrato solo per hero e contact.
 
 ### Divider / rule
 
-Linea `1px` di `--rule` a piena larghezza del container, oppure variante "tide": un sottile gradiente orizzontale da trasparente a `--abyss-glow` a trasparente, usato per separare la cinematica dalle sezioni editoriali. Mai bordi spessi o doppi.
+Hairline `1px` di `--color-rule` (o `--color-rule-ink` su chiaro). Variante **`.rule-node`** (in `globals.css`): hairline con un piccolo nodo centrale (`5px`, `border-radius: 9999px`) in `--color-sun` (= celeste) al 85% di opacita — per separare la cinematica dalle sezioni editoriali. Mai bordi spessi o doppi.
 
 ---
 
 ## 7. Voce del COPY
 
-Lingua primaria del sito: **English** (il sito e bilingue EN/IT, toggle in S6; le stringhe vivono in `src/data/translations`). Registro: conciso, sicuro, marino-ma-tecnico. Frasi brevi. Verbi attivi. Zero buzzword vuote ("synergy", "passionate about leveraging"). Il mare e metafora, non decorazione: usalo con misura, una immagine per blocco al massimo. Mai esclamativi, mai emoji nell'UI.
+Lingua primaria del sito: **English** (bilingue EN/IT). Le stringhe vivono nel dizionario nidificato per-sezione in `src/data/translations` (NON flat); la lingua e gestita da `src/components/language-provider.tsx` (hook `useLanguage`, cookie-based). Mai hardcodare copy nei componenti.
+
+Registro: conciso, sicuro, marino-ma-tecnico. Frasi brevi. Verbi attivi. Zero buzzword vuote ("synergy", "passionate about leveraging"). Il mare e metafora, non decorazione: una immagine per blocco al massimo. Mai esclamativi, mai emoji nell'UI.
 
 Linee guida: l'eyebrow e una etichetta tecnica (es. `SELECTED WORK`, `01 — ABOUT`); il titolo display puo permettersi una nota poetica; la descrizione torna concreta e fattuale. Le metriche parlano da sole (numeri, non aggettivi).
 
-Esempi di microcopy (EN primario + IT):
+Esempi di microcopy (EN primario + IT — valori illustrativi, la fonte e il dizionario):
 
-```json
+```jsonc
 {
-  "hero.tagline":   { "en": "Software engineer building full-stack systems with AI at the edge — shaped by the sea of Sardinia.",
-                      "it": "Software engineer: sistemi full-stack con l'AI sul bordo — cresciuto sul mare della Sardegna." },
-  "hero.cta.work":  { "en": "View work", "it": "Guarda i lavori" },
+  "hero.tagline":     { "en": "Software engineer building full-stack systems with AI at the edge — shaped by the sea of Sardinia.",
+                        "it": "Software engineer: sistemi full-stack con l'AI sul bordo — cresciuto sul mare della Sardegna." },
+  "hero.cta.work":    { "en": "View work", "it": "Guarda i lavori" },
   "hero.cta.contact": { "en": "Get in touch", "it": "Contattami" },
-  "about.eyebrow":  { "en": "01 — ABOUT", "it": "01 — CHI SONO" },
-  "work.eyebrow":   { "en": "SELECTED WORK", "it": "LAVORI SELEZIONATI" },
-  "contact.title":  { "en": "Let's build something that holds water.",
-                      "it": "Costruiamo qualcosa che regga l'onda." },
-  "footer.note":    { "en": "From Iglesias to Camerino — and wherever the work is.",
-                      "it": "Da Iglesias a Camerino — e ovunque ci sia da costruire." }
+  "about.eyebrow":    { "en": "01 — ABOUT", "it": "01 — CHI SONO" },
+  "work.eyebrow":     { "en": "SELECTED WORK", "it": "LAVORI SELEZIONATI" },
+  "contact.title":    { "en": "Let's build something that holds water.",
+                        "it": "Costruiamo qualcosa che regga l'onda." }
 }
 ```
 
@@ -328,10 +326,10 @@ Regola di traduzione: l'IT non e una traduzione letterale, e un adattamento che 
 
 Fonti di spunto per pattern e micro-interazioni (catalogo esteso in `docs/06-REFERENCES.md`): **magicui**, **uiverse.io**, **ui-layout**, e pattern in stile **aceternity**. Regola d'oro: **spunto, non copia.**
 
-- Si prendono **idee** (un'idea di layout, una meccanica di hover, una struttura di reveal), non codice/colori/font incollati.
-- Tutto va **ritematizzato** con i token di questa pagina: ogni `#hex`, ogni font, ogni gradiente di un componente preso da quelle librerie viene rimpiazzato con `--abyss/--deep/--aqua/...` e `--font-*`. Se un componente "sembra di un'altra libreria" dopo l'integrazione, e un bug di design.
-- Niente dipendenze pesanti per un singolo effetto: se serve solo l'idea, si reimplementa con GSAP/CSS gia in stack. Non aggiungere librerie UI fuori da `docs/01-TECHSTACK.md` (Radix per i primitives, Tailwind v4 per lo styling).
-- Coerenza > novita: un effetto preso in prestito deve servire la narrativa oceano; se non la serve, si scarta.
+- Si prendono **idee** (un layout, una meccanica di hover, una struttura di reveal), non codice/colori/font incollati.
+- Tutto va **ritematizzato** con i token `--color-*` e `--font-*` di questa pagina: ogni `#hex`, ogni font, ogni gradiente preso altrove viene rimpiazzato (`abyss`/`deep`/`celeste`/`foam`/...). Se un componente "sembra di un'altra libreria" dopo l'integrazione, e un bug di design.
+- Niente dipendenze pesanti per un singolo effetto: reimplementare con GSAP/CSS gia in stack. Non aggiungere librerie UI fuori da `docs/01-TECHSTACK.md`.
+- Coerenza > novita: un effetto in prestito deve servire la narrativa oceano; altrimenti si scarta.
 
 ---
 
@@ -339,12 +337,13 @@ Fonti di spunto per pattern e micro-interazioni (catalogo esteso in `docs/06-REF
 
 Prima di considerare "done" una vista (rif. `docs/11-WORKFLOW.md`):
 
-- [ ] Solo hex/token di questa pagina; nessun colore hardcoded fuori dai `--*`.
-- [ ] Display = Editorial New, Body = Switzer, Mono = JetBrains Mono; nessun altro font.
-- [ ] Spazio da scala `--space-*`; sezioni con `padding-block` corretto; spazio negativo rispettato.
-- [ ] `--gold` usato max 1 volta per viewport, solo come picco.
-- [ ] Focus states visibili (`--aqua`), navigazione tastiera ok, contrasto AA verificato.
-- [ ] Motion rispetta `prefers-reduced-motion` (fade-only, niente split/parallax/magnetic; logo 3D statico).
-- [ ] CTA primaria unica per vista; magnetic disattivo su touch.
+- [ ] Solo token `@theme` (`--color-*`, `--font-*`) di questa pagina; nessun hex hardcoded fuori dai token.
+- [ ] Display/serif = Fraunces, sans/label = Hanken Grotesk; nessun altro font; nessun mono reintrodotto.
+- [ ] Accento = `--color-celeste` + bianco; **nessun electric cyan**, **nessun gold** (`--color-gold`/`--color-sun` non usati come oro).
+- [ ] Sezioni light usano `--color-ink`/`--color-ink-mute`/`--color-rule-ink`; sezioni dark usano `--color-foam`/`--color-mist`/`--color-rule`.
+- [ ] Tipografia via classi reali (`.display-hero`/`.heading-1`/`.heading-2`/`.lead`/`.label`/`.eyebrow`); nessun `--fs-*` inventato.
+- [ ] Bottoni via componente CVA (`signal`/`outline`/`ghost`/`link`), non `.btn-*` ne `useMagnetic`; hover sheen presente e disattivo sotto reduced-motion.
+- [ ] Focus states visibili (celeste), navigazione tastiera ok, contrasto AA verificato.
+- [ ] Motion rispetta `prefers-reduced-motion` (fade-only, cinematica congelata, niente split/parallax/sheen).
 - [ ] Componenti presi da librerie esterne completamente ritematizzati ai token.
-- [ ] Copy EN primario + IT presente nelle translations; numeri in `tabular-nums`.
+- [ ] Copy EN primario + IT nel dizionario nidificato di `src/data/translations`; numeri in `tabular-nums`.

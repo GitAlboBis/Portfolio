@@ -1,6 +1,13 @@
 # 08 — Context7 MCP
 
-> Scopo: stabilire come e quando interrogare **Context7 MCP** per ottenere documentazione *version-specific* delle librerie volatili dello stack (three.js / TSL, `@react-three/*`, `postprocessing`, GSAP, Lenis, Zustand, Next.js), così che gli agenti scrivano codice contro l'API **realmente installata** e non contro un'API memorizzata o obsoleta. Questo documento è una direttiva operativa vincolante: la regola della sezione "Regola operativa" non è negoziabile.
+> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica frame-sequence). Riconciliato dal loop docs-driven-build.
+
+> Scopo: stabilire come e quando interrogare **Context7 MCP** per ottenere documentazione *version-specific* delle librerie volatili dello stack (three.js / TSL, `@react-three/*`, GSAP, Lenis, Zustand, Next.js), così che gli agenti scrivano codice contro l'API **realmente installata** e non contro un'API memorizzata o obsoleta. Questo documento è una direttiva operativa vincolante: la regola della sezione "Regola operativa" non è negoziabile.
+
+> **Regime delle fonti — leggere prima.** Esistono **tre** regimi distinti, e non tutto il codice 3D del progetto ricade sotto Context7:
+> 1. **Hero fluid (raw WebGPU + WGSL scritto a mano)** — l'hero ad acqua "A" (`src/webgl/waterball/`: `mls-mpm/*.wgsl.ts` + `mls-mpm.ts`, `render/*.wgsl.ts` + `fluidRender.ts`) **NON usa three/TSL/R3F**. È WebGPU nudo: `device.createComputePipeline`, `device.createRenderPipeline`, shader WGSL in template literal. Context7-three/TSL **non copre questo codice**. La fonte di verità qui è la **W3C WebGPU + WGSL spec**, i tipi **`@webgpu/types`** (`node_modules/@webgpu/types`, pin `^0.1.51`) e il repo di riferimento **`matsuoka-601/Splash` / `WaterBall`** da cui il solver è vendorizzato. Non chiedere a Context7 le firme WGSL.
+> 2. **Resto dello stack runtime (GSAP, Lenis, Zustand, Next.js)** — qui Context7 è **obbligatorio** (vedi Regola operativa).
+> 3. **three / R3F / drei / postprocessing** — installati ma il loro uso a runtime è **minimo o nullo** nel tree attivo (vedi nota sotto). Context7 resta la fonte corretta *quando e se* questo codice torna attivo.
 
 ---
 
@@ -9,14 +16,14 @@
 Lo stack canonico (vedi `docs/01-TECHSTACK.md`) è composto da librerie che cambiano API **di minor in minor**, spesso senza deprecation graduale:
 
 - **three.js `0.184.0`** — il sistema **TSL** (Three Shading Language) e i nodi **WebGPU** (`WebGPURenderer`, `instancedArray`, `Fn().compute()`, `*.element()`, `storage`, `uniform`, `texture` node) sono **l'area più volatile in assoluto**: nomi di import, firme dei nodi e percorsi (`three/webgpu`, `three/tsl`) cambiano tra release. Codice TSL scritto a memoria è quasi sempre sbagliato.
-- **`@react-three/fiber 9.6.x`** — la v9 richiede **React 19** e ha rivisto root API, eventi e ciclo di vita rispetto alla v8.
-- **`@react-three/drei 10.7.x`** — molti helper sono stati rinominati/rimossi tra v9 e v10.
-- **`@react-three/postprocessing 3.0.x` + `postprocessing 6.39.x`** — l'EffectComposer R3F e i passi (`Bloom`, `DepthOfField`, `N8AO`) hanno prop e default che variano per versione.
+- **`@react-three/fiber 9.6.x`** — la v9 richiede **React 19** e ha rivisto root API, eventi e ciclo di vita rispetto alla v8. **Uso a runtime minimo**: nessun `<Canvas>` R3F persistente è montato nel tree attivo (vedi `docs/03-ARCHITECTURE.md`); l'hero è raw WebGPU.
+- **`@react-three/drei`** — pin `10.7.7` presente in `package.json` ma, allo stato del codice, **non importato da nessun modulo attivo**. Da trattare come dipendenza **optional/future**: candidata alla rimozione se l'hero R3F non torna. Consultare Context7 solo se/quando un helper drei viene effettivamente reintrodotto.
+- **`@react-three/postprocessing 3.0.x` + `postprocessing 6.39.x`** — **installati ma NON usati** (`EffectComposer`/`Bloom`/`DepthOfField` non sono nel render path attivo: l'hero è una catena Screen-Space-Fluid WGSL custom, vedi `docs/04-3D-HERO-WATER-LOGO.md`). Mantenuti come back-compat/future; nessun obbligo Context7 finché restano inattivi.
 - **`gsap 3.15.x` + `@gsap/react 2.1.2`** — `useGSAP`, registrazione plugin (`ScrollTrigger`), e cleanup hanno pattern specifici per versione; GSAP è inoltre passato a licenza/registry modificati di recente.
 - **`lenis 1.3.x`** — il pacchetto è stato rinominato (da `@studio-freight/lenis` a `lenis`) e l'API di sync col RAF è cambiata.
 - **Next.js 16 (App Router, Turbopack) / React 19** — `next/font`, `next.config`, metadata API, Server/Client component boundaries evolvono rapidamente.
 
-L'allucinazione tipica dell'LLM è scrivere codice plausibile ma riferito a una versione precedente (es. `@studio-freight/lenis`, vecchi import `three/examples/jsm/...` invece di `three/tsl`, `GPUComputationRenderer` quando il backend è WebGPU). Context7 elimina questa classe di errori alla radice fornendo snippet e firme aggiornati alla release esatta.
+L'allucinazione tipica dell'LLM è scrivere codice plausibile ma riferito a una versione precedente (es. `@studio-freight/lenis`, vecchi import `three/examples/jsm/...` invece di `three/tsl`, `GPUComputationRenderer` quando il backend è WebGPU). Context7 elimina questa classe di errori alla radice fornendo snippet e firme aggiornati alla release esatta — **per i pacchetti che copre** (vedi regime delle fonti: l'hero WGSL ne è fuori).
 
 ---
 
@@ -39,11 +46,13 @@ Note operative:
 ## 3. Regola operativa VINCOLANTE
 
 > **PRIMA** di scrivere o aggiornare *qualsiasi* riga di codice che tocchi `three` / `three/tsl` / `three/webgpu`, `@react-three/fiber`, `@react-three/drei`, `@react-three/postprocessing`, `postprocessing`, `gsap` / `@gsap/react`, `lenis`, `zustand` o `next`, l'agente **DEVE** consultare Context7 per l'API della **versione installata** (quella pinnata in `package.json` / risolta nel `bun.lock`).
+>
+> **Eccezione (regime 1):** il codice dell'hero fluid (`src/webgl/waterball/**`, raw WebGPU + WGSL) è **fuori** dal perimetro Context7. Lì la fonte di verità è la **W3C WebGPU/WGSL spec** + **`@webgpu/types`** + il repo `matsuoka-601/Splash`/`WaterBall`. Vedi "Regime delle fonti" in testa al documento.
 
 Come si invoca, in pratica:
 
 1. Aggiungere il tag **`use context7`** al prompt/intento di scrittura del codice, indicando libreria **e versione**. Esempio: *"Implementa il compute step GPGPU con TSL `instancedArray` e `Fn().compute()` per three `0.184.0`. use context7"*.
-2. Risolvere prima l'ID della libreria (es. `/pmndrs/react-three-fiber`, `/mrdoob/three.js`) e poi recuperare i topic mirati (es. `WebGPURenderer`, `TSL`, `compute`, `ScrollTrigger`, `useGSAP`).
+2. Risolvere prima l'ID della libreria con `resolve-library-id` (es. `/pmndrs/react-three-fiber`, `/mrdoob/three.js`) e poi recuperare i topic mirati con `query-docs` (es. `WebGPURenderer`, `TSL`, `compute`, `ScrollTrigger`, `useGSAP`).
 3. Confrontare la versione dei docs restituiti con quella in `package.json`. Se Context7 non offre la versione esatta, prendere la **più vicina ≤** alla installata e annotare la discrepanza in un commento `// verified against three X.Y via Context7`.
 
 Checklist di gate (da rispettare prima di considerare "fatto" un task di codice 3D/scroll):
@@ -63,9 +72,10 @@ Checklist di gate (da rispettare prima di considerare "fatto" un task di codice 
 | Libreria (Context7 ID indicativo) | Versione pin | Topic da chiedere | Perché è critico |
 |---|---|---|---|
 | `three` (`/mrdoob/three.js`) | `0.184.0` | `WebGPURenderer`, `TSL`, `instancedArray`, `Fn`, `compute`, `storage`, `uniform`, `MeshSurfaceSampler` | **Massima volatilità.** TSL/WebGPU node system e import (`three/webgpu`, `three/tsl`) cambiano spesso. È il cuore del logo ad acqua (vedi `docs/04-3D-HERO-WATER-LOGO.md`). |
-| `@react-three/fiber` | `9.6.x` | root/`Canvas` API, eventi, `useFrame`, React 19 compat | v9 + React 19: ciclo di vita ed eventi rivisti rispetto a v8. |
-| `@react-three/drei` | `10.7.x` | helper usati (loader GLB, `AdaptiveDpr`, `PerformanceMonitor`) | Helper rinominati/rimossi tra v9 e v10. |
-| `@react-three/postprocessing` + `postprocessing` | `3.0.x` / `6.39.x` | `EffectComposer`, `Bloom`, `DepthOfField`, selective bloom | Prop e default di Bloom/DOF (look cinematografico hero + cinematica) variano per versione. |
+| `@react-three/fiber` | `9.6.1` | root/`Canvas` API, eventi, `useFrame`, React 19 compat | v9 + React 19: ciclo di vita ed eventi rivisti rispetto a v8. **NB: nessun `<Canvas>` montato nel tree attivo — uso minimo.** |
+| `@react-three/drei` | `10.7.7` (optional/future) | helper (loader GLB, `AdaptiveDpr`, `PerformanceMonitor`) | **Non importato da codice attivo.** Candidata alla rimozione; verificare via Context7 solo se reintrodotta. |
+| `@react-three/postprocessing` + `postprocessing` | `3.0.4` / `6.39.1` (installati, **non usati**) | `EffectComposer`, `Bloom`, `DepthOfField`, selective bloom | **Non nel render path attivo** (hero = catena SSF WGSL custom). Nessun obbligo Context7 finché inattivi. |
+| **Hero fluid (raw WebGPU/WGSL)** | — (vendor `matsuoka-601`) | `device.createComputePipeline`, WGSL spec, bind group layout, `@webgpu/types` | **Fuori da Context7-three/TSL.** Fonte: W3C WebGPU/WGSL + `@webgpu/types` (`^0.1.51`) + repo Splash/WaterBall. |
 | `gsap` + `@gsap/react` | `3.15.x` / `2.1.2` | `useGSAP`, `gsap.registerPlugin`, `ScrollTrigger`, scrub | Pattern di registrazione plugin e cleanup `useGSAP` specifici per versione. |
 | `lenis` | `1.3.x` | init, `raf`, sync con R3F, `lenis.on('scroll')` | Pacchetto rinominato (non più `@studio-freight/lenis`); sync RAF cambiato. Vedi `docs/03-ARCHITECTURE.md` per il single-RAF Lenis↔R3F. |
 | `zustand` | `5.0.x` | `create`, slices, selettori, `useShallow` | v5 ha rimosso default export e cambiato alcune firme rispetto a v4. |
@@ -84,6 +94,8 @@ Se l'endpoint è irraggiungibile, non connesso, o non copre la versione, **in or
 3. **Docs ufficiali via web** (skill di ricerca / WebFetch) — solo se si verifica che la versione documentata combaci con quella installata; altrimenti trattare come indicativi.
 
 Ordine di affidabilità: `node_modules/.d.ts` (esatto, locale) ≥ Context7 (esatto, remoto) > skill di research > docs web generici.
+
+**Per l'hero fluid WGSL (regime 1, fuori Context7):** la catena è diversa — (1) **W3C WebGPU + WGSL spec**, (2) tipi **`@webgpu/types`** in `node_modules/@webgpu/types`, (3) il codice vendorizzato e il repo upstream **`matsuoka-601/Splash`/`WaterBall`**, (4) il KB interno `docs/12-PARTICLE-PHYSICS.md` per la mappatura sul solver MLS-MPM.
 
 ---
 
@@ -107,8 +119,9 @@ Principio: Context7 è uno strumento **preventivo**, non un debugger. Si consult
 ## 7. Riferimenti incrociati
 
 - `docs/01-TECHSTACK.md` — versioni canoniche e pin di `package.json`.
-- `docs/03-ARCHITECTURE.md` — sync Lenis↔R3F (single RAF), store Zustand.
-- `docs/04-3D-HERO-WATER-LOGO.md` — TSL/WebGPU del logo ad acqua (massimo carico Context7).
+- `docs/03-ARCHITECTURE.md` — sync Lenis (single RAF via gsap.ticker), store Zustand; assenza di `<Canvas>` R3F persistente.
+- `docs/04-3D-HERO-WATER-LOGO.md` — hero ad acqua "A": **raw WebGPU + WGSL** (fuori Context7, vedi regime 1).
+- `docs/12-PARTICLE-PHYSICS.md` — KB del solver MLS-MPM (riferimento per il regime 1).
 - `docs/05-CINEMATIC-SCROLL.md` — GSAP ScrollTrigger + scrub.
 - `docs/09-MCP.md` — routing MCP, setup e regola "no MCP inutili".
 - `docs/10-SKILLS.md` — skill `context7-auto-research` e routing per task.

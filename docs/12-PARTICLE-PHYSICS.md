@@ -1,5 +1,11 @@
 # 12 — Particle Physics: PBD · PBF · Unified Particle Physics
 
+> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica
+> frame-sequence). Riconciliato dal loop docs-driven-build. La KB dei paper (Parti A–C, E, F)
+> resta invariata; la mappatura operativa (Parte D.1 e Parte D-bis) è stata allineata al
+> `g2p.wgsl` realmente shippato (motore di churn velocity-based, non più PBD position
+> projection né pin alle home).
+
 > Base di conoscenza (oro sacro) per ogni modifica e implementazione futura della
 > simulazione a particelle dell'hero. Sintesi fedele dei tre paper in `docs/`:
 > studiarla prima di toccare `src/webgl/waterball/mls-mpm/*` o di valutare un solver
@@ -16,7 +22,7 @@
 | **Unified** | *A Unified Particle Physics for Real-Time Applications* | Macklin, Müller, Chentanez, Kim — SIGGRAPH 2014 | **Tutto è particella+constraint**: shape matching (rigidi/soft), fluidi (PBF), gas, cloth, attrito a livello di posizione, sleeping, mass scaling, diffuse/foam particles, collisione SDF. Solver parallelo (Gauss-Jacobi + SOR). |
 
 **Stato attuale del nostro hero (contesto):** l'hero è il port grezzo di **matsuoka-601/WaterBall** — un solver **MLS-MPM** (Material Point Method, *grid-based*) in WebGPU (`p2g_1 → p2g_2 → updateGrid → g2p`), vendored in `src/webgl/waterball/`, reso via screen-space fluid (`render/*.wgsl`). La "A" è ottenuta confinando il fluido a una forma-lettera in `mls-mpm/g2p.wgsl`, con uno splash al mouse.
-**MLS-MPM ≠ PBD/PBF**: MPM trasferisce su una griglia di sfondo; PBD/PBF sono *grid-free* (solo particelle + constraint). Questi paper sono quindi sia la **teoria** dietro le tecniche che usiamo (la "proiezione di posizione" nel nostro `g2p.wgsl` è letteralmente un constraint PBD), sia l'**alternativa più leggera** se MPM diventa un collo di bottiglia.
+**MLS-MPM ≠ PBD/PBF**: MPM trasferisce su una griglia di sfondo; PBD/PBF sono *grid-free* (solo particelle + constraint). Questi paper sono quindi sia la **teoria** che ispira il confinamento dell'hero (il nostro `g2p.wgsl` modula forze di richiamo sulla velocità — *non* è un constraint PBD canonico, vedi Parte D.1), sia l'**alternativa più leggera** se MPM diventa un collo di bottiglia.
 
 ---
 
@@ -145,10 +151,71 @@ Un **unico solver** su PBD dove **tutto è particella + constraint**: rigidi (**
 
 > Obiettivo hero: una "A" d'acqua che **tiene la forma** a riposo, **schizza** al mouse (più veloce = più lontano), e **rientra come una risacca**. Vincolo: 60fps desktop, WebGPU, griglia MLS-MPM ≤ 80 celle/lato.
 
-### D.1 Cosa stiamo già facendo, in linguaggio PBD
-Nel nostro `mls-mpm/g2p.wgsl` il confinamento alla "A" è una **PBD position projection velocity-gated**: a riposo proiettiamo le particelle fuori dai tratti sul bordo del tubo (`x.xy <- mix(x.xy, surface, relax)`) → forma nitida; quando una particella è veloce (poke) `relax → 0` → esce libera (splash); rallentando, `relax` risale e la riporta. **È letteralmente un constraint PBD** (proiezione di posizione) con stiffness modulata dalla velocità. La lezione PBD/Unified su questo:
-- Il "muro a molla" (forza ∝ distanza) **non** fa schizzare lontano (più esce, più viene tirato indietro → oscilla). La **proiezione di posizione** (PBD) sì: a riposo è netta, da veloce non vincola → vola. ✅ già adottato.
-- Per il ritorno "risacca" la via pulita è **shape matching** (Unified §C.2) o un **distance/attachment constraint a stiffness bassa** verso la posa "A": più controllabile dei nudge di forza dentro MPM.
+### D.1 Cosa stiamo già facendo (stato shippato), e perché NON è più PBD
+> **Importante (riconciliazione 2026-06-27).** L'implementazione attuale **NON** fa più
+> position projection PBD verso una superficie, né pinna le particelle a home points dentro
+> `g2p`. È un **motore di churn velocity-based confinato sull'asse mediale della "A"**: tutte
+> le forze modificano `particles[i].v` (la velocità), **mai** direttamente la posizione (con
+> due sole eccezioni di sicurezza: l'integrazione `position += v*dt` e l'un-stick nudge sotto).
+> Le **home positions** sopravvivono **solo come SEED iniziale** (`initFromHomes`), non per il
+> recall in-frame; **`homeBuffer` NON è bound nel bind group di `g2p`**.
+
+Sorgente: `src/webgl/waterball/mls-mpm/g2p.wgsl.ts`. Dopo il classico G2P (grid→particle che
+ricostruisce `v` e l'affine `C`) e l'integrazione `position += v*dt`, il kernel applica un
+confinamento alla "A" così strutturato:
+
+- **Asse mediale della "A"** — la lettera è 3 segmenti (apex→lfoot, apex→rfoot, crossbar
+  `cl→cr`); per ogni particella si trova il punto più vicino sull'asse (`closestOnSeg`), da cui
+  `toAxis`, `dAxis`, `dirIn` e una mezza-larghezza tubo `halfW`. Il confinamento NON è una
+  parete: è una coppia di forze attorno a questa centerline.
+- **`hold` = gate di confinamento velocity-based** — `conf = 1 - speed/speedGate` (acqua
+  lenta/vicina → ~1; poke veloce → ~0) combinato con `leash = overflow/leashRadius` (più una
+  particella sfora oltre `halfW`, più viene richiamata): `hold = max(conf, leash)`. Un flick
+  veloce **apre il gate** (`hold→0`) e l'acqua **vola fuori** (splash); l'acqua lenta è
+  riportata dentro (la risacca/undertow).
+- **Inflate (reintrodotto, ruolo diverso)** — dentro il tubo (`dAxis < halfW`) una spinta
+  **verso l'esterno** `v += -(halfW - dAxis) * dirIn * inflate * calm` che riempie e mescola la
+  sezione del tubo. Non è più il "vecchio inflate dal centro che faceva il guscio cavo": qui è
+  il churn perpetuo (incompressibilità + spinta = circolazione che non si congela mai), fedele
+  alla sfera confinata originale di WaterBall.
+- **Gravity verso la centerline + recall dell'acqua sfuggita** — `v += dirIn * gravity * hold`
+  e, oltre il tubo (`dAxis > halfW`), `v += dirIn * overflow * restoreK * hold`. Entrambe
+  scalate da `hold`: il poke veloce sfugge, l'acqua lenta è riavvolta. **Modifica `v`, non la
+  posizione.**
+- **`calm` = gate EXPLODE** — `calm = 1 - explode`: man mano che `splash.explode` va 0→1 (beat
+  pilotato da `heroStore`), inflate/gravity/recall si **spengono** → nessuna forza tiene l'acqua
+  nella "A".
+- **Damping opzionale** — `v *= (1 - drag)`; default `drag≈0` per non uccidere il churn.
+
+> **Valori live-tuned.** `inflate`, `gravity`, `drag`, `restoreK`, `speedGate`, `leashRadius`,
+> `explode` arrivano dall'uniform `SplashParams` (bound a **binding 5** di `g2p`), guidato dai
+> controlli **leva** in `mls-mpm.ts` (`pokeForce` lato impulso del mouse). Sono **valori
+> live-tuned via leva, soggetti a sign-off GATE-6** — non trattarli come costanti finali.
+
+**Binding layout reale del bind group di `g2p`** (group 0; verificato in `g2p.wgsl.ts` +
+`mls-mpm.ts`):
+
+| binding | risorsa | tipo WGSL |
+|---|---|---|
+| 0 | `particleBuffer` | `storage, read_write` (`array<Particle>`) |
+| 1 | `cellBuffer` | `storage, read` (`array<Cell>`) |
+| 2 | `realBoxSizeBuffer` | `uniform` (`vec3f`) |
+| 3 | `initBoxSizeBuffer` | `uniform` (`vec3f`) |
+| 4 | `numParticlesBuffer` | `uniform` (`u32`) |
+| 5 | `splashParamsBuffer` | `uniform` (`SplashParams`, 7 campi) |
+
+> **`homeBuffer` non compare** in questa tabella: esiste (`mls-mpm.ts`, binding "step 1b"
+> previsto in un design precedente) ed è scritto da `initFromHomes` per il **seed**, ma il
+> `g2p` shippato **non lo bind-a** e non lo legge. Il recall in-frame usa l'asse mediale, non le
+> home.
+
+**Lezione PBD/Unified, rivista alla luce del codice:** la teoria "proiezione di posizione vs
+muro a molla" resta valida come *inquadramento concettuale* (a riposo netto, da veloce libero),
+ma l'hero la realizza con **forze di velocità velocity-gated attorno a un asse mediale**, non
+con un constraint di posizione. Per un ritorno "risacca" ancora più controllabile, **shape
+matching** (Unified §C.2) o un **attachment a stiffness bassa** verso la posa "A" restano le vie
+pulite teoriche (open question: se valga la pena, dato che il churn velocity-based già convince —
+sign-off GATE-6).
 
 ### D.2 Tecniche da innestare (ordine di valore, restando in MLS-MPM)
 1. **`s_corr` (artificial pressure / surface tension)** — il singolo trucco più utile per il *look*: bordi arrotondati, goccioline coese, e tiene il corpo coeso invece di disperdersi. Solver-agnostico: si può aggiungere come correzione di posizione/velocità anti-clumping tra vicini. Param: `k≈0.1, n=4, delta_q≈0.2h`.
@@ -168,36 +235,70 @@ Per un hero serve acqua incomprimibile credibile + splash + coesione, **non** la
 
 ---
 
-## Parte D-bis — Piano di implementazione dello SPLASH (feature "schizza fuori e rientra")
+## Parte D-bis — Lo SPLASH come shippato (churn confinato + beat EXPLODE)
 
-> Obiettivo: la "A" è **piena d'acqua** a riposo; un passaggio veloce del mouse **sbalza l'acqua fuori** dalla lettera (più veloce = più lontano, nello spazio del box grande); poi l'acqua **rientra a comporre la "A"** (risacca). Senza guscio cavo, senza balloon, senza muro che blocca.
+> Obiettivo invariato: la "A" è **piena d'acqua** a riposo; un passaggio veloce del mouse
+> **sbalza l'acqua fuori** dalla lettera (più veloce = più lontano, nel box grande); poi l'acqua
+> **rientra a comporre la "A"** (risacca). Niente guscio cavo, balloon o muro che blocca.
+> **Come è risolto nel codice (2026-06-27):** *non* con un attachment alle home, ma con un
+> **motore di churn velocity-based confinato sull'asse mediale** (Parte D.1). Le home servono
+> solo a **seedare** la "A" piena al primo frame.
 
-### Perché gli approcci a "muro/forza" hanno fallito (lezione dai tentativi + paper)
-- **Muro a molla** (forza ∝ distanza fuori): più una particella esce, più viene tirata indietro → **oscilla, non vola** → niente splash.
-- **Muro morbido / nessun muro**: la pressione incomprimibile (troppe particelle per il volume) **gonfia** la "A" (balloon).
-- **Inflate dal centro del tubo**: su uno scheletro 1D spinge tutto sulla parete → **guscio cavo**.
-- **Proiezione di posizione (PBD) + inflate**: stessa cosa, particelle accumulate sul bordo.
-- Radice comune: stiamo definendo la forma con la **primitiva sbagliata** (parete del tubo + forze). I paper indicano la primitiva giusta: **un vincolo verso una posa di riposo** (shape constraint), non un muro.
+### Perché gli approcci a "muro/forza" e a "home-attachment" sono stati superati
+- **Muro a molla** (forza ∝ distanza fuori): più la particella esce, più è tirata indietro →
+  **oscilla, non vola** → niente splash.
+- **Muro morbido / nessun muro**: la pressione incomprimibile **gonfia** la "A" (balloon).
+- **Inflate dal centro su scheletro 1D**: spinge tutto sulla parete → **guscio cavo**.
+- **Home-attachment rigido (pin alle home in `g2p`)**: congelava il moto e creava congestione al
+  recompose ("recompose congestion"). Per questo il pin alle home è stato **rimosso da `g2p`**;
+  le home restano solo per il seed (`initFromHomes`).
+- Soluzione adottata: niente parete, niente pin. **Asse mediale + forze di velocità
+  velocity-gated** (inflate/gravity/recall scalate da `hold` e `calm`) → la forma vive come
+  *churn confinato*, non come constraint geometrico.
 
-### Approccio corretto (PBD attachment / Unified shape matching): HOME-POSITION SHAPE CONSTRAINT
-1. **Home positions che RIEMPIONO la "A"** — campiona la regione piena della lettera (i 3 tratti spessi × slab Z) in N posizioni "home", una per particella. La forma piena è garantita **per costruzione** (le home riempiono il volume) → niente cavo, niente balloon.
-2. **Vincolo di richiamo MORBIDO** (PBD attachment, Unified §C.2 shape matching) — ogni frame una spinta gentile verso la home: `v += (home_i - pos_i) * k_restore`, con `k_restore` **basso**. A riposo le particelle stanno sulle home → "A" piena; l'MLS-MPM dà il moto d'acqua.
-3. **Mouse poke = impulso** (già in `updateGrid.wgsl`) — un flick veloce dà velocità ≫ del richiamo → le particelle **volano fuori** nel box grande (lo splash), proporzionale alla velocità del mouse (già velocity-driven via `forceDir = mouseVel`).
-4. **Rientro (risacca)** — finito l'impulso, il richiamo morbido + drag riportano le particelle alle home → la "A" si ricompone. `k_restore` regola **quanto lento/elegante** è il rientro.
-5. **Niente muro, niente inflate, niente proiezione-sul-bordo** → niente cavo, balloon o blocco. La forma vive nelle **home**; il richiamo è gentile (vinto dal poke, si riafferma piano).
+### Anatomia dello splash shippato (in `g2p.wgsl`)
+1. **Seed pieno** — `initFromHomes` (`mls-mpm.ts`) campiona il volume pieno della "A" (3 capsule
+   di mezza-larghezza `halfW` × slab Z) e semina ogni particella **sulla propria home** → "A"
+   piena istantanea, niente getto di riempimento. (`homeBuffer` scritto qui; **non** bound in
+   `g2p`.)
+2. **Churn perpetuo** — dentro il tubo l'**inflate** verso l'esterno + l'incompressibilità MPM
+   producono circolazione che non si congela (acqua viva a riposo).
+3. **Poke = impulso del mouse** — arriva via `updateGrid.wgsl` come velocità sulla griglia; in
+   `g2p` aumenta `speed` → `conf→0` → `hold→0` → la particella **sfugge** al recall e **vola
+   fuori** (splash). Intensità live-tuned via `pokeForce` (leva).
+4. **Recall / risacca** — `gravity*hold` + `overflow*restoreK*hold` riportano dolcemente l'acqua
+   lenta verso la centerline. `restoreK` tenuto **basso** → rientro morbido, non snap-back.
+5. **Beat EXPLODE** (`splash.explode` 0→1, pilotato da `heroStore`) —
+   - `calm = 1 - explode` **spegne** inflate/gravity/recall (nessuna forza trattiene l'acqua);
+   - un **burst radiale** dal centroide del box `v += (dirOut + jitter*0.28) * 20.0 * explode`
+     spara le particelle in fuori, con jitter hash per rompere la sfera perfetta.
+   È il beat narrativo dell'hero (l'acqua si disintegra) prima della cinematica.
+6. **Cap di velocità (safety)** — `maxSpeed = 60`: se `|v|^2` supera il cap, `v` è riscalato →
+   un loop di feedback non può mai spedire una particella all'infinito.
+7. **Un-stick nudge** — `updateGrid` azzera la velocità delle celle di bordo esterne, che
+   possono **intrappolare** una particella contro la parete del box. Solo per quelle particelle
+   di "cella morta" si applica un nudge **di posizione** (`position += toAxis * 0.05 * calm`) che
+   bypassa la griglia e le rimanda verso l'asse della "A". È l'**unica** modifica diretta di
+   posizione oltre all'integrazione e al clamp del box.
+8. **Wall constraint del box** — confine ultimo dello splash: un look-ahead `x_n = pos + v*dt*k`
+   spinge `v` verso l'interno se supera `[wall_min, wall_max]` (limite del box, non della "A").
 
-### Passi concreti
-1. `mls-mpm.ts`: aggiungi uno storage buffer `home: array<vec3f>` (una home per particella) + il suo binding nel bind group di `g2p` (e nel pass di spawn/init).
-2. **Sampler** (init, CPU o compute): riempi `home` campionando uniformemente la regione piena della "A" (3 capsule-tratti di mezza-larghezza `halfW` × slab `[zc±zh]`). Distribuzione uniforme nel volume → fill solido.
-3. **Spawn**: semina le particelle **sulle proprie home** (invece del getto) → "A" piena istantanea, niente flusso di riempimento.
-4. `g2p.wgsl`: **sostituisci il muro fermo** con il richiamo morbido `v += (home_i - pos_i) * k_restore` (mantieni le pareti del box come limite ultimo dello splash). Taratura: `k_restore` ~ 0.5–3 (alto = rientro rapido/snappy, basso = acqua lenta che si riassembla pigra).
-5. `updateGrid.wgsl`: tieni l'impulso del mouse; tara la forza (`0.3`) e il raggio (`9`) così un flick veloce **supera** `k_restore` (esce) ma uno lento no.
-6. **Polish (paper, fase 2)**: `s_corr` (coesione → bordi tondi + goccioline nello spray), **vorticity confinement** (corona dello splash più alta/viva), **diffuse/foam particles** (2° strato schiuma: marker advette dalla velocità, spawnate dove la normale di superficie è alta, rese come sprite in dissolvenza), **sleeping** (niente jitter della "A" ferma).
+> Tutti i parametri di forma/forza (`inflate`, `gravity`, `drag`, `restoreK`, `speedGate`,
+> `leashRadius`, `explode`, più `pokeForce`) sono **valori live-tuned via leva, soggetti a
+> sign-off GATE-6**. La geometria dell'asse mediale (apex/lfoot/rfoot/crossbar, `halfW`) in
+> `g2p.wgsl` **deve restare in sync** con il sampler di `initFromHomes` in `mls-mpm.ts`.
 
-### Rischi / note
-- È, in sostanza, reintrodurre le **home positions** (il vecchio spring-to-glyph) ma come **vincolo PBD morbido dentro il fluido MLS-MPM**, reso via SSF (billboard imposters) → **acqua**, non "palline" (il problema "palline" di prima era il rendering a icosaedri, ora risolto).
-- Plumbing moderato in `mls-mpm.ts` (vendored, `@ts-nocheck`): un nuovo buffer + bind group entry in `g2p`/spawn.
-- Taratura chiave: `k_restore` (rientro) vs forza del poke (uscita). Due manopole, un compromesso.
+### Slow-motion (look "splash al rallentatore")
+Il feel slow-motion non è un parametro a sé in `g2p`: emerge dal **`dt` del solver** (override
+WGSL passato al pipeline) e dalla **viscosità** dell'MLS-MPM, tarati per un'acqua densa e lenta.
+Sono anch'essi **valori live-tuned, soggetti a sign-off GATE-6** — *open question*: fissare i
+valori finali di `dt`/viscosità (e l'eventuale rapporto sub-step) al gate dell'hero.
+
+### Polish ancora aperto (paper, fase 2)
+Non ancora shippato, candidati invariati dai paper: `s_corr` (coesione → bordi tondi +
+goccioline nello spray), **vorticity confinement** (corona dello splash più viva),
+**diffuse/foam particles** (2° strato schiuma advette dalla velocità, reso come sprite),
+**sleeping** (niente jitter della "A" ferma). Vedi Parte D.2 per l'ordine di valore.
 
 ---
 
@@ -234,4 +335,4 @@ Per un hero serve acqua incomprimibile credibile + splash + coesione, **non** la
 - `posBasedDyn.pdf` — Müller et al., *Position Based Dynamics*, 2006/2007.
 - `pbf_sig_preprint.pdf` — Macklin & Müller, *Position Based Fluids*, SIGGRAPH 2013.
 - `uppfrta_preprint.pdf` — Macklin et al., *A Unified Particle Physics for Real-Time Applications*, SIGGRAPH 2014.
-- Codice correlato: `src/webgl/waterball/mls-mpm/*.wgsl` (solver MLS-MPM), `g2p.wgsl` (confinamento "A" = PBD position projection), `render/*.wgsl` (screen-space fluid). Vedi anche `docs/04-3D-HERO-WATER-LOGO.md`.
+- Codice correlato: `src/webgl/waterball/mls-mpm/*.wgsl.ts` (solver MLS-MPM), `g2p.wgsl.ts` (confinamento "A" = churn velocity-based sull'asse mediale + beat EXPLODE, vedi Parte D.1/D-bis), `mls-mpm.ts` (`initFromHomes` seed + uniform `SplashParams`/leva), `render/*.wgsl.ts` (screen-space fluid). Vedi anche `docs/04-3D-HERO-WATER-LOGO.md`.

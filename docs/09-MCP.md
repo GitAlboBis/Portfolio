@@ -1,5 +1,7 @@
 # 09 — MCP & Connettori: Routing per Task
 
+> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica frame-sequence). Riconciliato dal loop docs-driven-build.
+
 Scopo: dire agli agenti AI QUALE MCP (Model Context Protocol server) o connettore usare per ogni task di questo portfolio, quali sono gia connessi, quali vanno aggiunti, e quali passi manuali deve fare Alberto prima che l'agente possa lavorare. Questo e il documento "plugin": e la fonte di verita per la scelta degli strumenti esterni. Per la regola operativa di consultazione documentazione vedi `docs/08-CONTEXT7.md`; per le skill (non MCP) vedi `docs/10-SKILLS.md`; per il loop di QA visivo vedi `docs/11-WORKFLOW.md`.
 
 ---
@@ -10,8 +12,8 @@ Ogni MCP connesso occupa context window (tool schema, system prompt del server).
 
 | MCP | Ruolo nel progetto | Insostituibile perche |
 |-----|--------------------|------------------------|
-| Blender | Generazione asset 3D (logo `at-mark.glb`, eventuali props) | Unico modo di produrre/ottimizzare il GLB del logo dentro la pipeline |
-| Higgsfield | Generazione clip cinematiche (Pan di Zucchero, backflip/tuffo) | Genera i video AI scrubbati nello scroll (S3) |
+| Blender | Generazione asset 3D di RIFERIMENTO (forma della lettera `a-mark.glb` / `a-liquid.glb`) | Unico modo di produrre/ottimizzare il GLB di shape-reference; NB: l'hero MLS-MPM live non carica alcun GLB a runtime (vedi sezione 3.1) |
+| Higgsfield | Generazione clip cinematiche (Pan di Zucchero, backflip/tuffo) | Genera i video AI sorgente da cui si estrae la frame-sequence scrubbata nello scroll |
 | Context7 | Documentazione version-specific delle librerie | Evita API allucinate su Next 16 / three 0.184 / R3F 9 |
 | claude-in-chrome | QA visivo: screenshot, console, network, ispezione runtime | Sostituisce Playwright MCP per la verifica visiva del sito reso |
 | Vercel | Deploy, build/runtime logs, docs Vercel | Deploy di preview a ogni milestone + lettura log |
@@ -24,8 +26,8 @@ Opzionali (attiva solo se il task lo richiede): Figma e Canva (import design / a
 
 | Task | MCP / connettore | Note operative |
 |------|------------------|----------------|
-| Generare il modello 3D del logo AT/A (`.glb`) | Blender MCP | Output -> `public/models/at-mark.glb`; poi ottimizzazione gltf-transform (vedi `docs/04-3D-HERO-WATER-LOGO.md`) |
-| Generare clip video cinematica (Pan di Zucchero, tuffo) | Higgsfield MCP | Output -> `public/video/`; vedi `docs/05-CINEMATIC-SCROLL.md` |
+| Generare il modello 3D di riferimento della lettera "A" (`.glb`) | Blender MCP | Output -> `public/models/a-mark.glb` / `a-liquid.glb` (shape-reference offline); poi ottimizzazione gltf-transform (vedi `docs/04-3D-HERO-WATER-LOGO.md`). NB: l'hero MLS-MPM riempie la "A" proceduralmente (`initFromHomes()`), il GLB NON viene caricato a runtime |
+| Generare clip video cinematica (Pan di Zucchero, tuffo) | Higgsfield MCP | Output sorgente -> `public/video/` (mp4 grezzi, untracked); poi decodificate in frame-sequence WebP (vedi sezione 3.2 e `docs/05-CINEMATIC-SCROLL.md`) |
 | Documentazione API di una libreria (Next 16, three, R3F, GSAP, Lenis, zod...) | Context7 MCP | Sempre prima di scrivere codice contro una versione precisa; vedi `docs/08-CONTEXT7.md` |
 | QA visivo: screenshot, leggere la console, ispezionare network, validare il rendering | claude-in-chrome | Loop obbligatorio prima di marcare done; vedi `docs/11-WORKFLOW.md` |
 | Deploy del sito, leggere build log / runtime log, cercare nei docs Vercel | Vercel MCP | Preview deploy a ogni milestone; vedi `docs/01-TECHSTACK.md` |
@@ -41,7 +43,9 @@ Regola di disambiguazione: per la verifica visiva NON usare Playwright MCP — u
 
 ### 3.1 Blender MCP — asset 3D
 
-A cosa serve: pilotare Blender per generare il logo `at-mark.glb` (text-to-3D via Hyper3D Rodin / Hunyuan3D), caricare HDRI da Poly Haven, ed esportare il GLB. Il GLB grezzo va poi ottimizzato fuori da Blender con gltf-transform e tipizzato con gltfjsx (pipeline in `docs/04-3D-HERO-WATER-LOGO.md`).
+A cosa serve: pilotare Blender per generare il GLB di RIFERIMENTO della lettera "A" (`a-mark.glb`, `a-liquid.glb`; text-to-3D via Hyper3D Rodin / Hunyuan3D), caricare HDRI da Poly Haven, ed esportare il GLB. Il GLB grezzo va poi ottimizzato fuori da Blender con gltf-transform e tipizzato con gltfjsx (pipeline in `docs/04-3D-HERO-WATER-LOGO.md`).
+
+IMPORTANTE (stato shipped): l'hero attuale e un fluido MLS-MPM su WebGPU raw (`src/webgl/waterball/`) che riempie la forma della "A" PROCEDURALMENTE via `initFromHomes()` (tre tratti a capsula sull'asse mediano). NESSUN GLB viene caricato a runtime. Il GLB Blender resta quindi al massimo una shape-reference offline (per ricavare proporzioni/asse della lettera), NON un asset di produzione. Generarlo solo se serve una guida geometrica, non come dipendenza del rendering.
 
 Stato: NON connesso di default. Va aggiunto, E richiede setup manuale una-tantum lato Alberto.
 
@@ -70,7 +74,7 @@ fermarsi e chiedere ad Alberto di completare i passi 1-6 sopra.
 
 ### 3.2 Higgsfield MCP — video cinematici
 
-A cosa serve: generare le clip AI della sezione S3 (CINEMATICA): il volo/drone su Pan di Zucchero e il backflip/tuffo di Alberto dallo scoglio. Queste clip vengono poi scrubbate dallo scroll (vedi `docs/05-CINEMATIC-SCROLL.md`).
+A cosa serve: generare le clip AI cinematiche (il volo/drone su Pan di Zucchero e il backflip/tuffo di Alberto dallo scoglio). Queste clip sono la SORGENTE: non vengono usate come `<video>` a runtime, ma decodificate in una frame-sequence WebP che lo scroll scrubba su un canvas 2D. La cinematica e FUSA nell'hero (timeline GSAP sticky), non e una sezione S3 separata (vedi `docs/05-CINEMATIC-SCROLL.md`).
 
 Stato: GIA disponibile in sessione (connettore Higgsfield). Richiede autenticazione MCP (OAuth) al primo uso.
 
@@ -96,17 +100,19 @@ A diver performs a backflip off a coastal rock into the deep teal sea below,
 spray and foam on entry, slow-motion, cinematic, golden-hour rim light, 16:9.
 ```
 
-Dove salvare gli output:
+Dove salvare gli output e pipeline reale (stato shipped):
 
 ```text
-public/video/
-  clip-a-approach.mp4      # clip aerea Pan di Zucchero (+ .webm + poster)
-  clip-b-backflip.mp4      # clip tuffo/backflip (+ .webm + poster)
+public/video/                 # SORGENTE: mp4 grezzi Higgsfield, untracked (non in git)
+  hf_20260624_*.mp4           #   naming nativo dell'export Higgsfield, nessun rename canonico
+
+public/frames/                # OUTPUT di produzione: frame-sequence WebP
+  f_000.webp .. f_135.webp    #   136 frame, indicizzati da heroStore.video
 ```
 
-Il naming canonico dei file video (e i formati .webm + poster) e definito in `docs/05-CINEMATIC-SCROLL.md`.
+NB: NON esistono `clip-a-approach`/`clip-b-backflip`, ne formati `.webm` o `poster`. Il flusso e: mp4 Higgsfield grezzo -> decodifica/estrazione frame -> sequenza `public/frames/f_###.webp`. La frame-sequence e il percorso SHIPPED (non un fallback opzionale): la cinematica e disegnata su un canvas 2D in `src/components/video-backdrop.tsx`, indicizzata da `heroStore.video`; nessun elemento `<video>` ne `VideoPlane` WebGL. Preload a concorrenza 6, DPR clampato a 1.5.
 
-Note: rispettare il performance budget (vedi `docs/01-TECHSTACK.md`) — i video sono lazy-loaded, decorativi (`aria-hidden`), e degradano su mobile / `prefers-reduced-motion` (poster statico al posto dello scrub). Encoding/ottimizzazione frame-sequence possono passare dalle skill `remotion`/`remotion-best-practices`.
+Note: rispettare il performance budget (vedi `docs/01-TECHSTACK.md`) — la cinematica e decorativa (`aria-hidden`) e degrada su `prefers-reduced-motion` CONGELANDO un frame a meta sequenza (progress ~0.5), non con un poster statico. Encoding/estrazione della frame-sequence possono passare dalle skill `remotion`/`remotion-best-practices`. Il naming canonico e la pipeline di decodifica sono definiti in `docs/05-CINEMATIC-SCROLL.md`.
 
 ### 3.3 Context7 MCP — documentazione
 

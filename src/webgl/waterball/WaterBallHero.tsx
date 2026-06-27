@@ -291,9 +291,9 @@ export function WaterBallHero() {
       camera.prevHoverY = camera.currentHoverY;
       const realBoxSize = [...INIT_BOX];
       const swayStart = performance.now();
-      // one-shot explode latch (see the explode beat in frame())
-      let burstActive = false;
-      let burstT0 = 0;
+      // DRAIN beat is scrub-driven (Direction A). Track whether we've drained so the
+      // "A" is refilled cleanly once scrolled fully back to the top.
+      let drained = false;
 
       const heroEl = document.getElementById("hero");
       if (heroEl) {
@@ -328,31 +328,25 @@ export function WaterBallHero() {
         sim.splashLeashRadius = sp.leashRadius;
         sim.pokeForce = sp.pokeForce;
 
-        // EXPLODE beat (hero.tsx writes heroStore.explode 0->1 as you scroll in).
-        // Crossing the threshold latches a ONE-SHOT, real-time ~1s burst (NOT scrubbed):
-        // the water sprays apart and the canvas fades, so it "explodes and vanishes
-        // after ~1s" on its own clock. Scrolling back up re-arms it (the "A" reforms).
+        // DRAIN beat (Direction A) — scrub-driven + reversible. hero.tsx writes
+        // heroStore.explode 0->1 as you scroll in; we feed it STRAIGHT to the sim so
+        // the "A" loses surface tension and POURS DOWNWARD into the dive (g2p), instead
+        // of a wall-clock starburst. The canvas fades as the drain completes (the water
+        // merges into the sea); scrolling back up reverses it and reforms the "A".
         const explodeBeat = useHeroStore.getState().explode;
-        if (explodeBeat > 0.05 && !burstActive) {
-          burstActive = true;
-          burstT0 = performance.now();
-        }
-        if (explodeBeat <= 0.02 && burstActive) {
-          burstActive = false;
+        sim.splashExplode = explodeBeat;
+        if (explodeBeat > 0.05) drained = true;
+        if (explodeBeat <= 0.02 && drained) {
+          drained = false;
           sim.splashExplode = 0;
-          sim.initFromHomes(INIT_BOX, NUM_PARTICLES); // refill the "A"
+          sim.initFromHomes(INIT_BOX, NUM_PARTICLES); // reform the "A"
           canvas.style.opacity = "1";
         }
-        let canvasOp = 1;
-        if (burstActive) {
-          const tt = (performance.now() - burstT0) * 0.001;
-          sim.splashExplode = Math.min(1, tt / 0.6);
-          const k = Math.min(1, tt / 1.0);
-          canvasOp = 1 - k * k * (3 - 2 * k); // smoothstep fade over ~1s
-          canvas.style.opacity = String(canvasOp);
-        }
-        // fully dissipated -> idle the GPU (skip the heavy sim+render) until re-armed
-        if (burstActive && canvasOp <= 0.002) {
+        // fade the fluid as the drain finishes pouring into the sea (tied to scroll)
+        const fade = explodeBeat <= 0.62 ? 1 : Math.max(0, 1 - (explodeBeat - 0.62) / 0.38);
+        canvas.style.opacity = String(fade);
+        // fully drained + faded -> idle the GPU (skip the heavy sim+render) until scrolled back
+        if (explodeBeat >= 0.999 && fade <= 0.002) {
           rafId = requestAnimationFrame(frame);
           return;
         }

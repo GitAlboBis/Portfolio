@@ -84,12 +84,10 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var reflectionColor: vec3f = textureSampleLevel(envmap_texture, texture_sampler, reflectionDirWorld, 0.).rgb; 
     var finalColor = 0.0 * specular + mix(refractionColor, reflectionColor, fresnel);
 
-
-    let maxDeltaZ = max(max(abs(ddx.z), abs(ddy.z)), max(abs(ddx2.z), abs(ddy2.z)));
-    if (maxDeltaZ > 1.5 * uniforms.sphere_size) {
-        return vec4f(mix(finalColor, vec3f(0.9), 0.4), 1.0);
-    }
-
+    // (removed the hard white silhouette-edge tint at steep depth gradients — it read
+    // as harsh white spikes on the letter, and exploded into a starburst of spikes
+    // while the fluid dispersed. The translucent teal SSF + fresnel rim carry the
+    // edge on their own; foam, if wanted, should be soft and thickness-driven.)
     return vec4f(finalColor, 1.0);
 
     // return vec4f(viewPos.y * 100, 0, 0, 1.0);

@@ -157,20 +157,24 @@ fn g2p(@builtin(global_invocation_id) id: vec3<u32>) {
         // optional damping (default 0 keeps the churn alive, like the original)
         particles[id.x].v *= (1.0 - splash.drag);
 
-        // EXPLODE burst: push every particle radially OUTWARD from the "A" centroid,
-        // ramped by explode. With confinement off (above) and no gravity, the water
-        // sprays apart like a splash -- a little hashed jitter breaks the perfect sphere.
+        // DRAIN beat (Direction A): as splash.explode 0->1 the surface tension breaks
+        // and the letter POURS DOWNWARD back into the sea -- a directional drain, NOT
+        // an omnidirectional starburst. Confinement is already off (calm above), so the
+        // water is free to fall. A gentle horizontal spread makes it SHEET (not stream),
+        // and a little hashed jitter breaks it like water rather than a falling block.
         if (splash.explode > 0.0) {
+            let e = splash.explode;
             let center = real_box_size * 0.5;
-            let outv = particles[id.x].position - center;
-            let dout = max(length(outv), 1e-3);
-            let dirOut = outv / dout;
+            let outxz = vec3f(particles[id.x].position.x - center.x, 0.0, particles[id.x].position.z - center.z);
+            let spread = outxz / max(length(outxz), 1e-3);
             let jitter = vec3f(
                 sin(particles[id.x].position.y * 1.7 + particles[id.x].position.z),
-                cos(particles[id.x].position.x * 1.3 + particles[id.x].position.y),
-                sin(particles[id.x].position.x * 0.9 - particles[id.x].position.z * 1.1)
+                0.0,
+                cos(particles[id.x].position.x * 1.3 + particles[id.x].position.y)
             );
-            particles[id.x].v += (dirOut + jitter * 0.28) * 20.0 * splash.explode;
+            particles[id.x].v += vec3f(0.0, -26.0, 0.0) * e;   // fall (down = -Y)
+            particles[id.x].v += spread * 5.0 * e;             // gentle outward sheet
+            particles[id.x].v += jitter * 2.0 * e;             // organic break-up
         }
         // hard safety: cap speed so a feedback loop can never blow a particle to infinity.
         let sp2 = dot(particles[id.x].v, particles[id.x].v);

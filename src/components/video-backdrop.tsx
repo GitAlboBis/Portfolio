@@ -17,8 +17,45 @@ import { useHeroStore } from "@/webgl/store/heroStore";
   2nd source frame (~68 stills, ~2MB) and snap the 136-index timeline to the nearest
   loaded even frame, halving decode cost while still scrubbing the full sequence.
   Desktop behaviour is byte-identical to before (every frame, 1920px set).
+
+  ── SYNTHETIC DIVE CLIMAX ────────────────────────────────────────────────────
+  There is NO backflip/dive footage; the plate is a slow, near-static drone push.
+  The hero scroll budget allots ~24%..56% to a "cinematic" window that, left as a
+  literal scrub, reads as dead air. We synthesize the missing payoff entirely in
+  the draw step over heroStore.video ∈ [DIVE_IN, DIVE_OUT]:
+
+    1. KEN BURNS PUSH-IN — scale the drawn frame 1.0 → DIVE_ZOOM toward a focal
+       point near the sea-stack (FOCAL_X, FOCAL_Y of the IMAGE), with an
+       accelerating ease (slow start, faster into the dive) so it feels like
+       plunging toward the rock. After DIVE_OUT we hold the peak zoom (settle).
+    2. NON-LINEAR FRAME REMAP — the frame index advances a touch faster through
+       the climax (more sense of motion from the near-static plate) while still
+       covering 0..135 across the whole hero (monotonic, endpoints pinned).
+    3. EXPOSURE DEEPEN — a subtle dark radial vignette is composited as the
+       push-in peaks (NatGeo restraint), grounding the plunge without crushing.
+
+  CRITICAL: the zoom factor changes EVERY tick inside the window, not only when
+  the snapped frame index changes — so the rAF loop redraws on a zoom delta there.
+  OUTSIDE the window (and when STEP-snapped index is unchanged) it redraws only on
+  index change, and the whole loop stays idle while the hero is offscreen (IO).
+  Tier selection, cover-fit math, DPR clamp, preload and reduced-motion (NO zoom,
+  static mid frame) are preserved exactly.
 */
 const FRAME_COUNT = 136;
+
+// Dive-climax window in heroStore.video (raw scroll) space. Matches the dead
+// footage-scrub beat (~24%..56%); we extend the push-in tail slightly to ~62%
+// so the zoom keeps accelerating a beat past the scrub before it settles/holds.
+const DIVE_IN = 0.24;
+const DIVE_OUT = 0.62;
+// Peak push-in. 1.0 = cover-fit (untouched); 1.35 = plunged toward the rock.
+const DIVE_ZOOM = 1.35;
+// Focal point in IMAGE space (0..1). The Pan di Zucchero stack sits centre-right.
+const FOCAL_X = 0.58;
+const FOCAL_Y = 0.6;
+// How much the index remap "leans" into the climax. 0 = linear; higher = the
+// middle of the sequence races a touch faster (endpoints stay pinned to 0/135).
+const REMAP_BIAS = 0.18;
 
 export function VideoBackdrop() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -52,22 +89,81 @@ export function VideoBackdrop() {
       return Math.min(FRAME_COUNT - 1, snapped);
     };
 
-    const images: HTMLImageElement[] = new Array(FRAME_COUNT);
-    let lastDrawn = -1;
+    // --- DIVE-CLIMAX MATH (pure, cheap) ----------------------------------
+    const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
-    const draw = () => {
-      const prog = reduce ? 0.5 : useHeroStore.getState().video;
+    // Accelerating ease for the push-in: slow start, faster into the dive.
+    // Cubic ease-in keeps the rock "arriving" only as you commit to the plunge.
+    const easeInCubic = (t: number) => t * t * t;
+
+    // Zoom factor for a given raw scroll progress. 1.0 before the window,
+    // accelerating to DIVE_ZOOM across it, then HELD at peak afterwards (settle).
+    const zoomFor = (prog: number) => {
+      if (reduce) return 1; // reduced-motion: no Ken Burns, ever.
+      if (prog <= DIVE_IN) return 1;
+      if (prog >= DIVE_OUT) return DIVE_ZOOM;
+      const t = (prog - DIVE_IN) / (DIVE_OUT - DIVE_IN);
+      return 1 + (DIVE_ZOOM - 1) * easeInCubic(t);
+    };
+
+    // Dark-vignette opacity, peaking with the push-in. Ramps in over the back
+    // half of the window and holds a gentle plateau on the settle. Kept low —
+    // NatGeo restraint, never a crushed frame.
+    const vignetteFor = (prog: number) => {
+      if (reduce) return 0;
+      // 0 until mid-window, then ease up to a max of 0.28 by DIVE_OUT, held.
+      const start = DIVE_IN + (DIVE_OUT - DIVE_IN) * 0.45;
+      if (prog <= start) return 0;
+      const t = clamp01((prog - start) / (DIVE_OUT - start));
+      return 0.28 * (t * t); // ease-in, peaks at the rock
+    };
+
+    // Non-linear frame remap: smootherstep-blended bias that makes the MIDDLE of
+    // the sequence advance a touch faster (more motion through the dead plate)
+    // while pinning the endpoints (0→0, 1→1) so we still cover 0..135 overall.
+    // p∈[0,1] raw → p'∈[0,1] remapped, strictly monotonic for BIAS<1.
+    const remapProgress = (p: number) => {
+      if (REMAP_BIAS <= 0) return p;
+      // smootherstep centred speed-up: derivative is highest near p=0.5.
+      const s = p * p * p * (p * (p * 6 - 15) + 10); // smootherstep(p)
+      return clamp01(p + REMAP_BIAS * (s - p));
+    };
+
+    const images: HTMLImageElement[] = new Array(FRAME_COUNT);
+
+    // Cache the last composited state so the loop can detect a zoom delta (not
+    // just an index delta) and redraw within the climax window only when needed.
+    let lastDrawnIdx = -1;
+    let lastDrawnZoom = -1;
+
+    // EPS so sub-pixel zoom jitter doesn't force a redraw every single frame on
+    // tiny scroll deltas; large enough to be invisible, small enough to be smooth.
+    const ZOOM_EPS = 0.0008;
+
+    const indexFor = (prog: number) => {
+      const remapped = remapProgress(clamp01(prog));
       const raw = Math.max(
         0,
-        Math.min(FRAME_COUNT - 1, Math.round(prog * (FRAME_COUNT - 1))),
+        Math.min(FRAME_COUNT - 1, Math.round(remapped * (FRAME_COUNT - 1))),
       );
-      const idx = snap(raw);
+      return snap(raw);
+    };
+
+    const draw = (progArg?: number) => {
+      const prog = reduce
+        ? 0.5
+        : progArg ?? useHeroStore.getState().video;
+      const idx = indexFor(prog);
       const img = images[idx];
       if (!img || !img.complete || !img.naturalWidth) return;
+
       const cw = canvas.width;
       const ch = canvas.height;
       const ir = img.naturalWidth / img.naturalHeight;
       const cr = cw / ch;
+
+      // COVER-FIT (unchanged): largest rect that fully covers the canvas at
+      // scale 1.0, centred. This is the untouched base layout.
       let dw: number, dh: number, dx: number, dy: number;
       if (ir > cr) {
         dh = ch;
@@ -80,8 +176,40 @@ export function VideoBackdrop() {
         dx = 0;
         dy = (ch - dh) / 2;
       }
+
+      // KEN BURNS PUSH-IN: grow the cover rect about the sea-stack focal point.
+      // We keep the canvas pixel where the focal point lands fixed, so the rock
+      // stays put while the frame plunges toward it (no drift to a corner).
+      const zoom = zoomFor(prog);
+      if (zoom !== 1) {
+        // Canvas-space anchor = the image's focal point at scale 1.0.
+        const ax = dx + dw * FOCAL_X;
+        const ay = dy + dh * FOCAL_Y;
+        dw *= zoom;
+        dh *= zoom;
+        // Re-place so the focal point still lands on the same canvas anchor.
+        dx = ax - dw * FOCAL_X;
+        dy = ay - dh * FOCAL_Y;
+      }
+
       ctx.drawImage(img, dx, dy, dw, dh);
-      lastDrawn = idx;
+
+      // EXPOSURE DEEPEN: cheap dark radial vignette over the plunge peak.
+      const vig = vignetteFor(prog);
+      if (vig > 0) {
+        // Radial centred on the focal point, transparent core → dark edges.
+        const fx = dx + dw * FOCAL_X;
+        const fy = dy + dh * FOCAL_Y;
+        const r = Math.max(cw, ch);
+        const g = ctx.createRadialGradient(fx, fy, r * 0.22, fx, fy, r * 0.82);
+        g.addColorStop(0, "rgba(7,34,46,0)"); // --color-abyss, transparent core
+        g.addColorStop(1, `rgba(7,34,46,${vig})`); // abyss, deepened edges
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, cw, ch);
+      }
+
+      lastDrawnIdx = idx;
+      lastDrawnZoom = zoom;
     };
 
     const resize = () => {
@@ -89,7 +217,8 @@ export function VideoBackdrop() {
       const h = canvas.clientHeight || window.innerHeight;
       canvas.width = Math.max(1, Math.floor(w * dpr));
       canvas.height = Math.max(1, Math.floor(h * dpr));
-      lastDrawn = -1;
+      lastDrawnIdx = -1;
+      lastDrawnZoom = -1;
       draw();
     };
 
@@ -98,7 +227,7 @@ export function VideoBackdrop() {
       const im = new Image();
       im.decoding = "async";
       im.onload = () => {
-        if (lastDrawn === -1) draw();
+        if (lastDrawnIdx === -1) draw();
       };
       im.src = framePath(i);
       images[i] = im;
@@ -157,15 +286,26 @@ export function VideoBackdrop() {
     if (io && heroEl) io.observe(heroEl);
 
     let raf = 0;
-    let lastIdx = -1;
     const loop = () => {
       raf = requestAnimationFrame(loop);
       if (!heroVisible) return;
+
       const prog = reduce ? 0.5 : useHeroStore.getState().video;
-      const idx = snap(Math.round(prog * (FRAME_COUNT - 1)));
-      if (idx !== lastIdx) {
-        lastIdx = idx;
-        draw();
+      const idx = indexFor(prog);
+
+      // Within the dive window the zoom changes continuously, so we must redraw
+      // on a zoom delta even when the snapped frame index is unchanged. Outside
+      // the window zoom is constant (1.0 before, DIVE_ZOOM after) so an index
+      // delta is the only trigger — keeping the loop cheap on the long holds.
+      const inWindow = !reduce && prog > DIVE_IN && prog < DIVE_OUT;
+
+      if (idx !== lastDrawnIdx) {
+        draw(prog);
+        return;
+      }
+      if (inWindow) {
+        const zoom = zoomFor(prog);
+        if (Math.abs(zoom - lastDrawnZoom) > ZOOM_EPS) draw(prog);
       }
     };
     loop();

@@ -215,8 +215,12 @@ export function Hero() {
           className="pointer-events-none absolute inset-x-0 top-[14%] z-20 flex flex-col items-center px-6 text-center"
           style={{ opacity: 0 }}
         >
-          <div className="inline-flex flex-col items-center gap-3 rounded-2xl bg-abyss/55 px-7 py-5 backdrop-blur-sm">
-            <span className="eyebrow text-celeste">{t.cinematic.eyebrow}</span>
+          <div className="inline-flex flex-col items-center gap-3 rounded-2xl bg-abyss/70 px-7 py-5 backdrop-blur-sm">
+            {/* Lighter celeste so the eyebrow clears >=4.5:1 even where the abyss/70
+                pill sits over the brightest sunlit frame. */}
+            <span className="eyebrow" style={{ color: "#c9e8f7" }}>
+              {t.cinematic.eyebrow}
+            </span>
             <span
               className="lead max-w-[28ch] text-foam"
               style={{ textShadow: "0 1px 14px rgba(4,16,24,.6)" }}
@@ -234,16 +238,21 @@ export function Hero() {
             above). Sits in the lower band so it never fights the liquid letters. */}
         <div
           ref={thesisRef}
-          className="absolute inset-x-0 bottom-[18%] z-20 flex flex-col items-center gap-3 px-6 text-center"
+          className="absolute inset-x-0 bottom-[18%] z-20 flex flex-col items-center px-6 text-center"
           style={{ opacity: 0 }}
         >
-          <p className="eyebrow text-celeste">{t.hero.role}</p>
-          <p
-            className="lead max-w-[34ch] text-foam"
-            style={{ textShadow: "0 1px 14px rgba(4,16,24,.55)" }}
-          >
-            {t.hero.tagline}
-          </p>
+          {/* Controlled dark surface: a blurred abyss pill keeps the thesis copy
+              >=4.5:1 even where it surfaces over the brightest sunlit sea frame
+              (a bare text-shadow read ~1.2:1 — the WCAG 1.4.3 regression). */}
+          <div className="inline-flex flex-col items-center gap-3 rounded-2xl bg-abyss/70 px-7 py-5 backdrop-blur-sm">
+            <p className="eyebrow text-celeste">{t.hero.role}</p>
+            <p
+              className="lead max-w-[34ch] text-foam"
+              style={{ textShadow: "0 1px 14px rgba(4,16,24,.55)" }}
+            >
+              {t.hero.tagline}
+            </p>
+          </div>
         </div>
 
         {/* Scroll cue (entry only) — a celeste dot breathes down the hairline */}

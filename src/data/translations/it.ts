@@ -2,7 +2,15 @@ import type { Dictionary } from "./types";
 
 export const it: Dictionary = {
   meta: { eyebrow: "Software Engineer · Full-Stack + AI" },
-  a11y: { skipToContent: "Vai al contenuto" },
+  a11y: {
+    skipToContent: "Vai al contenuto",
+    primaryNav: "Principale",
+    languageGroup: "Lingua",
+    openMenu: "Apri il menu",
+    closeMenu: "Chiudi il menu",
+    menuDialog: "Menu del sito",
+    home: "Alberto Tuveri — home",
+  },
   nav: {
     work: "Lavori",
     about: "Chi sono",
@@ -28,7 +36,7 @@ export const it: Dictionary = {
     caption: "Masua, Sardegna — dove tutto comincia.",
   },
   work: {
-    eyebrow: "Lavori selezionati",
+    eyebrow: "Nella corrente",
     heading: "In produzione, non in demo.",
     lead: "Sistemi di produzione tra assistenza domiciliare, voice AI enterprise e piattaforme di supply-chain.",
     wip: "Dettagli in arrivo",
@@ -36,7 +44,7 @@ export const it: Dictionary = {
     stackLabel: "Stack",
   },
   skills: {
-    eyebrow: "Strumenti",
+    eyebrow: "L'abisso",
     heading: "Con cosa lavoro.",
   },
   contact: {

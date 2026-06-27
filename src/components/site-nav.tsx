@@ -51,11 +51,13 @@ function LangToggle({
   lang,
   setLang,
   onSwitch,
+  groupLabel,
   className,
 }: {
   lang: Lang;
   setLang: (l: Lang) => void;
   onSwitch: (l: Lang) => void;
+  groupLabel: string;
   className?: string;
 }) {
   const langs: Lang[] = ["en", "it"];
@@ -63,7 +65,7 @@ function LangToggle({
     <div
       className={cn("label flex items-center gap-1 text-mist", className)}
       role="group"
-      aria-label="Language"
+      aria-label={groupLabel}
     >
       {langs.map((l, i) => {
         const active = lang === l;
@@ -232,7 +234,7 @@ export function SiteNav() {
       )}
     >
       <nav
-        aria-label="Primary"
+        aria-label={t.a11y.primaryNav}
         className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 sm:h-20 sm:px-8 lg:px-12"
       >
         {/* Monogram — serif, links to hero */}
@@ -240,7 +242,7 @@ export function SiteNav() {
           href="#hero"
           onClick={() => setOpen(false)}
           className="group relative font-display text-2xl font-semibold leading-none tracking-tight text-foam transition-colors duration-300 hover:text-tide sm:text-[1.7rem]"
-          aria-label="Alberto Tuveri — home"
+          aria-label={t.a11y.home}
         >
           AT
           <span
@@ -285,7 +287,12 @@ export function SiteNav() {
 
           <span aria-hidden className="h-4 w-px bg-rule" />
 
-          <LangToggle lang={lang} setLang={setLang} onSwitch={announceLang} />
+          <LangToggle
+            lang={lang}
+            setLang={setLang}
+            onSwitch={announceLang}
+            groupLabel={t.a11y.languageGroup}
+          />
 
           <Button size="sm" variant="signal" href={MAILTO}>
             {t.nav.cta}
@@ -294,12 +301,17 @@ export function SiteNav() {
 
         {/* Mobile cluster */}
         <div className="flex items-center gap-5 md:hidden">
-          <LangToggle lang={lang} setLang={setLang} onSwitch={announceLang} />
+          <LangToggle
+            lang={lang}
+            setLang={setLang}
+            onSwitch={announceLang}
+            groupLabel={t.a11y.languageGroup}
+          />
           <button
             ref={hamburgerRef}
             type="button"
             onClick={() => setOpen((v) => !v)}
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? t.a11y.closeMenu : t.a11y.openMenu}
             aria-expanded={open}
             aria-controls="mobile-nav"
             className="flex h-11 w-11 flex-col items-center justify-center gap-[5px] text-foam focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tide focus-visible:ring-offset-2 focus-visible:ring-offset-abyss"
@@ -335,7 +347,7 @@ export function SiteNav() {
           id="mobile-nav"
           role="dialog"
           aria-modal="true"
-          aria-label="Site menu"
+          aria-label={t.a11y.menuDialog}
           className="fixed inset-0 top-0 z-40 flex flex-col overscroll-contain bg-abyss md:hidden"
         >
           <div className="h-16 sm:h-20" aria-hidden />

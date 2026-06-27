@@ -2,7 +2,15 @@ import type { Dictionary } from "./types";
 
 export const en: Dictionary = {
   meta: { eyebrow: "Software Engineer · Full-Stack + AI" },
-  a11y: { skipToContent: "Skip to content" },
+  a11y: {
+    skipToContent: "Skip to content",
+    primaryNav: "Primary",
+    languageGroup: "Language",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    menuDialog: "Site menu",
+    home: "Alberto Tuveri — home",
+  },
   nav: {
     work: "Work",
     about: "About",
@@ -28,7 +36,7 @@ export const en: Dictionary = {
     caption: "Masua, Sardinia — where it starts.",
   },
   work: {
-    eyebrow: "Selected work",
+    eyebrow: "In the current",
     heading: "Shipped, not demoed.",
     lead: "Production systems across home-care, enterprise voice AI, and supply-chain platforms.",
     wip: "Details coming soon",
@@ -36,7 +44,7 @@ export const en: Dictionary = {
     stackLabel: "Stack",
   },
   skills: {
-    eyebrow: "Toolbox",
+    eyebrow: "The deep",
     heading: "What I work with.",
   },
   contact: {

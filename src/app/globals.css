@@ -92,6 +92,10 @@ html {
 body {
   font-family: var(--font-serif);
   font-optical-sizing: auto;
+  /* Reading-grade optical master for any Fraunces text not promoted to a
+     display/heading class (sturdier letterforms, no WONK). Display/headings
+     override this with a higher opsz above. */
+  font-variation-settings: "opsz" 18, "SOFT" 0, "WONK" 0;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
@@ -109,13 +113,29 @@ body {
   border-radius: 2px;
 }
 
-/* ---- Typography (grand editorial serif; sans only for small caps labels) ---- */
+/* ---- Typography (grand editorial serif; sans only for small caps labels) ----
+
+   Fraunces is now a TRUE variable font (see layout.tsx: weight:"variable",
+   axes opsz/SOFT/WONK). We drive its optical-size axis per type class so each
+   size renders at its INTENDED optical master: display sits near the top of the
+   opsz range (high-contrast, refined hairlines) and reading copy sits low
+   (sturdier, more legible at small sizes). A restrained touch of SOFT (softened
+   terminals) and a whisper of WONK (the playful glyph swaps) is reserved for the
+   single hero display only — editorial, NatGeo-calm, never quirky.
+
+   Note: setting `font-variation-settings` opts out of `font-optical-sizing:auto`
+   (set on <body>), so we name `opsz` explicitly wherever we want control.
+   Fraunces axis ranges: opsz 9–144 · SOFT 0–100 · WONK 0–1. */
 .display-hero {
   font-family: var(--font-display);
   font-weight: 500;
   line-height: 0.92;
   letter-spacing: -0.02em;
   font-size: clamp(3.5rem, 13vw, 13rem);
+  /* Top of the optical range for the grandest mark: crisp high-contrast serifs,
+     a hair of SOFT to keep the big terminals from feeling brittle, and the
+     faintest WONK so the display reads hand-cut, not mechanical. */
+  font-variation-settings: "opsz" 144, "SOFT" 12, "WONK" 1;
 }
 
 .heading-1 {
@@ -124,6 +144,9 @@ body {
   font-size: clamp(2.25rem, 5.5vw, 4.75rem);
   line-height: 1.0;
   letter-spacing: -0.015em;
+  /* High optical size for section titles — refined, but calmer than the hero:
+     no WONK, the merest SOFT. */
+  font-variation-settings: "opsz" 96, "SOFT" 6, "WONK" 0;
 }
 
 .heading-2 {
@@ -132,6 +155,7 @@ body {
   font-size: clamp(1.7rem, 3.6vw, 2.9rem);
   line-height: 1.08;
   letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 64, "SOFT" 0, "WONK" 0;
 }
 
 .heading-3 {
@@ -140,6 +164,7 @@ body {
   font-size: clamp(1.3rem, 2.4vw, 1.95rem);
   line-height: 1.16;
   letter-spacing: -0.008em;
+  font-variation-settings: "opsz" 40, "SOFT" 0, "WONK" 0;
 }
 
 .lead {
@@ -147,6 +172,8 @@ body {
   font-size: clamp(1.1rem, 1.7vw, 1.45rem);
   line-height: 1.55;
   color: var(--color-mist);
+  /* Intro/standfirst sits between heading and body opsz — readable, still serifed. */
+  font-variation-settings: "opsz" 28, "SOFT" 0, "WONK" 0;
 }
 
 /* Reading copy — Hanken sans, comfortable measure for body paragraphs. */

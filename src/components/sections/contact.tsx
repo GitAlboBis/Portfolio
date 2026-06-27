@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { useScrollParallax } from "@/components/descending-world";
 import { useLanguage } from "@/components/language-provider";
 
 /*
@@ -20,21 +21,25 @@ const SOCIALS = [
 
 export function Contact() {
   const { t } = useLanguage();
+  // The closing heading rises from the deepest dark — gentle upward parallax.
+  const headingRef = useScrollParallax<HTMLDivElement>(30);
 
   return (
     <section
       id="contact"
-      className="scroll-mt-24 bg-abyss py-28 text-foam sm:py-36 md:py-44"
+      className="scroll-mt-24 py-28 text-foam sm:py-36 md:py-44"
     >
       <Container>
         <div className="mx-auto flex max-w-3xl flex-col items-center">
           <Reveal>
-            <SectionHeading
-              eyebrow={t.contact.eyebrow}
-              title={t.contact.heading}
-              lead={t.contact.lead}
-              align="center"
-            />
+            <div ref={headingRef}>
+              <SectionHeading
+                eyebrow={t.contact.eyebrow}
+                title={t.contact.heading}
+                lead={t.contact.lead}
+                align="center"
+              />
+            </div>
           </Reveal>
 
           <Reveal delay={120} className="mt-14 sm:mt-16">

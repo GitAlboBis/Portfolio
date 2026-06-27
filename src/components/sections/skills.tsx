@@ -2,6 +2,7 @@
 
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
+import { useScrollParallax } from "@/components/descending-world";
 import { useLanguage } from "@/components/language-provider";
 import { skillGroups } from "@/data/skills";
 
@@ -13,6 +14,8 @@ import { skillGroups } from "@/data/skills";
 */
 export function SkillsSection() {
   const { lang, t } = useLanguage();
+  // The skills header hangs a little shallower than the grid below it.
+  const headerRef = useScrollParallax<HTMLDivElement>(24);
 
   return (
     <section
@@ -22,7 +25,7 @@ export function SkillsSection() {
     >
       <Container>
         <Reveal variant="clip-up">
-          <header className="flex max-w-2xl flex-col gap-5">
+          <header ref={headerRef} className="flex max-w-2xl flex-col gap-5">
             <p className="label">{t.skills.eyebrow}</p>
             <h2 id="skills-heading" className="heading-1 text-balance text-foam">
               {t.skills.heading}

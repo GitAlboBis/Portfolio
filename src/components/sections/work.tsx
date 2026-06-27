@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
+import { useScrollParallax } from "@/components/descending-world";
 import { projectsSorted, type Project } from "@/data/projects";
 import { useLanguage } from "@/components/language-provider";
 import { cn } from "@/lib/utils";
@@ -18,19 +19,23 @@ import { cn } from "@/lib/utils";
 */
 export function WorkSection() {
   const { lang, t } = useLanguage();
+  // The heading hangs at a slightly different depth than the cards as we descend.
+  const headingRef = useScrollParallax<HTMLDivElement>(34);
 
   return (
     <section
       id="work"
-      className="scroll-mt-24 bg-deep py-28 sm:py-36 md:py-44"
+      className="scroll-mt-24 py-28 sm:py-36 md:py-44"
     >
       <Container>
         <Reveal>
-          <SectionHeading
-            eyebrow={t.work.eyebrow}
-            title={t.work.heading}
-            lead={t.work.lead}
-          />
+          <div ref={headingRef}>
+            <SectionHeading
+              eyebrow={t.work.eyebrow}
+              title={t.work.heading}
+              lead={t.work.lead}
+            />
+          </div>
         </Reveal>
 
         {/* Cards rise in sequence — a measured, staggered surfacing. */}

@@ -8,7 +8,21 @@ export type Lang = "en" | "it";
 */
 export type Dictionary = {
   meta: { eyebrow: string };
-  a11y: { skipToContent: string };
+  a11y: {
+    skipToContent: string;
+    /** Accessible name for the primary navigation landmark. */
+    primaryNav: string;
+    /** Accessible name for the EN/IT language toggle group. */
+    languageGroup: string;
+    /** Accessible name for the hamburger when the menu is closed. */
+    openMenu: string;
+    /** Accessible name for the hamburger when the menu is open. */
+    closeMenu: string;
+    /** Accessible name for the mobile menu dialog. */
+    menuDialog: string;
+    /** Accessible name for the monogram link back to the hero. */
+    home: string;
+  };
   nav: {
     work: string;
     about: string;

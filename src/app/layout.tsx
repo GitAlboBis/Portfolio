@@ -11,10 +11,18 @@ import { en } from "@/data/translations/en";
 import { it } from "@/data/translations/it";
 import "./globals.css";
 
+// Fraunces shipped as a TRUE variable font so its signature axes actually fire:
+//   wght (full range, via weight:"variable"), opsz (optical size, 9–144),
+//   SOFT (terminal softening), WONK (the playful "wonky" glyph swaps).
+// We drive opsz/SOFT/WONK per type class in globals.css via font-variation-settings.
+// next/font self-hosts the variable file(s); `axes` lists every non-wght axis
+// (wght is implied by weight:"variable"). italic kept — Fraunces has a full
+// variable italic. (next/font/google variable-axes syntax verified via Context7.)
 const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: "variable",
   style: ["normal", "italic"],
+  axes: ["opsz", "SOFT", "WONK"],
   variable: "--font-fraunces",
   display: "swap",
 });

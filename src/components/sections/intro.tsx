@@ -3,6 +3,7 @@
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Reveal, RevealText } from "@/components/ui/reveal";
+import { useScrollParallax } from "@/components/descending-world";
 import { useLanguage } from "@/components/language-provider";
 
 /*
@@ -13,6 +14,8 @@ import { useLanguage } from "@/components/language-provider";
 */
 export function Intro() {
   const { t } = useLanguage();
+  // First descent below the fold — the statement drifts a touch as you sink.
+  const blockRef = useScrollParallax<HTMLDivElement>(26);
 
   return (
     <section
@@ -21,7 +24,7 @@ export function Intro() {
       className="scroll-mt-24 py-28 sm:py-36 md:py-44"
     >
       <Container>
-        <div className="max-w-4xl">
+        <div ref={blockRef} className="max-w-4xl">
           <Reveal>
             <Eyebrow>{t.intro.eyebrow}</Eyebrow>
           </Reveal>

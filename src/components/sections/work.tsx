@@ -8,6 +8,8 @@ import { useScrollParallax } from "@/components/descending-world";
 import { projectsSorted, type Project } from "@/data/projects";
 import { useLanguage } from "@/components/language-provider";
 import { cn } from "@/lib/utils";
+import { ProjectFocusCards } from "@/components/focus-cards";
+import { SkiperCurrentThread } from "@/components/skiper-current-thread";
 
 /*
   WorkSection — Cinematic Ocean (NatGeo "Into the Amazon" lineage).
@@ -38,21 +40,16 @@ export function WorkSection() {
           </div>
         </Reveal>
 
-        {/* Cards rise in sequence — a measured, staggered surfacing. */}
-        <Reveal
-          variant="stagger"
-          stagger={140}
-          className="mx-auto mt-20 flex max-w-4xl flex-col gap-12 sm:mt-28 sm:gap-16 md:mt-32 md:gap-20"
-        >
-          {projectsSorted.map((project) => (
-            <ProjectCard
-              key={project.slug}
-              project={project}
-              lang={lang}
-              t={t}
-            />
-          ))}
-        </Reveal>
+        {/* Projects as a water depth-of-field grid (focus one, the rest sink),
+            with a scroll-drawn "descent current" inking down behind them. */}
+        <div className="relative mt-20 sm:mt-28 md:mt-32">
+          <SkiperCurrentThread className="hidden sm:block" />
+          <div className="relative z-10">
+            <Reveal className="mx-auto max-w-5xl">
+              <ProjectFocusCards />
+            </Reveal>
+          </div>
+        </div>
       </Container>
     </section>
   );

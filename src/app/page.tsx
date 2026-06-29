@@ -1,32 +1,27 @@
-import { Hero } from "@/components/sections/hero";
-import { Intro } from "@/components/sections/intro";
-import { WorkSection } from "@/components/sections/work";
-import { SkillsSection } from "@/components/sections/skills";
-import { Contact } from "@/components/sections/contact";
-import { DescendingWorld } from "@/components/descending-world";
+import { TechCloud } from "@/components/tech-cloud";
 
+/*
+  CLEAN-SLATE PAGE (2026-06-29)
+  ─────────────────────────────
+  A bare scaffold so `bun dev` compiles and both surviving 3D engines are visible
+  while the real site is rebuilt from the design directives:
+
+    • #hero section (full viewport) — the fixed WebGPU water "A" (in CanvasHost)
+      reads through it. WaterBallHero observes #hero to idle the GPU off-screen.
+    • sphere section — the three.js tech-stack constellation (TechCloud).
+
+  No copy, no nav, no real layout — that all gets designed next.
+*/
 export default function Home() {
   return (
-    <main id="main" tabIndex={-1} className="relative outline-none">
-      {/* Hero is transparent so the fixed WebGL canvas reads through it. */}
-      <Hero />
+    <main id="main" className="relative">
+      {/* Hero viewport — the fixed fluid "A" canvas shows through this empty band. */}
+      <section id="hero" aria-hidden className="relative h-dvh" />
 
-      {/* The ocean world keeps living past the fold: a fixed, scroll-linked
-          backdrop that DEEPENS from deep teal to abyss as we descend. It sits
-          behind the section text (z-0) and above the hero canvases once the hero
-          has scrolled away. */}
-      <DescendingWorld />
-
-      {/* Below-fold content rides ABOVE the descending backdrop (z-10). The
-          wrapper is deliberately transparent — the descending layer supplies the
-          background — so the world no longer dies at the fold. Sections keep
-          their own copy; text stays AA over the (always-dark) descent. */}
-      <div className="relative z-10">
-        <Intro />
-        <WorkSection />
-        <SkillsSection />
-        <Contact />
-      </div>
+      {/* Tech-stack sphere — the second kept engine, on the abyss base. */}
+      <section className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 py-24">
+        <TechCloud className="w-full" />
+      </section>
     </main>
   );
 }

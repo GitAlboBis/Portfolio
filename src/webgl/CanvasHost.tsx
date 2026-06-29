@@ -2,62 +2,38 @@
 
 import { useEffect, useState } from "react";
 import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
-import { VideoBackdrop } from "@/components/video-backdrop";
-import { HeroMarkFallback } from "@/components/hero-mark-fallback";
 
 /*
-  Hero host. The animated visual is now a faithful embed of matsuoka-601/WaterBall
-  (raw WebGPU MLS-MPM fluid, vendored under src/webgl/waterball). It runs on its own
-  WebGPU canvas — NOT R3F — and self-guards WebGPU support (renders null when absent).
-  The old R3F/SSF/photo-backdrop hero was removed. R3F stays available in the repo for
-  the scroll cinematic (later).
+  Hero canvas host (clean-slate, minimal).
 
-  Fallback: when WebGPU is unavailable the fluid "A" returns null and the hero
-  centerpiece would vanish — so we render a static foam "A" mark (HeroMarkFallback)
-  in its place, over the CSS sea gradient. The same static mark stands in when the
-  user prefers reduced motion (the sim is intentionally never mounted there).
+  Mounts ONLY the vendored matsuoka-601/WaterBall raw-WebGPU MLS-MPM fluid "A"
+  (src/webgl/waterball). It runs on its own WebGPU canvas + RAF loop — NOT R3F —
+  and self-guards WebGPU support (renders null when absent). We mount it only when
+  WebGPU is present AND motion is allowed; otherwise the CSS sea gradient stands
+  alone as the ultimate fallback.
 
-  Accessibility: the canvas + fallback mark are aria-hidden + pointer-events:none;
-  the hero's sr-only <h1> carries meaning. On prefers-reduced-motion we skip the
-  simulation entirely and show the (non-animated) static mark.
+  The old hero composition (Pan di Zucchero frame-scrub VideoBackdrop, static
+  fallback mark, scroll-driven explode/drain) was removed in the reset. heroStore
+  still exists and WaterBallHero reads heroStore.explode each frame — with no
+  scroll writer it stays 0, so the "A" simply churns/breathes in place. The
+  scroll-driven beats get rewired when the new hero is designed.
+
+  Accessibility: the canvas is aria-hidden + pointer-events:none (set inside
+  WaterBallHero). Decorative only.
 */
 
 const SEA_GRADIENT =
   "linear-gradient(180deg,#5a9ccd 0%,#86bee2 34%,#bcddee 50%,#cfe6f0 53%,#2f93ab 60%,#176a8d 76%,#0c3d57 100%)";
 
 export function CanvasHost() {
-  // false during SSR + when prefers-reduced-motion; flips on after mount otherwise.
-  const [animate, setAnimate] = useState(false);
-  // WebGPU support, resolved client-side AFTER mount (navigator.gpu is unknown
-  // during SSR). `null` = not yet checked -> render nothing for the centerpiece
-  // to avoid an SSR/first-paint mismatch; true/false once known.
-  const [hasWebGPU, setHasWebGPU] = useState<boolean | null>(null);
-  // The hero visuals are FIXED and would bleed behind the below-fold sections;
-  // fade the whole group out once the hero scrolls away.
-  const [heroVisible, setHeroVisible] = useState(true);
+  // false during SSR + under prefers-reduced-motion; resolved client-side after
+  // mount (navigator.gpu is unknown during SSR, so we never SSR the canvas).
+  const [showFluid, setShowFluid] = useState(false);
 
   useEffect(() => {
-    setAnimate(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    setHasWebGPU(typeof navigator !== "undefined" && !!navigator.gpu);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setShowFluid(!reduce && typeof navigator !== "undefined" && !!navigator.gpu);
   }, []);
-
-  useEffect(() => {
-    const heroEl = document.getElementById("hero");
-    if (!heroEl) return;
-    const io = new IntersectionObserver(
-      (entries) => setHeroVisible(entries[0]?.isIntersecting ?? true),
-      { threshold: 0 },
-    );
-    io.observe(heroEl);
-    return () => io.disconnect();
-  }, []);
-
-  // Mount the live fluid only when WebGPU is present AND motion is allowed.
-  const showFluid = hasWebGPU === true && animate;
-  // Static foam "A" stands in whenever the fluid can't/shouldn't run:
-  // no WebGPU, or reduced-motion (sim intentionally skipped). Wait until the
-  // client checks resolve so we never flash the fallback over a supported hero.
-  const showFallback = hasWebGPU !== null && !showFluid;
 
   return (
     <>
@@ -68,18 +44,7 @@ export function CanvasHost() {
         className="fixed inset-0 -z-10"
         style={{ background: SEA_GRADIENT }}
       />
-      {/* Hero visuals (footage + fluid "A" + fallback) — fixed, so the whole
-          group fades out once the hero leaves the viewport; otherwise the fixed
-          canvases bleed behind the below-fold sections. */}
-      <div
-        aria-hidden
-        className="fixed inset-0 z-0 transition-opacity duration-[900ms] ease-out"
-        style={{ opacity: heroVisible ? 1 : 0 }}
-      >
-        <VideoBackdrop />
-        {showFluid && <WaterBallHero />}
-        {showFallback && <HeroMarkFallback />}
-      </div>
+      {showFluid && <WaterBallHero />}
     </>
   );
 }

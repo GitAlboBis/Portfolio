@@ -1,0 +1,55 @@
+<!-- @dsCard group="Blueprint" name="Sections & Motion" subtitle="Light rhythm · scroll arc · tidal easings" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sections & Motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Sans:opsz,wght@9..40,400..600&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#fbf6ef;--paper-deep:#f1e4d3;--ink:#2a1a14;--ink-mute:#6e5447;--amber:#f2a33c;--coral:#ff8a4c;--ember:#ee5b23;--ember-ink:#bc410f;--rose:#e15d6b;--dusk:#5e4b7e;--night:#2a1820;--rule:rgba(42,26,20,.14)}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:46px 52px}
+  h1{font-family:"Bricolage Grotesque";font-weight:700;font-size:38px;letter-spacing:-.025em}
+  .sub{color:var(--ink-mute);font-size:15px;margin-top:8px;max-width:60ch}
+  .label{font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ember-ink);margin:28px 0 14px}
+  .arc{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  .step{border-radius:12px;padding:16px 14px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--rule)}
+  .step .i{font-family:"Bricolage Grotesque";font-weight:600;font-size:13px;letter-spacing:.1em;opacity:.8}
+  .step h4{font-family:"Bricolage Grotesque";font-weight:600;font-size:19px;letter-spacing:-.01em;line-height:1.05}
+  .step p{font-size:12px;line-height:1.45;opacity:.85}
+  .ease{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .ebox{border:1px solid var(--rule);border-radius:12px;padding:16px;background:#fff}
+  .ebox b{font-family:"Bricolage Grotesque";font-size:15px}
+  .ebox span{display:block;font-size:12px;color:var(--ink-mute);margin-top:2px}
+  .track{height:34px;border-radius:999px;background:var(--paper-deep);margin-top:14px;overflow:hidden;position:relative}
+  .dot{position:absolute;top:5px;left:5px;width:24px;height:24px;border-radius:50%;background:var(--ember)}
+  .t1 .dot{animation:run 2.6s cubic-bezier(.16,1,.3,1) infinite alternate}
+  .t2 .dot{animation:run 2.6s cubic-bezier(.65,0,.35,1) infinite alternate}
+  .t3 .dot{animation:run 2.6s cubic-bezier(.33,0,.67,1) infinite alternate}
+  @keyframes run{to{left:calc(100% - 29px)}}
+</style>
+</head>
+<body>
+  <h1>The scroll is a sunset</h1>
+  <p class="sub">Light-first throughout; warmth builds toward the work, then one deep <em>night</em> band closes the page. Motion eases like the tide — slow, weighted, never snappy.</p>
+
+  <p class="label">Section rhythm · light → warm → night</p>
+  <div class="arc">
+    <div class="step" style="background:linear-gradient(160deg,#ffe7bd,var(--coral))"><div class="i" style="color:var(--ink)">00</div><h4 style="color:var(--ink)">Hero</h4><p style="color:var(--ink)">Molten "A" on the sunset sky. The water is the headline.</p></div>
+    <div class="step" style="background:var(--paper)"><div class="i" style="color:var(--ember-ink)">01</div><h4>About</h4><p style="color:var(--ink-mute)">Warm white. Split-text rises into focus.</p></div>
+    <div class="step" style="background:var(--paper-deep)"><div class="i" style="color:var(--ember-ink)">02</div><h4>Selected Works</h4><p style="color:var(--ink-mute)">Depth gallery — planes fly through warm light.</p></div>
+    <div class="step" style="background:var(--paper)"><div class="i" style="color:var(--ember-ink)">03</div><h4>Tech</h4><p style="color:var(--ink-mute)">The sphere catches the last sun.</p></div>
+    <div class="step" style="background:linear-gradient(160deg,var(--amber),var(--ember))"><div class="i" style="color:var(--ink)">04</div><h4 style="color:var(--ink)">Contact</h4><p style="color:var(--ink)">Peak warmth — the golden CTA.</p></div>
+    <div class="step" style="background:var(--night)"><div class="i" style="color:var(--amber)">05</div><h4 style="color:var(--paper)">Footer</h4><p style="color:#d9c8bf">Night falls. Coordinates, sound, coda.</p></div>
+  </div>
+
+  <p class="label">Tidal easings — hover the site, feel the weight</p>
+  <div class="ease">
+    <div class="ebox t1"><b>--ease-tide</b><span>primary · cubic-bezier(.16,1,.3,1)</span><div class="track"><div class="dot"></div></div></div>
+    <div class="ebox t2"><b>--ease-dive</b><span>transitions · cubic-bezier(.65,0,.35,1)</span><div class="track"><div class="dot"></div></div></div>
+    <div class="ebox t3"><b>--ease-drift</b><span>ambient · cubic-bezier(.33,0,.67,1)</span><div class="track"><div class="dot"></div></div></div>
+  </div>
+</body>
+</html>

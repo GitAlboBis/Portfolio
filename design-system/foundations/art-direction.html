@@ -1,0 +1,65 @@
+<!-- @dsCard group="Foundations" name="Art Direction" subtitle="Concept · golden hour · 3 adjectives" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Art Direction — Golden Hour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Sans:ital,opsz,wght@0,9..40,400..600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#fbf6ef; --paper-deep:#f1e4d3; --ink:#2a1a14; --ink-mute:#6e5447;
+    --amber:#f2a33c; --coral:#ff8a4c; --ember:#ee5b23; --ember-ink:#bc410f;
+    --rose:#e15d6b; --dusk:#5e4b7e; --night:#2a1820;
+    --grad:linear-gradient(118deg,#ffe7bd 0%,var(--amber) 20%,var(--coral) 40%,var(--ember) 58%,var(--rose) 76%,var(--dusk) 100%);
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{min-height:100vh;display:flex;flex-direction:column}
+  .sky{position:relative;flex:1;min-height:440px;background:var(--grad);display:flex;align-items:flex-end;padding:48px;overflow:hidden}
+  .sky::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 78% -10%, rgba(255,255,255,.55), transparent 55%);mix-blend-mode:soft-light}
+  .eyebrow{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink)}
+  .eyebrow .tick{display:inline-block;width:26px;height:1px;background:var(--ink);vertical-align:middle;margin-right:12px;opacity:.6}
+  .mark{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:clamp(56px,9vw,124px);line-height:.86;letter-spacing:-.035em;color:var(--ink);position:relative;z-index:1}
+  .mark em{font-style:normal;color:var(--paper)}
+  .body{padding:44px 48px 52px;display:grid;grid-template-columns:1.4fr 1fr;gap:40px;align-items:start}
+  .lead{font-family:"Bricolage Grotesque",sans-serif;font-weight:500;font-size:clamp(22px,2.4vw,34px);line-height:1.18;letter-spacing:-.02em;max-width:18ch}
+  .lead b{color:var(--ember-ink);font-weight:700}
+  .meta{color:var(--ink-mute);font-size:15px;line-height:1.6;max-width:46ch}
+  .chips{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+  .chip{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:9px 16px;border-radius:999px;border:1px solid rgba(42,26,20,.18);color:var(--ink)}
+  .chip b{display:block;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:none;color:var(--ink-mute);margin-top:3px}
+  .ramp{display:flex;height:64px;border-radius:12px;overflow:hidden;border:1px solid rgba(42,26,20,.12)}
+  .ramp span{flex:1}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="sky">
+      <div>
+        <p class="eyebrow"><span class="tick"></span>Portfolio · Design System</p>
+        <h1 class="mark">Golden<br /><em>Hour.</em></h1>
+      </div>
+    </section>
+    <section class="body">
+      <div>
+        <p class="lead">A <b>warm, light</b> descent into the last hour of sun — the sea reflecting fire, type at full volume, motion that settles like the tide going out.</p>
+        <div class="chips">
+          <span class="chip">Warm<b>sunset over white</b></span>
+          <span class="chip">Editorial<b>oversized, confident</b></span>
+          <span class="chip">Tidal<b>slow, weighted motion</b></span>
+        </div>
+      </div>
+      <div>
+        <p class="meta">Light-first: a warm-white page lit by an orange sun. Ember leads; coral, amber and rose carry the warmth; a single cool <em>dusk</em> note and one deep <em>night</em> band give depth. No cold neon, no generic SaaS gradient — the gradient below is the only gradient, and it is a real sunset.</p>
+        <div class="ramp" style="margin-top:22px">
+          <span style="background:#ffe7bd"></span><span style="background:var(--amber)"></span><span style="background:var(--coral)"></span><span style="background:var(--ember)"></span><span style="background:var(--rose)"></span><span style="background:var(--dusk)"></span>
+        </div>
+        <p class="meta" style="margin-top:10px;font-size:12px">golden → dusk · the one sanctioned gradient</p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

@@ -38,11 +38,9 @@ fn getViewPosFromTexCoord(tex_coord: vec2f, iuv: vec2f) -> vec3f {
 fn fs(input: FragmentInput) -> @location(0) vec4f {
     var depth: f32 = abs(textureLoad(texture, vec2u(input.iuv), 0).r);
 
-    let bgColor: vec3f = vec3f(0.7, 0.7, 0.75);
-
     if (depth >= 1e4) {
-        // no fluid here -> TRANSPARENT so the video backdrop shows through. The "A"
-        // pixels below are unchanged (they still refract bgColor + reflect the env).
+        // no fluid here -> TRANSPARENT so the sunset backdrop shows through. The "A"
+        // pixels below still refract + reflect the environment (sunset cubemap).
         return vec4f(0.0, 0.0, 0.0, 0.0);
     }
 
@@ -73,8 +71,15 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
 
     // var diffuseColor = vec3f(1.0, 1.0, 1.0);
     var diffuseColor = vec3f(0.0, 0.7375, 0.95);
-    var transmittance: vec3f = exp(-density * thickness * (1.0 - diffuseColor)); 
-    var refractionColor: vec3f = bgColor * transmittance;
+    var transmittance: vec3f = exp(-density * thickness * (1.0 - diffuseColor));
+
+    // Refraction looks THROUGH the water at the real environment (cubemap), not a
+    // flat colour — so the sunset sky wraps the whole surface (360deg), not only the
+    // grazing rim. Beer-Lambert transmittance still gives the body its water tint.
+    var refractionDir: vec3f = refract(rayDir, normal, 1.0 / 1.333);
+    var refractionDirWorld: vec3f = (uniforms.inv_view_matrix * vec4f(refractionDir, 0.0)).xyz;
+    var refractedEnv: vec3f = textureSampleLevel(envmap_texture, texture_sampler, refractionDirWorld, 0.).rgb;
+    var refractionColor: vec3f = refractedEnv * transmittance;
 
     let F0 = 0.02;
     var fresnel: f32 = clamp(F0 + (1.0 - F0) * pow(1.0 - dot(normal, -rayDir), 5.0) + 0.0, 0., 1.);
@@ -88,7 +93,14 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     // as harsh white spikes on the letter, and exploded into a starburst of spikes
     // while the fluid dispersed. The translucent teal SSF + fresnel rim carry the
     // edge on their own; foam, if wanted, should be soft and thickness-driven.)
-    return vec4f(finalColor, 1.0);
+    // Thickness-driven edge/foam fade: thin fluid — the fast OUTWARD wave fronts,
+    // spray, and the silhouette rim — fades toward transparent instead of rendering
+    // as hard "needles". Canvas is premultiplied-alpha, so premultiply the colour by
+    // the same factor. THICK_FADE is the thickness at which the surface is fully
+    // opaque; below it the sheet softens into the background. (Tunable.)
+    let THICK_FADE: f32 = 0.5;
+    let edgeFade: f32 = smoothstep(0.0, THICK_FADE, thickness);
+    return vec4f(finalColor * edgeFade, edgeFade);
 
     // return vec4f(viewPos.y * 100, 0, 0, 1.0);
 

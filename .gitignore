@@ -39,3 +39,9 @@ next-env.d.ts
 
 # docs-driven-build loop: run-time screenshot artifacts (state ledger IS committed)
 /loops/docs-driven-build/artifacts/
+
+# design-system research scratch (captured in DESIGN-SYSTEM.md)
+/.wf-out/
+
+# reference repo clones studied for the water sim (Splash / WaterBall) — not ours
+/.analysis-clones/

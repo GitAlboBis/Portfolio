@@ -1,101 +1,90 @@
 @import "tailwindcss";
 
 /*
-  CINEMATIC OCEAN — design system (NatGeo "Into the Amazon" lineage).
-  Full-bleed media-driven, grand white serif, one rare warm accent (sun).
-  No electric cyan, no monospace. Canonical source: docs/02-DESIGN.md.
+  ════════════════════════════════════════════════════════════════════════════
+  GOLDEN HOUR — Design System  ·  Alberto Tuveri  ·  Awwwards SOTD target
+  Light-first, warm. A sunset over warm white: ember-led orange, coral/amber/rose
+  warmth, one cool dusk note, one deep "night" band. Type at full volume
+  (Bricolage Grotesque) on clean DM Sans. Motion eases like the tide.
+
+  Token source of truth (mirrored in src/content/tokens.ts and on claude.ai/design).
+  AA pairs verified — see DESIGN-SYSTEM.md / /styleguide.
+  ════════════════════════════════════════════════════════════════════════════
 */
+
+/* Light is the default. `.night` scopes the single dark band (footer). */
+@custom-variant night (&:where(.night, .night *));
+
 @theme {
-  /* Palette — natural ocean, light surface -> deep */
-  --color-abyss: #07222e; /* deep sea base (dark sections) */
-  --color-deep: #0b2c3a; /* deeper surface */
-  --color-tide: #5aa7be; /* natural mid sea-blue (subtle accents, never neon) */
-  --color-foam: #f4fafb; /* near-white (text on dark, surfaces) */
-  --color-mist: #9fbac6; /* muted text on dark */
-  --color-ink: #0b2731; /* deep text for LIGHT sections */
-  --color-ink-mute: #5c7884; /* muted text on light */
-  --color-celeste: #9bd3ee; /* light sky-blue — the accent, paired with white */
-  --color-celeste-soft: #c7e6f4;
-  --color-sun: #9bd3ee; /* back-compat alias -> celeste (gold removed per direction) */
+  /* ── Ground / neutrals ────────────────────────────────────────────────── */
+  --color-paper: #fbf6ef; /* page ground (warm white) */
+  --color-paper-deep: #f1e4d3; /* surfaces, cards, hairlines */
+  --color-ink: #2a1a14; /* primary text (warm espresso) */
+  --color-ink-mute: #6e5447; /* muted text — AA on paper (6.5:1) */
 
-  /* Bright Mediterranean surface (hero) — real Pan di Zucchero colors */
-  --color-sky: #8fc1e2; /* azure sky */
-  --color-shallow: #2f93ab; /* turquoise shallows */
-  --color-limestone: #e3dac6; /* pale sunlit rock */
-  --color-rule: rgb(244 250 251 / 0.14); /* hairline on dark */
-  --color-rule-ink: rgb(11 39 49 / 0.14); /* hairline on light */
+  /* ── Sunset ramp: golden → dusk ───────────────────────────────────────── */
+  --color-amber: #f2a33c; /* golden hour — fills, large accents */
+  --color-coral: #ff8a4c; /* peach-coral — fills, gradient mid */
+  --color-ember: #ee5b23; /* PRIMARY accent — CTAs (ink text), display */
+  --color-ember-ink: #bc410f; /* darker orange for orange TEXT (AA on paper, 5:1) */
+  --color-rose: #e15d6b; /* sunset rose-red — accent, gradient */
+  --color-dusk: #5e4b7e; /* cool twilight violet — counterpoint */
 
-  /* Back-compat aliases (older utilities resolve to natural tones, never cyan) */
-  --color-aqua: #5aa7be;
-  --color-aqua-hot: #cfeaf0;
-  --color-surface-elev: #123a4a;
-  --color-abyss-glow: #0e5a6b;
-  --color-gold: #f2b45a;
+  /* ── Drama band ───────────────────────────────────────────────────────── */
+  --color-night: #2a1820; /* the one dark section / footer (text = paper) */
 
-  /* Type — Fraunces (serif, display + reading) · Hanken Grotesk (sans labels) */
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  /* ── Hairlines ────────────────────────────────────────────────────────── */
+  --color-rule: rgb(42 26 20 / 0.14);
+  --color-rule-strong: rgb(42 26 20 / 0.28);
 
-  /* Layout — fixed nav height, used for anchor scroll-offset (.scroll-anchor) */
-  --nav-h: 4rem;
+  /* ── Motion: tidal easings (expose ease-tide / ease-dive / ease-drift) ──── */
+  --ease-tide: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-dive: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-drift: cubic-bezier(0.33, 0, 0.67, 1);
+
+  --animate-rise: rise 1.1s var(--ease-tide) both;
+  --animate-marquee: marquee var(--marquee-duration, 32s) linear infinite;
+}
+
+/* Fonts resolve to the next/font CSS vars set on <html> in layout.tsx. */
+@theme inline {
+  --font-display: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, sans-serif;
+  --font-sans: var(--font-dmsans), "DM Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+  --container-max: 1440px;
+  --gutter: clamp(1.25rem, 5vw, 6rem);
+  --section-y: clamp(6rem, 14vh, 14rem);
+  --block-y: clamp(2rem, 5vh, 4.5rem);
+  --nav-h: 4rem;
+  /* The one sanctioned gradient — a real sunset, golden → dusk. */
+  --gradient-sunset: linear-gradient(
+    118deg,
+    #ffe7bd 0%,
+    var(--color-amber) 20%,
+    var(--color-coral) 40%,
+    var(--color-ember) 58%,
+    var(--color-rose) 76%,
+    var(--color-dusk) 100%
+  );
 }
-
-/* Larger fixed-nav allowance from the medium breakpoint up. */
 @media (min-width: 768px) {
   :root {
     --nav-h: 5rem;
   }
 }
 
-/* No scroll-behavior here — Lenis (ScrollProvider) owns smooth scrolling;
-   in-page anchors are handled in JS. */
-
+/* ── Base ────────────────────────────────────────────────────────────────── */
 html,
 body {
-  background-color: var(--color-abyss);
-  color: var(--color-foam);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
 }
-
-/* Themed native scrollbar — abyss track, mist->celeste thumb (no default
-   light Windows bar). Firefox uses scrollbar-color/width; WebKit/Chromium
-   uses ::-webkit-scrollbar below. */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-mist) var(--color-abyss);
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-abyss);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-mist);
-  border: 2px solid var(--color-abyss);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-celeste);
-}
-::-webkit-scrollbar-corner {
-  background: var(--color-abyss);
-}
-
 body {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-optical-sizing: auto;
-  /* Reading-grade optical master for any Fraunces text not promoted to a
-     display/heading class (sturdier letterforms, no WONK). Display/headings
-     override this with a higher opsz above. */
-  font-variation-settings: "opsz" 18, "SOFT" 0, "WONK" 0;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
@@ -103,178 +92,245 @@ body {
 }
 
 ::selection {
-  background: var(--color-sun);
-  color: var(--color-abyss);
+  background: var(--color-ember);
+  color: var(--color-paper);
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-sun);
+:where(a, button, [tabindex], input, textarea, select):focus-visible {
+  outline: 2px solid var(--color-ember);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
-/* ---- Typography (grand editorial serif; sans only for small caps labels) ----
-
-   Fraunces is now a TRUE variable font (see layout.tsx: weight:"variable",
-   axes opsz/SOFT/WONK). We drive its optical-size axis per type class so each
-   size renders at its INTENDED optical master: display sits near the top of the
-   opsz range (high-contrast, refined hairlines) and reading copy sits low
-   (sturdier, more legible at small sizes). A restrained touch of SOFT (softened
-   terminals) and a whisper of WONK (the playful glyph swaps) is reserved for the
-   single hero display only — editorial, NatGeo-calm, never quirky.
-
-   Note: setting `font-variation-settings` opts out of `font-optical-sizing:auto`
-   (set on <body>), so we name `opsz` explicitly wherever we want control.
-   Fraunces axis ranges: opsz 9–144 · SOFT 0–100 · WONK 0–1. */
-.display-hero {
-  font-family: var(--font-display);
-  font-weight: 500;
-  line-height: 0.92;
-  letter-spacing: -0.02em;
-  font-size: clamp(3.5rem, 13vw, 13rem);
-  /* Top of the optical range for the grandest mark: crisp high-contrast serifs,
-     a hair of SOFT to keep the big terminals from feeling brittle, and the
-     faintest WONK so the display reads hand-cut, not mechanical. */
-  font-variation-settings: "opsz" 144, "SOFT" 12, "WONK" 1;
+@supports (scrollbar-color: auto) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ember) transparent;
+  }
 }
-
-.heading-1 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(2.25rem, 5.5vw, 4.75rem);
-  line-height: 1.0;
-  letter-spacing: -0.015em;
-  /* High optical size for section titles — refined, but calmer than the hero:
-     no WONK, the merest SOFT. */
-  font-variation-settings: "opsz" 96, "SOFT" 6, "WONK" 0;
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
-
-.heading-2 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(1.7rem, 3.6vw, 2.9rem);
-  line-height: 1.08;
-  letter-spacing: -0.01em;
-  font-variation-settings: "opsz" 64, "SOFT" 0, "WONK" 0;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
-
-.heading-3 {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(1.3rem, 2.4vw, 1.95rem);
-  line-height: 1.16;
-  letter-spacing: -0.008em;
-  font-variation-settings: "opsz" 40, "SOFT" 0, "WONK" 0;
-}
-
-.lead {
-  font-family: var(--font-serif);
-  font-size: clamp(1.1rem, 1.7vw, 1.45rem);
-  line-height: 1.55;
-  color: var(--color-mist);
-  /* Intro/standfirst sits between heading and body opsz — readable, still serifed. */
-  font-variation-settings: "opsz" 28, "SOFT" 0, "WONK" 0;
-}
-
-/* Reading copy — Hanken sans, comfortable measure for body paragraphs. */
-.body {
-  font-family: var(--font-sans);
-  font-weight: 400;
-  font-size: clamp(1rem, 1.15vw, 1.1rem);
-  line-height: 1.7;
-  max-width: 62ch;
-  color: var(--color-mist);
-}
-.body-sm {
-  font-family: var(--font-sans);
-  font-weight: 400;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  max-width: 62ch;
-  color: var(--color-mist);
-}
-
-/* Lining tabular numerals for metric figures (aligned columns). */
-.tabular {
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: "tnum" 1, "lnum" 1;
-}
-
-/* In-page anchor offset so targets clear the fixed nav. */
-.scroll-anchor {
-  scroll-margin-top: var(--nav-h);
-}
-
-/* Small caps label — clean sans, letter-spaced (NatGeo chapter labels). */
-.label {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 0.72rem;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--color-mist);
-}
-/* legacy alias used by existing components */
-.eyebrow {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 0.72rem;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--color-mist);
-}
-
-/* Hairline divider with a soft node */
-.rule-node {
-  position: relative;
-  height: 1px;
-  background: var(--color-rule);
-}
-.rule-node::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 5px;
-  height: 5px;
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--color-ember) 75%, transparent);
   border-radius: 9999px;
-  transform: translate(-50%, -50%);
-  background: var(--color-sun);
-  opacity: 0.85;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ember-ink);
 }
 
-/* Frosted "water glass" surface — for buttons and cards (white-based) */
-.water-glass {
-  background: rgb(244 250 251 / 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgb(244 250 251 / 0.22);
-}
-
-/* Faint sea-surface caustic shimmer (hover sheen) */
-@keyframes water-sheen {
-  0% {
-    transform: translateX(-120%);
+/* ════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY — Bricolage Grotesque (display) + DM Sans (text/labels).
+   Both variable; we drive weight with font-weight + font-optical-sizing:auto
+   (no axis micro-management — that was the old Fraunces system).
+   ════════════════════════════════════════════════════════════════════════ */
+@layer components {
+  .t-hero {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(3.5rem, 12vw, 12rem);
+    line-height: 0.86;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+    color: var(--color-ink);
   }
-  100% {
-    transform: translateX(120%);
+  .t-display {
+    font-family: var(--font-display);
+    font-weight: 640;
+    font-size: clamp(2.5rem, 6.5vw, 6rem);
+    line-height: 0.94;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    color: var(--color-ink);
+  }
+  .t-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 4.5vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+  .t-lead {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: clamp(1.3rem, 2.2vw, 2rem);
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    color: var(--color-ink-mute);
+  }
+  .t-body {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: clamp(1rem, 1.05vw, 1.0625rem);
+    line-height: 1.65;
+    max-width: 62ch;
+    color: var(--color-ink);
+  }
+  .t-body--mute {
+    color: var(--color-ink-mute);
+  }
+  .t-eyebrow {
+    font-family: var(--font-sans);
+    font-size: clamp(0.6875rem, 0.8vw, 0.8125rem);
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--color-ember-ink);
+  }
+  .t-meta {
+    font-family: var(--font-sans);
+    font-size: clamp(0.75rem, 0.9vw, 0.875rem);
+    letter-spacing: 0.04em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+  }
+  .t-index {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-size: clamp(0.875rem, 1.1vw, 1.125rem);
+    letter-spacing: 0.02em;
+    color: var(--color-ink-mute);
+  }
+
+  /* ── Layout helpers ──────────────────────────────────────────────────── */
+  .container-edit {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+  .grid-edit {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(1rem, 2.2vw, 2rem);
+  }
+  .col-meta {
+    grid-column: 1 / 4;
+  }
+  .col-read {
+    grid-column: 4 / 11;
+  }
+  .col-wide {
+    grid-column: 1 / 13;
+  }
+  .col-half-r {
+    grid-column: 7 / 13;
+  }
+  @media (max-width: 48rem) {
+    .col-meta,
+    .col-read,
+    .col-half-r {
+      grid-column: 1 / 13;
+    }
+  }
+  .bleed {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+  .scroll-anchor {
+    scroll-margin-top: var(--nav-h);
+  }
+
+  /* ── Surfaces & marks ────────────────────────────────────────────────── */
+  .glass {
+    background: color-mix(in oklab, #ffffff 70%, var(--color-paper-deep));
+    border: 1px solid var(--color-rule);
+    border-radius: 14px;
+  }
+  .eyebrow-tick::before {
+    content: "";
+    display: inline-block;
+    width: 1.5rem;
+    height: 1px;
+    margin-right: 0.75rem;
+    vertical-align: middle;
+    background: var(--color-ember);
+  }
+  .hairline {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-coral) 70%, transparent),
+      transparent
+    );
+  }
+  .rule-node {
+    position: relative;
+    height: 1px;
+    background: var(--color-rule);
+  }
+  .rule-node::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    transform: translate(-50%, -50%);
+    background: var(--color-ember);
+  }
+
+  /* Night band (Contact / Footer): re-theme text on the one dark section. */
+  .night {
+    color: var(--color-paper);
+  }
+  .night .t-hero,
+  .night .t-display,
+  .night .t-title,
+  .night .t-body {
+    color: var(--color-paper);
+  }
+  .night .t-body--mute,
+  .night .t-meta,
+  .night .t-index {
+    color: #cdbbb0; /* warm muted on night */
+  }
+  .night .t-eyebrow {
+    color: var(--color-amber);
+  }
+  .night .eyebrow-tick::before {
+    background: var(--color-amber);
   }
 }
 
-/* Slow celeste "wave" shimmer sweeping through the hero title letters. */
-@keyframes title-shimmer {
+/* ── Keyframes ─────────────────────────────────────────────────────────────  */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
   to {
-    background-position: -250% 0;
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--marquee-gap, 3rem)));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* scroll-behavior intentionally unset (Lenis owns smoothing). */
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

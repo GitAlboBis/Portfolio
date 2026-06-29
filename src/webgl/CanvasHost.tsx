@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
 
 /*
@@ -22,18 +23,27 @@ import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
   WaterBallHero). Decorative only.
 */
 
+// Golden-hour sky — the ultimate fallback (no canvas). Mirrors --gradient-sunset.
+// NOTE: the WebGPU water "A" (WaterBallHero / WGSL) still renders TEAL and must be
+// reshaded to molten sunset (amber→ember) to match this direction — next shader step.
 const SEA_GRADIENT =
-  "linear-gradient(180deg,#5a9ccd 0%,#86bee2 34%,#bcddee 50%,#cfe6f0 53%,#2f93ab 60%,#176a8d 76%,#0c3d57 100%)";
+  "linear-gradient(180deg,#ffe7bd 0%,#f2a33c 26%,#ff8a4c 46%,#ee5b23 64%,#e15d6b 82%,#5e4b7e 100%)";
 
 export function CanvasHost() {
   // false during SSR + under prefers-reduced-motion; resolved client-side after
   // mount (navigator.gpu is unknown during SSR, so we never SSR the canvas).
   const [showFluid, setShowFluid] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setShowFluid(!reduce && typeof navigator !== "undefined" && !!navigator.gpu);
   }, []);
+
+  // The hero water + sea backdrop belong to the landing experience only. Other
+  // routes (e.g. /styleguide, /work/[slug]) render on the clean abyss ground so
+  // their own content reads without the fluid bleeding behind it.
+  if (pathname !== "/") return null;
 
   return (
     <>

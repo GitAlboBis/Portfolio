@@ -1,0 +1,71 @@
+<!-- @dsCard group="Foundations" name="Color & Contrast" subtitle="Sunset ramp · neutrals · night · AA-verified pairs" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Color & Contrast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Sans:opsz,wght@9..40,400..600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#fbf6ef; --paper-deep:#f1e4d3; --ink:#2a1a14; --ink-mute:#6e5447;
+    --amber:#f2a33c; --coral:#ff8a4c; --ember:#ee5b23; --ember-ink:#bc410f;
+    --rose:#e15d6b; --dusk:#5e4b7e; --night:#2a1820;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:44px 48px}
+  h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:40px;letter-spacing:-.025em;line-height:1}
+  .sub{color:var(--ink-mute);font-size:15px;margin-top:8px}
+  .label{font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ember-ink);margin:30px 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+  .sw{border-radius:12px;overflow:hidden;border:1px solid rgba(42,26,20,.10)}
+  .sw .chip{height:78px}
+  .sw .info{padding:10px 12px}
+  .sw .n{font-weight:600;font-size:14px}
+  .sw .h{font-size:12px;color:var(--ink-mute);font-variant-numeric:tabular-nums}
+  .sw .u{font-size:11px;color:var(--ink-mute);margin-top:4px;line-height:1.4}
+  .pairs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px}
+  .pair{border-radius:12px;padding:16px;border:1px solid rgba(42,26,20,.10);display:flex;flex-direction:column;justify-content:space-between;min-height:120px}
+  .pair .aa{font-family:"Bricolage Grotesque",sans-serif;font-size:30px;font-weight:600;line-height:1}
+  .pair .r{font-size:12px;font-weight:600;letter-spacing:.04em;margin-top:14px;opacity:.92}
+  .pair .r small{font-weight:500;opacity:.75}
+</style>
+</head>
+<body>
+  <h1>Color is the light</h1>
+  <p class="sub">A literal sunset ramp over warm white. Ember leads; dark text is warm ink. Every pair below is WCAG-checked (real ratios).</p>
+
+  <p class="label">Sunset ramp · golden → dusk</p>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:var(--amber)"></div><div class="info"><div class="n">amber</div><div class="h">#f2a33c</div><div class="u">golden hour · fills, large accents</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--coral)"></div><div class="info"><div class="n">coral</div><div class="h">#ff8a4c</div><div class="u">peach · fills, gradient mid</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--ember)"></div><div class="info"><div class="n">ember</div><div class="h">#ee5b23</div><div class="u">PRIMARY accent · CTAs, display</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--ember-ink)"></div><div class="info"><div class="n">ember-ink</div><div class="h">#bc410f</div><div class="u">orange TEXT (AA on paper)</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--rose)"></div><div class="info"><div class="n">rose</div><div class="h">#e15d6b</div><div class="u">sunset rose · accent, gradient</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--dusk)"></div><div class="info"><div class="n">dusk</div><div class="h">#5e4b7e</div><div class="u">cool twilight counterpoint</div></div></div>
+  </div>
+
+  <p class="label">Neutrals & the one dark band</p>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:var(--paper);border-bottom:1px solid rgba(42,26,20,.08)"></div><div class="info"><div class="n">paper</div><div class="h">#fbf6ef</div><div class="u">page ground (warm white)</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--paper-deep)"></div><div class="info"><div class="n">paper-deep</div><div class="h">#f1e4d3</div><div class="u">surfaces, cards, hairlines</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--ink-mute)"></div><div class="info"><div class="n">ink-mute</div><div class="h">#6e5447</div><div class="u">muted text on paper</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--ink)"></div><div class="info"><div class="n">ink</div><div class="h">#2a1a14</div><div class="u">primary text (warm espresso)</div></div></div>
+    <div class="sw"><div class="chip" style="background:var(--night)"></div><div class="info"><div class="n">night</div><div class="h">#2a1820</div><div class="u">the one dark band · footer</div></div></div>
+    <div class="sw"><div class="chip" style="background:linear-gradient(135deg,var(--ember),var(--dusk))"></div><div class="info"><div class="n">gradient</div><div class="h">sunset</div><div class="u">hero sky · the only gradient</div></div></div>
+  </div>
+
+  <p class="label">Contrast — AA verified</p>
+  <div class="pairs">
+    <div class="pair" style="background:var(--paper);color:var(--ink)"><div class="aa">Aa</div><div class="r">ink / paper<br /><small>15.5:1 · AAA</small></div></div>
+    <div class="pair" style="background:var(--paper);color:var(--ink-mute)"><div class="aa">Aa</div><div class="r">ink-mute / paper<br /><small>6.5:1 · AA</small></div></div>
+    <div class="pair" style="background:var(--paper);color:var(--ember-ink)"><div class="aa">Aa</div><div class="r">ember-ink / paper<br /><small>5.0:1 · AA</small></div></div>
+    <div class="pair" style="background:var(--ember);color:var(--ink)"><div class="aa">Aa</div><div class="r">ink / ember<br /><small>5.6:1 · AA · CTA text</small></div></div>
+    <div class="pair" style="background:var(--amber);color:var(--ink)"><div class="aa">Aa</div><div class="r">ink / amber<br /><small>8.0:1 · AAA</small></div></div>
+    <div class="pair" style="background:var(--coral);color:var(--ink)"><div class="aa">Aa</div><div class="r">ink / coral<br /><small>7.2:1 · AAA</small></div></div>
+    <div class="pair" style="background:var(--night);color:var(--paper)"><div class="aa">Aa</div><div class="r">paper / night<br /><small>15.6:1 · AAA</small></div></div>
+    <div class="pair" style="background:var(--night);color:var(--amber)"><div class="aa">Aa</div><div class="r">amber / night<br /><small>8.1:1 · AAA</small></div></div>
+  </div>
+</body>
+</html>

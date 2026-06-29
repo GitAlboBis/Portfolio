@@ -1,0 +1,43 @@
+<!-- @dsCard group="Foundations" name="Typography" subtitle="Bricolage Grotesque display · DM Sans text · full scale" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Typography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Sans:ital,opsz,wght@0,9..40,400..600;1,9..40,400&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#fbf6ef;--ink:#2a1a14;--ink-mute:#6e5447;--ember-ink:#bc410f;--rule:rgba(42,26,20,.14)}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:46px 52px}
+  .display{font-family:"Bricolage Grotesque",sans-serif}
+  .head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--rule);padding-bottom:18px;margin-bottom:8px}
+  .head h1{font-family:"Bricolage Grotesque";font-weight:700;font-size:38px;letter-spacing:-.025em}
+  .head .pair{font-size:13px;color:var(--ink-mute);text-align:right;line-height:1.5}
+  .row{display:grid;grid-template-columns:1fr 220px;gap:28px;align-items:end;padding:22px 0;border-bottom:1px solid var(--rule)}
+  .spec{font-size:12px;color:var(--ink-mute);text-align:right;line-height:1.5}
+  .spec b{display:block;color:var(--ink);font-weight:600;font-size:13px}
+  .t-hero{font-family:"Bricolage Grotesque";font-weight:700;font-size:84px;line-height:.86;letter-spacing:-.035em}
+  .t-display{font-family:"Bricolage Grotesque";font-weight:640;font-size:52px;line-height:.94;letter-spacing:-.03em}
+  .t-title{font-family:"Bricolage Grotesque";font-weight:600;font-size:34px;line-height:1;letter-spacing:-.02em}
+  .t-lead{font-size:24px;line-height:1.38;color:var(--ink-mute);max-width:24ch}
+  .t-body{font-size:17px;line-height:1.65;max-width:54ch}
+  .t-eyebrow{font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ember-ink)}
+  .t-meta{font-size:13px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-mute);font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>Type that carries warmth</h1>
+    <div class="pair"><b>Bricolage Grotesque</b> display · headlines<br /><b>DM Sans</b> body · labels · data</div>
+  </div>
+
+  <div class="row"><div class="t-hero">Alberto&nbsp;Tuveri</div><div class="spec"><b>.t-hero</b>Bricolage 700<br>clamp 3.5–12rem · −.035em</div></div>
+  <div class="row"><div class="t-display">Selected Work</div><div class="spec"><b>.t-display</b>Bricolage 640<br>clamp 2.5–6rem</div></div>
+  <div class="row"><div class="t-title">Tidewatch</div><div class="spec"><b>.t-title</b>Bricolage 600<br>clamp 2–4rem</div></div>
+  <div class="row"><div class="t-lead">Warm on the surface. Restless underneath.</div><div class="spec"><b>.t-lead</b>DM Sans 400<br>1.3–2rem · ink-mute</div></div>
+  <div class="row"><div class="t-body">I build interfaces that move like light on water — full-stack systems, AI pipelines, and the occasional shader. Five years turning hard problems into things that feel inevitable.</div><div class="spec"><b>.t-body</b>DM Sans 400<br>1–1.06rem · max 54ch</div></div>
+  <div class="row"><div><span class="t-eyebrow">01 — Selected Work</span><div class="t-meta" style="margin-top:10px">React · WebGL · Rust · 2024</div></div><div class="spec"><b>.t-eyebrow / .t-meta</b>DM Sans 600 / 500<br>uppercase · tabular</div></div>
+</body>
+</html>

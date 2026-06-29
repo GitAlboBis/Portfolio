@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { CanvasHost } from "@/webgl/CanvasHost";
+import { Smooth } from "@/app/_providers/Smooth";
 import "./globals.css";
 
 /*
@@ -18,32 +19,31 @@ import "./globals.css";
   providers, or SEO chrome — those get rebuilt from the design directives.
 */
 
-// Fraunces shipped as a TRUE variable font so its opsz/SOFT/WONK axes fire; the
-// type classes in globals.css drive font-variation-settings per size.
-const fraunces = Fraunces({
+// Golden Hour type: Bricolage Grotesque (display, characterful) + DM Sans
+// (body/labels). Both variable; weight driven by font-weight in globals.css.
+const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   weight: "variable",
-  style: ["normal", "italic"],
-  axes: ["opsz", "SOFT", "WONK"],
-  variable: "--font-fraunces",
+  variable: "--font-bricolage",
   display: "swap",
 });
 
-const hanken = Hanken_Grotesk({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-hanken",
+  weight: "variable",
+  variable: "--font-dmsans",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Alberto Tuveri — rebuild",
-  description: "Clean-slate rebuild — water-A fluid + tech sphere only.",
+  title: "Alberto Tuveri — Software Engineer",
+  description:
+    "Full-stack engineer building systems with AI at the edge — interfaces that move like water. Shaped by the sea of Sardinia.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#07222e",
-  colorScheme: "dark",
+  themeColor: "#fbf6ef",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -53,8 +53,9 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${hanken.variable}`}>
+    <html lang="en" className={`${bricolage.variable} ${dmSans.variable}`}>
       <body>
+        <Smooth />
         <CanvasHost />
         {children}
       </body>

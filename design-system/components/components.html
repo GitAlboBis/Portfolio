@@ -1,0 +1,71 @@
+<!-- @dsCard group="Components" name="Buttons & Surfaces" subtitle="CTA · secondary · ghost · night · card · eyebrow · divider" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Components</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Sans:opsz,wght@9..40,400..600&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#fbf6ef;--paper-deep:#f1e4d3;--ink:#2a1a14;--ink-mute:#6e5447;--amber:#f2a33c;--coral:#ff8a4c;--ember:#ee5b23;--ember-ink:#bc410f;--rose:#e15d6b;--dusk:#5e4b7e;--night:#2a1820;--rule:rgba(42,26,20,.14)}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:46px 52px}
+  h1{font-family:"Bricolage Grotesque";font-weight:700;font-size:38px;letter-spacing:-.025em}
+  .label{font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ember-ink);margin:30px 0 16px}
+  .row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .btn{font-family:"DM Sans";font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:0 26px;height:50px;display:inline-flex;align-items:center;gap:10px;border:1px solid transparent;cursor:pointer;transition:.3s cubic-bezier(.16,1,.3,1)}
+  .btn--primary{background:var(--ember);color:var(--ink)}
+  .btn--primary:hover{background:var(--ember-ink);color:var(--paper)}
+  .btn--secondary{background:transparent;color:var(--ink);border-color:rgba(42,26,20,.28)}
+  .btn--secondary:hover{border-color:var(--ember);color:var(--ember-ink)}
+  .btn--ghost{background:transparent;color:var(--ink-mute);padding:0 8px}
+  .btn--ghost:hover{color:var(--ink)}
+  .arrow{font-size:16px}
+  .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;margin-top:8px}
+  .card{background:linear-gradient(180deg,#fff 0%,var(--paper-deep) 130%);border:1px solid var(--rule);border-radius:16px;padding:26px}
+  .card .eye{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ember-ink)}
+  .card h3{font-family:"Bricolage Grotesque";font-weight:600;font-size:30px;letter-spacing:-.02em;margin:8px 0 8px}
+  .card p{color:var(--ink-mute);font-size:15px;line-height:1.6}
+  .eyebrow{font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ember-ink)}
+  .eyebrow .tick{display:inline-block;width:26px;height:1px;background:var(--ember);vertical-align:middle;margin-right:12px}
+  .hairline{height:1px;border:0;margin:20px 0;background:linear-gradient(90deg,transparent,var(--coral),transparent)}
+  .rule-node{position:relative;height:1px;background:var(--rule);margin:22px 0}
+  .rule-node::before{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;transform:translate(-50%,-50%);background:var(--ember)}
+  .nightbox{background:var(--night);border-radius:16px;padding:26px;color:var(--paper)}
+  .nightbox .eye{color:var(--amber)}
+  .nightbox h3{font-family:"Bricolage Grotesque";font-weight:600;font-size:26px;margin:8px 0 16px}
+</style>
+</head>
+<body>
+  <h1>Components</h1>
+
+  <p class="label">Buttons — ink on ember (AA), never washed white-on-orange</p>
+  <div class="row">
+    <button class="btn btn--primary">Write to me <span class="arrow">→</span></button>
+    <button class="btn btn--secondary">View work</button>
+    <button class="btn btn--ghost">Read more</button>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <p class="label">Surface · eyebrow · dividers</p>
+      <div class="card">
+        <span class="eyebrow"><span class="tick"></span>01 — About</span>
+        <h3>A warm pocket of paper</h3>
+        <p>Surfaces are warm white over a faint paper-deep wash with a hairline edge — depth from light and warmth, never heavy shadows.</p>
+        <hr class="hairline" />
+        <div class="rule-node"></div>
+      </div>
+    </div>
+    <div>
+      <p class="label">Night variant (the one dark band)</p>
+      <div class="nightbox">
+        <span class="eye" style="font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase">Footer · Masua</span>
+        <h3>Back into the dark water.</h3>
+        <button class="btn btn--primary">Get in touch <span class="arrow">→</span></button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

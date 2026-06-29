@@ -482,7 +482,7 @@ export class FluidRenderer {
             thicknessMapPassEncoder.draw(6, numParticles);
             thicknessMapPassEncoder.end();
         
-            for (var iter = 0; iter < 1; iter++) { // 多いか？
+            for (var iter = 0; iter < 3; iter++) { // softer thickness -> smoother edge fade
                 const thicknessFilterPassEncoderX = commandEncoder.beginRenderPass(thicknessFilterPassDescriptors[0]);
                 thicknessFilterPassEncoderX.setBindGroup(0, this.thicknessFilterBindGroups[0]);
                 thicknessFilterPassEncoderX.setPipeline(this.thicknessFilterPipeline);

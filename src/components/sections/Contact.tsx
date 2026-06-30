@@ -4,6 +4,7 @@ import { useDict } from "@/content/dict";
 import { Reveal } from "@/components/reveal/Reveal";
 import { buttonVariants } from "@/components/ui/button";
 import { Magnetic } from "@/components/motion/Magnetic";
+import { Appear } from "@/components/motion/Appear";
 import { palette } from "@/content/tokens";
 
 /**
@@ -20,7 +21,9 @@ export function Contact() {
       style={{ background: palette.night }}
     >
       <div className="container-edit">
-        <p className="t-eyebrow eyebrow-tick">{t.contact.eyebrow}</p>
+        <Appear as="p" className="t-eyebrow eyebrow-tick">
+          {t.contact.eyebrow}
+        </Appear>
         <Reveal as="h2" className="t-display mt-6 max-w-[20ch]">
           {t.contact.headline}
         </Reveal>

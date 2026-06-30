@@ -6,6 +6,7 @@ import { useRef, useMemo, useState, type RefObject } from "react";
 import { works as WORKS, type Work } from "@/content/works";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
+import { gsap, useGSAP } from "@/lib/gsap";
 
 /*
   Selected Works — "atmospheric depth gallery" (original R3F reimplementation of
@@ -204,7 +205,25 @@ export function WorksGallery() {
   const t = useDict();
   const reduced = useUI((s) => s.reducedMotion);
   const sectionRef = useRef<HTMLElement | null>(null);
+  const captionRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+
+  // Caption flip-reveal: re-mask the title + re-fade the meta each time the
+  // fly-through brings a new project into focus (vengenceUI flip-fade, re-themed
+  // to GSAP). Declared before the reduced-motion early return so the hook order
+  // stays stable; it no-ops there (captionRef is never mounted in the list branch).
+  useGSAP(
+    () => {
+      const root = captionRef.current;
+      if (!root) return;
+      const title = root.querySelector(".js-work-title");
+      const meta = root.querySelectorAll(".js-work-meta");
+      if (title) gsap.fromTo(title, { yPercent: 100 }, { yPercent: 0, duration: 0.5, ease: "power3.out" });
+      if (meta.length)
+        gsap.fromTo(meta, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.05, ease: "power2.out" });
+    },
+    { scope: captionRef, dependencies: [active] },
+  );
 
   if (reduced) {
     return (
@@ -249,12 +268,17 @@ export function WorksGallery() {
           <Scene works={WORKS} sectionRef={sectionRef} onActive={setActive} />
         </Canvas>
 
-        <div className="container-edit pointer-events-none absolute inset-x-0 bottom-[9vh] z-10">
-          <p className="t-index mb-2">
+        <div
+          ref={captionRef}
+          className="container-edit pointer-events-none absolute inset-x-0 bottom-[9vh] z-10"
+        >
+          <p className="t-index mb-2 js-work-meta">
             {String(active + 1).padStart(2, "0")} / {String(WORKS.length).padStart(2, "0")}
           </p>
-          <h3 className="t-title">{w.title}</h3>
-          <p className="t-meta mt-2">
+          <div className="overflow-hidden pb-[0.12em]">
+            <h3 className="t-title js-work-title">{w.title}</h3>
+          </div>
+          <p className="t-meta mt-2 js-work-meta">
             {w.role} · {w.year} · {w.stack.join(" / ")}
           </p>
         </div>

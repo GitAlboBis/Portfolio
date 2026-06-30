@@ -2,6 +2,8 @@
 
 import { useDict } from "@/content/dict";
 import { palette } from "@/content/tokens";
+import { Appear } from "@/components/motion/Appear";
+import { ShimmerText } from "@/components/reveal/ShimmerText";
 
 type Lenis = { scrollTo: (t: number, o?: { offset?: number }) => void };
 
@@ -19,14 +21,19 @@ export function Footer() {
   const t = useDict();
   return (
     <footer className="night bleed" style={{ background: palette.night }}>
-      <div className="container-edit py-16">
+      <Appear as="div" className="container-edit py-16" stagger={0.12} y={24}>
         <div className="rule-node mb-12" style={{ background: "rgb(244 237 229 / 0.16)" }} />
 
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="font-display text-2xl font-semibold" style={{ color: palette.paper }}>
+            <ShimmerText
+              as="p"
+              className="font-display text-2xl font-semibold"
+              base="var(--color-paper)"
+              sheen="var(--color-amber)"
+            >
               Alberto&nbsp;Tuveri
-            </p>
+            </ShimmerText>
             <p className="t-meta mt-2">{t.footer.place}</p>
           </div>
 
@@ -47,7 +54,7 @@ export function Footer() {
         </div>
 
         <p className="t-meta mt-14 opacity-70">© 2026 Alberto Tuveri · {t.footer.rights}</p>
-      </div>
+      </Appear>
     </footer>
   );
 }

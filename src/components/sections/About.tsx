@@ -2,6 +2,7 @@
 
 import { useDict } from "@/content/dict";
 import { Reveal } from "@/components/reveal/Reveal";
+import { Parallax } from "@/components/motion/Parallax";
 
 /**
  * About — first content section (the descent below the hero).
@@ -15,15 +16,18 @@ export function About() {
   return (
     <section id="about" className="scroll-anchor">
       <div className="container-edit grid-edit">
-        <div className="col-meta mb-8 lg:mb-0">
+        <Parallax className="col-meta mb-8 lg:mb-0" from={70}>
           <p className="t-eyebrow eyebrow-tick">{t.about.eyebrow}</p>
-        </div>
+        </Parallax>
 
         <div className="col-read">
           <Reveal as="h2" className="t-display max-w-[18ch]" blur>
             {t.about.lead}
           </Reveal>
-          <p className="t-body t-body--mute mt-8">{t.about.body}</p>
+          {/* body drifts on a shallower layer than the eyebrow -> depth */}
+          <Parallax className="mt-8" from={-26}>
+            <p className="t-body t-body--mute">{t.about.body}</p>
+          </Parallax>
         </div>
       </div>
     </section>

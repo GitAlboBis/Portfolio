@@ -3,6 +3,7 @@
 import { useDict } from "@/content/dict";
 import { TechCloud } from "@/components/tech-cloud";
 import { techIcons } from "@/data/skill-icons";
+import { Parallax } from "@/components/motion/Parallax";
 
 /**
  * Tech — the stack section. Editorial heading (eyebrow + title from the EN/IT
@@ -20,14 +21,14 @@ export function Tech() {
       style={{ paddingBlock: "var(--section-y)" }}
     >
       <div className="container-edit grid-edit">
-        <div className="col-meta mb-6 lg:mb-0">
+        <Parallax className="col-meta mb-6 lg:mb-0" from={66}>
           <p className="t-eyebrow eyebrow-tick">{t.tech.eyebrow}</p>
-        </div>
-        <div className="col-read">
+        </Parallax>
+        <Parallax className="col-read" from={30}>
           <h2 id="tech-title" className="t-display max-w-[16ch]">
             {t.tech.title}
           </h2>
-        </div>
+        </Parallax>
       </div>
 
       <div className="container-edit">

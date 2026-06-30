@@ -3,6 +3,7 @@
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { MenuOverlay } from "@/components/nav/MenuOverlay";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 type Lenis = { scrollTo: (t: HTMLElement | number, o?: { offset?: number }) => void };
 
@@ -39,12 +40,14 @@ export function Nav() {
         className="container-edit flex items-center justify-between"
         style={{ height: "var(--nav-h)" }}
       >
-        <button
-          onClick={() => goTo("main")}
-          className="font-display text-lg font-semibold tracking-[-0.02em] text-ink transition-opacity duration-300 hover:opacity-70"
-        >
-          Alberto&nbsp;Tuveri
-        </button>
+        <Magnetic strength={0.4}>
+          <button
+            onClick={() => goTo("main")}
+            className="font-display text-lg font-semibold tracking-[-0.02em] text-ink transition-opacity duration-300 hover:opacity-70"
+          >
+            Alberto&nbsp;Tuveri
+          </button>
+        </Magnetic>
 
         <div className="flex items-center gap-5 sm:gap-7">
           <div className="hidden items-center gap-7 md:flex">

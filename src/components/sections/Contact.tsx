@@ -3,6 +3,7 @@
 import { useDict } from "@/content/dict";
 import { Reveal } from "@/components/reveal/Reveal";
 import { buttonVariants } from "@/components/ui/button";
+import { Magnetic } from "@/components/motion/Magnetic";
 import { palette } from "@/content/tokens";
 
 /**
@@ -23,7 +24,7 @@ export function Contact() {
         <Reveal as="h2" className="t-display mt-6 max-w-[20ch]">
           {t.contact.headline}
         </Reveal>
-        <div className="mt-12">
+        <Magnetic className="mt-12" strength={0.45}>
           <a
             href={`mailto:${t.contact.email}`}
             className={buttonVariants({ variant: "night", size: "lg" })}
@@ -33,7 +34,7 @@ export function Contact() {
               — {t.contact.email}
             </span>
           </a>
-        </div>
+        </Magnetic>
       </div>
     </section>
   );

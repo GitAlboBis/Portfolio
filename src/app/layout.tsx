@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { CanvasHost } from "@/webgl/CanvasHost";
 import { Smooth } from "@/app/_providers/Smooth";
+import { Cursor } from "@/components/Cursor";
 import "./globals.css";
 
 /*
@@ -58,6 +59,7 @@ export default function RootLayout({
         <Smooth />
         <CanvasHost />
         {children}
+        <Cursor />
       </body>
     </html>
   );

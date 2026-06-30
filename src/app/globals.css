@@ -324,6 +324,41 @@ body {
   }
 }
 
+/* ── Custom cursor (Cursor.tsx; only active on pointer:fine + motion allowed) ──── */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: 9999px;
+  opacity: 0; /* hidden until the JS reveals on first move (no flash at 0,0) */
+  will-change: transform;
+}
+.cursor-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--color-ember);
+}
+.cursor-ring {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid color-mix(in oklab, var(--color-ember) 65%, transparent);
+}
+@media (pointer: coarse) {
+  .cursor-dot,
+  .cursor-ring {
+    display: none;
+  }
+}
+/* When the custom cursor is active, suppress the native one everywhere — including
+   the canvases' inline grab/pointer styles. */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

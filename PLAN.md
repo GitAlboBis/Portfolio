@@ -1,46 +1,41 @@
 # PLAN — Next steps (prioritized)
 
-> Backlog to continue the Golden Hour portfolio. See `HANDOFF.md` for current state, `CLAUDE.md` for the operational brain (rewritten Golden Hour), `WATER-WAVE-PLAN.md` for the water physics.
+> Backlog for the Golden Hour portfolio. See **`HANDOFF.md`** for current state + file map, **`CLAUDE.md`** for the operational brain (rules, reference links + code-extraction, skill routing, gates), **`WATER-WAVE-PLAN.md`** for the water sim.
+> Updated **2026-06-30** (end of the big build+effects session).
 
-## ✅ Done — Golden Hour build (session 2026-06-30, branch `feat/clean-slate-rebuild`)
+## ✅ Done (this session — see HANDOFF for the commit list)
+- **CLAUDE.md** rewritten to Golden Hour (+ §6 reference links/extraction, skill routing). Skills installed under `.claude/skills/`.
+- **Multi-page**: `/about` (bio/education/experience, real confirmed content) + `/work/[slug]` case studies (3 confirmed projects) + **route transition** (sunset curtain via `template.tsx`).
+- **Selected Work**: real project data in `works.ts`; **3D arc carousel** (`WorkCarousel`) → click a card opens its `/work/[slug]`.
+- **Fluid-island nav** (floating glass pill, scroll hide/reveal + reveal-on-pointer-top + active indicator).
+- **Motion system**: parallax backbone, Reveal/ScrollText/WordGenerate/FlipText/ShimmerText, Appear, Marquee (velocity), border-beam CTA, magnetic CTA/wordmark, hero scroll-settle, Preloader.
+- **SEO**: metadata, OG/Twitter cards, favicon (`icon.tsx`), `opengraph-image.tsx`, sitemap, robots, Person JSON-LD.
+- **Email** → public `albertotuveri@gmail.com`. Custom cursor removed (native cursor restored).
 
-Each shipped as an atomic commit, build-green + visually verified (console clean):
+## ▶ Immediate next (recommended order)
+1. **Re-verify `155115d` visually** (account switch left it build-green but not browser-checked): native cursor visible · nav reappears when reaching to the top after scrolling down · clicking a Works card opens `/work/[slug]`.
+2. **Get real SerSan ×2 content** from Alberto (titles, Problem→Action→Result, stack) → fill `works.ts` (currently `provisional` WIP) + flip status to `confirmed` so they get `/work` pages. *(Blocking those two cards. 🔵)*
+3. **Perf & A11y pass** (WP-10, no input): Lighthouse mobile ≥80 (skill `frontend-lighthouse`), axe (skill `accessibility-compliance-accessibility-audit`/`fixing-accessibility`), reduced-motion end-to-end, lazy-mount heavy scenes, ensure `leva` is out of the prod bundle, true-mobile 390px QA.
+4. **Cleanup**: delete the now-unused `src/components/works/WorksGallery.tsx` (replaced by the carousel) + the dead `src/components/Cursor.tsx` & `.cursor-*`/`html.has-custom-cursor` CSS in `globals.css`. Reconcile the package manager (npm vs the stray `bun.lock`).
 
-- **`CLAUDE.md` rewritten** to Golden Hour (+ source-library links / extraction instructions / skill routing); Claude Design marked canonical. Skills installed under `.claude/skills/` (`webgpu-threejs-tsl` + curated antigravity set).
-- **Hero scroll-settle** (P0 #2 ✅) — `HeroScrollSettle` writes `heroStore.explode` 0→1 over the hero; the "A" dives + fades and reforms on scroll-up. G4-safe (no solver change).
-- **3D Icon Cloud re-theme** (IMPLEMENTATION-PLAN WP-4 ✅) — `tech-cloud.tsx` re-themed ocean→Golden Hour (ink marks on paper, hover ember + amber bloom, glass tooltip) + editorial `Tech` section + sr-only stack list.
-- **Parallax backbone** (WP-3 ✅) — `src/lib/scroll-choreo.ts` `useParallax` + `<Parallax>`, multi-layer on About/Tech.
-- **Scrubbed text reveal** (WP-7 ✅) — `ScrollText` (SplitText line mask, scrubbed) on the Tech title.
-- **Interaction identity** (WP-9 ✅) — custom cursor (`Cursor.tsx`) + `<Magnetic>` on CTA & wordmark.
-- **Preloader** (P1 #6 / WP-2 ✅) — SSR'd paper sheet, fonts.ready-gated wipe, CSS failsafe. (Custom cursor, the other half of #6, ✅ via WP-9.)
+## 🎛 Ready-to-build effect presets (already researched — mechanism + reimplementation extracted, NO new deps)
+These came from Workflow research against the CLAUDE.md §6 references; re-implement on our GSAP/Lenis/three stack. Full notes were in the session's workflow outputs — re-run the research workflow if you need them again.
+- **Premium menu overlay** (Codrops): rebuild `MenuOverlay.tsx` with ONE reversible timeline + **SplitText `mask:"lines"`** line reveal + a CSS **hamburger→X morph** toggle (replace the text "Menu"/"Close").
+- **Sticky scroll-stacking sections** (Codrops): wrap home sections so they pin (CSS `sticky`, NOT ScrollTrigger pin) + recede (scale/blur) as the next slides over — *restructures the home scroll rhythm, confirm feel first*.
+- **Tide-rail nav extras**: a side dot-rail (buoys) + scroll-progress hairline + GSAP-Flip sliding active indicator.
+- **Sunset curtain — full version**: add the EXIT cover (intercept internal links → cover → `router.push`) so the curtain covers *before* leaving, not just reveals on enter (medium risk — touches every internal Link).
+- (Rejected/parked: SVG-mask blinds transition; View Transitions API — experimental, fights the WebGPU canvas.)
 
-**Still open from below:** P0 #1 (real Works content — needs Alberto), P0 #3 (marquee + shimmer-CTA — the *text-animation* part is partly covered by ScrollText/Reveal), P1 #4/#5/#7, P2 #8/#9/#10, housekeeping. **Recommended review:** the *feel* of scroll-settle / icon cloud / parallax / reveals / cursor / preloader (gate 🔵).
+## 🔵 Needs Alberto / gates
+- **SerSan project content** (above).
+- **`NEXT_PUBLIC_SITE_URL`** env on deploy (absolute OG/canonical/sitemap).
+- **G4** — hero fluid (`src/webgl/waterball/**`) params/feel: don't retune without explicit ok.
+- **G3** — merge to `main` / production deploy: Alberto's ok.
+- **G5** — paid asset generation (Higgsfield/Blender clip + portrait).
+- **Feel review** of the accumulated motion/transitions/nav/carousel — taste sign-off.
 
-## P0 — content & the requested-but-pending features
-
-1. **Real Works content + images.** Replace the placeholder projects in `src/content/works.ts` (`Tidewatch/Saltgrid/Lumen/Current`, all `[[TBD]]`) with Alberto's real projects (title, role, year, stack). Add project stills (WebP) and set `Work.textureSrc`; then add a texture branch in `WorksGallery`'s plane material (use `useTexture`/`THREE.TextureLoader`, `colorSpace = SRGB`) so planes show the image instead of the duotone gradient. *Needs input from Alberto.*
-
-2. **Hero scroll-settle.** ✅ **DONE** (see top). Make the water "A" react as you begin scrolling (calm → "dive"). Two viable routes: (a) DOM — a scroll-progress (0→100vh) GSAP tween scaling/fading the hero canvas wrapper; (b) sim — write a small scroll value into `heroStore` and read it in `WaterBallHero` (a gentle downward drift / churn reduction). Isolate and verify on the WebGPU hero so there's no regression. *Requested.*
-
-3. **More components from the references (re-themed, hand-authored).** *Requested.*
-   - **Marquee** skills ticker under the Tech sphere (CSS `@keyframes marquee` already in globals via `--animate-marquee`; couple `timeScale`/speed to Lenis velocity, pause on hover).
-   - **Shimmer / border-beam** CTA button variant (conic-gradient sweep or `offset-path` one-shot draw-in — not a perpetual loop, per the motion rule).
-   - **Text animation** on the hero tagline (word-rotate or text-shimmer), using the existing `Reveal` or a new small primitive. (CLIs `shadcn init` / `@magicuidesign/cli` are intentionally NOT used — they collide with Tailwind v4 `@theme` / depend on framer-motion; reimplement mechanisms instead.)
-
-## P1 — gallery & hero polish
-
-4. **Gallery depth-of-field (real).** Needs an opaque render pass for the planes (or a separate depth target) so `@react-three/postprocessing` `DepthOfField` can read plane depth; then focus the nearest plane. Today depth is faked via the mood haze.
-5. **Gallery click-through** → `/work/[slug]` case-study route (dolly into the focused plane, then route). Add the route + per-project content.
-6. ✅ **DONE** (see top — Golden Hour variants). **Preloader** (SSR paper sheet, fonts.ready-gated wipe + CSS failsafe) and a **custom cursor** (dot + ember ring, pointer:fine only, native hidden). *(Originally specced as rising-tide/caustic + water cursor; built re-themed to Golden Hour.)*
-7. **Sunset env-map polish** (optional): gamma-correct mixing in `fluid.wgsl.ts` (verify the canvas target isn't already sRGB to avoid double-correction); optional mip-blur for softer reflections.
-
-## P2 — physics, perf, a11y, ship
-
-8. **Wave physics** (optional, big): apply the Splash-faithful sim changes in `WATER-WAVE-PLAN.md` (stiff linear EOS, lower viscosity, grid gravity) — but only with the "A" re-expressed as a *soft reflecting container* (see that doc §4), since energetic waves fight the letter shape.
-9. **Performance / a11y pass:** Lighthouse mobile ≥80 (degrade tier: dpr ≤1.5, drop heavy FX); reduced-motion end-to-end; keyboard focus order; lazy-mount the works `<Canvas>` + dispose the hero GPU context off-screen; remove `leva` from the production bundle.
-10. **SEO / meta / OG / sitemap**, then **deploy to Vercel**.
+## P1/P2 (from the original plan, still open)
+- Gallery depth-of-field (only if returning to an R3F gallery) · real project stills (WebP) via `Work.textureSrc` (carousel/cards currently render duotone gradients) · ambient WebGL layer (caustics, under content) · wave physics in `WATER-WAVE-PLAN.md` (only with the "A" as a soft reflecting container) · then **deploy to Vercel** (G3).
 
 ## Housekeeping
-
-- Delete or archive the dated `docs/`, `CLAUDE.md`, `IMPLEMENTATION-PLAN.md` (ocean direction) to avoid confusion, or rewrite them for Golden Hour.
-- Reconcile package manager (commit to npm or restore bun) so the lockfile is consistent.
+- Rewrite or archive the dated `docs/*` and `DESIGN-SYSTEM.md` (still "Ocean") for Golden Hour, or delete to avoid confusion (CLAUDE.md already supersedes them).

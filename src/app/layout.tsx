@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { CanvasHost } from "@/webgl/CanvasHost";
 import { Smooth } from "@/app/_providers/Smooth";
+import { ScrollProgress } from "@/components/nav/ScrollProgress";
 import { Preloader } from "@/components/Preloader";
 import "./globals.css";
 
@@ -111,6 +112,7 @@ export default function RootLayout({
       <body>
         <Preloader />
         <Smooth />
+        <ScrollProgress />
         <CanvasHost />
         {children}
         <script

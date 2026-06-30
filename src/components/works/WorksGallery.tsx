@@ -3,6 +3,7 @@
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useRef, useMemo, useState, type RefObject } from "react";
+import Link from "next/link";
 import { works as WORKS, type Work } from "@/content/works";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
@@ -231,15 +232,28 @@ export function WorksGallery() {
         <p className="t-eyebrow eyebrow-tick mb-6">{t.works.eyebrow}</p>
         <h2 className="t-display mb-10">{t.works.title}</h2>
         <ol className="flex flex-col">
-          {WORKS.map((w, i) => (
-            <li key={w.slug} className="border-t border-[var(--color-rule)] py-7">
-              <p className="t-index mb-1">{String(i + 1).padStart(2, "0")}</p>
-              <p className="t-title">{w.title}</p>
-              <p className="t-meta mt-2">
-                {w.role} · {w.year} · {w.stack.join(" / ")}
-              </p>
-            </li>
-          ))}
+          {WORKS.map((w, i) => {
+            const inner = (
+              <>
+                <p className="t-index mb-1">{String(i + 1).padStart(2, "0")}</p>
+                <p className="t-title">{w.title}</p>
+                <p className="t-meta mt-2">
+                  {w.role} · {w.year} · {w.stack.join(" / ")}
+                </p>
+              </>
+            );
+            return (
+              <li key={w.slug} className="border-t border-[var(--color-rule)] py-7">
+                {w.status === "confirmed" ? (
+                  <Link href={`/work/${w.slug}`} className="block transition-opacity hover:opacity-70">
+                    {inner}
+                  </Link>
+                ) : (
+                  inner
+                )}
+              </li>
+            );
+          })}
         </ol>
       </section>
     );
@@ -281,6 +295,24 @@ export function WorksGallery() {
           <p className="t-meta mt-2 js-work-meta">
             {w.role} · {w.year} · {w.stack.join(" / ")}
           </p>
+          <div className="js-work-meta pointer-events-auto mt-4 flex items-center gap-6">
+            {w.status === "confirmed" ? (
+              <Link
+                href={`/work/${w.slug}`}
+                className="t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
+              >
+                {t.works.open} →
+              </Link>
+            ) : (
+              <span className="t-meta text-ink-mute">{t.works.wip}</span>
+            )}
+            <Link
+              href="/work"
+              className="t-meta text-ink-mute transition-colors duration-300 hover:text-ink"
+            >
+              {t.works.back} ↗
+            </Link>
+          </div>
         </div>
 
         <ol className="sr-only">

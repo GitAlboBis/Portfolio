@@ -1,0 +1,49 @@
+"use client";
+
+import Link from "next/link";
+import { useDict } from "@/content/dict";
+import { useUI } from "@/store/ui";
+import { WorkCarousel } from "@/components/works/WorkCarousel";
+
+/**
+ * WorkIndex — the /work index page: a minimal header + the 3D arc carousel of all
+ * projects (each card opens its /work/[slug] case study). The home keeps the
+ * depth-fade gallery; this is the dedicated "all work" explorer.
+ */
+export function WorkIndex() {
+  const t = useDict();
+  const locale = useUI((s) => s.locale);
+  const toggleLocale = useUI((s) => s.toggleLocale);
+
+  return (
+    <main id="main" className="relative min-h-dvh bg-paper">
+      <header className="fixed inset-x-0 top-0 z-50">
+        <nav
+          className="container-edit flex items-center justify-between"
+          style={{ height: "var(--nav-h)" }}
+        >
+          <Link
+            href="/"
+            className="font-display text-lg font-semibold tracking-[-0.02em] text-ink transition-opacity duration-300 hover:opacity-70"
+          >
+            Alberto&nbsp;Tuveri
+          </Link>
+          <div className="flex items-center gap-5 sm:gap-7">
+            <button
+              onClick={toggleLocale}
+              aria-label="Toggle language"
+              className="t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
+            >
+              {locale === "en" ? "IT" : "EN"}
+            </button>
+            <Link href="/" className="t-meta transition-colors duration-300 hover:text-ember-ink">
+              ← {t.journey.back}
+            </Link>
+          </div>
+        </nav>
+      </header>
+
+      <WorkCarousel />
+    </main>
+  );
+}

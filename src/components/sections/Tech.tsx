@@ -4,6 +4,7 @@ import { useDict } from "@/content/dict";
 import { TechCloud } from "@/components/tech-cloud";
 import { techIcons } from "@/data/skill-icons";
 import { Parallax } from "@/components/motion/Parallax";
+import { ScrollText } from "@/components/reveal/ScrollText";
 
 /**
  * Tech — the stack section. Editorial heading (eyebrow + title from the EN/IT
@@ -24,11 +25,9 @@ export function Tech() {
         <Parallax className="col-meta mb-6 lg:mb-0" from={66}>
           <p className="t-eyebrow eyebrow-tick">{t.tech.eyebrow}</p>
         </Parallax>
-        <Parallax className="col-read" from={30}>
-          <h2 id="tech-title" className="t-display max-w-[16ch]">
-            {t.tech.title}
-          </h2>
-        </Parallax>
+        <ScrollText as="h2" id="tech-title" className="col-read t-display max-w-[16ch]">
+          {t.tech.title}
+        </ScrollText>
       </div>
 
       <div className="container-edit">

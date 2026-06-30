@@ -359,6 +359,48 @@ html.has-custom-cursor * {
   cursor: none !important;
 }
 
+/* ── Preloader (Preloader.tsx) — SSR'd sheet; CSS failsafe can't trap the page ─── */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1.4rem;
+  background: var(--color-paper);
+  /* JS lifts the sheet ~1.5s; this failsafe only fires if the JS never ran. */
+  animation: preloaderFailsafe 0.7s ease 3s forwards;
+}
+.preloader-mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(4rem, 12vw, 9rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--color-ink);
+}
+.preloader-track {
+  width: clamp(120px, 18vw, 200px);
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--color-rule);
+  overflow: hidden;
+}
+.preloader-line {
+  width: 100%;
+  height: 100%;
+  background: var(--color-ember);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+@keyframes preloaderFailsafe {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

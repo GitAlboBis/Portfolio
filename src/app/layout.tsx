@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { CanvasHost } from "@/webgl/CanvasHost";
 import { Smooth } from "@/app/_providers/Smooth";
 import { Cursor } from "@/components/Cursor";
+import { Preloader } from "@/components/Preloader";
 import "./globals.css";
 
 /*
@@ -53,6 +54,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${bricolage.variable} ${dmSans.variable}`}>
       <body>
+        <Preloader />
         <Smooth />
         <CanvasHost />
         {children}

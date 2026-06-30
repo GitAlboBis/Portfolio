@@ -38,6 +38,7 @@ const sectionSchema = z.object({
   tech: z.object({
     eyebrow: z.string(),
     title: z.string(),
+    marquee: z.array(z.string()),
   }),
   contact: z.object({
     eyebrow: z.string(),
@@ -69,7 +70,19 @@ const en: Dict = {
     body: "Five years turning hard problems into things that feel inevitable — full-stack systems, AI pipelines, and the occasional shader. I care about the moment an interface stops feeling like software and starts feeling like a place.",
   },
   works: { eyebrow: "Selected Work · 2021—2026", title: "Things I've built", open: "Open case" },
-  tech: { eyebrow: "02 — Stack", title: "The current I work in." },
+  tech: {
+    eyebrow: "02 — Stack",
+    title: "The current I work in.",
+    marquee: [
+      "Full-stack engineering",
+      "AI integration",
+      "Real-time systems",
+      "WebGL & shaders",
+      "Design engineering",
+      "Interaction",
+      "Performance",
+    ],
+  },
   contact: {
     eyebrow: "03 — Contact",
     headline: "Let's make something that moves.",
@@ -94,7 +107,19 @@ const it: Dict = {
     body: "Cinque anni a trasformare problemi difficili in cose che sembrano inevitabili — sistemi full-stack, pipeline AI e qualche shader. Mi interessa il momento in cui un'interfaccia smette di sembrare software e inizia a sembrare un luogo.",
   },
   works: { eyebrow: "Lavori scelti · 2021—2026", title: "Cose che ho costruito", open: "Apri caso" },
-  tech: { eyebrow: "02 — Stack", title: "La corrente in cui lavoro." },
+  tech: {
+    eyebrow: "02 — Stack",
+    title: "La corrente in cui lavoro.",
+    marquee: [
+      "Ingegneria full-stack",
+      "Integrazione AI",
+      "Sistemi real-time",
+      "WebGL & shader",
+      "Design engineering",
+      "Interazione",
+      "Performance",
+    ],
+  },
   contact: {
     eyebrow: "03 — Contatti",
     headline: "Facciamo qualcosa che si muove.",

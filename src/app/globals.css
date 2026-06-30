@@ -401,6 +401,13 @@ html.has-custom-cursor * {
   }
 }
 
+/* FlipText (Codrops 3D RotationX flip): per-word 3D context so chars hinge locally. */
+.flip-word {
+  display: inline-block;
+  perspective: 600px;
+  transform-style: preserve-3d;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

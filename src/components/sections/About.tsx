@@ -1,7 +1,7 @@
 "use client";
 
 import { useDict } from "@/content/dict";
-import { Reveal } from "@/components/reveal/Reveal";
+import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { Parallax } from "@/components/motion/Parallax";
 
 /**
@@ -21,9 +21,9 @@ export function About() {
         </Parallax>
 
         <div className="col-read">
-          <Reveal as="h2" className="t-display max-w-[18ch]" blur>
+          <WordGenerate as="h2" className="t-display max-w-[18ch]">
             {t.about.lead}
-          </Reveal>
+          </WordGenerate>
           {/* body drifts on a shallower layer than the eyebrow -> depth */}
           <Parallax className="mt-8" from={-26}>
             <p className="t-body t-body--mute">{t.about.body}</p>

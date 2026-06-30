@@ -5,6 +5,7 @@ import { TechCloud } from "@/components/tech-cloud";
 import { techIcons } from "@/data/skill-icons";
 import { Parallax } from "@/components/motion/Parallax";
 import { ScrollText } from "@/components/reveal/ScrollText";
+import { Marquee } from "@/components/motion/Marquee";
 
 /**
  * Tech — the stack section. Editorial heading (eyebrow + title from the EN/IT
@@ -21,6 +22,12 @@ export function Tech() {
       aria-labelledby="tech-title"
       style={{ paddingBlock: "var(--section-y)" }}
     >
+      {/* Velocity-coupled keyword ticker — a warm-air ribbon leading into the stack. */}
+      <Marquee
+        items={t.tech.marquee}
+        className="bleed mb-[var(--section-y)] border-y border-[var(--color-rule)]"
+      />
+
       <div className="container-edit grid-edit">
         <Parallax className="col-meta mb-6 lg:mb-0" from={66}>
           <p className="t-eyebrow eyebrow-tick">{t.tech.eyebrow}</p>

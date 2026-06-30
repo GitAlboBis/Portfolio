@@ -119,7 +119,7 @@ const en: Dict = {
     eyebrow: "03 — Contact",
     headline: "Let's make something that moves.",
     cta: "Write to me",
-    email: "alberto.t@sersan.dev",
+    email: "albertotuveri@gmail.com",
   },
   journey: {
     eyebrow: "The long version",
@@ -194,7 +194,7 @@ const it: Dict = {
     eyebrow: "03 — Contatti",
     headline: "Facciamo qualcosa che si muove.",
     cta: "Scrivimi",
-    email: "alberto.t@sersan.dev",
+    email: "albertotuveri@gmail.com",
   },
   journey: {
     eyebrow: "La versione lunga",

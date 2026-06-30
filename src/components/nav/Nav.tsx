@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { MenuOverlay } from "@/components/nav/MenuOverlay";
+import { MenuToggle } from "@/components/nav/MenuToggle";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
@@ -32,8 +33,6 @@ export function Nav() {
   const t = useDict();
   const locale = useUI((s) => s.locale);
   const toggleLocale = useUI((s) => s.toggleLocale);
-  const setMenu = useUI((s) => s.setMenu);
-  const menuOpen = useUI((s) => s.menuOpen);
   const pillRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState<string | null>(null);
 
@@ -147,15 +146,7 @@ export function Nav() {
             {locale === "en" ? "IT" : "EN"}
           </button>
 
-          <button
-            onClick={() => setMenu(true)}
-            aria-label="Open menu"
-            aria-expanded={menuOpen}
-            aria-controls="menu-overlay"
-            className="px-3 py-1 t-meta text-ink transition-colors duration-300 hover:text-ember-ink md:hidden"
-          >
-            {t.nav.menu}
-          </button>
+          <MenuToggle className="-mr-1 text-ink md:hidden" />
         </nav>
       </header>
       <MenuOverlay />

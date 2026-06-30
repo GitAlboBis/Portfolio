@@ -73,6 +73,10 @@ export function MenuOverlay() {
   return (
     <div
       ref={root}
+      id="menu-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu"
       className="night fixed inset-0 z-[60]"
       style={{ background: palette.night, clipPath: "inset(0 0 100% 0)", pointerEvents: "none" }}
     >

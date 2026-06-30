@@ -5,6 +5,7 @@ import { Reveal } from "@/components/reveal/Reveal";
 import { buttonVariants } from "@/components/ui/button";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { Appear } from "@/components/motion/Appear";
+import { BorderBeam } from "@/components/motion/BorderBeam";
 import { palette } from "@/content/tokens";
 
 /**
@@ -32,6 +33,7 @@ export function Contact() {
             href={`mailto:${t.contact.email}`}
             className={buttonVariants({ variant: "night", size: "lg" })}
           >
+            <BorderBeam from="var(--color-amber)" via="var(--color-ember)" width={1.5} size={64} />
             {t.contact.cta}
             <span aria-hidden className="opacity-70">
               — {t.contact.email}

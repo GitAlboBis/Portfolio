@@ -6,7 +6,6 @@ import { buttonVariants } from "@/components/ui/button";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { Appear } from "@/components/motion/Appear";
 import { BorderBeam } from "@/components/motion/BorderBeam";
-import { palette } from "@/content/tokens";
 
 /**
  * Contact — the one dark inversion (night band). Warm plum ground, paper text,
@@ -16,11 +15,7 @@ import { palette } from "@/content/tokens";
 export function Contact() {
   const t = useDict();
   return (
-    <section
-      id="contact"
-      className="night scroll-anchor bleed"
-      style={{ background: palette.night }}
-    >
+    <section id="contact" className="night scroll-anchor bleed relative z-10">
       <div className="container-edit">
         <Appear as="p" className="t-eyebrow eyebrow-tick">
           {t.contact.eyebrow}

@@ -5,6 +5,7 @@ import { WorksGallery } from "@/components/works/WorksGallery";
 import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
+import { NightSky } from "@/components/atmosphere/NightSky";
 
 /*
   HOME (Golden Hour)
@@ -38,9 +39,15 @@ export default function Home() {
         <Tech />
       </div>
 
-      {/* Closing dark band — the one inversion + coda. */}
-      <Contact />
-      <Footer />
+      {/* Closing dark band — the one inversion + coda, over a living dusk atmosphere.
+          The wrapper carries the solid `bg-night` failsafe (identical to the old flat
+          band): a no-WebGL / SSR / lost-context render looks exactly as before, and
+          NightSky's shader paints the afterglow + stars + embers on top when able. */}
+      <div className="relative isolate bg-night">
+        <NightSky />
+        <Contact />
+        <Footer />
+      </div>
     </main>
   );
 }

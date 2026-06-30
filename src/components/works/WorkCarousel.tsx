@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useDict } from "@/content/dict";
@@ -32,12 +33,24 @@ export function WorkCarousel() {
   const t = useDict();
   const locale = useUI((s) => s.locale);
   const reduced = useUI((s) => s.reducedMotion);
+  const router = useRouter();
   const stageRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const captionRef = useRef<HTMLDivElement>(null);
+  const draggedRef = useRef(false);
   const [active, setActive] = useState(0);
   const n = works.length;
-  const current = works[active];
+
+  // Click a card -> open THAT work's case study (confirmed); a side click just
+  // centres a provisional card. Suppressed if the press was a drag.
+  const openCard = (i: number) => {
+    if (draggedRef.current) {
+      draggedRef.current = false;
+      return;
+    }
+    const w = works[i];
+    if (w.status === "confirmed") router.push(`/work/${w.slug}`);
+    else setActive(i);
+  };
 
   const layout = useCallback((act: number, animate = true) => {
     const stage = stageRef.current;
@@ -74,18 +87,11 @@ export function WorkCarousel() {
     { scope: stageRef, dependencies: [reduced] },
   );
 
-  // Re-lay-out + a small caption reveal whenever the active card changes.
+  // Re-lay-out the arc whenever the active card changes.
   useGSAP(
     () => {
       if (reduced) return;
       layout(active);
-      if (captionRef.current) {
-        gsap.fromTo(
-          captionRef.current.children,
-          { autoAlpha: 0, y: 14 },
-          { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.05, ease: "power3.out" },
-        );
-      }
     },
     { dependencies: [active, layout, reduced] },
   );
@@ -102,11 +108,13 @@ export function WorkCarousel() {
 
     const onDown = (e: PointerEvent) => {
       downX = e.clientX;
+      draggedRef.current = false;
     };
     const onUp = (e: PointerEvent) => {
       if (downX === null) return;
       const dx = e.clientX - downX;
       downX = null;
+      draggedRef.current = Math.abs(dx) > 8; // a drag, not a card click
       if (Math.abs(dx) > 50) move(dx < 0 ? 1 : -1);
     };
     const onWheel = (e: WheelEvent) => {
@@ -195,9 +203,9 @@ export function WorkCarousel() {
           >
             <button
               type="button"
-              onClick={() => (i === active ? null : setActive(i))}
+              onClick={() => openCard(i)}
               tabIndex={-1}
-              className="group relative block h-full w-full overflow-hidden rounded-2xl border border-[var(--color-rule)] text-left"
+              className="group relative block h-full w-full cursor-pointer overflow-hidden rounded-2xl border border-[var(--color-rule)] text-left"
               style={{ background: `linear-gradient(135deg, ${w.mood.blob1}, ${w.mood.blob2})` }}
             >
               {/* warm vignette + ignite-on-center sheen */}
@@ -220,27 +228,11 @@ export function WorkCarousel() {
         ))}
       </div>
 
-      {/* Caption + controls */}
-      <div className="container-edit mt-[var(--block-y)] flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <div ref={captionRef}>
-          <p className="t-index mb-1">
-            {String(active + 1).padStart(2, "0")} / {String(n).padStart(2, "0")}
-          </p>
-          <p className="t-title">{current.title}</p>
-          <p className="t-meta mt-2 normal-case">
-            {current.org} · {current.year} · {current.role}
-          </p>
-          {current.status === "confirmed" ? (
-            <Link
-              href={`/work/${current.slug}`}
-              className="mt-4 inline-flex t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
-            >
-              {t.works.open} →
-            </Link>
-          ) : (
-            <span className="mt-4 inline-flex t-meta text-ink-mute">{t.works.wip}</span>
-          )}
-        </div>
+      {/* Controls only — each work's info opens on its /work/[slug] case study (click a card). */}
+      <div className="container-edit mt-[var(--block-y)] flex items-center justify-between">
+        <p className="t-index">
+          {String(active + 1).padStart(2, "0")} / {String(n).padStart(2, "0")}
+        </p>
 
         <div className="flex items-center gap-3">
           <button

@@ -79,9 +79,19 @@ export function Nav() {
           },
         });
       });
+      // Reach for the menu = it comes back: moving the pointer to the top reveals
+      // the pill even when it was tucked away by scroll-down.
+      const onPointer = (e: PointerEvent) => {
+        if (e.clientY < 90) {
+          yTo(0);
+          oTo(1);
+        }
+      };
+      window.addEventListener("pointermove", onPointer, { passive: true });
       return () => {
         dirST.kill();
         sectionSTs.forEach((x) => x?.kill());
+        window.removeEventListener("pointermove", onPointer);
       };
     },
     { scope: pillRef },

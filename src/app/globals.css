@@ -81,6 +81,10 @@ html,
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);
+  /* guard against any element forcing horizontal scroll (kept off-axis content,
+     full-bleed sections); `clip` kills the overflow without creating a scroll
+     container, so sticky / fixed / Lenis are unaffected. */
+  overflow-x: clip;
 }
 body {
   font-family: var(--font-sans);

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useDict } from "@/content/dict";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
+import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Parallax } from "@/components/motion/Parallax";
 
 /**
@@ -25,9 +26,12 @@ export function About() {
           <WordGenerate as="h2" className="t-display max-w-[18ch]">
             {t.about.lead}
           </WordGenerate>
-          {/* body drifts on a shallower layer than the eyebrow -> depth */}
+          {/* body drifts on a shallower layer than the eyebrow -> depth; the copy
+              "reads along" — words brighten word-by-word, welded to scroll */}
           <Parallax className="mt-8" from={-26}>
-            <p className="t-body t-body--mute">{t.about.body}</p>
+            <ScrollWords as="p" className="t-body t-body--mute">
+              {t.about.body}
+            </ScrollWords>
           </Parallax>
           <Link
             href="/about"

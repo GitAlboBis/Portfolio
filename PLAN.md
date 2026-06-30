@@ -1,22 +1,22 @@
 # PLAN — Next steps (prioritized)
 
 > Backlog for the Golden Hour portfolio. See **`HANDOFF.md`** for current state + file map, **`CLAUDE.md`** for the operational brain (rules, reference links + code-extraction, skill routing, gates), **`WATER-WAVE-PLAN.md`** for the water sim.
-> Updated **2026-06-30** (end of the big build+effects session).
+> Updated **2026-06-30** (build+effects session + works reconciliation: depth gallery restored on home, 3D carousel moved to `/work`).
 
 ## ✅ Done (this session — see HANDOFF for the commit list)
 - **CLAUDE.md** rewritten to Golden Hour (+ §6 reference links/extraction, skill routing). Skills installed under `.claude/skills/`.
 - **Multi-page**: `/about` (bio/education/experience, real confirmed content) + `/work/[slug]` case studies (3 confirmed projects) + **route transition** (sunset curtain via `template.tsx`).
-- **Selected Work**: real project data in `works.ts`; **3D arc carousel** (`WorkCarousel`) → click a card opens its `/work/[slug]`.
+- **Selected Work** (two surfaces, both → `/work/[slug]`): home keeps the **depth fly-through gallery** (`WorksGallery`, `#works`, caption "Open case →" / "All work ↗"); **`/work`** is the dedicated index — a **3D arc carousel** (`WorkCarousel` via `WorkIndex`) where clicking a card opens its case study. Real project data in `works.ts`.
 - **Fluid-island nav** (floating glass pill, scroll hide/reveal + reveal-on-pointer-top + active indicator).
 - **Motion system**: parallax backbone, Reveal/ScrollText/WordGenerate/FlipText/ShimmerText, Appear, Marquee (velocity), border-beam CTA, magnetic CTA/wordmark, hero scroll-settle, Preloader.
 - **SEO**: metadata, OG/Twitter cards, favicon (`icon.tsx`), `opengraph-image.tsx`, sitemap, robots, Person JSON-LD.
 - **Email** → public `albertotuveri@gmail.com`. Custom cursor removed (native cursor restored).
 
 ## ▶ Immediate next (recommended order)
-1. **Re-verify `155115d` visually** (account switch left it build-green but not browser-checked): native cursor visible · nav reappears when reaching to the top after scrolling down · clicking a Works card opens `/work/[slug]`.
+1. **Re-verify `155115d` visually** (cursor + nav): native cursor visible · nav reappears when reaching to the top after scrolling down. *(Done this session: home depth gallery + `/work` carousel render + console clean + card→`/work/[slug]` click — `82feb3a`.)*
 2. **Get real SerSan ×2 content** from Alberto (titles, Problem→Action→Result, stack) → fill `works.ts` (currently `provisional` WIP) + flip status to `confirmed` so they get `/work` pages. *(Blocking those two cards. 🔵)*
 3. **Perf & A11y pass** (WP-10, no input): Lighthouse mobile ≥80 (skill `frontend-lighthouse`), axe (skill `accessibility-compliance-accessibility-audit`/`fixing-accessibility`), reduced-motion end-to-end, lazy-mount heavy scenes, ensure `leva` is out of the prod bundle, true-mobile 390px QA.
-4. **Cleanup**: delete the now-unused `src/components/works/WorksGallery.tsx` (replaced by the carousel) + the dead `src/components/Cursor.tsx` & `.cursor-*`/`html.has-custom-cursor` CSS in `globals.css`. Reconcile the package manager (npm vs the stray `bun.lock`).
+4. **Cleanup**: delete the dead `src/components/Cursor.tsx` & `.cursor-*`/`html.has-custom-cursor` CSS in `globals.css`. Reconcile the package manager (npm vs the stray `bun.lock`). *(Note: `WorksGallery.tsx` is **kept** — it's the home gallery; do NOT delete it.)*
 
 ## 🎛 Ready-to-build effect presets (already researched — mechanism + reimplementation extracted, NO new deps)
 These came from Workflow research against the CLAUDE.md §6 references; re-implement on our GSAP/Lenis/three stack. Full notes were in the session's workflow outputs — re-run the research workflow if you need them again.
@@ -35,7 +35,7 @@ These came from Workflow research against the CLAUDE.md §6 references; re-imple
 - **Feel review** of the accumulated motion/transitions/nav/carousel — taste sign-off.
 
 ## P1/P2 (from the original plan, still open)
-- Gallery depth-of-field (only if returning to an R3F gallery) · real project stills (WebP) via `Work.textureSrc` (carousel/cards currently render duotone gradients) · ambient WebGL layer (caustics, under content) · wave physics in `WATER-WAVE-PLAN.md` (only with the "A" as a soft reflecting container) · then **deploy to Vercel** (G3).
+- **Gallery depth-of-field** for the home `WorksGallery` (it's back on the home — a DoF/bokeh pass on the depth fly-through is now in scope) · **real project stills (WebP)** via `Work.textureSrc` (both the home gallery planes and the `/work` carousel cards currently render duotone gradients — wire a texture branch) · ambient WebGL layer (caustics, under content) · wave physics in `WATER-WAVE-PLAN.md` (only with the "A" as a soft reflecting container) · then **deploy to Vercel** (G3).
 
 ## Housekeeping
 - Rewrite or archive the dated `docs/*` and `DESIGN-SYSTEM.md` (still "Ocean") for Golden Hour, or delete to avoid confusion (CLAUDE.md already supersedes them).

@@ -54,7 +54,7 @@ Portfolio personale di **Alberto Tuveri** — Software Engineer, Full-stack + AI
 - **Una sola banda light-inversion.** Il sito è light; la banda `night` (Contact/Footer) è l'unica inversione e va usata **una volta sola** — è il payoff drammatico.
 - **Due accenti max** per vista: ember (primario) + un secondario (amber/coral/rose/dusk) come gioiello raro. Niente neon, niente gradienti SaaS (l'unico gradiente sanzionato è `--gradient-sunset`).
 - **Commit piccoli e atomici** su feature branch (un Work Package per branch, es. `feat/wp4-icon-cloud`). Branch prima di toccare `main`.
-- **Non inventare contenuti.** Bio/progetti/metriche solo da fonti confermate (`docs/07-PROJECTS.md` per la bio; i progetti Works sono **PLACEHOLDER** — vedi §11). Se manca un dato, segnalalo come buco aperto.
+- **Non inventare contenuti.** Bio/progetti/metriche solo da fonti confermate (`docs/07-PROJECTS.md` per la bio; 3 Works confermati in `works.ts`, i 2 SerSan sono **provvisori** — vedi §11). Se manca un dato, segnalalo come buco aperto.
 - **Niente regressioni.** Prima di sostituire qualcosa di "tenuto" (§3), screenshot before/after.
 - **Non installare MCP/skill inutili** (consumano context). Usa solo gli essenziali del routing (§7).
 
@@ -62,7 +62,9 @@ Portfolio personale di **Alberto Tuveri** — Software Engineer, Full-stack + AI
 
 ## 3. Stato attuale & mappa file (Golden Hour)
 
-`src/app/page.tsx` → **Nav** (+ `MenuOverlay`) → `#hero` (sezione `h-dvh` vuota: il fluido WebGPU fisso di `CanvasHost` + il gradiente sunset si leggono attraverso questa banda) → layer opaco `bg-paper`: **About** → **WorksGallery** → **Tech sphere** (`TechCloud`) → poi la banda **night**: **Contact** → **Footer**.
+**HOME** `src/app/page.tsx` → **Nav** (+ `MenuOverlay`) → `HeroScrollSettle` → `#hero` (sezione `h-dvh` vuota: il fluido WebGPU fisso di `CanvasHost` + il gradiente sunset si leggono attraverso questa banda) → layer opaco `bg-paper`: **About** → **WorksGallery** (depth fly-through, `#works`) → **Tech sphere** (`TechCloud`) → poi la banda **night**: **Contact** → **Footer**.
+
+**ROUTE aggiuntive** (oltre alla home): **`/work`** (`app/work/page.tsx` → `WorkIndex` → **carosello 3D ad arco** `WorkCarousel`, ogni card apre il suo case study) · **`/work/[slug]`** (case study SSG dei 3 progetti confermati, PARC + metriche, bilingue) · **`/about`** (`AboutJourney`: bio lunga + education + experience + thesis) · **`/styleguide`** (contratto vivo del design system). **Transizione di rotta:** `app/template.tsx` → `RouteTransition` (sunset-curtain ad ogni navigazione client, gated sul Preloader, reduced-motion-safe). ⚠ **Works su DUE superfici, entrambe → `/work/[slug]`:** la **depth gallery** vive sulla home (`#works`), il **carosello 3D** vive su `/work` — coesistono *per scelta* (la gallery era stata rimossa per errore e ripristinata: NON eliminarne nessuna delle due).
 
 | Area | File | Note |
 |---|---|---|
@@ -74,10 +76,16 @@ Portfolio personale di **Alberto Tuveri** — Software Engineer, Full-stack + AI
 | State | `src/store/ui.ts` (zustand) | `locale`, `soundEnabled`, `reducedMotion`, `activeWork`, `loaded`, `menuOpen`; persist (`locale`+`sound`) chiave `ocean-ui` |
 | Copy EN/IT | `src/content/dict.ts` | `useDict()`, zod-validated. Sezioni: nav/hero/about/works/tech/contact/footer |
 | Button (CVA) | `src/components/ui/button.tsx` | `primary/secondary/ghost/night`, sheen su hover (non loop) |
-| Reveal | `src/components/reveal/Reveal.tsx` | Split-text reveal |
-| Nav + Menu | `src/components/nav/Nav.tsx`, `src/components/nav/MenuOverlay.tsx` | Responsive: link inline desktop / Menu mobile + overlay full-screen |
-| Sezioni | `src/components/sections/About.tsx`, `Contact.tsx`; `src/components/footer/Footer.tsx` | |
-| Works gallery | `src/components/works/WorksGallery.tsx` + `src/content/works.ts` | ⚠ progetti **PLACEHOLDER** (`Tidewatch/Saltgrid/Lumen/Current`, `[[TBD]]`) |
+| Reveal / motion primitives | `src/components/reveal/{Reveal,ScrollText,WordGenerate,FlipText,ShimmerText}.tsx` + `src/components/motion/{Parallax,Magnetic,Appear,Marquee,BorderBeam}.tsx` + `src/lib/scroll-choreo.ts` | Re-tematizzati dalle reference §6 sullo stack GSAP/Lenis (no Framer) |
+| Nav + Menu | `src/components/nav/Nav.tsx`, `src/components/nav/MenuOverlay.tsx` | Fluid-island pill: scroll hide/reveal + reveal-on-pointer-top + active-section indicator. Cursore custom **rimosso** (`Cursor.tsx` dead code) |
+| Sezioni | `src/components/sections/About.tsx`, `Tech.tsx`, `Contact.tsx`; `src/components/footer/Footer.tsx`; `src/components/Preloader.tsx`; `src/components/hero/HeroScrollSettle.tsx` | |
+| Works — home (gallery) | `src/components/works/WorksGallery.tsx` | R3F depth fly-through + mood ramp per progetto + caption con link **Open case →** / **All work ↗** + fallback list reduced-motion |
+| Works — index `/work` (carosello) | `src/components/work/WorkIndex.tsx` (shell `/work`) + `src/components/works/WorkCarousel.tsx` (arco 3D, click card → `/work/[slug]`) | |
+| Works — case study | `src/components/work/WorkCaseStudy.tsx` + `src/app/work/[slug]/page.tsx` (SSG, `generateStaticParams` sui 3 slug confermati) | |
+| Works — dati | `src/content/works.ts` | ✅ progetti **REALI**: `badante24h`, `doit-voice-ai-agent`, `agricultural-supply-chain` (confermati, PARC EN/IT) + `sersan-project-1/2` (**provisional**, WIP, no case-study page). Still WebP via `Work.textureSrc` ancora da fornire (oggi gradienti duotone) |
+| About | `src/components/about/AboutJourney.tsx` + `src/app/about/page.tsx` | bio/education/experience/thesis da `dict.journey` |
+| Route transition | `src/components/transition/RouteTransition.tsx` + `src/app/template.tsx` | sunset-curtain reveal client-nav |
+| SEO | `src/app/{icon,opengraph-image,sitemap,robots}.tsx/ts` + `layout.tsx` (metadata, OG/Twitter, canonical) + Person JSON-LD | `NEXT_PUBLIC_SITE_URL` da settare in deploy |
 | **Hero fluido (GATE G4)** | `src/webgl/waterball/**` + `src/webgl/CanvasHost.tsx` (gated a `/`) + `src/webgl/store/heroStore.ts` | Render upgrade già applicati: `render/bilateral.wgsl.ts` (Narrow-Range), `render/fluid.wgsl.ts` (refract env + edge/foam), `render/fluidRender.ts`. Solver in `mls-mpm/*` |
 | Sunset cubemap | `public/cubemap/*.png` (gen: `scripts/gen_sunset_cubemap.py`) | Riflessi golden-hour |
 | Tech sphere | `src/components/tech-cloud.tsx` + `src/data/skill-icons.ts` | Engine tenuto; da elevare a vero 3D icon cloud (WP-4) |
@@ -152,7 +160,7 @@ Le tecniche di queste librerie sono i **riferimenti da cui prendere il codice**,
 
 > Riconciliato con le skill **realmente disponibili**. La colonna *intent* riporta i nomi citati da `IMPLEMENTATION-PLAN.md` (indicano l'intento); la colonna *Skill reale* dice cosa usare davvero. **L'utente ha chiesto esplicitamente di usare `ui-ux-pro-max`** come skill UI/UX di riferimento.
 >
-> **Aggiornato 2026-06-30 — skill installate in `.claude/skills/` (project-level):** `webgpu-threejs-tsl` (Dan Greenheck, MIT) + un **set curato** da `sickn33/antigravity-awesome-skills` (la repo ha ~1700 skill: installato solo il pertinente, NON tutto — regola d'oro): `high-end-visual-design`, `frontend-design`, `design-taste-frontend`, `editorial-design`, `gradient-design`, `duotone-design`, `swiss-design`, `animejs-animation`, `fixing-motion-performance`, `3d-web-experience`, `frontend-lighthouse`, `application-performance-performance-optimization`, `accessibility-compliance-accessibility-audit`, `fixing-accessibility`, `fixing-metadata`. Più i preinstallati `awwwards-loop`, `docs-driven-build`.
+> **Aggiornato 2026-06-30 — skill installate in `.claude/skills/` (project-level):** `webgpu-threejs-tsl` (Dan Greenheck, MIT — repo: **https://github.com/dgreenheck/webgpu-claude-skill**) + un **set curato** da `sickn33/antigravity-awesome-skills` (repo: **https://github.com/sickn33/antigravity-awesome-skills** · indice plugin: `docs/users/plugins.md` — la repo ha ~1700 skill: installato solo il pertinente, NON tutto — regola d'oro): `high-end-visual-design`, `frontend-design`, `design-taste-frontend`, `editorial-design`, `gradient-design`, `duotone-design`, `swiss-design`, `animejs-animation`, `fixing-motion-performance`, `3d-web-experience`, `frontend-lighthouse`, `application-performance-performance-optimization`, `accessibility-compliance-accessibility-audit`, `fixing-accessibility`, `fixing-metadata`. Più i preinstallati `awwwards-loop`, `docs-driven-build`. La skill UI/UX primaria **`ui-ux-pro-max`** è user-level (`C:\Users\alber\.claude\skills\ui-ux-pro-max`).
 
 | Ambito / task | **Skill reale da usare** | Intent citato nel piano | MCP / connettore |
 |---|---|---|---|
@@ -239,8 +247,8 @@ python scripts/gen_sunset_cubemap.py # rigenera la cubemap sunset dell'hero
 
 ---
 
-## 11. Nota su contenuti provvisori
+## 11. Nota su contenuti
 
-- **Works = PLACEHOLDER.** `src/content/works.ts` contiene `Tidewatch/Saltgrid/Lumen/Current` (`[[TBD]]`). Da sostituire con progetti reali (titolo, ruolo, anno, stack) + still WebP via `Work.textureSrc` (i piani oggi rendono gradienti duotone; serve un branch texture in `WorksGallery`). **Serve input di Alberto.**
-- **SerSan:** i due progetti per SerSan (ruolo corrente, Software Engineer) sono **provvisori** — dettagli/metriche da confermare; non pubblicare claim non verificati. Il CV PDF non è aggiornato su SerSan: la verità sulla bio è `docs/07-PROJECTS.md`.
-- **Email contatto:** `alberto.t@sersan.dev`.
+- **Works = REALI (3 confermati) + SerSan provvisori.** `src/content/works.ts` ha 3 progetti **confermati** con PARC EN/IT completo + `/work/[slug]`: `badante24h`, `doit-voice-ai-agent`, `agricultural-supply-chain`. Mancano gli **still WebP** via `Work.textureSrc` (sia la depth gallery sia il carosello rendono gradienti duotone; serve un branch texture).
+- **SerSan ×2 = PROVVISORI.** `sersan-project-1/2` hanno `status: "provisional"`, badge WIP, **niente** pagina `/work/[slug]` (sul carosello/gallery mostrano "WIP" invece di aprire). Dettagli/metriche da confermare con Alberto — non pubblicare claim non verificati. Il CV PDF non è aggiornato su SerSan: la verità sulla bio è `docs/07-PROJECTS.md`.
+- **Email contatto (pubblica):** `albertotuveri@gmail.com` (in `dict.ts`, en+it). *(L'email aziendale `alberto.t@sersan.dev` NON va usata sul sito.)*

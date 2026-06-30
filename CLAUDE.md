@@ -1,88 +1,246 @@
 # CLAUDE.md — Portfolio Alberto Tuveri (Master Entry Point)
 
-> Scopo: questo e il cervello operativo del progetto. Claude Code lo legge per primo. Orienta qualsiasi agente in 30 secondi: regole d'oro, indice della documentazione, routing skill+MCP, gates. Il dettaglio sta nei file `docs/*` del MANIFEST — qui solo l'essenziale e i puntatori.
+> **Cervello operativo del progetto.** Claude Code lo legge per primo: orienta qualsiasi agente in 60 secondi — visione, regole d'oro, stato reale del codice, design system, **librerie sorgente + come estrarne il codice**, routing skill/MCP, gates, backlog.
+>
+> **Riscritto 2026-06-30** per riflettere la direzione reale **GOLDEN HOUR**, letta dal codice (non dai doc). **Supersede** la vecchia versione "ocean + cinematica frame-WebP" e tutti i file in `docs/` (storici, direzione abbandonata).
+>
+> **Companion VIVI:** [`HANDOFF.md`](./HANDOFF.md) (continua-da-qui) · [`PLAN.md`](./PLAN.md) (backlog prioritizzato P0→P2) · [`WATER-WAVE-PLAN.md`](./WATER-WAVE-PLAN.md) (fisica/render del fluido).
+> **STORICI (non fidarsi del contenuto, ma vale ciò che è riportato qui):** `IMPLEMENTATION-PLAN.md` — la prosa "ocean" è obsoleta, **ma le sue librerie-sorgente, le istruzioni di estrazione e il metodo restano validi e sono riportati nella §6 di questo file**. `DESIGN-SYSTEM.md` (vedi §0). `docs/*`.
 
-> Aggiornato 2026-06-27 per riflettere il codice (hero MLS-MPM WebGPU + cinematica frame-sequence). Riconciliato dal loop docs-driven-build.
+---
 
-## 1. Identita & Visione
+## 0. FONTE DI VERITÀ — leggi questo prima di qualsiasi `.md`
 
-Portfolio personale di **Alberto Tuveri** — Software Engineer, Full-Stack + AI Integration. Sito **immersivo, single-page, scroll-driven**, a tema **mare/oceano della Sardegna** (cuore emotivo: Pan di Zucchero / Masua, Sulcis-Iglesiente). Obiettivo di qualita: **Awwwards Site of the Day** (riferimento di livello: `lusion.co`).
+Il **codice** è la verità su design e architettura. In caso di conflitto doc-vs-codice **vince il codice**, poi `HANDOFF.md` / `PLAN.md`, poi questo file. I `.md` storici NON sono autorevoli.
 
-Visione in una frame: l'utente arriva su una **lettera "A" d'acqua viva** — un fluido a griglia **MLS-MPM su WebGPU raw** (solver vendorizzato da `matsuoka-601/WaterBall` in `src/webgl/waterball/`), reso **Screen-Space-Fluid translucido teal** (sphere→depth→bilateral→thickness→gaussian→fluid, reflect/refract da cubemap, premultiplied) **sopra una cinematica di Pan di Zucchero** — una sequenza di frame WebP scrubabile (`public/frames/f_000..f_135.webp` disegnati su canvas 2D, indicizzati dallo scroll). La 'A' e riempita proceduralmente (`initFromHomes()`, 3 stroke a capsula; nessun GLB caricato a runtime) e un engine di churn/confinamento sull'asse mediale la fa "respirare". Scroll virtualizzato (Lenis) guidato dal **GSAP ticker** in un unico frame loop; **nessun canvas R3F persistente** (l'hero ha il suo RAF WebGPU, la cinematica un canvas 2D). NON e una nuvola di particelle GPGPU a due strati, NON e R3F. Hero e cinematica sono **fusi** in `src/components/sections/hero.tsx` (timeline GSAP sticky). Ogni animazione e intenzionale e ingegnerizzata; il sito e bilingue **EN/IT**.
+| Cosa | Fonte di verità autorevole |
+|---|---|
+| Design system (colore, tipografia, motion, primitive) | **Claude Design** (progetto canonico, vedi sotto) → mirrorato nel codice: `src/app/globals.css` (`@theme`) + `src/content/tokens.ts` + route **`/styleguide`** (contratto vivo) |
+| Architettura / flusso pagina | `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/_providers/Smooth.tsx`, `src/store/ui.ts` |
+| Copy EN/IT | `src/content/dict.ts` (`useDict()`, validato zod) |
+| Stack / versioni / package manager | `package.json` (è **npm**, non bun) |
+| Stato + backlog narrativo | `HANDOFF.md` + `PLAN.md` |
+
+**Il design system canonico vive in Claude Design** (system design), non in un `.md` locale:
+> 🎨 **Claude Design — "Alberto Tuveri — Golden Hour Portfolio"** · id `d5833b7a-0744-4bb8-bec0-367ce50698e8`
+> https://claude.ai/design/p/d5833b7a-0744-4bb8-bec0-367ce50698e8 (privato; le card HTML del sistema vivono anche in `design-system/**`)
+
+Da lì il sistema è stato **tradotto nel codice** (`globals.css` @theme + `tokens.ts`) — quella è la copia operativa. Per cambiare il sistema: aggiorna Claude Design, poi rispecchialo nei token (e in `/styleguide`).
+
+⚠ **DRIFT noto da non seguire alla cieca:** `DESIGN-SYSTEM.md` su disco è ancora **"Ocean v1"** (palette abyss/teal, font Fraunces/Hanken) — è uno snapshot vecchio, **scavalcato** da Claude Design + dai token Golden Hour; va riscritto o archiviato (housekeeping in `PLAN.md`). Anche il commento "Fraunces/Hanken" in `layout.tsx` è residuo: i font realmente caricati sono **Bricolage Grotesque + DM Sans**. La chiave `localStorage` dello store è `"ocean-ui"`: nome legacy ma funzionante, **non rinominare** senza migrazione.
+
+---
+
+## 1. Identità & Visione
+
+Portfolio personale di **Alberto Tuveri** — Software Engineer, Full-stack + AI Integration. Sito **immersivo, single-page, scroll-driven**. Obiettivo di qualità: **Awwwards Site of the Day** (nord assoluto: `lusion.co`, Awwwards SOTD, l'art-direction system di `https://getdesign.md/bmw-m/design-md`).
+
+**Direzione = GOLDEN HOUR.** Pagina **light, warm-white**, illuminata da un tramonto: accento **ember** (arancio `#ee5b23`) come gioiello, con calore coral/amber/rose e un contrappunto freddo **dusk**; una sola banda **night** scura per il dramma (Contact/Footer). Tipo a volume pieno (**Bricolage Grotesque**) su **DM Sans** pulito; motion che frena come la marea.
+
+**Visione in una frame:** l'utente arriva su una **lettera "A" d'acqua viva** — un fluido a griglia **MLS-MPM su WebGPU raw** (solver vendorizzato da `matsuoka-601/WaterBall`, in `src/webgl/waterball/**`), reso **Screen-Space-Fluid translucido** che **riflette un cielo di tramonto** (cubemap sunset, Narrow-Range depth filter, rifrazione che campiona l'environment). Il colore dell'acqua resta teal **per scelta**: il calore arriva dal riflesso, non da un tint. La 'A' è riempita proceduralmente (nessun GLB a runtime). Sotto l'hero, contenuto editoriale su `bg-paper`: About → Works (depth gallery) → Tech sphere → poi la banda night Contact → Footer.
+
+**Mood richiesto dal committente:** ULTRA-animato, alto livello, creativo — **NON minimale**. Poche feature MEDIOCRI = fallimento; pochi momenti **ECCEZIONALI** + micro-polish ovunque = vittoria. Ogni animazione è intenzionale e ingegnerizzata. Il sito è bilingue **EN/IT**.
+
+---
 
 ## 2. REGOLE D'ORO (vincolanti)
 
-- **Voce**: la PROSA delle direttive e in **italiano**. Codice, identificatori, nomi file/componenti, token di design e **copy del sito** sono in **inglese**. Le label dei token e i nomi tecnici restano in inglese anche nei doc.
-- **Bilingue EN/IT**: ogni stringa visibile passa per `src/data/translations` (en/it). Mai hardcodare copy nei componenti.
-- **Mai dichiarare "fatto" senza PROVA VISIVA**: screenshot via `claude-in-chrome` su **desktop + mobile**, **console del browser pulita** (zero errori/warning rilevanti), e verifica del comportamento atteso. Vedi gate QA in `docs/11-WORKFLOW.md`.
-- **Prima di scrivere codice** che tocca three / @react-three/fiber / drei / postprocessing / GSAP / Lenis / Next.js / Tailwind v4 / zustand / zod: **consultare Context7** per le API version-specific (vedi `docs/08-CONTEXT7.md`). Non andare a memoria su API che cambiano tra versioni.
-- **Performance budget non negoziabile**: 60fps desktop recente; **degrado elegante** su mobile e su `prefers-reduced-motion`; lazy-load di scene 3D e video; **Lighthouse performance >= 80 mobile**. La leva storica "scalare PRIMA la densita della pelle" NON si applica piu (non esiste piu un sistema a particelle 2 strati): per il fluido MLS-MPM scalare `NUM_PARTICLES` e il **DPR cap** (~1.5), per la cinematica la risoluzione/concorrenza dei frame WebP. Dettaglio in `docs/01-TECHSTACK.md` e `docs/04-3D-HERO-WATER-LOGO.md`.
-- **Accessibilita**: 3D/video decorativi `aria-hidden`; contenuto leggibile da screen reader; focus states, navigazione tastiera, contrasto AA.
-- **Commit piccoli e atomici**: un commit per unita di lavoro coerente; messaggi chiari. Branch prima di toccare il default. Vedi disciplina in `docs/11-WORKFLOW.md`.
-- **Non inventare contenuti**: bio, progetti e metriche vengono ESCLUSIVAMENTE da `docs/07-PROJECTS.md`. Se manca un dato, segnalalo come buco aperto — non riempirlo a fantasia.
-- **Non installare MCP/skill inutili** (consumano context). Usa solo gli essenziali del routing (sezione 5).
+- **Voce.** La PROSA delle direttive (doc, commenti di processo) è in **italiano**. Codice, identificatori, nomi file/componenti, token di design e **copy del sito** sono in **inglese**.
+- **Mai dichiarare "fatto" senza PROVA VISIVA.** È la lezione che ha prodotto gli obbrobri: costruire alla cieca è vietato. Ogni task si chiude solo dopo aver **avviato il sito** (`npm run dev`) e **guardato il risultato con `claude-in-chrome`**: screenshot **desktop (1440) + mobile (390)** + **console pulita** (`read_console_messages`, zero errori/warning rilevanti) + verifica del comportamento atteso. Niente screenshot = niente "done". Vale anche per ogni sub-agente delegato.
+- **Bilingue EN/IT.** Ogni stringa visibile passa per `src/content/dict.ts` (`useDict()`, shape `en`≡`it` validata zod in dev). **Mai** hardcodare copy nei componenti.
+- **Context7 prima del codice** su librerie versionate (Next 16, React 19, Tailwind v4, GSAP 3.15, Lenis 1.3, three 0.184, drei, postprocessing, zustand 5, zod 4). Le API cambiano tra versioni — non andare a memoria.
+- **Performance budget non negoziabile.** 60fps desktop recente; **degrado elegante** su mobile e `prefers-reduced-motion`; **Lighthouse mobile ≥ 80** (raggiungibile solo sul tier degradato: una canvas, DPR ≤1.5, FX pesanti off). Animare **solo `transform`/`opacity`**; `IntersectionObserver` per gate del rAF; **un solo ticker** (Lenis↔GSAP già condiviso in `Smooth.tsx`); pausa/dispose offscreen delle scene 3D. Scaling del fluido = `NUM_PARTICLES` + **DPR cap (~1.5)**.
+- **Accessibilità AA.** 3D/decorativo `aria-hidden`; `focus-visible` (outline ember) preservato; contrasto ≥4.5:1; `prefers-reduced-motion` = versione **statica e leggibile** per OGNI effetto; navigazione tastiera; reading order corretto.
+- **Una sola banda light-inversion.** Il sito è light; la banda `night` (Contact/Footer) è l'unica inversione e va usata **una volta sola** — è il payoff drammatico.
+- **Due accenti max** per vista: ember (primario) + un secondario (amber/coral/rose/dusk) come gioiello raro. Niente neon, niente gradienti SaaS (l'unico gradiente sanzionato è `--gradient-sunset`).
+- **Commit piccoli e atomici** su feature branch (un Work Package per branch, es. `feat/wp4-icon-cloud`). Branch prima di toccare `main`.
+- **Non inventare contenuti.** Bio/progetti/metriche solo da fonti confermate (`docs/07-PROJECTS.md` per la bio; i progetti Works sono **PLACEHOLDER** — vedi §11). Se manca un dato, segnalalo come buco aperto.
+- **Niente regressioni.** Prima di sostituire qualcosa di "tenuto" (§3), screenshot before/after.
+- **Non installare MCP/skill inutili** (consumano context). Usa solo gli essenziali del routing (§7).
 
-## 3. Stack (one-liner)
+---
 
-Next.js 16 (App Router, Turbopack) · React 19 · TypeScript strict · **bun** · Tailwind CSS v4 (CSS-first) · **WebGPU raw** (MLS-MPM SSF hero, `navigator.gpu`-only; fallback = CSS sea gradient) · **wgpu-matrix 3** · three 0.184 + @react-three/fiber 9.6 + drei 10.7 (presenti, non montati nell'albero attivo) · postprocessing 6.39 (installato, inutilizzato) · gsap 3.15 + @gsap/react · lenis 1.3 · zustand 5 · zod 4 · Radix · leva · lucide-react. Deploy su **Vercel**. → Dettaglio completo, versioni e budget in **`docs/01-TECHSTACK.md`**.
+## 3. Stato attuale & mappa file (Golden Hour)
 
-## 4. Indice della Documentazione (MANIFEST)
+`src/app/page.tsx` → **Nav** (+ `MenuOverlay`) → `#hero` (sezione `h-dvh` vuota: il fluido WebGPU fisso di `CanvasHost` + il gradiente sunset si leggono attraverso questa banda) → layer opaco `bg-paper`: **About** → **WorksGallery** → **Tech sphere** (`TechCloud`) → poi la banda **night**: **Contact** → **Footer**.
 
-| File | Contenuto | Quando consultarlo |
+| Area | File | Note |
 |---|---|---|
-| `docs/README.md` | Indice della suite di documentazione | Punto di ingresso per navigare i doc |
-| `docs/00-PRD.md` | Product Requirements: visione, obiettivi, audience, narrativa/UX, sitemap, content model, criteri di successo, scope/non-goals | Prima di prendere decisioni di prodotto o ambito |
-| `docs/01-TECHSTACK.md` | Stack + versioni, convenzioni server/client, struttura file, budget perf/a11y, package manager, deploy | Allo scaffold e a ogni scelta tecnica/di dipendenza |
-| `docs/02-DESIGN.md` | Art direction oceano, token colore/tipografia/spazio/motion, estetica componenti, voce del copy, ispirazioni | Quando tocchi UI, stile, token, copy |
-| `docs/03-ARCHITECTURE.md` | Cartelle, Canvas globale + overlay DOM, sync Lenis↔R3F, sistema scroll, store Zustand, i18n EN/IT, routing, mappa scena↔sezione | Prima di creare moduli/scene o cablare lo scroll |
-| `docs/04-3D-HERO-WATER-LOGO.md` | **(riconciliato 2026-06-27)** Hero 'A' fluido MLS-MPM su WebGPU raw (`src/webgl/waterball/`), riempimento procedurale `initFromHomes`, churn/confinamento, render Screen-Space-Fluid translucido, cubemap reflect/refract, single-backend WebGPU + fallback CSS, tier/perf | Per tutto il lavoro sull'hero 3D |
-| `docs/05-CINEMATIC-SCROLL.md` | **(riconciliato 2026-06-27)** Cinematica Pan di Zucchero come **sequenza di frame WebP** scrubabile (`public/frames/`, canvas 2D) **fusa nell'hero**, scroll-scrub via GSAP, perf (preload/DPR cap), fallback reduced-motion | Per la cinematica fusa nell'hero |
-| `docs/06-REFERENCES.md` | Riferimenti di qualita: Lusion, Awwwards, magicui, uiverse.io, ui-layout, codrops, threejs-journey (studiare, non copiare) | Per ispirazione e benchmark di qualita |
-| `docs/07-PROJECTS.md` | Bio Alberto + schede progetto + voci Sersan provvisorie | Per QUALSIASI contenuto testuale/biografico |
-| `docs/08-CONTEXT7.md` | Context7 MCP: setup, regola operativa, librerie, skill fallback | Prima di scrivere codice su librerie versionate |
-| `docs/09-MCP.md` | Routing MCP/connettori per task: Blender, Higgsfield, Context7, claude-in-chrome, Vercel, Figma/Canva, Supabase; setup + passi manuali | Quando ti serve un MCP/connettore |
-| `docs/10-SKILLS.md` | Tabella di routing delle skill installate per task + regola di scoperta/uso autonomo | Per scegliere la skill giusta per il task |
-| `docs/11-WORKFLOW.md` | Workflow operativo: gates, loop QA visivo, done-when, orchestrazione sub-agenti, disciplina commit | A inizio e fine di ogni unita di lavoro |
-| `docs/12-PARTICLE-PHYSICS.md` | Fisica delle particelle (PBD constraint-projection · PBF fluidi incomprimibili: density constraint, s_corr, vorticity, XSPH · Unified: shape matching, attrito, sleeping, diffuse/foam particles) + mappatura sul nostro solver MLS-MPM e tabella parametri | Prima di toccare il solver fluido (`src/webgl/waterball/mls-mpm/*`), tarare splash/forma, o valutare PBF come alternativa |
+| Token (verità design) | `src/app/globals.css` (`@theme`) + `src/content/tokens.ts` | `palette`, `sunsetStops`, `Mood`. Mirror 1:1 |
+| Tipografia / utility | `globals.css` `@layer components` | `.t-hero/.t-display/.t-title/.t-lead/.t-body(.--mute)/.t-eyebrow/.t-meta/.t-index`, `.container-edit`, `.grid-edit` (+`.col-meta/.col-read/.col-wide/.col-half-r`), `.bleed`, `.glass`, `.hairline`, `.eyebrow-tick`, `.rule-node`, scope `.night` |
+| Styleguide vivo | `src/app/styleguide/page.tsx` → **`/styleguide`** | Contratto visivo del design system |
+| Scroll backbone | `src/app/_providers/Smooth.tsx` | Lenis guidato da `gsap.ticker` (un loop), guard reduced-motion, espone `window.__lenis` |
+| GSAP | `src/lib/gsap.ts` | Punto unico di registrazione (ScrollTrigger + SplitText + useGSAP) |
+| State | `src/store/ui.ts` (zustand) | `locale`, `soundEnabled`, `reducedMotion`, `activeWork`, `loaded`, `menuOpen`; persist (`locale`+`sound`) chiave `ocean-ui` |
+| Copy EN/IT | `src/content/dict.ts` | `useDict()`, zod-validated. Sezioni: nav/hero/about/works/tech/contact/footer |
+| Button (CVA) | `src/components/ui/button.tsx` | `primary/secondary/ghost/night`, sheen su hover (non loop) |
+| Reveal | `src/components/reveal/Reveal.tsx` | Split-text reveal |
+| Nav + Menu | `src/components/nav/Nav.tsx`, `src/components/nav/MenuOverlay.tsx` | Responsive: link inline desktop / Menu mobile + overlay full-screen |
+| Sezioni | `src/components/sections/About.tsx`, `Contact.tsx`; `src/components/footer/Footer.tsx` | |
+| Works gallery | `src/components/works/WorksGallery.tsx` + `src/content/works.ts` | ⚠ progetti **PLACEHOLDER** (`Tidewatch/Saltgrid/Lumen/Current`, `[[TBD]]`) |
+| **Hero fluido (GATE G4)** | `src/webgl/waterball/**` + `src/webgl/CanvasHost.tsx` (gated a `/`) + `src/webgl/store/heroStore.ts` | Render upgrade già applicati: `render/bilateral.wgsl.ts` (Narrow-Range), `render/fluid.wgsl.ts` (refract env + edge/foam), `render/fluidRender.ts`. Solver in `mls-mpm/*` |
+| Sunset cubemap | `public/cubemap/*.png` (gen: `scripts/gen_sunset_cubemap.py`) | Riflessi golden-hour |
+| Tech sphere | `src/components/tech-cloud.tsx` + `src/data/skill-icons.ts` | Engine tenuto; da elevare a vero 3D icon cloud (WP-4) |
+| Claude Design (system design **canonico**) | progetto claude.ai/design "Alberto Tuveri — Golden Hour Portfolio" (id `d5833b7a-0744-4bb8-bec0-367ce50698e8`) + `design-system/**` (card HTML locali) | Vedi §0 — qui nasce il sistema, i token lo rispecchiano |
 
-## 5. Routing Rapido SKILL + MCP
+**Tenere (verificato a schermo):** hero water "A" che riflette il tramonto; nav + menu overlay; About (split-text); Works depth gallery (fly-through + cross-fade + mood ramp per progetto + caption sincronizzata + fallback list reduced-motion); Contact (night) + Footer; design system + `/styleguide`.
 
-Tabella di primo livello. Dettaglio MCP in `docs/09-MCP.md`, dettaglio skill in `docs/10-SKILLS.md`.
+---
 
-| Se stai facendo… | Usa skill | Usa MCP / connettore |
+## 4. Stack (one-liner)
+
+Next.js **16.2.6** (App Router) · React **19.2.4** · TypeScript strict · **npm** (no bun in questo env; esiste `bun.lock` ma si usa npm) · Tailwind CSS **v4** (CSS-first `@theme`) · **WebGPU raw** (MLS-MPM SSF hero, `navigator.gpu`-only; fallback = sunset gradient CSS) · **wgpu-matrix 3** · three **0.184** + @react-three/fiber **9.6** + drei **10.7** + @react-three/postprocessing **3** / postprocessing **6.39** (per la Works gallery R3F) · gsap **3.15** + @gsap/react · lenis **1.3** · zustand **5** · zod **4** · class-variance-authority + clsx + tailwind-merge · simple-icons **16** · leva (dev) · playwright (dev). Deploy su **Vercel**.
+
+**Confine renderer:** l'hero è **raw WebGPU** sulla propria canvas (non condivide context né postprocessing pmndrs); la gallery/sfera sono R3F/WebGL. **Un renderer pesante per regione di scroll**; `IntersectionObserver` fa da gate e *dispone* (non solo pausa) all'handoff, con fallback poster su `device.lost`/`webglcontextlost`.
+
+---
+
+## 5. Design system (Golden Hour) — token REALI
+
+Token in **un solo `@theme`** in `globals.css` (`--color-*` → auto `bg-*/text-*/border-*/ring-*`), mirror in `src/content/tokens.ts`. (Per AA pairs e specimen vivi: `/styleguide`.)
+
+| Token | Hex | Uso |
 |---|---|---|
-| Scrivo shader GPGPU / TSL / GLSL | `threejs-shaders`, `shader-programming-glsl`, `threejs-postprocessing` | **Context7** (three 0.184 / TSL) |
-| Monto scene R3F / loader / materiali | `threejs-skills`, `threejs-fundamentals`, `threejs-materials`, `threejs-loaders` | **Context7** |
-| Scroll-driven / motion | `scroll-experience`, `animejs-animation`, `fixing-motion-performance` | **Context7** (gsap, lenis) |
-| Next.js App Router / React / TS | `nextjs-app-router-patterns`, `react-best-practices`, `typescript-pro`, `zustand-store-ts` | **Context7**, `vercel:nextjs` |
-| Design system / UI / token | `frontend-design`, `high-end-visual-design`, `tailwind-design-system`, `ui-tokens`, `radix-ui-design-system` | Figma / Canva (opzionali) |
-| **Genero il GLB del mark 'A'** (asset di riferimento; il fluido riempie la 'A' proceduralmente, nessun GLB a runtime) | `3d-web-experience`, `threejs-geometry` | **Blender MCP** (setup manuale richiesto) |
-| **Genero il video cinematica** | `remotion`, `remotion-best-practices` | **Higgsfield MCP** |
-| **QA visivo** (screenshot desktop+mobile, console) | `ui-visual-validator`, `ui-review`, `verification-before-completion` | **claude-in-chrome** (sostituisce Playwright per la verifica visiva) |
-| Deploy / preview / log | `vercel-deployment`, `vercel:nextjs`, `vercel:verification` | **Vercel MCP** |
-| Performance / a11y | `web-performance-optimization`, `accessibility-compliance-accessibility-audit`, `wcag-audit-patterns` | claude-in-chrome (audit) |
-| SEO / meta / OG / PWA | `seo-technical`, `schema-markup`, `fixing-metadata`, `favicon`, `manifest` | — |
-| Copy EN/IT | `copywriting`, `ux-copy`, `avoid-ai-writing`, `professional-proofreader` | — |
-| Backend form contatti (solo se serve) | `zod-validation-expert`, `native-data-fetching` | **Supabase** (solo se necessario) |
-| Orchestrazione / piano | `writing-plans`, `planning-with-files`, `subagent-driven-development`, `dispatching-parallel-agents` | — |
+| `paper` | `#fbf6ef` | Ground pagina (warm white) |
+| `paper-deep` | `#f1e4d3` | Superfici, card, hairline |
+| `ink` | `#2a1a14` | Testo primario (espresso caldo) |
+| `ink-mute` | `#6e5447` | Testo muted — AA su paper (≈6.5:1) |
+| `amber` | `#f2a33c` | Golden hour — fill, grandi accenti |
+| `coral` | `#ff8a4c` | Peach-coral — fill, mid del gradiente |
+| `ember` | `#ee5b23` | **Accento PRIMARIO** — CTA (testo ink), display |
+| `ember-ink` | `#bc410f` | Arancio più scuro per **testo** arancio AA su paper (≈5:1) |
+| `rose` | `#e15d6b` | Rose-red del tramonto — accento, gradiente |
+| `dusk` | `#5e4b7e` | Viola crepuscolare freddo — contrappunto/profondità |
+| `night` | `#2a1820` | L'unica sezione scura / footer (testo = paper) |
+| `rule` / `rule-strong` | `rgb(42 26 20 / .14)` / `/ .28` | Hairline |
 
-## 6. Gates (sintesi — dettaglio in `docs/11-WORKFLOW.md`)
+- **Gradiente unico sanzionato:** `--gradient-sunset` (golden → dusk, `118deg`). Niente altri gradienti SaaS.
+- **Tipografia:** `--font-display` = **Bricolage Grotesque** (variable, display), `--font-sans` = **DM Sans** (variable, testo/label). Peso guidato da `font-weight` + `font-optical-sizing:auto` (niente micro-gestione di assi — quello era il vecchio sistema Fraunces). Classi: `.t-hero/.t-display/.t-title/.t-lead/.t-body/.t-eyebrow/.t-meta/.t-index`.
+- **Motion (tidal easings):** `--ease-tide` `cubic-bezier(.16,1,.3,1)` (primario), `--ease-dive` `(.65,0,.35,1)` (transizioni), `--ease-drift` `(.33,0,.67,1)` (ambient). Reveal split-text gated su `document.fonts.ready`.
+- **Componenti:** `.glass` (fill solido di default; blur reale solo sotto `@supports`/`prefers-reduced-transparency`), Button CVA, cursore custom (no `mix-blend screen` sul fluido), marks (`.eyebrow-tick`, `.hairline`, `.rule-node`).
+- **Quality bar UI** (skill `ui-ux-pro-max`, in ordine di priorità): ① Accessibilità (contrasto, focus, keyboard) ② Touch/interazione (target ≥44px, feedback) ③ Performance (CLS, lazy, transform-only) ④ Coerenza di stile/icone (SVG, no emoji) ⑤ Layout responsive ⑥ Typography & color tokens ⑦ Animazione (150–300ms micro, reduced-motion). Usa la **Pre-Delivery Checklist** della skill prima di chiudere ogni task UI.
 
-Sequenza con punti di **conferma esplicita con Alberto** (🔵 = stop & confirm):
+---
 
-1. **Allineamento PRD** — leggi `docs/00-PRD.md`. 🔵 Conferma visione, audience, scope.
-2. **Setup MCP** — Context7 e Blender richiedono passi (Blender e manuale, lo fa Alberto). 🔵 Conferma MCP attivi.
-3. **Scaffold** — Next 16 + bun + Tailwind v4 + struttura cartelle (`docs/01`, `docs/03`). Preview deploy. 🔵
-4. **Design system** — token oceano + tipografia + componenti base (`docs/02`). 🔵 Conferma art direction.
-5. **Architettura runtime** — Canvas globale, FrameDriver, Lenis↔R3F, store Zustand, i18n (`docs/03`).
-6. **Hero 3D water 'A'** — fluido MLS-MPM su **WebGPU raw single-backend** (`src/webgl/waterball/`), riempimento procedurale `initFromHomes`, render SSF translucido, **tuning live via leva** (valori soggetti a sign-off GATE-6), fallback CSS sea gradient (`docs/04`). 🔵 Conferma feel.
-7. **Cinematica** — **sequenza di frame WebP** (`public/frames/`) scrubabile via GSAP, **fusa nell'hero** (timeline sticky, canvas 2D), preload/DPR cap, fallback reduced-motion (`docs/05`). Gli mp4 Higgsfield grezzi in `public/video/` sono **source-only**. 🔵 Conferma clip.
-8. **Sezioni contenuto** — About, Work/Projects, Skills, Contact da `docs/07`. 🔵 Conferma copy e progetti Sersan.
-9. **Perf + a11y + SEO pass** — budget, reduced-motion, Lighthouse, meta/OG, sitemap/robots.
-10. **QA visivo finale + deploy** — screenshot desktop+mobile, console pulita, preview Vercel. 🔵 Conferma go-live.
+## 6. Librerie sorgente → cosa prendere + come ESTRARRE il codice  *(da `IMPLEMENTATION-PLAN.md` §4 — riportato qui)*
 
-Ad ogni gate vale la regola: **niente "fatto" senza prova visiva** e console pulita.
+Le tecniche di queste librerie sono i **riferimenti da cui prendere il codice**, **NON** da importare 1:1: lo stack qui è **GSAP + Lenis (non Framer Motion)** e **three (non R3F per l'hero)** → **riscrivere le tecniche con GSAP/three**, ri-tematizzate Golden Hour (colori dai token, texture `colorSpace = SRGB`).
 
-## 7. Nota su contenuti provvisori
+| Libreria | URL | Cosa prendere |
+|---|---|---|
+| **GSAP** | https://gsap.com/ | ScrollTrigger (pin/scrub), ScrollSmoother, **Observer**, **Flip**, **SplitText**, **MotionPath**, CustomEase — il motore di tutto |
+| **Codrops / Tympanus** | https://tympanus.net/codrops/hub/ · https://tympanus.net/ | tecniche WebGL (caustics, particle fields, displacement/refraction su immagini, transizioni a tendina), scroll-driven camera |
+| **Magic UI** | https://magicui.design/docs/components/icon-cloud · https://magicui.design/ | **Icon Cloud** (sfera 3D di loghi, cobe-style) → tech stack; marquee, border-beam, particles, text-reveal |
+| **Aceternity UI** | https://ui.aceternity.com/components/focus-cards | Focus Cards (focus uno/sfoca gli altri) → progetti |
+| **ui-layouts** | https://www.ui-layouts.com/components/scroll-text | Scroll Text (reveal parola-per-parola scrubbato) |
+| **Skiper UI** | https://skiper-ui.com/v1/skiper19 | Skiper19 = SVG-follow-scroll (path che si disegna allo scroll) |
+| **vengenceUI** | https://www.vengenceui.com/components/flip-fade-text | Flip Fade Text (flip per-carattere) |
+| **Uiverse** | https://uiverse.io/elements | bottoni/cursori/micro-elementi (cherry-pick raffinati) |
+| **anim master lib** | https://animmasterlib.dev/scroll | ricette scroll-animation pronte |
+| **Dribbble** | https://dribbble.com/ | moodboard / direzione (studiare, non copiare) |
 
-I **due progetti realizzati per SerSan** (ruolo corrente, Software Engineer da maggio 2026) sono **PROVVISORI**: dettagli e metriche da confermare con Alberto. Trattali come placeholder in `docs/07-PROJECTS.md`; non pubblicare claim non verificati. Il CV PDF NON e aggiornato sul ruolo SerSan — la fonte di verita per la bio e `docs/07-PROJECTS.md`.
+**Come estrarre il codice (istruzioni operative):**
+- Usa **`WebFetch`** sulle doc-page. Magic UI e Aceternity espongono il **sorgente via registry JSON**:
+  - Magic UI: `https://magicui.design/r/<name>.json` — es. `https://magicui.design/r/icon-cloud.json`
+  - Aceternity: `https://ui.aceternity.com/registry/<name>.json` — es. `https://ui.aceternity.com/registry/focus-cards.json`
+- Per i **loghi tech** usa `simple-icons` (già in `package.json`, bundle — **no CDN a runtime**), non fetch esterni.
+- Studia, NON incolla: prendi il *meccanismo* (es. Fibonacci-sphere + matrice di rotazione per l'icon cloud; mask-reveal scrubbato per lo scroll-text) e riscrivilo sullo stack del progetto. Per librerie versionate, valida le API con **Context7** prima di scrivere.
+
+---
+
+## 7. Routing SKILL + MCP
+
+> Riconciliato con le skill **realmente disponibili**. La colonna *intent* riporta i nomi citati da `IMPLEMENTATION-PLAN.md` (indicano l'intento); la colonna *Skill reale* dice cosa usare davvero. **L'utente ha chiesto esplicitamente di usare `ui-ux-pro-max`** come skill UI/UX di riferimento.
+>
+> **Aggiornato 2026-06-30 — skill installate in `.claude/skills/` (project-level):** `webgpu-threejs-tsl` (Dan Greenheck, MIT) + un **set curato** da `sickn33/antigravity-awesome-skills` (la repo ha ~1700 skill: installato solo il pertinente, NON tutto — regola d'oro): `high-end-visual-design`, `frontend-design`, `design-taste-frontend`, `editorial-design`, `gradient-design`, `duotone-design`, `swiss-design`, `animejs-animation`, `fixing-motion-performance`, `3d-web-experience`, `frontend-lighthouse`, `application-performance-performance-optimization`, `accessibility-compliance-accessibility-audit`, `fixing-accessibility`, `fixing-metadata`. Più i preinstallati `awwwards-loop`, `docs-driven-build`.
+
+| Ambito / task | **Skill reale da usare** | Intent citato nel piano | MCP / connettore |
+|---|---|---|---|
+| Gusto, art-direction, design system, UI, token, review visuale | **`ui-ux-pro-max`** (primaria) + (installate) `high-end-visual-design`, `frontend-design`, `design-taste-frontend`, `editorial-design`, `gradient-design`, `duotone-design`, `swiss-design` + `design`, `design-system`, `ui-styling` | ui-tokens, tailwind-design-system, radix-ui-design-system | shadcn MCP (componenti) |
+| Componenti UI / pattern / "magic-ui-style" | **`ui-ux-pro-max`**, `ui-styling` | magic-ui-generator, react-ui-patterns | shadcn MCP |
+| Scroll-driven / GSAP / parallax / camera / motion | (installate) **`animejs-animation`**, **`fixing-motion-performance`** + `ui-ux-pro-max` (regole animazione) | scroll-experience | **Context7** (gsap 3.15, lenis 1.3) |
+| WebGL / shader / three / postprocessing / icon cloud 3D / TSL / WGSL | (installate) **`webgpu-threejs-tsl`** (three.js WebGPU + TSL, node materials, compute, post-processing, WGSL integration, device-loss — utile per gallery R3F, icon cloud, e come reference WGSL per l'hero raw-WebGPU) + **`3d-web-experience`** (R3F/Spline/configuratori 3D) + `ui-ux-pro-max` per il giudizio visivo | threejs-shaders, shader-programming-glsl, threejs-postprocessing, threejs-skills, threejs-interaction | **Context7** (three 0.184) |
+| Next.js App Router / React / TS qualità & perf | *(usa Context7)* | nextjs-app-router-patterns, react-best-practices, react-component-performance, typescript-pro, zustand-store-ts | **Context7**, Vercel docs |
+| Performance / a11y / SEO hardening | (installate) perf: **`frontend-lighthouse`** (CI gate Core Web Vitals), **`application-performance-performance-optimization`**, **`fixing-motion-performance`** · a11y: **`accessibility-compliance-accessibility-audit`**, **`fixing-accessibility`** · SEO/OG: **`fixing-metadata`** · + `ui-ux-pro-max` priority rules §1–3 | web-performance-optimization, wcag-audit-patterns | claude-in-chrome (audit) |
+| **QA VISIVO (obbligatorio)** | **`claude-in-chrome`**, **`verify`** | ui-visual-validator, ui-review, verification-before-completion | **claude-in-chrome** (screenshot desktop+mobile, console) |
+| Code review / cleanup / sicurezza | **`code-review`**, **`simplify`**, **`security-review`** | — | — |
+| Loop autonomo verso SOTD | **`awwwards-loop`** (jury 8 critici → backlog → optimizer → verifier) | — | — |
+| Build docs-driven a gate | **`docs-driven-build`** | — | — |
+| Ricerca riferimenti / tecniche | **`deep-research`** | — | WebFetch / WebSearch |
+| Copy EN/IT (hand-author in `dict.ts`) | *(nessuna skill)* | copywriting, ux-copy, avoid-ai-writing | — |
+| Gen asset (img/video/3D) — **GATE G5 a pagamento** | — | remotion | **Higgsfield MCP** (img/video/3D), Blender (manuale) |
+| Deploy / preview / log | *(usa Vercel MCP)* | vercel-deployment | **Vercel MCP** |
+| AI integration / Claude API | **`claude-api`** | — | — |
+
+**Regola MCP:** Context7 **prima** di scrivere codice su lib versionate; claude-in-chrome per OGNI prova visiva; Higgsfield/Blender solo dietro sblocco G5.
+
+---
+
+## 8. Metodo di lavoro (loop per ogni unità) + Work Packages
+
+**Loop obbligatorio per ogni unità di lavoro:**
+```
+① Context7 (API lib) + se serve estrai il codice dalla libreria sorgente (WebFetch / registry JSON, §6)
+② Costruisci/adatta al mood Golden Hour, usando la skill assegnata (§7) — token, EN/IT via dict.ts
+③ npm run dev → claude-in-chrome: screenshot desktop(1440)+mobile(390), console pulita
+④ Giudica con gusto (ui-ux-pro-max + Pre-Delivery Checklist): è SOTD-level? se no → ②
+⑤ npm run typecheck + next build verdi → commit atomico → prossimo WP
+```
+Per fan-out su file disgiunti: sub-agenti / workflow — **ma ogni sub-agente passa comunque il gate visivo** (delegare senza verifica visiva è l'errore da non ripetere).
+
+**Work Packages** (spec completa Goal/Wow/Source/Skills/Files/Acceptance in `IMPLEMENTATION-PLAN.md` §5; backlog prioritizzato vivo in `PLAN.md`):
+
+| WP | Obiettivo | File chiave (attuali) |
+|---|---|---|
+| WP-1 | Art-direction system & color-grade della discesa (già impostato nei token) | `globals.css`, `tokens.ts` |
+| WP-2 | Preloader cinematografico (gated su `document.fonts.ready` + first frame) | nuovo `src/components/preloader.tsx`, `layout.tsx` |
+| WP-3 | GSAP scroll choreography + parallax multi-layer (pin/scrub/Observer) | `Smooth.tsx`, nuovo `src/lib/scroll-choreo.ts`, sezioni |
+| **WP-4 ⭐** | **Tech stack = vero 3D Icon Cloud WebGL** (loghi simple-icons, draggable, glow) — **priorità #1** | `src/components/tech-cloud.tsx`, `src/data/skill-icons.ts` |
+| WP-5 | Galleria progetti cinematografica (tilt/refraction, focus + DoF, horizontal) | `WorksGallery.tsx`, `works.ts` |
+| WP-6 | Hero camera scroll-driven + profondità (NON toccare il solver — **G4**) | `CanvasHost.tsx`, overlay |
+| WP-7 | Reveal di testo premium (SplitText mask-reveal scrubbato; no jitter cheap) | `Reveal.tsx`, sezioni |
+| WP-8 | Transizioni di sezione & ambient WebGL (sotto il contenuto, mai sotto AA) | nuovo `section-transition.tsx` |
+| WP-9 | Identità d'interazione: cursore + magnetismo + micro-detail | `button.tsx`, `Nav.tsx`, cursore |
+| WP-10 | Performance & A11y hardening (tier-scaling, lazy-mount, no leva in prod) | trasversale, `next.config.ts` |
+| WP-11 | QA finale & consegna (desktop+mobile, console, EN/IT, fallback WebGPU) | trasversale |
+
+**Sequenza consigliata** (da `PLAN.md`/`IMPLEMENTATION-PLAN.md`): WP-1 → WP-3 → **WP-4 ⭐** → (WP-5 + WP-7 in parallelo) → (WP-9 + WP-8) → WP-6 → WP-2 → WP-10 + WP-11.
+
+**Backlog immediato (P0 da `PLAN.md`):** ① Works reali (serve input Alberto) ② Hero scroll-settle ③ Componenti dalle reference re-tematizzati (marquee skills, shimmer CTA, text-animation hero).
+
+---
+
+## 9. Gates & conferme con Alberto (🔵 = stop & confirm)
+
+- **G3 — Merge su `main` / deploy produzione:** 🔵 solo con ok esplicito di Alberto.
+- **G4 — Hero FLUID** (`src/webgl/waterball/**`, physics/feel hand-tuned): **NON toccare** params/solver senza sblocco esplicito. La *resa* (shading/edge/foam) si migliora solo se Alberto sblocca.
+- **G5 — Generazione asset a pagamento** (Higgsfield/Blender): 🔵 conferma prima di spendere crediti.
+- **Contenuti:** Works/progetti e voci SerSan sono provvisori → 🔵 conferma copy prima di pubblicare claim.
+- Ad ogni gate vale la regola: **niente "fatto" senza prova visiva** + console pulita.
+
+---
+
+## 10. Comandi & verifica
+
+```bash
+npm run dev          # http://localhost:3000  (apri in Chrome per WebGPU)
+npm run typecheck    # tsc --noEmit
+npm run build        # next build (gate prima del commit)
+# /styleguide        # contratto vivo del design system
+
+# Verifier dello skill docs-driven-build (se usato):
+bash .claude/skills/docs-driven-build/verifier.sh        # typecheck + build
+node .claude/skills/docs-driven-build/verify-visual.mjs  # console-clean + screenshot
+
+# Asset:
+node scripts/gen-mobile-frames.mjs   # (se servono frame mobile)
+python scripts/gen_sunset_cubemap.py # rigenera la cubemap sunset dell'hero
+```
+
+---
+
+## 11. Nota su contenuti provvisori
+
+- **Works = PLACEHOLDER.** `src/content/works.ts` contiene `Tidewatch/Saltgrid/Lumen/Current` (`[[TBD]]`). Da sostituire con progetti reali (titolo, ruolo, anno, stack) + still WebP via `Work.textureSrc` (i piani oggi rendono gradienti duotone; serve un branch texture in `WorksGallery`). **Serve input di Alberto.**
+- **SerSan:** i due progetti per SerSan (ruolo corrente, Software Engineer) sono **provvisori** — dettagli/metriche da confermare; non pubblicare claim non verificati. Il CV PDF non è aggiornato su SerSan: la verità sulla bio è `docs/07-PROJECTS.md`.
+- **Email contatto:** `alberto.t@sersan.dev`.

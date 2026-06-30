@@ -1,5 +1,6 @@
 import { TechCloud } from "@/components/tech-cloud";
 import { Nav } from "@/components/nav/Nav";
+import { HeroScrollSettle } from "@/components/hero/HeroScrollSettle";
 import { About } from "@/components/sections/About";
 import { WorksGallery } from "@/components/works/WorksGallery";
 import { Contact } from "@/components/sections/Contact";
@@ -18,6 +19,10 @@ export default function Home() {
   return (
     <main id="main" className="relative">
       <Nav />
+
+      {/* Scroll WRITER for the hero "A" dive (writes heroStore.explode; read by
+          WaterBallHero). Renders null; no-op under reduced-motion / no-WebGPU. */}
+      <HeroScrollSettle />
 
       {/* Hero viewport — the fixed fluid "A" + sunset sky show through this band. */}
       <section id="hero" aria-hidden className="relative h-dvh" />

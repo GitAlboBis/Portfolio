@@ -1,5 +1,6 @@
 import { Nav } from "@/components/nav/Nav";
 import { HeroScrollSettle } from "@/components/hero/HeroScrollSettle";
+import { DiveLine } from "@/components/motion/DiveLine";
 import { About } from "@/components/sections/About";
 import { WorksGallery } from "@/components/works/WorksGallery";
 import { Tech } from "@/components/sections/Tech";
@@ -19,6 +20,9 @@ export default function Home() {
   return (
     <main id="main" className="relative">
       <Nav />
+
+      {/* Descent thread — draws down the left gutter as you scroll (decorative). */}
+      <DiveLine />
 
       {/* Scroll WRITER for the hero "A" dive (writes heroStore.explode; read by
           WaterBallHero). Renders null; no-op under reduced-motion / no-WebGPU. */}

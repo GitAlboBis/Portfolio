@@ -34,10 +34,66 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+// Set NEXT_PUBLIC_SITE_URL to the production origin on deploy so OG/canonical/sitemap
+// resolve to absolute URLs (falls back to localhost in dev).
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const DESCRIPTION =
+  "Full-stack engineer building systems with AI at the edge — interfaces that move like water. Shaped by the sea of Sardinia.";
+
 export const metadata: Metadata = {
-  title: "Alberto Tuveri — Software Engineer",
-  description:
-    "Full-stack engineer building systems with AI at the edge — interfaces that move like water. Shaped by the sea of Sardinia.",
+  metadataBase: new URL(SITE),
+  title: {
+    default: "Alberto Tuveri — Software Engineer",
+    template: "%s — Alberto Tuveri",
+  },
+  description: DESCRIPTION,
+  applicationName: "Alberto Tuveri",
+  authors: [{ name: "Alberto Tuveri", url: SITE }],
+  creator: "Alberto Tuveri",
+  keywords: [
+    "Alberto Tuveri",
+    "software engineer",
+    "full-stack developer",
+    "AI integration",
+    "Next.js",
+    "React",
+    "TypeScript",
+    "WebGL",
+    "portfolio",
+    "Sardinia",
+    "Camerino",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE,
+    siteName: "Alberto Tuveri",
+    title: "Alberto Tuveri — Software Engineer",
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Alberto Tuveri — Software Engineer",
+    description: DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
+};
+
+// Person structured data — confirmed facts only (docs/07-PROJECTS.md); no email.
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Alberto Tuveri",
+  jobTitle: "Software Engineer",
+  url: SITE,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Camerino",
+    addressRegion: "Marche",
+    addressCountry: "IT",
+  },
+  sameAs: ["https://www.linkedin.com/in/albertotuveri", "https://github.com/GitAlboBis"],
 };
 
 export const viewport: Viewport = {
@@ -59,6 +115,10 @@ export default function RootLayout({
         <CanvasHost />
         {children}
         <Cursor />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
       </body>
     </html>
   );

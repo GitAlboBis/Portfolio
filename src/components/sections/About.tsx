@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useDict } from "@/content/dict";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { Parallax } from "@/components/motion/Parallax";
@@ -28,6 +29,12 @@ export function About() {
           <Parallax className="mt-8" from={-26}>
             <p className="t-body t-body--mute">{t.about.body}</p>
           </Parallax>
+          <Link
+            href="/about"
+            className="mt-8 inline-flex items-center gap-2 t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
+          >
+            {t.journey.eyebrow} →
+          </Link>
         </div>
       </div>
     </section>

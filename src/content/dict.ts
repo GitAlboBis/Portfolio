@@ -46,6 +46,20 @@ const sectionSchema = z.object({
     cta: z.string(),
     email: z.string(),
   }),
+  journey: z.object({
+    eyebrow: z.string(),
+    title: z.string(),
+    lead: z.string(),
+    bio: z.array(z.string()),
+    educationTitle: z.string(),
+    education: z.array(z.object({ period: z.string(), title: z.string(), org: z.string() })),
+    experienceTitle: z.string(),
+    experience: z.array(z.object({ period: z.string(), org: z.string(), role: z.string() })),
+    thesisTitle: z.string(),
+    thesis: z.string(),
+    more: z.string(),
+    back: z.string(),
+  }),
   footer: z.object({
     place: z.string(),
     sound: z.string(),
@@ -89,6 +103,33 @@ const en: Dict = {
     cta: "Write to me",
     email: "alberto.t@sersan.dev",
   },
+  journey: {
+    eyebrow: "The long version",
+    title: "From the Sulcis coast to systems that move.",
+    lead: "Software engineer — full-stack & AI integration.",
+    bio: [
+      "I'm Alberto, a software engineer who works across the whole stack — from GPU shaders and React front-ends down to PostGIS queries and CI pipelines — with a particular focus on integrating AI into real products.",
+      "I grew up in Iglesias, on the Sulcis-Iglesiente coast of Sardinia, where the sea around Pan di Zucchero shaped how I see things: clean lines, deep structure, and a respect for what's underneath the surface.",
+      "Recently I've shipped a production PWA that matches families with caregivers across Italy, built a hands-free voice AI agent for Microsoft Teams, and joined SerSan — AI Studio as a software engineer. I care about systems that are fast, secure, and genuinely useful.",
+    ],
+    educationTitle: "Education",
+    education: [
+      { period: "2022 — 2026", title: "B.Sc. Computer Science", org: "University of Camerino" },
+      { period: "", title: "Technical IT Diploma", org: "Ist. Boccaccio, Iglesias" },
+    ],
+    experienceTitle: "Experience",
+    experience: [
+      { period: "May 2026 — present", org: "SerSan · AI Studio", role: "Software Engineer" },
+      { period: "Jan 2026", org: "ALS MCL Civitanova", role: "Full-Stack Developer · Freelance" },
+      { period: "Nov 2025 — Feb 2026", org: "DOIT · Lodestar Group", role: "AI & Software Developer · Internship" },
+      { period: "2019 — 2020", org: "Ist. Boccaccio, Iglesias", role: "Network Technician · Intern" },
+    ],
+    thesisTitle: "B.Sc. thesis",
+    thesis:
+      "“From Autocomplete to Agentic Orchestration: Architectural Analysis and Security of OS-Level Agents” — maps the evolution from code completion to autonomous agentic systems (MCP, RAG, multi-agent orchestration) and proposes Zero-Trust defensive strategies against OS-level attack vectors.",
+    more: "Selected work",
+    back: "Back to home",
+  },
   footer: { place: "Masua · 39°09′N 8°25′E", sound: "Ambient", rights: "All rights reserved" },
 };
 
@@ -125,6 +166,33 @@ const it: Dict = {
     headline: "Facciamo qualcosa che si muove.",
     cta: "Scrivimi",
     email: "alberto.t@sersan.dev",
+  },
+  journey: {
+    eyebrow: "La versione lunga",
+    title: "Dalla costa del Sulcis a sistemi che si muovono.",
+    lead: "Software engineer — full-stack & integrazione AI.",
+    bio: [
+      "Sono Alberto, un software engineer che lavora su tutto lo stack — dagli shader GPU e i front-end React fino alle query PostGIS e alle pipeline CI — con un focus particolare sull'integrazione dell'AI in prodotti reali.",
+      "Sono cresciuto a Iglesias, sulla costa del Sulcis-Iglesiente in Sardegna, dove il mare attorno a Pan di Zucchero ha plasmato il mio modo di vedere le cose: linee pulite, struttura profonda, e rispetto per ciò che sta sotto la superficie.",
+      "Di recente ho rilasciato una PWA in produzione che mette in contatto famiglie e caregiver in tutta Italia, ho costruito un agente vocale AI hands-free per Microsoft Teams, e sono entrato in SerSan — AI Studio come software engineer. Mi interessano i sistemi veloci, sicuri e davvero utili.",
+    ],
+    educationTitle: "Formazione",
+    education: [
+      { period: "2022 — 2026", title: "Laurea triennale in Informatica", org: "Università di Camerino" },
+      { period: "", title: "Diploma tecnico informatico", org: "Ist. Boccaccio, Iglesias" },
+    ],
+    experienceTitle: "Esperienza",
+    experience: [
+      { period: "Mag 2026 — oggi", org: "SerSan · AI Studio", role: "Software Engineer" },
+      { period: "Gen 2026", org: "ALS MCL Civitanova", role: "Full-Stack Developer · Freelance" },
+      { period: "Nov 2025 — Feb 2026", org: "DOIT · Lodestar Group", role: "AI & Software Developer · Tirocinio" },
+      { period: "2019 — 2020", org: "Ist. Boccaccio, Iglesias", role: "Tecnico di rete · Tirocinio" },
+    ],
+    thesisTitle: "Tesi triennale",
+    thesis:
+      "“From Autocomplete to Agentic Orchestration: Architectural Analysis and Security of OS-Level Agents” — mappa l'evoluzione dal completamento del codice ai sistemi agentici autonomi (MCP, RAG, orchestrazione multi-agente) e propone strategie difensive Zero-Trust contro i vettori di attacco a livello OS.",
+    more: "Lavori scelti",
+    back: "Torna alla home",
   },
   footer: { place: "Masua · 39°09′N 8°25′E", sound: "Ambiente", rights: "Tutti i diritti riservati" },
 };

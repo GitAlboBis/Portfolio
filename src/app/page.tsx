@@ -1,7 +1,7 @@
 import { Nav } from "@/components/nav/Nav";
 import { HeroScrollSettle } from "@/components/hero/HeroScrollSettle";
 import { About } from "@/components/sections/About";
-import { WorksGallery } from "@/components/works/WorksGallery";
+import { WorkCarousel } from "@/components/works/WorkCarousel";
 import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
@@ -31,8 +31,8 @@ export default function Home() {
       <div className="relative z-10 bg-paper">
         <About />
 
-        {/* Selected Works — depth gallery (centerpiece). */}
-        <WorksGallery />
+        {/* Selected Works — 3D arc carousel → /work/[slug] case studies. */}
+        <WorkCarousel />
 
         {/* Tech-stack — editorial heading + signature 3D icon cloud. */}
         <Tech />

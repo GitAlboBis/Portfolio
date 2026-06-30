@@ -6,18 +6,15 @@ import { Cursor } from "@/components/Cursor";
 import "./globals.css";
 
 /*
-  CLEAN-SLATE SHELL (2026-06-29)
-  ──────────────────────────────
-  The site was reset to a blank canvas. Everything was deleted EXCEPT the two
-  3D engines we are keeping and rebuilding around:
-    1. the WebGPU water "A" fluid   — src/webgl/waterball/** (mounted via CanvasHost)
-    2. the tech-stack sphere        — src/components/tech-cloud.tsx (mounted in page.tsx)
-  Plus all docs (*.md) and assets (public/**). The ocean design tokens in
-  globals.css are kept as the working base; the new design is built on top.
-
-  This layout is intentionally minimal: fonts (the tokens reference --font-fraunces
-  / --font-hanken), globals.css, and the hero canvas host. No nav, footer, i18n,
-  providers, or SEO chrome — those get rebuilt from the design directives.
+  ROOT SHELL (Golden Hour)
+  ────────────────────────
+  Global chrome mounted once for the whole app:
+    - fonts: Bricolage Grotesque (display) + DM Sans (text) via next/font, exposed
+      as --font-bricolage / --font-dmsans and wired into globals.css @theme.
+    - Smooth:     the Lenis <-> GSAP scroll backbone.
+    - CanvasHost: the fixed WebGPU water "A" (home route only).
+    - Cursor:     the custom pointer (pointer:fine + motion-allowed only).
+  The page chrome (nav, sections, footer) composes in src/app/page.tsx.
 */
 
 // Golden Hour type: Bricolage Grotesque (display, characterful) + DM Sans

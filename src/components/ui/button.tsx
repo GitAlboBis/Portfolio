@@ -5,12 +5,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 /**
- * Button — ocean design-system primitive (CVA).
+ * Button — Golden Hour design-system primitive (CVA).
  *
- * Variants borrow the *mechanism* of a shimmer CTA but re-themed to tokens and
- * disciplined to the spec's motion rule: the celeste sheen fires on hover only
- * (a state change), never as a perpetual decorative loop, and is removed under
- * prefers-reduced-motion. celeste is paired with foam text exclusively.
+ * Variants: primary (ember fill, ink text -> ember-ink + paper on hover), secondary
+ * (warm outline -> ember), ghost (text-only), night (paper outline for the dark
+ * band -> amber). The hover sheen fires on hover only (a state change), never a
+ * perpetual decorative loop, and is removed under prefers-reduced-motion.
  *
  * For links, apply `buttonVariants(...)` to an <a>; for actions use <Button>.
  */
@@ -53,7 +53,7 @@ export const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  /** Renders the hover sheen (celeste caustic sweep). Default true on primary. */
+  /** Renders the hover sheen (a single warm light sweep). Default true on primary. */
   sheen?: boolean;
 }
 
@@ -77,7 +77,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 /**
- * Sheen — a single oblique caustic sweep that crosses the button on hover.
+ * Sheen — a single oblique light sweep that crosses the button on hover.
  * Off-canvas at rest; translates across once per hover. Hidden under
  * reduced motion (motion-reduce:hidden).
  */

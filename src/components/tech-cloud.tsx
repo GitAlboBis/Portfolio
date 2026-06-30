@@ -1,33 +1,36 @@
 "use client";
 
 /*
-  TechCloud — "Tech Constellation" (WP-4)
+  TechCloud — the signature 3D icon cloud of the Tech section (WP-4), Golden Hour.
 
-  A real three.js icon cloud: the stack rendered as luminous brand marks
-  suspended in the abyss. Each tech is a billboarded Sprite carrying a canvas
-  texture drawn from a simple-icons path (no CDN), backed by an additive celeste
-  halo so the marks read like bioluminescent plankton. A perspective camera gives
-  true 3D foreshortening; a depth pass tints + dims marks toward the deep as they
-  rotate away (near = bright foam, far = cool celeste). The sphere auto-drifts,
-  follows the cursor, takes inertial drag, and flicks a clicked mark to face you.
+  A real three.js icon cloud: the stack rendered as warm brand marks afloat over
+  the paper. Each tech is a billboarded Sprite carrying a canvas texture drawn from
+  a simple-icons path (no CDN). Marks read DARK (espresso ink) on the warm-white
+  ground — near = crisp ink, far = warm taupe receding into the paper; the hovered
+  mark warms to ember (the primary accent) with a soft amber bloom. A perspective
+  camera gives true 3D foreshortening; the sphere auto-drifts, follows the cursor,
+  takes inertial drag, and flicks a clicked mark to face you.
 
   Architecture matches the repo's WebGL conventions: a section-scoped raw renderer
-  (NOT R3F), one persistent rAF gated by a level `inView` flag (set by an
-  IntersectionObserver AND a passive-scroll recompute — robust against smooth-
+  (NOT R3F), one persistent rAF gated by a level `inView` flag (an
+  IntersectionObserver AND a passive geometry recompute — robust against smooth-
   scroll edge races), DPR capped at 1.5, full dispose. It is DECORATIVE
-  (aria-hidden) — the accessible, complete skill list is the bento beneath it.
+  (aria-hidden); the accessible stack list lives in the Tech section beside it.
   prefers-reduced-motion → one static frame, no loop, no input. no-WebGL → the
-  cloud quietly unmounts and the bento stands alone.
+  cloud quietly unmounts.
 */
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { techIcons } from "@/data/skill-icons";
 
-// @theme ocean tokens (globals.css) as three colors.
-const FOAM = new THREE.Color("#f4fafb");
-const CELESTE = new THREE.Color("#9bd3ee");
-const CELESTE_DEEP = new THREE.Color("#3f7f97"); // celeste pushed toward the deep
+// @theme Golden Hour tokens (globals.css) as three colors. Marks read DARK on the
+// warm-white paper ground — the old ocean theme's white-on-dark + additive glow
+// washed out completely on the light page.
+const INK = new THREE.Color("#2a1a14"); // near marks — warm espresso, crisp on paper
+const INK_FAR = new THREE.Color("#b9a797"); // far marks — warm taupe, recede into paper
+const EMBER = new THREE.Color("#ee5b23"); // hover / primary accent
+const AMBER = new THREE.Color("#f2a33c"); // warm halo bloom
 
 const SPHERE_R = 4.0;
 const ICON_SCALE = 1.05; // world units at rest
@@ -147,16 +150,18 @@ export function TechCloud({ className }: { className?: string }) {
         transparent: true,
         depthWrite: false,
         depthTest: false,
-        color: FOAM.clone(),
+        color: INK.clone(),
       });
       const haloMat = new THREE.SpriteMaterial({
         map: haloTex ?? undefined,
         transparent: true,
         depthWrite: false,
         depthTest: false,
-        blending: THREE.AdditiveBlending,
-        color: CELESTE.clone(),
-        opacity: 0.5,
+        // NORMAL blend (additive is invisible on the light paper): a soft warm disc
+        // behind the mark. Mostly hover-driven, so the rest state stays clean.
+        blending: THREE.NormalBlending,
+        color: AMBER.clone(),
+        opacity: 0,
       });
       disposables.push(iconMat, haloMat);
 
@@ -223,18 +228,20 @@ export function TechCloud({ className }: { className?: string }) {
         node.highlight += (target - node.highlight) * Math.min(1, dt * 12);
         const hl = node.highlight;
 
-        // near = bright foam + bigger; far = cool celeste + smaller + faint
-        colNear.copy(CELESTE_DEEP).lerp(FOAM, depth);
-        colNear.lerp(FOAM, hl);
+        // near = crisp espresso ink + bigger; far = warm taupe + smaller + faint.
+        // hover warms the mark to ember (the primary accent).
+        colNear.copy(INK_FAR).lerp(INK, depth);
+        colNear.lerp(EMBER, hl);
         const iconMat = node.icon.material as THREE.SpriteMaterial;
         iconMat.color.copy(colNear);
-        iconMat.opacity = 0.32 + depth * 0.68 + hl * 0.2;
-        node.icon.scale.setScalar(ICON_SCALE * (0.7 + depth * 0.42 + hl * 0.45));
+        iconMat.opacity = 0.4 + depth * 0.6;
+        node.icon.scale.setScalar(ICON_SCALE * (0.72 + depth * 0.4 + hl * 0.45));
 
+        // warm bloom: ~invisible at rest, blooms amber→ember under the hovered mark.
         const haloMat = node.halo.material as THREE.SpriteMaterial;
-        haloMat.opacity = 0.12 + depth * 0.3 + hl * 0.55;
-        haloMat.color.copy(CELESTE).lerp(FOAM, hl * 0.6);
-        node.halo.scale.setScalar(HALO_SCALE * (0.75 + depth * 0.3 + hl * 0.5));
+        haloMat.opacity = depth * 0.05 + hl * 0.5;
+        haloMat.color.copy(AMBER).lerp(EMBER, hl);
+        node.halo.scale.setScalar(HALO_SCALE * (0.7 + depth * 0.25 + hl * 0.6));
       }
     };
 
@@ -428,14 +435,14 @@ export function TechCloud({ className }: { className?: string }) {
         touchAction: "none",
       }}
     >
-      {/* faint abyssal core glow behind the constellation */}
+      {/* warm core glow behind the constellation */}
       <div
         style={{
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
           background:
-            "radial-gradient(circle at 50% 48%, rgb(155 211 238 / 0.12), transparent 60%)",
+            "radial-gradient(circle at 50% 46%, rgb(242 163 60 / 0.14), transparent 62%)",
         }}
       />
       <div
@@ -449,16 +456,16 @@ export function TechCloud({ className }: { className?: string }) {
           transition: "opacity 180ms ease",
           padding: "0.3em 0.7em",
           borderRadius: "9999px",
-          border: "1px solid rgb(155 211 238 / 0.35)",
-          background: "rgb(7 34 46 / 0.78)",
+          border: "1px solid rgb(238 91 35 / 0.4)",
+          background: "rgb(255 255 255 / 0.9)",
           backdropFilter: "blur(6px)",
-          color: "var(--color-foam)",
+          color: "var(--color-ink)",
           fontFamily: "var(--font-sans)",
           fontSize: "0.74rem",
-          fontWeight: 500,
+          fontWeight: 600,
           letterSpacing: "0.01em",
           whiteSpace: "nowrap",
-          boxShadow: "0 0 18px rgb(155 211 238 / 0.25)",
+          boxShadow: "0 6px 22px rgb(42 26 20 / 0.14)",
           willChange: "transform",
         }}
       >

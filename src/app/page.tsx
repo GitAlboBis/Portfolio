@@ -1,8 +1,8 @@
-import { TechCloud } from "@/components/tech-cloud";
 import { Nav } from "@/components/nav/Nav";
 import { HeroScrollSettle } from "@/components/hero/HeroScrollSettle";
 import { About } from "@/components/sections/About";
 import { WorksGallery } from "@/components/works/WorksGallery";
+import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
 
@@ -34,10 +34,8 @@ export default function Home() {
         {/* Selected Works — depth gallery (centerpiece). */}
         <WorksGallery />
 
-        {/* Tech-stack sphere (kept engine). */}
-        <section className="container-edit flex flex-col items-center">
-          <TechCloud className="w-full max-w-5xl" />
-        </section>
+        {/* Tech-stack — editorial heading + signature 3D icon cloud. */}
+        <Tech />
       </div>
 
       {/* Closing dark band — the one inversion + coda. */}

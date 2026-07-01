@@ -28,30 +28,10 @@ import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { gsap, SplitText, useGSAP } from "@/lib/gsap";
 import { MenuToggle } from "@/components/nav/MenuToggle";
+import { curtainPath } from "@/lib/curtain";
 
 type Lenis = { scrollTo: (t: HTMLElement) => void; stop: () => void; start: () => void };
 const lenis = () => (window as unknown as { __lenis?: Lenis }).__lenis;
-
-const N = 6; // curtain edge control points
-const AMP = 7; // wave amplitude (viewBox units)
-
-/** ykob-style wavy curtain edge, top→down, flattening as it lands. v in 0..1. */
-function curtainPath(v: number, seed: number): string {
-  if (v <= 0.002) return "M0 0H0Z"; // empty when closed
-  const baseY = v * (100 + AMP * 2) - AMP; // edge descends; off-screen at v=1
-  const ys: number[] = [];
-  for (let i = 0; i <= N; i++) {
-    ys.push(baseY + Math.sin(i * 0.9 + seed) * AMP * (1 - v * 0.65));
-  }
-  let d = `M 0 0 H 100 V ${ys[N].toFixed(2)} `;
-  for (let i = N - 1; i >= 0; i--) {
-    const x = (i / N) * 100;
-    const px = ((i + 1) / N) * 100;
-    const cx = ((x + px) / 2).toFixed(2);
-    d += `C ${cx} ${ys[i + 1].toFixed(2)} ${cx} ${ys[i].toFixed(2)} ${x.toFixed(2)} ${ys[i].toFixed(2)} `;
-  }
-  return d + "L 0 0 Z";
-}
 
 export function MenuOverlay() {
   const t = useDict();

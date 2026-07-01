@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
-import { Reveal } from "@/components/reveal/Reveal";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
 import { JourneyTimeline } from "@/components/about/JourneyTimeline";
@@ -115,9 +114,9 @@ export function AboutJourney() {
             <p className="t-eyebrow eyebrow-tick">{j.thesisTitle}</p>
           </div>
           <div className="col-read">
-            <Reveal as="p" className="t-lead">
+            <ScrollWords as="p" className="t-lead">
               {j.thesis}
-            </Reveal>
+            </ScrollWords>
           </div>
         </div>
       </section>

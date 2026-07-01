@@ -5,6 +5,7 @@ import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { works } from "@/content/works";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
+import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
 
 /**
@@ -26,9 +27,11 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
       <div className="col-meta mb-3 lg:mb-0">
         <p className="t-eyebrow eyebrow-tick">{label}</p>
       </div>
-      <Appear as="div" className="col-read" y={18}>
-        <p className="t-lead">{body}</p>
-      </Appear>
+      <div className="col-read">
+        <ScrollWords as="p" className="t-lead">
+          {body}
+        </ScrollWords>
+      </div>
     </div>
   );
 

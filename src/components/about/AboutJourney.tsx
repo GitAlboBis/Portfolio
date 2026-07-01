@@ -5,7 +5,9 @@ import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { Reveal } from "@/components/reveal/Reveal";
+import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
+import { JourneyTimeline } from "@/components/about/JourneyTimeline";
 
 /**
  * AboutJourney — the long-form "/about" page: extended bio, Education, an Experience
@@ -71,9 +73,9 @@ export function AboutJourney() {
         <div className="grid-edit">
           <div className="col-read flex flex-col gap-6">
             {j.bio.map((p, i) => (
-              <Appear as="p" key={i} className="t-body" y={20}>
+              <ScrollWords as="p" key={i} className="t-body">
                 {p}
-              </Appear>
+              </ScrollWords>
             ))}
           </div>
         </div>
@@ -85,42 +87,24 @@ export function AboutJourney() {
           <div className="col-meta mb-4 lg:mb-0">
             <h2 className="t-title">{j.educationTitle}</h2>
           </div>
-          <ul className="col-read flex flex-col">
-            {j.education.map((e, i) => (
-              <Appear
-                as="li"
-                key={i}
-                y={16}
-                className="flex flex-col gap-1 border-t border-[var(--color-rule)] py-6 sm:flex-row sm:items-baseline sm:justify-between"
-              >
-                <span>
-                  <span className="block font-display text-2xl font-semibold text-ink">{e.title}</span>
-                  <span className="t-body t-body--mute">{e.org}</span>
-                </span>
-                {e.period ? <span className="t-meta shrink-0">{e.period}</span> : null}
-              </Appear>
-            ))}
-          </ul>
+          <JourneyTimeline
+            items={j.education.map((e) => ({
+              period: e.period,
+              primary: e.title,
+              secondary: e.org,
+            }))}
+          />
 
           <div className="col-meta mb-4 mt-8 lg:mb-0 lg:mt-0">
             <h2 className="t-title">{j.experienceTitle}</h2>
           </div>
-          <ul className="col-read flex flex-col">
-            {j.experience.map((e, i) => (
-              <Appear
-                as="li"
-                key={i}
-                y={16}
-                className="flex flex-col gap-1 border-t border-[var(--color-rule)] py-6 sm:flex-row sm:items-baseline sm:justify-between"
-              >
-                <span>
-                  <span className="block font-display text-2xl font-semibold text-ink">{e.org}</span>
-                  <span className="t-body t-body--mute">{e.role}</span>
-                </span>
-                <span className="t-meta shrink-0">{e.period}</span>
-              </Appear>
-            ))}
-          </ul>
+          <JourneyTimeline
+            items={j.experience.map((e) => ({
+              period: e.period,
+              primary: e.org,
+              secondary: e.role,
+            }))}
+          />
         </div>
       </section>
 

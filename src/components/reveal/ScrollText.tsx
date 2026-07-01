@@ -28,7 +28,7 @@ type ScrollTextProps = {
  * prefers-reduced-motion it renders plain, fully-visible text. Apply ONE per
  * section, on a heading without another reveal — not everywhere.
  */
-export function ScrollText({
+export const ScrollText = React.memo(function ScrollText({
   as: Tag = "div",
   id,
   className,
@@ -39,11 +39,15 @@ export function ScrollText({
 }: ScrollTextProps) {
   const ref = React.useRef<HTMLElement>(null);
   const reduced = useUI((s) => s.reducedMotion);
+  const text = typeof children === "string" ? children : null;
 
   useGSAP(
     () => {
       const el = ref.current;
-      if (!el || reduced) return;
+      if (!el) return;
+      // Repair the text if a React re-render wiped a prior split (see ScrollWords).
+      if (text !== null) el.textContent = text;
+      if (reduced) return;
 
       const split = SplitText.create(el, {
         type: "lines",
@@ -63,8 +67,10 @@ export function ScrollText({
 
       return () => split.revert();
     },
-    { scope: ref, dependencies: [reduced, start, end, stagger] },
+    // revertOnUpdate: revert the prior split/ScrollTrigger + its ResizeObserver /
+    // fonts listener before re-running on a locale change (else deferred to unmount).
+    { scope: ref, dependencies: [reduced, start, end, stagger, text], revertOnUpdate: true },
   );
 
   return React.createElement(Tag, { ref, id, className }, children);
-}
+});

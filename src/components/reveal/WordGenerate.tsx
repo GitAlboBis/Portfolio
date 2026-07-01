@@ -22,7 +22,7 @@ type WordGenerateProps = {
  * readers. reduced-motion -> plain, fully visible text (gsap.from leaves the resting
  * state). Apply ONE per section, on a heading without another reveal.
  */
-export function WordGenerate({
+export const WordGenerate = React.memo(function WordGenerate({
   as: Tag = "div",
   className,
   children,
@@ -32,11 +32,15 @@ export function WordGenerate({
 }: WordGenerateProps) {
   const ref = React.useRef<HTMLElement>(null);
   const reduced = useUI((s) => s.reducedMotion);
+  const text = typeof children === "string" ? children : null;
 
   useGSAP(
     () => {
       const el = ref.current;
-      if (!el || reduced) return;
+      if (!el) return;
+      // Repair the text if a React re-render wiped a prior split (see ScrollWords).
+      if (text !== null) el.textContent = text;
+      if (reduced) return;
       const useBlur = blur && window.matchMedia("(min-width: 48rem)").matches;
 
       const split = SplitText.create(el, {
@@ -57,8 +61,10 @@ export function WordGenerate({
 
       return () => split.revert();
     },
-    { scope: ref, dependencies: [reduced, blur, start, stagger] },
+    // revertOnUpdate: revert the prior split/ScrollTrigger before re-running on a
+    // locale change — @gsap/react otherwise defers cleanup to unmount (leak).
+    { scope: ref, dependencies: [reduced, blur, start, stagger, text], revertOnUpdate: true },
   );
 
   return React.createElement(Tag, { ref, className }, children);
-}
+});

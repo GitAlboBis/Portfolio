@@ -16,8 +16,16 @@ import { useUI } from "@/store/ui";
  * blurred spans would jank — opacity is compositor-cheap and reads identically. The
  * accessible string is preserved (SplitText `aria:"auto"`), `autoSplit` re-measures
  * when the variable font loads. prefers-reduced-motion → plain, fully-visible text.
+ *
+ * IMPORTANT — React.memo + text-in-deps: SplitText mutates the <p>'s DOM (word
+ * spans), but React still owns that element's text in its VDOM. A plain re-render
+ * (zustand `persist` rehydrating the locale, the preloader flipping `loaded`, any
+ * parent re-render) would reconcile the <p> back to the raw string and silently
+ * WIPE the split before you ever scroll to it — killing the effect. memo skips
+ * those unrelated re-renders; when the copy genuinely changes (locale) we re-assert
+ * the text and re-split. Children are always plain strings here.
  */
-export function ScrollWords({
+export const ScrollWords = React.memo(function ScrollWords({
   as: Tag = "p",
   className,
   children,
@@ -35,11 +43,16 @@ export function ScrollWords({
 }) {
   const ref = React.useRef<HTMLElement>(null);
   const reduced = useUI((s) => s.reducedMotion);
+  const text = typeof children === "string" ? children : null;
 
   useGSAP(
     () => {
       const el = ref.current;
-      if (!el || reduced) return;
+      if (!el) return;
+      // Re-assert the plain text before (re)splitting — repairs the element if a
+      // React reconciliation wiped a prior split or a cleanup reverted stale copy.
+      if (text !== null) el.textContent = text;
+      if (reduced) return;
 
       const split = SplitText.create(el, {
         type: "words",
@@ -62,10 +75,13 @@ export function ScrollWords({
 
       return () => split.revert();
     },
-    { scope: ref, dependencies: [reduced, start, end, dim] },
+    // revertOnUpdate: on a locale change (text dep) revert the previous split +
+    // ScrollTrigger BEFORE re-running — @gsap/react otherwise defers cleanup to
+    // unmount, leaking triggers and letting a re-split capture stale copy.
+    { scope: ref, dependencies: [reduced, start, end, dim, text], revertOnUpdate: true },
   );
 
   return React.createElement(Tag, { ref, className }, children);
-}
+});
 
 export default ScrollWords;

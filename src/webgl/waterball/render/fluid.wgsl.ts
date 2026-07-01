@@ -89,6 +89,13 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     var reflectionColor: vec3f = textureSampleLevel(envmap_texture, texture_sampler, reflectionDirWorld, 0.).rgb; 
     var finalColor = 0.0 * specular + mix(refractionColor, reflectionColor, fresnel);
 
+    // Neutralise the residual warm at the EXTREME grazing rim (fresnel reflects the
+    // orange sky there as a thin line). Pull only the thinnest edge toward the deep
+    // water tint — those pixels are also low-alpha (see THICK_FADE below), so they
+    // dissolve rather than forming a teal halo: the contour just stops being orange.
+    let edgeCool: vec3f = vec3f(0.04, 0.30, 0.40);
+    finalColor = mix(edgeCool, finalColor, smoothstep(0.0, 0.55, thickness));
+
     // (removed the hard white silhouette-edge tint at steep depth gradients — it read
     // as harsh white spikes on the letter, and exploded into a starburst of spikes
     // while the fluid dispersed. The translucent teal SSF + fresnel rim carry the
@@ -97,8 +104,11 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     // spray, and the silhouette rim — fades toward transparent instead of rendering
     // as hard "needles". Canvas is premultiplied-alpha, so premultiply the colour by
     // the same factor. THICK_FADE is the thickness at which the surface is fully
-    // opaque; below it the sheet softens into the background. (Tunable.)
-    let THICK_FADE: f32 = 0.5;
+    // opaque; below it the sheet softens into the background. Raised (0.5 -> 1.15)
+    // so the THIN fringe — which barely absorbs and refracted the raw orange sunset
+    // sky — dissolves to TRANSPARENT rather than showing a coloured contour, tightening
+    // the "A" silhouette (Alberto: "bordi trasparenti"). (Tunable.)
+    let THICK_FADE: f32 = 1.15;
     let edgeFade: f32 = smoothstep(0.0, THICK_FADE, thickness);
     return vec4f(finalColor * edgeFade, edgeFade);
 

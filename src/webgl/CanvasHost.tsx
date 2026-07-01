@@ -24,8 +24,10 @@ import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
 */
 
 // Golden-hour sky — the ultimate fallback (no canvas). Mirrors --gradient-sunset.
-// NOTE: the WebGPU water "A" (WaterBallHero / WGSL) still renders TEAL and must be
-// reshaded to molten sunset (amber→ember) to match this direction — next shader step.
+// The water "A" stays TEAL by choice (CLAUDE.md §1): the Golden Hour warmth comes
+// from the sunset REFLECTION on the surface, not a body tint. The orange refraction
+// fringe that used to ring the thin edges is dissolved to transparent in
+// render/fluid.wgsl, so the letter reads as a clean teal "A".
 const SEA_GRADIENT =
   "linear-gradient(180deg,#ffe7bd 0%,#f2a33c 26%,#ff8a4c 46%,#ee5b23 64%,#e15d6b 82%,#5e4b7e 100%)";
 

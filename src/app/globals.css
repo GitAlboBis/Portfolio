@@ -92,7 +92,20 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
-  overflow-x: hidden;
+  /* NB: no `overflow-x: hidden` here — it would compute overflow-y to `auto`,
+     making <body> a scroll container and breaking the Works gallery's
+     `position: sticky`. The `overflow-x: clip` on html,body above already
+     guards horizontal overflow without creating a scroll container. */
+}
+
+/* Reduced-motion: DrawLine rails must render statically DRAWN, not undrawn.
+   Their initial hidden dash is an inline style gated on the store's
+   `reducedMotion`, which is false at SSR/first paint — so for reduced-motion
+   users force the stroke fully visible regardless of that inline style. */
+@media (prefers-reduced-motion: reduce) {
+  [data-draw] {
+    stroke-dashoffset: 0 !important;
+  }
 }
 
 ::selection {

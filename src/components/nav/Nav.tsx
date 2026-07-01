@@ -47,23 +47,42 @@ export function Nav() {
       const pill = pillRef.current;
       if (!pill) return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        gsap.set(pill, { y: 0, autoAlpha: 1 });
+        gsap.set(pill, { y: 0, opacity: 1, visibility: "visible" });
         return;
       }
+      // Smooth y-slide (reused). Opacity + visibility are driven on STATE CHANGE only
+      // (not every scroll frame), and opacity is tweened DIRECTLY — never `autoAlpha`
+      // via quickTo, whose reset of the composite opacity+visibility isn't possible and
+      // logged a warning on every re-fire (once per scroll tick). visibility follows so
+      // a tucked-away pill leaves the tab order.
       const yTo = gsap.quickTo(pill, "y", { duration: 0.45, ease: "power3.out" });
-      const oTo = gsap.quickTo(pill, "autoAlpha", { duration: 0.3 });
+      let hidden = false;
+      const show = () => {
+        hidden = false;
+        gsap.set(pill, { visibility: "visible" });
+        yTo(0);
+        gsap.to(pill, { opacity: 1, duration: 0.3, overwrite: "auto" });
+      };
+      const hide = () => {
+        hidden = true;
+        yTo(-130);
+        gsap.to(pill, {
+          opacity: 0,
+          duration: 0.3,
+          overwrite: "auto",
+          onComplete: () => {
+            if (hidden) gsap.set(pill, { visibility: "hidden" });
+          },
+        });
+      };
       // visible at top + on scroll-up; tucked away on scroll-down.
       const dirST = ScrollTrigger.create({
         start: 0,
         end: "max",
         onUpdate: (self) => {
-          if (self.progress < 0.04 || self.direction === -1) {
-            yTo(0);
-            oTo(1);
-          } else {
-            yTo(-130);
-            oTo(0);
-          }
+          const shouldHide = !(self.progress < 0.04 || self.direction === -1);
+          if (shouldHide && !hidden) hide();
+          else if (!shouldHide && hidden) show();
         },
       });
       const sectionSTs = SECTION_IDS.map((id) => {
@@ -81,10 +100,7 @@ export function Nav() {
       // Reach for the menu = it comes back: moving the pointer to the top reveals
       // the pill even when it was tucked away by scroll-down.
       const onPointer = (e: PointerEvent) => {
-        if (e.clientY < 90) {
-          yTo(0);
-          oTo(1);
-        }
+        if (e.clientY < 90 && hidden) show();
       };
       window.addEventListener("pointermove", onPointer, { passive: true });
       return () => {

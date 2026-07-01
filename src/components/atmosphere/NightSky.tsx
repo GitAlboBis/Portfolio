@@ -40,6 +40,8 @@ precision mediump float;
 uniform vec2  uRes;
 uniform float uTime;
 uniform float uReveal;
+uniform vec2  uMouse;   // cursor in band space (0..1, y-up); rest = (0.5, 0.5)
+uniform float uMouseK;  // spotlight strength 0..1 (0 on touch / off-band / reduced-motion)
 
 // ── Golden Hour @theme tokens (sRGB, mirrors tokens.ts) ──────────────────────
 const vec3 NIGHT   = vec3(0.165, 0.094, 0.125); // #2a1820  band ground
@@ -132,6 +134,15 @@ void main(){
   float emberMask = pow(1.0 - v, 1.3) * uReveal;
   col += mix(EMBER, AMBER, 0.4) * em * emberMask * 0.85;
 
+  // ── cursor spotlight: a warm ember pool that follows the pointer — "the warmth
+  //    answers to you". pointer:fine only (uMouseK gates it), and eased toward the
+  //    very bottom so the footer fine print keeps its AA contrast.
+  vec2 mp = vec2((uMouse.x - 0.5) * aspect, uMouse.y);
+  float spot = pow(smoothstep(0.52, 0.0, length(p - mp)), 2.0) * uMouseK * uReveal;
+  spot *= mix(0.4, 1.0, ground);
+  col = mix(col, mix(EMBER, AMBER, 0.35), spot * 0.22);   // warm the night toward the cursor
+  col += mix(EMBER, ROSE, 0.30) * spot * 0.10;            // faint additive bloom core
+
   // ── fine grain (breaks gradient banding on the dark plum)
   col += (hash21(gl_FragCoord.xy + uTime * 60.0) - 0.5) * 0.018;
 
@@ -169,6 +180,7 @@ export function NightSky({ className }: { className?: string }) {
     const low =
       window.matchMedia("(max-width: 768px)").matches ||
       window.matchMedia("(pointer: coarse)").matches;
+    const fine = window.matchMedia("(pointer: fine)").matches;
 
     const canvas = document.createElement("canvas");
     canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;";
@@ -223,6 +235,8 @@ export function NightSky({ className }: { className?: string }) {
     const uRes = gl.getUniformLocation(prog, "uRes");
     const uTime = gl.getUniformLocation(prog, "uTime");
     const uReveal = gl.getUniformLocation(prog, "uReveal");
+    const uMouseLoc = gl.getUniformLocation(prog, "uMouse");
+    const uMouseKLoc = gl.getUniformLocation(prog, "uMouseK");
 
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
     let w = 0;
@@ -255,9 +269,36 @@ export function NightSky({ className }: { className?: string }) {
       return r.bottom > -120 && r.top < window.innerHeight + 120;
     };
 
+    // ── cursor spotlight (pointer:fine only): a warm pool that follows the mouse
+    //    over the band. Position + strength are lerped in the loop; strength (mk)
+    //    ramps to 0 when the pointer leaves the band. Never attached on touch or
+    //    reduced-motion, so it stays a mouse-only flourish.
+    let mx = 0.5;
+    let my = 0.5;
+    let mk = 0;
+    let tmx = 0.5;
+    let tmy = 0.5;
+    let tmk = 0;
+    const onMove = (e: PointerEvent) => {
+      const r = host.getBoundingClientRect();
+      if (r.height === 0) return;
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top) / r.height;
+      if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+        tmx = x;
+        tmy = 1 - y; // flip to the shader's y-up band space
+        tmk = 1;
+      } else {
+        tmk = 0;
+      }
+    };
+    if (fine && !reduced) window.addEventListener("pointermove", onMove, { passive: true });
+
     const draw = (t: number) => {
       gl.uniform1f(uTime, t);
       gl.uniform1f(uReveal, reveal);
+      gl.uniform2f(uMouseLoc, mx, my);
+      gl.uniform1f(uMouseKLoc, mk);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 
@@ -294,6 +335,10 @@ export function NightSky({ className }: { className?: string }) {
         const dt = Math.min(0.05, (now - prev) / 1000);
         prev = now;
         reveal += (sampleTarget() - reveal) * Math.min(1, dt * 3);
+        const ms = Math.min(1, dt * 6); // spotlight follow / fade
+        mx += (tmx - mx) * ms;
+        my += (tmy - my) * ms;
+        mk += (tmk - mk) * ms;
         draw((now - start) / 1000);
       };
       raf = requestAnimationFrame(tick);
@@ -302,6 +347,7 @@ export function NightSky({ className }: { className?: string }) {
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      window.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("webglcontextlost", onLost as EventListener);
       gl.deleteBuffer(buf);
       gl.deleteProgram(prog);

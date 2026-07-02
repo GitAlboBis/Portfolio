@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
-import { WorkCarousel } from "@/components/works/WorkCarousel";
+import { WorkHorizontal } from "@/components/work/WorkHorizontal";
 
 /**
- * WorkIndex — the /work index page: a minimal header + the 3D arc carousel of all
- * projects (each card opens its /work/[slug] case study). The home keeps the
- * depth-fade gallery; this is the dedicated "all work" explorer.
+ * WorkIndex — the /work index page: a minimal header + the scroll-driven
+ * horizontal gallery of all projects (each slide opens its /work/[slug] case
+ * study). The home keeps the depth-fade gallery; this is the dedicated
+ * "all work" explorer.
  */
 export function WorkIndex() {
   const t = useDict();
@@ -43,7 +44,7 @@ export function WorkIndex() {
         </nav>
       </header>
 
-      <WorkCarousel />
+      <WorkHorizontal />
     </main>
   );
 }

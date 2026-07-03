@@ -61,9 +61,10 @@ export const DualWaveText = React.memo(function DualWaveText({
       if (text !== null) el.textContent = text;
       if (reduced) return;
 
+      // No autoSplit: it only hooks font-load/resize re-splits for "lines" type;
+      // with words/chars it is inert (verified in gsap 3.15 SplitText source).
       const split = SplitText.create(el, {
         type: "words,chars",
-        autoSplit: true,
         aria: "auto",
         onSplit(self) {
           const chars = self.chars;
@@ -110,7 +111,7 @@ export const DualWaveText = React.memo(function DualWaveText({
               ? { delay, scrollTrigger: { trigger: el, start, once: true } }
               : { delay: 3.2 }),
           });
-          apply(); // seed positions now (and re-sync after an autoSplit rebuild)
+          apply(); // seed positions now (chars hide before the first paint)
           return tween;
         },
       });

@@ -6,6 +6,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { works } from "@/content/works";
+import { useHydrated } from "@/lib/use-hydrated";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
 
@@ -31,6 +32,7 @@ const pad = (v: number) => String(v).padStart(2, "0");
 export function WorkHorizontal() {
   const t = useDict();
   const reduced = useUI((s) => s.reducedMotion);
+  const hydrated = useHydrated();
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLUListElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
@@ -88,7 +90,10 @@ export function WorkHorizontal() {
   );
 
   // ── reduced-motion / no-JS friendly: a plain editorial list ────────────────
-  if (reduced) {
+  // `&& hydrated`: reducedMotion is true on the FIRST client render for
+  // reduced-motion visitors but false in the server HTML — a render-time branch
+  // during hydration mismatches. One pass later the swap is safe.
+  if (reduced && hydrated) {
     return (
       <section className="container-edit" style={{ paddingBlock: "var(--section-y)" }}>
         <p className="t-eyebrow eyebrow-tick mb-6">{t.works.eyebrow}</p>

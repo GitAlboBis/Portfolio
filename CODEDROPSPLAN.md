@@ -24,19 +24,13 @@
 | Effetto | Repo `<>` | Dove | Note |
 |---|---|---|---|
 | **TideReveal** (mask reveal → **marea**) | `Hiro-kiii/Scroll-Transition` (On-Scroll SVG Mask Transitions) | Tech heading "La corrente in cui lavoro" | Meccanismo mask+ScrollTrigger ri-tematizzato: la scritta affiora da una linea d'acqua morbida (niente linea visibile), `scrub:1.5`. Shipped su `main`. |
+| **DualWaveText** (headline **entra a onda**) | `ValentinDBS/codrops-tutorial-text-animation` (Scroll-Driven Dual-Wave Text) | h1 di `/about` (`journey.title` — "la costa del Sulcis": semantica motivata) | ⚠ REFRAME dallo studio del repo: il demo originale NON è un'entrance — è 2 colonne speculari di ~48 righe che cavalcano una sinusoide scroll-driven (fase = `waveNumber·i + waveSpeed·progress·2π`, smoothing `quickTo`) + thumbnail centrale image-driven (bloccata dalle still). Portato il MECCANISMO su un'entrance one-shot per-char SplitText: somma di **due sinusoidi contro-vaganti** (il "dual" = swell + risacca) con inviluppo che decade + fronte di reveal. Gated su `ui.loaded` (il wipe del Preloader scopre riga vuota, niente playback coperto), failsafe senza trigger, reduced-motion → statico. Sostituisce WordGenerate sull'h1 (riduce il reveal più ripetuto). Branch `feat/dual-wave-text` — in attesa di ok visivo (G3). La variante fedele a doppia colonna resta possibile come pattern di sezione quando arrivano le still (`Work.textureSrc`). |
 
 ---
 
 ## P0 — prossimi, on-theme + senza immagini (alto valore, basso rischio)
 
-### 1. Dual Wave Text — grande titolo che entra "a onda"  ⭐ prossimo
-- **Repo:** `ValentinDBS/codrops-tutorial-text-animation` · categoria **text/scroll**, tag *wave*.
-- **Perché perfetto:** scritte GRANDI + movimento a **onda** = mare, senza immagini. Complementa
-  (non duplica) i reveal esistenti (che sono word-fade). Warm editorial.
-- **Dove:** un headline-statement (es. About lead, o un titolo di sezione). Un solo punto (no saturazione).
-- **Re-theme:** onda calda tidal-eased; colori ink/ember. reduced-motion → testo statico.
-
-### 2. On-Scroll Typography Animations — variante "big type" scrubbata
+### 2. On-Scroll Typography Animations — variante "big type" scrubbata  ⭐ prossimo
 - **Repo:** `codrops/OnScrollTypographyAnimations` (Set 1 + "Some More") · **text/scroll**.
 - **Perché:** type editoriale grande e pulito su scroll (visto live: elegante, non glitch). Cherry-pick
   **UNA** variante bold (scala/mask) per un titolo-firma; niente da aggiungere alla saturazione word-level.
@@ -110,5 +104,5 @@ Tutti gli effetti image-driven, ottimi ma inutili senza foto dei progetti:
 ---
 
 ## Sequenza consigliata
-**1 (Dual Wave Text)** → **3 (Water Distortion ambientale, sottile)** → **2 (big-type variant)** → poi
+~~1 (Dual Wave Text)~~ ✅ → **3 (Water Distortion ambientale, sottile)** → **2 (big-type variant)** → poi
 **4/5** dietro confirm-feel. Gli image-driven appena arrivano le still (`Work.textureSrc`).

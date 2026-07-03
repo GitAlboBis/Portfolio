@@ -6,6 +6,8 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { works } from "@/content/works";
+import { LazyOnView } from "@/components/motion/LazyOnView";
+import { ShallowWater } from "@/components/atmosphere/ShallowWater";
 
 /*
   WorkHorizontal — the /work index as a scroll-driven horizontal gallery. A
@@ -123,19 +125,26 @@ export function WorkHorizontal() {
 
   return (
     <>
-      {/* Intro — settles the page title, then the runway takes over below. */}
-      <header
-        className="container-edit flex min-h-[62vh] flex-col justify-end pb-[var(--block-y)]"
-        style={{ paddingTop: "var(--nav-h)" }}
-      >
-        <p className="t-eyebrow eyebrow-tick mb-6">{t.works.eyebrow}</p>
-        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
-          <h1 id="works-title" className="t-display max-w-[14ch]">
-            {t.works.title}
-          </h1>
-          <p className="t-meta mb-2">{t.hero.scroll} ↓</p>
-        </div>
-      </header>
+      {/* Intro — settles the page title, then the runway takes over below. Sits
+          over the ShallowWater atmosphere (the same shallow-water light as the
+          /about intro), whose waterline dissolves before the runway begins. */}
+      <div className="relative">
+        <LazyOnView>
+          <ShallowWater />
+        </LazyOnView>
+        <header
+          className="container-edit relative flex min-h-[62vh] flex-col justify-end pb-[var(--block-y)]"
+          style={{ paddingTop: "var(--nav-h)" }}
+        >
+          <p className="t-eyebrow eyebrow-tick mb-6">{t.works.eyebrow}</p>
+          <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+            <h1 id="works-title" className="t-display max-w-[14ch]">
+              {t.works.title}
+            </h1>
+            <p className="t-meta mb-2">{t.hero.scroll} ↓</p>
+          </div>
+        </header>
+      </div>
 
       <section ref={sectionRef} aria-labelledby="works-title" className="relative" style={{ height: `${n * 100}vh` }}>
         <div aria-hidden className="sticky top-0 h-screen overflow-hidden">

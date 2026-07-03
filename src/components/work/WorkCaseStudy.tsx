@@ -7,6 +7,8 @@ import { works } from "@/content/works";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
+import { LazyOnView } from "@/components/motion/LazyOnView";
+import { ShallowWater } from "@/components/atmosphere/ShallowWater";
 
 /**
  * WorkCaseStudy — the /work/[slug] case-study page for a CONFIRMED project. All copy
@@ -54,12 +56,17 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
         </nav>
       </header>
 
-      {/* Intro */}
+      {/* Intro — over the ShallowWater atmosphere (as the /about intro): golden
+          caustics on the paper, dissolving before the metrics. Decorative,
+          absolute-fill (zero CLS); no-WebGL falls back to bg-paper. */}
       <section
-        className="container-edit"
+        className="relative"
         style={{ paddingBlock: "calc(var(--nav-h) + var(--section-y))" }}
       >
-        <div className="grid-edit">
+        <LazyOnView>
+          <ShallowWater />
+        </LazyOnView>
+        <div className="container-edit grid-edit relative">
           <Appear as="div" className="col-meta mb-6 lg:mb-0">
             <p className="t-eyebrow eyebrow-tick">{work.org}</p>
             <p className="t-meta mt-3">{work.year}</p>

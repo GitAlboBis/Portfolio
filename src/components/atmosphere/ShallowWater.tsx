@@ -132,22 +132,24 @@ void main() {
   float s = surfaceNoise(suv, t, 7.0);
   s = s * s; // sharpen into filaments (the pen's pow(x, 2.), NaN-safe)
 
-  // ── waterline: full water at the top of the band, dissolving into dry paper
+  // ── waterline: full water over the upper band, dissolving into dry paper
   //    below; the edge undulates with the swell (never a straight line)
-  float shore = smoothstep(0.06, 0.62, uv.y + 0.07 * swell);
+  float shore = smoothstep(0.02, 0.50, uv.y + 0.07 * swell);
   float veil = shore * uFade;
 
   // ── compose on paper
   vec3 col = PAPER;
-  // broad shading — the swell gently pools the ground toward paper-deep (≤ .40)
-  col = mix(col, DEEP, clamp(0.18 + 0.26 * swell, 0.0, 0.40) * veil);
+  // broad shading — the swell pools the ground toward paper-deep (≤ .55; keeps
+  // ink-mute ≥ 5.9:1 and ember-ink ≥ 4.6:1 on the deepest pools)
+  col = mix(col, DEEP, clamp(0.26 + 0.34 * swell, 0.0, 0.55) * veil);
   // golden caustic web (≤ .25). Livelier in the airy top band, calmer where the
   // copy sits. The light is lifted toward paper so LUMINANCE (not saturation)
   // carries it — real caustics are bright — which keeps even ember-ink glyphs
-  // over the brightest filaments ≥ 4.5:1 (ink-mute stays ≥ 5.9:1).
-  float lively = mix(0.7, 1.25, smoothstep(0.40, 0.95, uv.y));
-  float ca = clamp(s * lively * (0.8 + 0.5 * spot), 0.0, 1.0) * veil;
-  col *= 1.0 + 0.06 * ca;                       // faint illumination lift
+  // over the brightest filaments ≥ 4.5:1 (the lift co-occurs with the mix and
+  // raises the floor).
+  float lively = mix(0.85, 1.35, smoothstep(0.40, 0.95, uv.y));
+  float ca = clamp(s * lively * (1.15 + 0.55 * spot), 0.0, 1.0) * veil;
+  col *= 1.0 + 0.09 * ca;                       // illumination lift
   col = mix(col, mix(mix(AMBER, CORAL, 0.4), PAPER, 0.25), ca * 0.25);
 
   // fine grain (breaks banding on the subtle washes). The time phase is wrapped —

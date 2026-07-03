@@ -1,7 +1,7 @@
 "use client";
 
 import { useDict } from "@/content/dict";
-import { FlipText } from "@/components/reveal/FlipText";
+import { TideSurge } from "@/components/reveal/TideSurge";
 import { buttonVariants } from "@/components/ui/button";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { Appear } from "@/components/motion/Appear";
@@ -20,9 +20,11 @@ export function Contact() {
         <Appear as="p" className="t-eyebrow eyebrow-tick">
           {t.contact.eyebrow}
         </Appear>
-        <FlipText as="h2" className="t-display mt-6 max-w-[20ch]">
+        {/* The signature line rises like the tide and settles — scrubbed, so it
+            plays (and reverses) with the scroll itself. */}
+        <TideSurge as="h2" className="t-display mt-6 max-w-[20ch]">
           {t.contact.headline}
-        </FlipText>
+        </TideSurge>
         <Magnetic className="mt-12" strength={0.45}>
           <a
             href={`mailto:${t.contact.email}`}

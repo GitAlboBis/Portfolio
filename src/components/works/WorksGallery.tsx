@@ -7,6 +7,7 @@ import { works as WORKS } from "@/content/works";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { useHydrated } from "@/lib/use-hydrated";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 
 /*
@@ -31,6 +32,7 @@ const WorksGalleryCanvas = dynamic(
 export function WorksGallery() {
   const t = useDict();
   const reduced = useUI((s) => s.reducedMotion);
+  const hydrated = useHydrated();
   const sectionRef = useRef<HTMLElement | null>(null);
   const captionRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -51,7 +53,11 @@ export function WorksGallery() {
     { scope: captionRef, dependencies: [active] },
   );
 
-  if (reduced) {
+  // `&& hydrated`: reducedMotion is true on the FIRST client render for
+  // reduced-motion visitors but false in the server HTML — branching the tree
+  // on it during hydration mismatches and React regenerates the whole page.
+  // One pass later the swap is safe (and effects haven't animated anything yet).
+  if (reduced && hydrated) {
     return (
       <section id="works" className="scroll-anchor container-edit">
         <p className="t-eyebrow eyebrow-tick mb-6">{t.works.eyebrow}</p>

@@ -70,9 +70,14 @@ export function DrawLine({
       const path = svg.querySelector<SVGPathElement>("[data-draw]");
       if (!path) return;
 
+      // The undrawn state (dasharray + full offset) is seeded HERE, not in the
+      // JSX: a render-time `reduced ?` style branch mismatches hydration (the
+      // store resolves reduced-motion before the first client render, the server
+      // can't). useGSAP is layout-effect timed, so the hide applies before first
+      // paint — SSR / no-JS / reduced-motion keep the fully drawn stroke.
       const tween = gsap.fromTo(
         path,
-        { strokeDashoffset: 1 },
+        { strokeDasharray: 1, strokeDashoffset: 1 },
         {
           strokeDashoffset: 0,
           ease: "none",
@@ -125,9 +130,6 @@ export function DrawLine({
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
-        // Hidden until the scrub draws it (belt-and-suspenders with the fromTo's
-        // immediateRender); left undrawn-static under reduced-motion → fully shown.
-        style={reduced ? undefined : { strokeDasharray: 1, strokeDashoffset: 1 }}
       />
     </svg>
   );

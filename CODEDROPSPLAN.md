@@ -25,6 +25,7 @@
 |---|---|---|---|
 | **TideReveal** (mask reveal → **marea**) | `Hiro-kiii/Scroll-Transition` (On-Scroll SVG Mask Transitions) | Tech heading "La corrente in cui lavoro" | Meccanismo mask+ScrollTrigger ri-tematizzato: la scritta affiora da una linea d'acqua morbida (niente linea visibile), `scrub:1.5`. Shipped su `main`. |
 | **DualWaveText** (headline **entra a onda**) | `ValentinDBS/codrops-tutorial-text-animation` (Scroll-Driven Dual-Wave Text) | h1 di `/about` (`journey.title` — "la costa del Sulcis": semantica motivata) | ⚠ REFRAME dallo studio del repo: il demo originale NON è un'entrance — è 2 colonne speculari di ~48 righe che cavalcano una sinusoide scroll-driven (fase = `waveNumber·i + waveSpeed·progress·2π`, smoothing `quickTo`) + thumbnail centrale image-driven (bloccata dalle still). Portato il MECCANISMO su un'entrance one-shot per-char SplitText: somma di **due sinusoidi contro-vaganti** (il "dual" = swell + risacca) con inviluppo che decade + fronte di reveal. Gated su `ui.loaded` (il wipe del Preloader scopre riga vuota, niente playback coperto), failsafe senza trigger, reduced-motion → statico. Sostituisce WordGenerate sull'h1 (riduce il reveal più ripetuto). Branch `feat/dual-wave-text` — in attesa di ok visivo (G3). La variante fedele a doppia colonna resta possibile come pattern di sezione quando arrivano le still (`Work.textureSrc`). |
+| **ShallowWater** (increspatura d'acqua **ambientale**) | `codepen.io/ksenia-k/pen/RwXVMMY` (Lightweight Water Distortion, MIT — mirror `tysev44/kentrosneep`) | Intro di `/about`, dietro l'h1 "la costa del Sulcis" (la route non aveva WebGL → zero sovrapposizioni; la banda night ha già NightSky) | Porting **procedurale senza immagini**: lo swell simplex del pen disloca il campo sin/cos ruotato (10 layer, LOW=6) esattamente come `surface_noise_uv = 2uv + outer·.2`, ma il campo dipinge caustiche golden-hour sulla carta invece di distorcere una texture; battigia ondulata che dissolve in carta asciutta prima della bio; risposta locale al pointer (fine only). Convenzioni NightSky (rAF geometry-gated, DPR≤1.5, dispose, failsafe bg-paper, reduced-motion → frame statico). Review avversariale (11 agenti): 3 fix confermati — repaint-on-resize (buffer discard = nero opaco su alpha:false, fatale senza loop), fase grana wrappata (uTime·60 unbounded collassa fract fp32 in strisce), luce caustica schiarita verso paper (ember-ink ≥4.5:1 AA) — + back-port dei primi due a NightSky (stessi difetti latenti, lì mascherati dal fondo night). Branch `feat/shallow-water` — in attesa di ok visivo (G3). |
 
 ---
 
@@ -36,12 +37,7 @@
   **UNA** variante bold (scala/mask) per un titolo-firma; niente da aggiungere alla saturazione word-level.
 - **Re-theme:** Bricolage a volume pieno, warm; welded allo scroll (scrub).
 
-### 3. Lightweight Water Distortion — increspatura d'acqua ambientale
-- **Repo/fonte:** `codepen.io/ksenia-k/pen/RwXVMMY` (shader leggero) · **background/hover**, tag *water*.
-- **Perché:** on-theme puro (acqua) e **leggero** (a differenza dei sim pesanti). Una lieve increspatura
-  su un background di sezione o su hover → "l'interfaccia si muove come l'acqua".
-- **Rischio/nota:** WebGL — tienilo **sottile + gated** (IntersectionObserver, DPR≤1.5, dispose offscreen),
-  non sovrapporre alle scene esistenti; reduced-motion → statico. Coordina con il budget perf.
+### ~~3. Lightweight Water Distortion — increspatura d'acqua ambientale~~ ✅ → ShallowWater (vedi Fatto)
 
 ---
 
@@ -104,5 +100,5 @@ Tutti gli effetti image-driven, ottimi ma inutili senza foto dei progetti:
 ---
 
 ## Sequenza consigliata
-~~1 (Dual Wave Text)~~ ✅ → **3 (Water Distortion ambientale, sottile)** → **2 (big-type variant)** → poi
-**4/5** dietro confirm-feel. Gli image-driven appena arrivano le still (`Work.textureSrc`).
+~~1 (Dual Wave Text)~~ ✅ → ~~3 (Water Distortion ambientale → ShallowWater)~~ ✅ → **2 (big-type variant)** →
+poi **4/5** dietro confirm-feel. Gli image-driven appena arrivano le still (`Work.textureSrc`).

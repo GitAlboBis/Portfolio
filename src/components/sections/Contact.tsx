@@ -15,7 +15,9 @@ import { BorderBeam } from "@/components/motion/BorderBeam";
 export function Contact() {
   const t = useDict();
   return (
-    <section id="contact" className="night scroll-anchor bleed relative z-10">
+    // flex-1: inside the home's min-h-screen night band (flex-col), Contact takes
+    // the slack so the Footer stays anchored to the very bottom edge.
+    <section id="contact" className="night scroll-anchor bleed relative z-10 flex-1">
       <div className="container-edit">
         <Appear as="p" className="t-eyebrow eyebrow-tick">
           {t.contact.eyebrow}

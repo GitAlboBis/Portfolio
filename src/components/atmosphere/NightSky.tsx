@@ -143,8 +143,10 @@ void main(){
   col = mix(col, mix(EMBER, AMBER, 0.35), spot * 0.22);   // warm the night toward the cursor
   col += mix(EMBER, ROSE, 0.30) * spot * 0.10;            // faint additive bloom core
 
-  // ── fine grain (breaks gradient banding on the dark plum)
-  col += (hash21(gl_FragCoord.xy + uTime * 60.0) - 0.5) * 0.018;
+  // ── fine grain (breaks gradient banding on the dark plum). Wrapped time phase:
+  //    unbounded uTime*60 collapses fp32 fract() into structured stripes within
+  //    minutes; a 4 s loop on random speckle is imperceptible and bounded forever.
+  col += (hash21(gl_FragCoord.xy + mod(uTime, 4.0) * 60.0) - 0.5) * 0.018;
 
   // ── gentle vignette + keep the lows off pure black
   float vig = smoothstep(1.25, 0.35, length((uv - vec2(0.5, 0.45)) * vec2(aspect, 1.0)));
@@ -239,6 +241,11 @@ export function NightSky({ className }: { className?: string }) {
     const uMouseKLoc = gl.getUniformLocation(prog, "uMouseK");
 
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+    // Reassigning canvas.width/height DISCARDS the drawing buffer (composites as
+    // opaque black on an alpha:false context) — repaint immediately so a resize
+    // can never leave a black band. Matters most under reduced-motion, where no
+    // loop ever redraws (here black ≈ bg-night, but the frame content is lost).
+    let repaint: (() => void) | null = null;
     let w = 0;
     let h = 0;
     const resize = () => {
@@ -251,6 +258,7 @@ export function NightSky({ className }: { className?: string }) {
       canvas.height = h;
       gl.viewport(0, 0, w, h);
       gl.uniform2f(uRes, w, h);
+      repaint?.();
     };
     const ro = new ResizeObserver(resize);
     ro.observe(host);
@@ -320,9 +328,11 @@ export function NightSky({ className }: { className?: string }) {
       // one static frame — a settled dusk, no loop
       reveal = 1;
       draw(6.0);
+      repaint = () => draw(6.0);
     } else {
       reveal = sampleTarget();
       draw(0);
+      repaint = () => draw((performance.now() - start) / 1000);
       const tick = () => {
         raf = requestAnimationFrame(tick);
         if ((gateTick++ & 7) === 0) {

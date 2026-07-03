@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useRef, useMemo, useState, type RefObject } from "react";
+import { useRef, useMemo, useState, useEffect, type RefObject } from "react";
 import Link from "next/link";
 import { works as WORKS, type Work } from "@/content/works";
 import { useDict } from "@/content/dict";
@@ -76,6 +76,31 @@ const FRAG_BG = /* glsl */ `
 function smooth(e0: number, e1: number, x: number) {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
   return t * t * (3 - 2 * t);
+}
+
+/*
+  Visibility gate. The Canvas runs frameloop="demand", so the scene only renders when
+  we call invalidate(). This poll invalidates every frame ONLY while the (very tall,
+  sticky) section is on screen — so the two full-screen fragment shaders stop rendering
+  while the hero, About, Tech and the night band are in view (previously the loop ran
+  every frame regardless, per the audit). rect-poll rather than IntersectionObserver:
+  Lenis' smoothed scroll doesn't fire IO reliably here — same reason TechCloud self-gates.
+*/
+function FrameGate({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    let raf = 0;
+    const loop = () => {
+      raf = requestAnimationFrame(loop);
+      const sec = sectionRef.current;
+      if (!sec || document.hidden) return;
+      const r = sec.getBoundingClientRect();
+      if (r.bottom > 0 && r.top < window.innerHeight) invalidate();
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [invalidate, sectionRef]);
+  return null;
 }
 
 function Scene({
@@ -275,10 +300,12 @@ export function WorksGallery() {
         <Canvas
           aria-hidden
           camera={{ position: [0, 0, VIEW], fov: 45 }}
-          dpr={[1, 2]}
+          dpr={[1, 1.5]}
+          frameloop="demand"
           gl={{ alpha: true, antialias: true }}
           style={{ position: "absolute", inset: 0 }}
         >
+          <FrameGate sectionRef={sectionRef} />
           <Scene works={WORKS} sectionRef={sectionRef} onActive={setActive} />
         </Canvas>
 
@@ -299,7 +326,7 @@ export function WorksGallery() {
             {w.status === "confirmed" ? (
               <Link
                 href={`/work/${w.slug}`}
-                className="t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
+                className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
               >
                 {t.works.open} →
               </Link>

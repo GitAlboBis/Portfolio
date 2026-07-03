@@ -18,8 +18,8 @@ type RevealProps = {
 
 /**
  * Reveal — masked split-text line reveal on scroll. Lines rise from below their
- * own mask with a tidal ease. `autoSplit` re-splits when the Fraunces variable
- * font finishes loading (no FOUT-broken split). Under reduced motion it renders
+ * own mask with a tidal ease. `autoSplit` re-splits when the display (Bricolage)
+ * variable font finishes loading (no FOUT-broken split). Under reduced motion it renders
  * plain, fully visible text (gsap.from leaves the final state visible, so if the
  * animation never runs nothing is hidden).
  */

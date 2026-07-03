@@ -5,6 +5,16 @@ import { persist, createJSONStorage } from "zustand/middleware";
 
 export type Locale = "en" | "it";
 
+// Resolve the motion preference at store-creation time (client only) so the reveal
+// primitives read the correct value on their FIRST render — otherwise they default to
+// reducedMotion:false and set their "from" states (autoAlpha:0 / dimmed) for a transient
+// frame before <Smooth/>'s effect flips the flag. SSR has no window → false (harmless:
+// reduced-motion only gates client-side effects, not the SSR'd plain text).
+const initialReducedMotion =
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 interface UIState {
   /** Site language. Persisted. */
   locale: Locale;
@@ -33,7 +43,7 @@ export const useUI = create<UIState>()(
     (set, get) => ({
       locale: "en",
       soundEnabled: false,
-      reducedMotion: false,
+      reducedMotion: initialReducedMotion,
       activeWork: null,
       loaded: false,
       menuOpen: false,

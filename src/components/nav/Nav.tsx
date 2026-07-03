@@ -157,7 +157,7 @@ export function Nav() {
           <button
             onClick={toggleLocale}
             aria-label="Toggle language"
-            className="px-3 py-1 t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
+            className="px-3 py-1 t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
           >
             {locale === "en" ? "IT" : "EN"}
           </button>

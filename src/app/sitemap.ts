@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { worksConfirmed } from "@/content/works";
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+import { SITE } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = [

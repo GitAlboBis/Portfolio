@@ -35,7 +35,7 @@ export function About() {
           </Parallax>
           <Link
             href="/about"
-            className="mt-8 inline-flex items-center gap-2 t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
+            className="mt-8 inline-flex items-center gap-2 t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
           >
             {t.journey.eyebrow} →
           </Link>

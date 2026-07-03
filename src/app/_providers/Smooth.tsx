@@ -17,6 +17,14 @@ import { useUI } from "@/store/ui";
  */
 export function Smooth() {
   const setReducedMotion = useUI((s) => s.setReducedMotion);
+  const locale = useUI((s) => s.locale);
+
+  // Keep the document language in sync with the runtime EN/IT toggle: the SSR shell
+  // ships lang="en", so without this a screen reader would announce the Italian copy
+  // with an English voice (WCAG 3.1.1/3.1.2). Bilingual site, single URL → sync here.
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");

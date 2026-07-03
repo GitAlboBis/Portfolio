@@ -38,7 +38,7 @@ export function AboutJourney() {
             <button
               onClick={toggleLocale}
               aria-label="Toggle language"
-              className="t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
+              className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
             >
               {locale === "en" ? "IT" : "EN"}
             </button>

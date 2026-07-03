@@ -4,6 +4,7 @@ import { CanvasHost } from "@/webgl/CanvasHost";
 import { Smooth } from "@/app/_providers/Smooth";
 import { ScrollProgress } from "@/components/nav/ScrollProgress";
 import { Preloader } from "@/components/Preloader";
+import { SITE } from "@/lib/site";
 import "./globals.css";
 
 /*
@@ -14,7 +15,6 @@ import "./globals.css";
       as --font-bricolage / --font-dmsans and wired into globals.css @theme.
     - Smooth:     the Lenis <-> GSAP scroll backbone.
     - CanvasHost: the fixed WebGPU water "A" (home route only).
-    - Cursor:     the custom pointer (pointer:fine + motion-allowed only).
   The page chrome (nav, sections, footer) composes in src/app/page.tsx.
 */
 
@@ -34,9 +34,6 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
-// Set NEXT_PUBLIC_SITE_URL to the production origin on deploy so OG/canonical/sitemap
-// resolve to absolute URLs (falls back to localhost in dev).
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const DESCRIPTION =
   "Full-stack engineer building systems with AI at the edge — interfaces that move like water. Shaped by the sea of Sardinia.";
 
@@ -63,18 +60,19 @@ export const metadata: Metadata = {
     "Sardinia",
     "Camerino",
   ],
-  alternates: { canonical: "/" },
+  // NB: no root-level `alternates.canonical` or `openGraph.url`/`title` here —
+  // those inherit into every child route and would make /about, /work and every
+  // case study canonicalize + share AS the homepage. Each route sets its own
+  // canonical + og:url/title (see app/page.tsx, about, work, work/[slug]). The
+  // homepage's own canonical/OG live in app/page.tsx.
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: SITE,
     siteName: "Alberto Tuveri",
-    title: "Alberto Tuveri — Software Engineer",
     description: DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Alberto Tuveri — Software Engineer",
     description: DESCRIPTION,
   },
   robots: { index: true, follow: true },

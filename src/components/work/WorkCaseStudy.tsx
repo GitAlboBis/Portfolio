@@ -124,7 +124,7 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
                   href={l.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="t-meta text-ember-ink transition-colors duration-300 hover:text-ember"
+                  className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
                 >
                   {l.label} ↗
                 </a>

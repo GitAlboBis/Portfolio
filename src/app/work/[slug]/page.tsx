@@ -14,9 +14,15 @@ type Params = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const w = works.find((x) => x.slug === slug);
+  const title = w ? w.title : "Work";
+  const description = w?.study?.summary.en;
+  const ogTitle = `${title} — Alberto Tuveri`;
   return {
-    title: w ? w.title : "Work",
-    description: w?.study?.summary.en,
+    title,
+    description,
+    alternates: { canonical: `/work/${slug}` },
+    openGraph: { url: `/work/${slug}`, title: ogTitle, description },
+    twitter: { title: ogTitle, description },
   };
 }
 

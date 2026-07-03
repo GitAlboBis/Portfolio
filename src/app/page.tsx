@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Nav } from "@/components/nav/Nav";
 import { HeroScrollSettle } from "@/components/hero/HeroScrollSettle";
 import { About } from "@/components/sections/About";
@@ -6,6 +7,14 @@ import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
 import { NightSky } from "@/components/atmosphere/NightSky";
+
+// Homepage owns the root identity: its canonical + og:url/title point at "/".
+// (Removed from the root layout so subpages no longer inherit the homepage's.)
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { url: "/", title: "Alberto Tuveri — Software Engineer" },
+  twitter: { title: "Alberto Tuveri — Software Engineer" },
+};
 
 /*
   HOME (Golden Hour)
@@ -19,6 +28,9 @@ import { NightSky } from "@/components/atmosphere/NightSky";
 export default function Home() {
   return (
     <main id="main" className="relative">
+      {/* Accessible page title — the visual "title" is the WebGPU water "A" (decorative,
+          aria-hidden), so the document's single h1 is provided here for AT + SEO. */}
+      <h1 className="sr-only">Alberto Tuveri — Software Engineer</h1>
       <Nav />
 
       {/* Scroll WRITER for the hero "A" dive (writes heroStore.explode; read by

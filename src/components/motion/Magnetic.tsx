@@ -29,32 +29,45 @@ export function Magnetic({ children, className, strength = 0.35 }: MagneticProps
       const xTo = gsap.quickTo(el, "x", { duration: 0.5, ease: "power3.out" });
       const yTo = gsap.quickTo(el, "y", { duration: 0.5, ease: "power3.out" });
 
+      // Cache the box on enter/resize instead of measuring on every pointermove — the
+      // element's rect only changes on layout, not per hover-move. Avoids a forced
+      // layout read per event (×5 Magnetic wrappers in the nav).
+      let box: DOMRect | null = null;
+      const measure = () => {
+        box = el.getBoundingClientRect();
+      };
+      const onEnter = () => {
+        measure();
+        el.style.willChange = "transform"; // promote only while hovered, not permanently
+      };
       const onMove = (e: PointerEvent) => {
-        const r = el.getBoundingClientRect();
-        xTo((e.clientX - (r.left + r.width / 2)) * strength);
-        yTo((e.clientY - (r.top + r.height / 2)) * strength);
+        if (!box) measure();
+        xTo((e.clientX - (box!.left + box!.width / 2)) * strength);
+        yTo((e.clientY - (box!.top + box!.height / 2)) * strength);
       };
       const reset = () => {
         xTo(0);
         yTo(0);
+        el.style.willChange = "";
+        box = null;
       };
 
+      el.addEventListener("pointerenter", onEnter);
       el.addEventListener("pointermove", onMove);
       el.addEventListener("pointerleave", reset);
+      window.addEventListener("resize", measure);
       return () => {
+        el.removeEventListener("pointerenter", onEnter);
         el.removeEventListener("pointermove", onMove);
         el.removeEventListener("pointerleave", reset);
+        window.removeEventListener("resize", measure);
       };
     },
     { scope: ref, dependencies: [strength] },
   );
 
   return (
-    <span
-      ref={ref}
-      className={className}
-      style={{ display: "inline-block", willChange: "transform" }}
-    >
+    <span ref={ref} className={className} style={{ display: "inline-block" }}>
       {children}
     </span>
   );

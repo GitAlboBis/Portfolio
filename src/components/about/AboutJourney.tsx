@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
-import { WordGenerate } from "@/components/reveal/WordGenerate";
+import { DualWaveText } from "@/components/reveal/DualWaveText";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
 import { JourneyTimeline } from "@/components/about/JourneyTimeline";
@@ -59,9 +59,9 @@ export function AboutJourney() {
             <p className="t-eyebrow eyebrow-tick">{j.eyebrow}</p>
           </Appear>
           <div className="col-read">
-            <WordGenerate as="h1" className="t-display max-w-[20ch]">
+            <DualWaveText as="h1" className="t-display max-w-[20ch]">
               {j.title}
-            </WordGenerate>
+            </DualWaveText>
             <p className="t-lead mt-6">{j.lead}</p>
           </div>
         </div>

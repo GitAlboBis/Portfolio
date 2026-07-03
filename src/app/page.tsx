@@ -7,6 +7,7 @@ import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
 import { NightSky } from "@/components/atmosphere/NightSky";
+import { LazyOnView } from "@/components/motion/LazyOnView";
 
 // Homepage owns the root identity: its canonical + og:url/title point at "/".
 // (Removed from the root layout so subpages no longer inherit the homepage's.)
@@ -56,7 +57,12 @@ export default function Home() {
           band): a no-WebGL / SSR / lost-context render looks exactly as before, and
           NightSky's shader paints the afterglow + stars + embers on top when able. */}
       <div className="relative isolate bg-night">
-        <NightSky />
+        {/* Deferred: the night-sky WebGL context is created only as the band nears,
+            not at page load. Absolute-fill scene → wrapper stays a zero-box (no CLS);
+            the solid bg-night failsafe shows until it ignites. */}
+        <LazyOnView>
+          <NightSky />
+        </LazyOnView>
         <Contact />
         <Footer />
       </div>

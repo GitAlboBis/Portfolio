@@ -6,6 +6,7 @@ import { techIcons } from "@/data/skill-icons";
 import { Parallax } from "@/components/motion/Parallax";
 import { ScrollText } from "@/components/reveal/ScrollText";
 import { Marquee } from "@/components/motion/Marquee";
+import { LazyOnView } from "@/components/motion/LazyOnView";
 
 /**
  * Tech — the stack section. Editorial heading (eyebrow + title from the EN/IT
@@ -38,7 +39,14 @@ export function Tech() {
       </div>
 
       <div className="container-edit">
-        <TechCloud className="mx-auto w-full max-w-5xl" />
+        {/* Deferred: the icon-cloud WebGL context is created only as the section nears,
+            not at page load. minHeight reserves the cloud's box so there's no layout shift. */}
+        <LazyOnView
+          className="mx-auto w-full max-w-5xl"
+          style={{ minHeight: "clamp(20rem, 46vw, 32rem)" }}
+        >
+          <TechCloud className="w-full" />
+        </LazyOnView>
       </div>
 
       {/* The cloud is decorative (aria-hidden); expose the stack to screen readers. */}

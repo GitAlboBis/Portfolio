@@ -7,6 +7,8 @@ import { DualWaveText } from "@/components/reveal/DualWaveText";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
 import { JourneyTimeline } from "@/components/about/JourneyTimeline";
+import { LazyOnView } from "@/components/motion/LazyOnView";
+import { ShallowWater } from "@/components/atmosphere/ShallowWater";
 
 /**
  * AboutJourney — the long-form "/about" page: extended bio, Education, an Experience
@@ -49,12 +51,18 @@ export function AboutJourney() {
         </nav>
       </header>
 
-      {/* Intro */}
+      {/* Intro — over the ShallowWater atmosphere: golden-hour caustics on the
+          paper (the Sulcis coast the headline names), dissolving into dry ground
+          before the bio. Decorative, absolute-fill (zero CLS); no-WebGL falls back
+          to the page's own bg-paper. */}
       <section
-        className="container-edit"
+        className="relative"
         style={{ paddingBlock: "calc(var(--nav-h) + var(--section-y))" }}
       >
-        <div className="grid-edit">
+        <LazyOnView>
+          <ShallowWater />
+        </LazyOnView>
+        <div className="container-edit grid-edit relative">
           <Appear as="div" className="col-meta mb-6 lg:mb-0">
             <p className="t-eyebrow eyebrow-tick">{j.eyebrow}</p>
           </Appear>

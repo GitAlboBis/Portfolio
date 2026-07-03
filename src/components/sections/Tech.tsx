@@ -4,7 +4,7 @@ import { useDict } from "@/content/dict";
 import { TechCloud } from "@/components/tech-cloud";
 import { techIcons } from "@/data/skill-icons";
 import { Parallax } from "@/components/motion/Parallax";
-import { ScrollText } from "@/components/reveal/ScrollText";
+import { TideReveal } from "@/components/reveal/TideReveal";
 import { Marquee } from "@/components/motion/Marquee";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 
@@ -33,9 +33,9 @@ export function Tech() {
         <Parallax className="col-meta mb-6 lg:mb-0" from={66}>
           <p className="t-eyebrow eyebrow-tick">{t.tech.eyebrow}</p>
         </Parallax>
-        <ScrollText as="h2" id="tech-title" className="col-read t-display max-w-[16ch]">
+        <TideReveal as="h2" id="tech-title" className="col-read t-display max-w-[16ch]">
           {t.tech.title}
-        </ScrollText>
+        </TideReveal>
       </div>
 
       <div className="container-edit">

@@ -45,3 +45,4 @@ next-env.d.ts
 
 # reference repo clones studied for the water sim (Splash / WaterBall) — not ours
 /.analysis-clones/
+.env*

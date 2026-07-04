@@ -7,6 +7,7 @@ import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
 import { NightSky } from "@/components/atmosphere/NightSky";
+import { Nightfall } from "@/components/home/Nightfall";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 
 // Homepage owns the root identity: its canonical + og:url/title point at "/".
@@ -48,15 +49,26 @@ export default function Home() {
         {/* Selected Works — depth-fade gallery (home). The 3D carousel index lives at /work. */}
         <WorksGallery />
 
-        {/* Tech-stack — editorial heading + signature 3D icon cloud. */}
-        <Tech />
+        {/* Tech-stack — editorial heading + signature 3D icon cloud. Nightfall pins
+            it in its final reading position while the night band slides over it:
+            the day literally sinks under the night (the one stacking moment). */}
+        <Nightfall>
+          <Tech />
+        </Nightfall>
       </div>
 
       {/* Closing dark band — the one inversion + coda, over a living dusk atmosphere.
           The wrapper carries the solid `bg-night` failsafe (identical to the old flat
           band): a no-WebGL / SSR / lost-context render looks exactly as before, and
-          NightSky's shader paints the afterglow + stars + embers on top when able. */}
-      <div className="relative isolate bg-night">
+          NightSky's shader paints the afterglow + stars + embers on top when able.
+          `nightfall-cover` + z-20 ride it over the pinned Tech card (see Nightfall).
+          min-h-screen (= the 100vh cover travel, exactly): the band must be at least
+          as tall as the overlap or the runway's tail would poke out past the footer —
+          and the closing beat earns a full viewport of night anyway. */}
+      <div
+        id="nightfall"
+        className="nightfall-cover relative isolate z-20 flex min-h-screen flex-col bg-night"
+      >
         {/* Deferred: the night-sky WebGL context is created only as the band nears,
             not at page load. Absolute-fill scene → wrapper stays a zero-box (no CLS);
             the solid bg-night failsafe shows until it ignites. */}

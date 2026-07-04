@@ -256,6 +256,72 @@ body {
     scroll-margin-top: var(--nav-h);
   }
 
+  /* ── Nightfall stack (home day→night handoff) ─────────────────────────────
+     The runway extends 100vh past the day's last section; the card pins inside
+     it (top set by JS so its BOTTOM docks at the viewport bottom) while the
+     night band — pulled up by the same 100vh on .nightfall-cover — slides OVER
+     it. +100vh − 100vh = the document length and every other offset stay
+     exactly as before; only the handoff moment overlaps. The card's radius is
+     invisible at rest (paper on paper) and surfaces as it recedes.
+     Reduced-motion flattens the whole geometry in CSS (no render-time branch —
+     the server can't know the preference, and a JSX branch would break
+     hydration). */
+  /* The extra travel must be REAL CONTENT (a spacer), not padding: a sticky
+     element is confined to its parent's CONTENT box, so padding gives it zero
+     room to stay pinned. */
+  .nightfall-spacer {
+    height: 100vh;
+  }
+  .nightfall-card {
+    border-radius: 1.75rem;
+    overflow: clip;
+    background: var(--color-paper);
+  }
+  /* Sticky arms only post-hydration ([data-nf-ready] set by dock()): with no
+     JS the --nf-top fallback of 0px would pin the card by its TOP and invert
+     the dock — the tail of a tall section would slide under the night band
+     unread. No-JS/pre-hydration = plain flow, exactly like reduced-motion. */
+  .nightfall-card[data-nf-ready] {
+    position: sticky;
+    top: var(--nf-top, 0px);
+  }
+  .nightfall-veil {
+    position: absolute;
+    inset: 0;
+    /* Dark rises from the night edge (bottom); the top — where the section's
+       text sits — stays clean until the band itself covers it, so eyebrow and
+       meta contrast hold AA even parked mid-handoff. */
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--color-night) 72%, var(--color-dusk)),
+      transparent 62%
+    );
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nightfall-cover {
+    margin-top: -100vh;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nightfall-spacer {
+      height: 0;
+    }
+    /* Both selectors so the armed sticky rule (same specificity, earlier in
+       the file) loses the cascade: reduced stays flat even after dock() runs. */
+    .nightfall-card,
+    .nightfall-card[data-nf-ready] {
+      position: static;
+      border-radius: 0;
+      overflow: visible;
+    }
+    .nightfall-veil {
+      display: none;
+    }
+    .nightfall-cover {
+      margin-top: 0;
+    }
+  }
+
   /* ── Surfaces & marks ────────────────────────────────────────────────── */
   .glass {
     background: color-mix(in oklab, #ffffff 70%, var(--color-paper-deep));

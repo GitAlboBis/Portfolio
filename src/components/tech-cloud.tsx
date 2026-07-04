@@ -276,7 +276,15 @@ export function TechCloud({ className }: { className?: string }) {
       // getBoundingClientRect always reflects the true on-screen position.
       if ((gateTick++ & 7) === 0) {
         const r = container.getBoundingClientRect();
-        const next = r.bottom > -120 && r.top < window.innerHeight + 120;
+        // Geometry alone isn't enough since the Nightfall stack: the section can
+        // sit pinned INSIDE the viewport while fully hidden under the opaque
+        // night band — an ancestor then carries [data-scene-covered] (set by
+        // Nightfall at full cover) and the loop must sleep or it renders unseen
+        // frames forever at the page's natural end-state.
+        const next =
+          r.bottom > -120 &&
+          r.top < window.innerHeight + 120 &&
+          !container.closest("[data-scene-covered]");
         if (next && !inView) prev = performance.now();
         inView = next;
       }

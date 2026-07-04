@@ -273,16 +273,29 @@ body {
     height: 100vh;
   }
   .nightfall-card {
-    position: sticky;
-    top: var(--nf-top, 0px);
     border-radius: 1.75rem;
     overflow: clip;
     background: var(--color-paper);
   }
+  /* Sticky arms only post-hydration ([data-nf-ready] set by dock()): with no
+     JS the --nf-top fallback of 0px would pin the card by its TOP and invert
+     the dock — the tail of a tall section would slide under the night band
+     unread. No-JS/pre-hydration = plain flow, exactly like reduced-motion. */
+  .nightfall-card[data-nf-ready] {
+    position: sticky;
+    top: var(--nf-top, 0px);
+  }
   .nightfall-veil {
     position: absolute;
     inset: 0;
-    background: color-mix(in oklab, var(--color-night) 72%, var(--color-dusk));
+    /* Dark rises from the night edge (bottom); the top — where the section's
+       text sits — stays clean until the band itself covers it, so eyebrow and
+       meta contrast hold AA even parked mid-handoff. */
+    background: linear-gradient(
+      to top,
+      color-mix(in oklab, var(--color-night) 72%, var(--color-dusk)),
+      transparent 62%
+    );
     opacity: 0;
     pointer-events: none;
   }
@@ -293,7 +306,10 @@ body {
     .nightfall-spacer {
       height: 0;
     }
-    .nightfall-card {
+    /* Both selectors so the armed sticky rule (same specificity, earlier in
+       the file) loses the cascade: reduced stays flat even after dock() runs. */
+    .nightfall-card,
+    .nightfall-card[data-nf-ready] {
       position: static;
       border-radius: 0;
       overflow: visible;

@@ -1,10 +1,10 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-03** (Codrops lane: ShallowWater + TideSurge + Nightfall in-flight). This is the "continue here" doc.
+> Last updated: **2026-07-04** (Codrops lane: **Nightfall MERGED** — lane senza item sbloccati). This is the "continue here" doc.
 
 ---
 
-## ⏯ CONTINUA DA QUI — sessione 2026-07-03 (lane Codrops, mandato AUTO-MERGE)
+## ⏯ CONTINUA DA QUI — sessione 2026-07-04 (lane Codrops, mandato AUTO-MERGE)
 
 **Mandato attivo di Alberto:** ogni feature della lane Codrops si mergia su `main` **in automatico** (push = deploy Vercel). Restano gated solo G4 (solver fluido), G5 (asset a pagamento) e i contenuti.
 
@@ -14,24 +14,18 @@
 | **ShallowWater** — velo di caustiche golden-hour (port procedurale del pen MIT `ksenia-k/RwXVMMY`; sorgente mirror: repo GitHub `tysev44/kentrosneep`) | `829611c` | Su /about + /work + /work/[slug]; **intensificato** su richiesta (shading ≤.55, campo più denso, waterline più bassa) nei cap AA. Hardening da review: repaint-on-resize, fase grana wrappata, luce verso paper. Back-port (repaint + grana) a NightSky. |
 | **TideSurge** — h2 del Contact risale come marea, scrubbato (Codrops OnScrollTypography FX2) | `bcfd557` | Sostituisce FlipText (file tenuto, ora inutilizzato). Finestre **clamp()** (bug viewport alti riprodotto e fixato), no will-change, no autoSplit inerte (tolto anche da DualWaveText). |
 | **fix hydration reduced-motion** | `2cc0858` | `src/lib/use-hydrated.ts` gate i branch a render-time (WorksGallery, WorkHorizontal); DrawLine seeda il dash nell'effect. /, /about, /work reduced = 0 errori console. |
-| docs CODEDROPSPLAN aggiornati | `6bd040d` | |
+| **Nightfall** — sticky-stack giorno→notte sulla home (lane #5, "Sticky Grid Scroll") | `aba5b92` | `<Nightfall><Tech/></Nightfall>`: card Tech pinnata col fondo al fold (`--nf-top` da ResizeObserver + spacer 100vh reale; cover `#nightfall` con `margin-top:-100vh` — offset di pagina invariati), scrub welded al bordo notte (scale→.955 + velo gradiente night/dusk, max .55). **2 round di review avversariale (6+3 finding, tutti fixati)** — dettagli nella riga Fatto di `CODEDROPSPLAN.md`: covered-gate geometrico + revalidate scroll nativo, sticky armato post-hydration (`[data-nf-ready]`), disarmo su `refreshInit` (refresh a card stuck = trigger interni cotti di ~100vh), `refresh(true)` safe debounced (desync EN↔IT). Gate `_nightfall.mjs` (5 pass incl. portrait) + `_locprobe.mjs` ALL PASS. |
 
-### ⚠ IN CORSO — branch `feat/nightfall` (NON mergiato, working tree con edit non committati)
-**Cos'è:** #5 della lane — sticky-stack del passaggio giorno→notte sulla home. `<Nightfall><Tech/></Nightfall>` (`src/components/home/Nightfall.tsx` NUOVO): la card Tech si pinna col fondo al fold (`--nf-top = innerHeight − cardH` da ResizeObserver, sticky + **spacer 100vh reale** — lo sticky è confinato al CONTENT box del parent, il padding NON dà corsa), la banda night (`#nightfall`, classi `nightfall-cover z-20 flex min-h-screen flex-col` in `page.tsx`, `margin-top:-100vh`) le sale sopra; scrub GSAP (trigger `#nightfall`, top bottom→top top) fa arretrare la card (scale→.955) + velo crepuscolare (opacity→.45). Contact ha `flex-1` (footer ancorato al fondo del band min-h-screen). CSS in `globals.css` `.nightfall-*` con flattening reduced-motion **in CSS puro** (no branch a render-time). **Gate `_nightfall.mjs`: ALL PASS** (desktop/tall/mobile/reduced) · typecheck+build verdi.
+### ▶ PROSSIMO
+La lane Codrops ha **esaurito gli item sbloccati senza dipendenze**:
+- **#4 Flip grid** (`Ibaliqbal/grid-layout-transition`): vuole un **contenuto a griglia** (es. chips skill del Tech) → **confirm-feel di Alberto** prima.
+- **Image-driven** (Wave Motion, 3D Rotations, Thumbnail Flow, …): bloccati sulle **still reali** (`Work.textureSrc`).
+- Fuori lane, dal backlog (`PLAN.md`): feel-calls G4 (leva/device.lost), media wiring (`textureSrc`/`videoSrc` — nessuna superficie li carica ancora).
 
-**Review avversariale completata: 4 finding confermati (2 riprodotti con Playwright dai verifier). Stato fix:**
-1. ✅ **APPLICATO** — `tech-cloud.tsx` (gate ~riga 277): il loop ora dorme anche se un antenato ha `[data-scene-covered]` (era il **major**: il cloud renderizzava per sempre dietro la banda notte opaca — doppia GPU a fondo pagina).
-2. ✅ **APPLICATO** — `Nightfall.tsx` importa `ScrollTrigger` da `@/lib/gsap` (serve per il fix 5).
-3. ⏳ **DA FARE (senza questo il fix 1 è INERTE!)** — in `Nightfall.tsx`, nello scrollTrigger dello scrub aggiungere `onUpdate: (self) => card.toggleAttribute("data-scene-covered", self.progress > 0.995)` (e toglierlo nel cleanup) così la card marca la copertura totale.
-4. ⏳ **DA FARE** — pin solo post-hydration: in `globals.css` togliere `position/top` dalla base `.nightfall-card` e metterli su `.nightfall-card[data-nf-ready]`; in `Nightfall.tsx` `dock()` setta `card.dataset.nfReady = ""`. (Finding: il fallback `top: 0px` pre-hydration/no-JS inverte il dock — la coda di Tech passa sotto la notte senza mai essere leggibile.)
-5. ⏳ **DA FARE** — AA nel mid-handoff parcheggiabile: velo → **gradiente** `linear-gradient(to top, <color-mix night/dusk>, transparent 62%)` (il buio precede il bordo della notte, la zona alta col testo resta pulita) + alza il max opacity 0.45→0.55 in `Nightfall.tsx`. (Finding: eyebrow ember-ink sotto 4.5:1 da progress ≈27% con velo piatto.)
-6. ⏳ **DA FARE** — desync EN↔IT: `ScrollTrigger.refresh()` debounced (~200ms) quando cambia la geometria — dentro `dock()` al cambio reale di altezza card + un ResizeObserver su `document.body` (il shift può venire da About sopra la runway; riprodotto: +27px su mobile IT).
-7. ⏳ Poi: aggiorna `_nightfall.mjs` (assert `data-scene-covered` presente a fondo pagina; il check veil-opacity con i nuovi valori) → `node _nightfall.mjs` ALL PASS → `npm run typecheck` + `npm run build` → commit su `feat/nightfall` → **merge --no-ff su main + push** (mandato) → tick su `CODEDROPSPLAN.md` (#5) → aggiorna memoria (`codrops-lane.md`).
-
-### Note operative della sessione
-- **Mistero "velo meno definito" RISOLTO:** era la **cache Turbopack corrotta** (`.next`) dopo un crash "Jest worker" del dev server — serviva CSS/chunk stantii. Fix: kill del processo node su :3000 → `Remove-Item -Recurse -Force .next` → `npm run dev`. Il codice del velo non era cambiato.
-- Gate Playwright (root, untracked): `_water.mjs` (velo multi-route) · `_surge.mjs` (TideSurge, incl. viewport alti + settle per-char) · `_nightfall.mjs` (stack) · `_pinprobe.mjs`/`_cssprobe.mjs` (probe usa-e-getta).
-- Dopo il merge di Nightfall la lane ha esaurito gli item sbloccati: #4 (Flip grid) vuole contenuto a griglia, gli image-driven aspettano le still (`Work.textureSrc`). Vedi `CODEDROPSPLAN.md`.
+### Note operative
+- **Cache Turbopack corrotta** (`.next`) dopo un crash "Jest worker" del dev server = CSS/chunk stantii serviti. Fix: kill node su :3000 → `Remove-Item -Recurse -Force .next` → `npm run dev`.
+- Gate Playwright (root, untracked): `_water.mjs` (velo multi-route) · `_surge.mjs` (TideSurge) · `_nightfall.mjs` (stack, 5 pass) · `_locprobe.mjs` (locale-switch + stuck-refresh regression) · `_pinprobe.mjs`/`_cssprobe.mjs` (usa-e-getta).
+- Lezione Nightfall (pattern riusabile): **sticky + ScrollTrigger non si conoscono** — un `refresh()` mentre l'elemento è stuck misura i trigger interni spostati; disarmare lo sticky su `refreshInit` e riarmarlo su `refresh` (sincrono, nessun flash). E ogni flag scritto da `onUpdate` può andare stantio sui salti che GSAP non vede → revalidate su scroll nativo, guardia `hasAttribute` (gratis fuori dalla zona).
 
 ---
 > Operational brain: **`CLAUDE.md`** (rewritten Golden Hour — golden rules, file map, reference links + code-extraction, skill/MCP routing, gates). Backlog: **`PLAN.md`**. Water sim/render: **`WATER-WAVE-PLAN.md`**.

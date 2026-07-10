@@ -1,9 +1,11 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { works } from "@/content/works";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
@@ -146,6 +148,9 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
         ) : null}
       </section>
 
+      {/* Next-project handoff — the studies close into a loop */}
+      <NextProject slug={slug} />
+
       {/* Closing — night band */}
       <section className="night bleed" style={{ background: "var(--color-night)" }}>
         <div className="container-edit flex items-center justify-between py-14">
@@ -158,5 +163,79 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
         </div>
       </section>
     </main>
+  );
+}
+
+/**
+ * NextProject — full-bleed handoff band above the closing night section: the
+ * next CONFIRMED study (provisional SerSan entries excluded) approaches on the
+ * runway's counter-speed grammar — title drifts in at +6vw, the 30vw ghost
+ * numeral (WorkHorizontal's far-layer vocabulary, same color-mix ink 6%) at
+ * +2vw — welded to the scroll, both window ends CLAMPED (document-end rule).
+ * The whole band is ONE link: reading order = eyebrow ("Next project") then
+ * title; the numeral is decorative. Hover translate lives on an INNER span —
+ * the h2's transform belongs to the scrub (CSS and GSAP must never share one
+ * element's transform). Reduced-motion: the effect never runs, the band sits
+ * at its final position (fromTo initial states are applied at effect time).
+ */
+function NextProject({ slug }: { slug: string }) {
+  const t = useDict();
+  const reduced = useUI((s) => s.reducedMotion);
+  const ref = React.useRef<HTMLElement>(null);
+
+  const confirmed = works.filter((w) => w.status === "confirmed");
+  const idx = confirmed.findIndex((w) => w.slug === slug);
+  const next = confirmed[(idx + 1) % confirmed.length];
+
+  useGSAP(
+    () => {
+      const el = ref.current;
+      if (!el || reduced || !next) return;
+      const tl = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: { trigger: el, start: "clamp(top 95%)", end: "clamp(top 40%)", scrub: 1 },
+      });
+      tl.fromTo("[data-next-title]", { x: "6vw" }, { x: 0 }, 0).fromTo(
+        "[data-next-num]",
+        { x: "2vw" },
+        { x: 0 },
+        0,
+      );
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+      };
+    },
+    { scope: ref, dependencies: [reduced, next?.slug] },
+  );
+
+  if (!next || next.slug === slug) return null;
+
+  return (
+    <section ref={ref} className="bleed relative overflow-hidden bg-paper-deep">
+      {/* far parallax layer — WorkHorizontal's ghost-numeral vocabulary */}
+      <span
+        aria-hidden
+        data-next-num
+        className="pointer-events-none absolute -bottom-[6vw] right-[2vw] font-display text-[30vw] font-bold leading-none"
+        style={{ color: "color-mix(in oklab, var(--color-ink) 6%, transparent)" }}
+      >
+        {String(((idx + 1) % confirmed.length) + 1).padStart(2, "0")}
+      </span>
+
+      <Link href={`/work/${next.slug}`} className="group block">
+        <div className="container-edit relative py-[clamp(4rem,12vh,8rem)]">
+          <p className="t-eyebrow eyebrow-tick">{t.works.next}</p>
+          <h2
+            data-next-title
+            className="mt-5 max-w-[14ch] font-display font-bold leading-[0.95] tracking-[-0.03em] text-ink [font-size:clamp(2.5rem,7vw,7rem)]"
+          >
+            <span className="inline-block transition-[transform,color] duration-300 ease-[var(--ease-tide)] group-hover:translate-x-2 group-hover:text-ember-ink">
+              {next.title}
+            </span>
+          </h2>
+        </div>
+      </Link>
+    </section>
   );
 }

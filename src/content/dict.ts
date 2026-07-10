@@ -43,6 +43,7 @@ const sectionSchema = z.object({
     roleLabel: z.string(),
     wip: z.string(),
     back: z.string(),
+    next: z.string(),
   }),
   tech: z.object({
     eyebrow: z.string(),
@@ -106,6 +107,7 @@ const en: Dict = {
     roleLabel: "Role",
     wip: "Work in progress",
     back: "All work",
+    next: "Next project",
   },
   tech: {
     eyebrow: "02 — Stack",
@@ -188,6 +190,7 @@ const it: Dict = {
     roleLabel: "Ruolo",
     wip: "In lavorazione",
     back: "Tutti i lavori",
+    next: "Prossimo progetto",
   },
   tech: {
     eyebrow: "02 — Stack",

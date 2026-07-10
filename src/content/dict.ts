@@ -23,6 +23,8 @@ const sectionSchema = z.object({
     name: z.string(),
     role: z.string(),
     tagline: z.string(),
+    /** The one jewel word inside `tagline` (must be a substring of it). */
+    taglineAccent: z.string(),
     scroll: z.string(),
   }),
   about: z.object({
@@ -83,6 +85,7 @@ const en: Dict = {
     name: "Alberto Tuveri",
     role: "Full-stack engineer · AI at the edge",
     tagline: "I build interfaces that move like water.",
+    taglineAccent: "water",
     scroll: "Scroll to dive",
   },
   about: {
@@ -158,6 +161,7 @@ const it: Dict = {
     name: "Alberto Tuveri",
     role: "Full-stack engineer · AI sul bordo",
     tagline: "Costruisco interfacce che si muovono come l'acqua.",
+    taglineAccent: "acqua",
     scroll: "Scorri per immergerti",
   },
   about: {

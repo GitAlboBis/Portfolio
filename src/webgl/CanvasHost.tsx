@@ -49,11 +49,15 @@ export function CanvasHost() {
 
   return (
     <>
-      {/* CSS sea backdrop — ultimate fallback (no canvas at all). */}
+      {/* CSS sea backdrop — ultimate fallback (no canvas at all). z-0 like the
+          fluid canvas, NOT negative: body paints its opaque paper background
+          OVER negative-z children (CSS painting order), which buried this
+          gradient and left the no-WebGPU / reduced-motion hero on blank paper.
+          The content layers above it are z-10/z-20, so nothing else changes. */}
       <div
         id="sea-backdrop"
         aria-hidden
-        className="fixed inset-0 -z-10"
+        className="pointer-events-none fixed inset-0 z-0"
         style={{ background: SEA_GRADIENT }}
       />
       {showFluid && <WaterBallHero />}

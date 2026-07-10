@@ -2,6 +2,7 @@
 
 import { useDict } from "@/content/dict";
 import { Appear } from "@/components/motion/Appear";
+import { RollLink } from "@/components/motion/RollLink";
 import { ShimmerText } from "@/components/reveal/ShimmerText";
 
 type Lenis = { scrollTo: (t: number, o?: { offset?: number }) => void };
@@ -37,18 +38,19 @@ export function Footer() {
           </div>
 
           <nav className="flex gap-7">
-            <a
+            <RollLink
+              as="a"
               href={`mailto:${t.contact.email}`}
+              label={t.footer.email}
               className="t-meta transition-colors duration-300 hover:text-amber"
-            >
-              Email
-            </a>
-            <button
+            />
+            <RollLink
+              as="button"
               onClick={toTop}
+              prefix="↑"
+              label={t.footer.top}
               className="t-meta transition-colors duration-300 hover:text-amber"
-            >
-              ↑ Top
-            </button>
+            />
           </nav>
         </div>
 

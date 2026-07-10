@@ -5,6 +5,7 @@ import { useDict } from "@/content/dict";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Parallax } from "@/components/motion/Parallax";
+import { RollLink } from "@/components/motion/RollLink";
 
 /**
  * About — first content section (the descent below the hero).
@@ -33,12 +34,13 @@ export function About() {
               {t.about.body}
             </ScrollWords>
           </Parallax>
-          <Link
+          <RollLink
+            as={Link}
             href="/about"
-            className="mt-8 inline-flex items-center gap-2 t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
-          >
-            {t.journey.eyebrow} →
-          </Link>
+            label={t.journey.eyebrow}
+            suffix="→"
+            className="mt-8 inline-block t-meta text-ember-ink"
+          />
         </div>
       </div>
     </section>

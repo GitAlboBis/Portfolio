@@ -73,6 +73,8 @@ const sectionSchema = z.object({
     place: z.string(),
     sound: z.string(),
     rights: z.string(),
+    email: z.string(),
+    top: z.string(),
   }),
 });
 
@@ -151,7 +153,13 @@ const en: Dict = {
     more: "Selected work",
     back: "Back to home",
   },
-  footer: { place: "Masua · 39°09′N 8°25′E", sound: "Ambient", rights: "All rights reserved" },
+  footer: {
+    place: "Masua · 39°09′N 8°25′E",
+    sound: "Ambient",
+    rights: "All rights reserved",
+    email: "Email",
+    top: "Top",
+  },
 };
 
 const it: Dict = {
@@ -227,7 +235,13 @@ const it: Dict = {
     more: "Lavori scelti",
     back: "Torna alla home",
   },
-  footer: { place: "Masua · 39°09′N 8°25′E", sound: "Ambiente", rights: "Tutti i diritti riservati" },
+  footer: {
+    place: "Masua · 39°09′N 8°25′E",
+    sound: "Ambiente",
+    rights: "Tutti i diritti riservati",
+    email: "Email",
+    top: "Su",
+  },
 };
 
 // Dev-only shape guard: surfaces en/it drift early.

@@ -9,6 +9,7 @@ import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
+import { RollLink } from "@/components/motion/RollLink";
 
 /**
  * WorkCaseStudy — the /work/[slug] case-study page for a CONFIRMED project. All copy
@@ -50,9 +51,13 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
           >
             Alberto&nbsp;Tuveri
           </Link>
-          <Link href="/#works" className="t-meta transition-colors duration-300 hover:text-ember-ink">
-            ← {t.works.back}
-          </Link>
+          <RollLink
+            as={Link}
+            href="/#works"
+            prefix="←"
+            label={t.works.back}
+            className="t-meta"
+          />
         </nav>
       </header>
 
@@ -131,7 +136,7 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
                   href={l.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
+                  className="link t-meta text-ember-ink"
                 >
                   {l.label} ↗
                 </a>
@@ -144,10 +149,10 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
       {/* Closing — night band */}
       <section className="night bleed" style={{ background: "var(--color-night)" }}>
         <div className="container-edit flex items-center justify-between py-14">
-          <Link href="/#works" className="t-meta text-amber transition-colors duration-300 hover:text-paper">
+          <Link href="/#works" className="link t-meta text-amber">
             ← {t.works.back}
           </Link>
-          <Link href="/#contact" className="t-meta text-amber transition-colors duration-300 hover:text-paper">
+          <Link href="/#contact" className="link t-meta text-amber">
             {t.contact.cta} →
           </Link>
         </div>

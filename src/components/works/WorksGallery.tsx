@@ -9,6 +9,7 @@ import { useUI } from "@/store/ui";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useHydrated } from "@/lib/use-hydrated";
 import { LazyOnView } from "@/components/motion/LazyOnView";
+import { RollLink } from "@/components/motion/RollLink";
 
 /*
   Selected Works — "atmospheric depth gallery" (original R3F reimplementation of the
@@ -125,21 +126,23 @@ export function WorksGallery() {
           </p>
           <div className="js-work-meta pointer-events-auto mt-4 flex items-center gap-6">
             {w.status === "confirmed" ? (
-              <Link
+              <RollLink
+                as={Link}
                 href={`/work/${w.slug}`}
-                className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
-              >
-                {t.works.open} →
-              </Link>
+                label={t.works.open}
+                suffix="→"
+                className="t-meta text-ember-ink"
+              />
             ) : (
               <span className="t-meta text-ink-mute">{t.works.wip}</span>
             )}
-            <Link
+            <RollLink
+              as={Link}
               href="/work"
+              label={t.works.back}
+              suffix="↗"
               className="t-meta text-ink-mute transition-colors duration-300 hover:text-ink"
-            >
-              {t.works.back} ↗
-            </Link>
+            />
           </div>
         </div>
 

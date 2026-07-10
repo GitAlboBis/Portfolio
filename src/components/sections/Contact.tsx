@@ -34,7 +34,8 @@ export function Contact() {
           >
             <BorderBeam from="var(--color-amber)" via="var(--color-ember)" width={1.5} size={64} />
             {t.contact.cta}
-            <span aria-hidden className="opacity-70">
+            {/* the inline email overflows the 390px viewport — label-only there */}
+            <span aria-hidden className="hidden opacity-70 sm:inline">
               — {t.contact.email}
             </span>
           </a>

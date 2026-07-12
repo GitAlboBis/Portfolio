@@ -20,9 +20,15 @@
 
 **Lezioni nuove (oltre a quelle Nightfall):** ① `end:"55% top"` su ScrollTrigger risolve la % contro il DOCUMENTO, non il trigger — usare `"+=55%"`. ② il body dipinge il suo background SOPRA i figli fixed a z negativo — mai `-z-*` per backdrop sotto `bg-paper`. ③ `useGSAP` con deps senza `revertOnUpdate` = deferCleanup (cleanup solo a unmount): ogni flip locale/reduced accumula context/listener/trigger. ④ tween creati async (subscription/delayedCall) vivono FUORI dal context GSAP → kill + clearProps manuali. ⑤ headless WebGPU = SwiftShader (secondi per frame): nelle probe Playwright forza `navigator.gpu = undefined` e verifica il fluido in Chrome reale.
 
+### ✅ Continuous Curtain — MERGED (`f4eb0dc` + fix `f5c7827`, 2026-07-12)
+La navigazione è UN beat continuo: exit cover → swap coperto → enter lift.
+- **`CoverOverlay`** (montato in `layout.tsx` — DEVE sopravvivere al remount di template): stesse due curtainPath del menu/enter (sunset 1.7 guida, night 4.2 insegue), v 0→1 in 0.42s power2.in. **Handshake senza frame scoperti:** l'enter del nuovo route si aggancia coperto PRE-paint (layout effect), il release dell'overlay è post-paint su `usePathname`. **Bail 2.5s** ritrae la tenda se la push non atterra (fetch stallata); `handoff()` salta se c'è un NUOVO descend live (commit straggler non uccide la nav in corso). **Input sigillato sotto copertura:** i path dipinti inghiottono il pointer (root svg resta PE-none) + `inert` su `[data-page-root]` (il div contenuto di RouteTransition) — niente locale-flip/menu fantasma sotto il night pieno.
+- **`TransitionLink`** (drop-in next/link, alias `{ TransitionLink as Link }` in 6 file): intercetta SOLO le nav della tenda — modifier/middle click, external/target, hash same-pathname, reduced-motion, defaultPrevented passano nativi; latch anti double-click.
+- **Hash-nav multi-snap** (`RouteTransition`): `/#works` coperta atterra SULLA sezione — snap a mount + `fonts.ready` + fine lift + 1.4s (in prod font tardivi + chunk R3F spostavano il target di ~1300px DOPO il primo snap; il dev cache-warm lo nascondeva). Rider: `ScrollTrigger.refresh(true)`.
+- **QA:** matrice `_curtain.mjs` **11 scenari ALL PASS** (nav coperta, ctrl+click, middle, double-click latch, back, hung-bail su stallo, reduced, loop IT, under-cover-inert, hash-section, slow-success) + 1 round review avversariale (4 finding confermati, fixati). ⚠ verifica prod hash-nav interrotta da **Vercel Security Checkpoint** (challenge anti-bot sul MIO IP dopo il polling — non tocca gli utenti); ri-verificare `worksTop≈80` da /work/badante24h → "← All work" quando scade.
+
 ### ▶ PROSSIMO (candidati)
-- **Continuous Curtain** (exit-cover via TransitionLink) — item 7 del panel, L effort, branch dedicato + matrice QA navigazione (modifier/middle-click, popstate, timeout release, `refresh(true)` rider su RouteTransition:58).
-- Dal backlog PLAN: SerSan contenuti reali (🔵), stills `Work.textureSrc` (sbloccano gli effetti image-driven), Lighthouse/axe pass (WP-10), #4 Flip grid (🔵 confirm-feel).
+- Dal backlog PLAN: SerSan contenuti reali (🔵), stills `Work.textureSrc` (sbloccano gli effetti image-driven), Lighthouse/axe pass (WP-10), #4 Flip grid (🔵 confirm-feel), shared-title handoff /work→case (ora che la curtain è stabile — prototipa e gate spietato).
 
 ---
 

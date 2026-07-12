@@ -5,7 +5,7 @@
 
 ## ✅ Done 2026-07-12 (motion package — dettagli in HANDOFF)
 - Hero copy over the water "A" (h1 reale, AA pixel-misurato, no-WebGPU fallback rescued) · RollLink char-roll + .link underline-draw (partition table in RollLink.tsx) · footer FlipText wordmark + © dinamico · next-project handoff band sui case study · /work spotlight + odometer + will-change cleanup.
-- **Panel-approved ma non costruito:** *Continuous Curtain* (exit-cover via TransitionLink, L effort, branch dedicato + matrice QA navigazione) — il prossimo item grosso a zero dipendenze.
+- **Continuous Curtain SHIPPED (2026-07-12, `f4eb0dc`+`f5c7827`)**: exit-cover via TransitionLink + CoverOverlay (handoff/bail/inert), hash-nav multi-snap, 11-scenario QA matrix. Sbloccato il prossimo candidato: shared-title handoff /work→case study (prototipa, gate spietato).
 
 ## ✅ Done (this session — see HANDOFF for the commit list)
 - **CLAUDE.md** rewritten to Golden Hour (+ §6 reference links/extraction, skill routing). Skills installed under `.claude/skills/`.

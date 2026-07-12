@@ -1,10 +1,32 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-04** (Codrops lane: **Nightfall MERGED** — lane senza item sbloccati). This is the "continue here" doc.
+> Last updated: **2026-07-12** (**Motion package MERGED & DEPLOYED** — hero ink, link identities, footer wordmark, case-study loop, runway spotlight). This is the "continue here" doc.
 
 ---
 
-## ⏯ CONTINUA DA QUI — sessione 2026-07-04 (lane Codrops, mandato AUTO-MERGE)
+## ⏯ CONTINUA DA QUI — sessione 2026-07-10→12 (motion package, merged @ `5c9d12c`)
+
+**Cosa è arrivato su `main` (deployato e verificato in prod, Chrome reale + probe):**
+| Cosa | Note |
+|---|---|
+| **Hero Ink** (`hero/HeroCopy.tsx`) | il primo viewport finalmente PARLA: h1 nome + ruolo + tagline (jewel word amber **bold** da `hero.taglineAccent`) + scroll-cue, SplitText mask-lines (fonts race-cap 1.5s, autoSplit), sink+dissolve scrubbata col drain della "A" (`end:"+=55%"`). Scrim dusk 58vh con mid-stop: **AA misurato coi pixel** (`_contrast.mjs`) — tutti PASS anche worst-pixel su 1440+390. Fix collaterale: `sea-backdrop` era `-z-10` = sepolto dal body (fallback no-WebGPU/reduced era carta bianca) → `z-0`. |
+| **RollLink + `.link`** (`motion/RollLink.tsx`, globals) | UNA identità hover per i link chrome (char-roll GSAP, sr-only intatto, matchMedia hover+fine+no-reduced, `revertOnUpdate`) + underline-draw direzionale per i link in-flow. **Tabella di partizione dentro RollLink.tsx** — un trattamento per link, mai due. |
+| **Footer wordmark** (`Footer.tsx`, `FlipText.tsx` resuscitato) | "Alberto Tuveri" gigante hinge-out plank-by-plank + punto ember (fuori dallo split), FUORI da Appear (no double-animation); FlipText hardened (clamp start, back.out 1.2, text-repair). Anno © dinamico. `footer.email/top` in dict (violazione EN/IT sanata). |
+| **Next-project handoff** (`WorkCaseStudy.tsx`) | banda paper-deep sopra la chiusura night: prossimo progetto CONFERMATO in loop, drift scrubbato title +6vw / numeral ghost 30vw +2vw (grammatica runway), entrambe le estremità clamp(), banda = un solo link, eyebrow ink-mute (ember-ink su paper-deep = 4.3:1, fail). |
+| **Runway spotlight + odometro** (`WorkHorizontal.tsx`) | wash opacity .55→1→.55 + scale contenuto .968→1 per slide sul timeline ESISTENTE (zero nuovi trigger); contatore = striscia odometro (tween discreto `overwrite:'auto'`, regge inversioni violente); will-change statici RIMOSSI da titoli/numerali (wash ora `transform-gpu` per l'opacity scrubbata). |
+| Riders | CTA contact senza email inline sotto `sm` (overflow 390); hero-cue via token color-mix. |
+
+**2 round di review avversariale** (5 lenti + 2 scettici per finding): 7 finding confermati, tutti fixati — i due leak `revertOnUpdate` (RollLink/NextProject su flip locale/reduced), cue tween async fuori context (clearProps in cleanup), jewel 600→**700** (WCAG large-text vuole bold vero), eyebrow AA, wash repaint. Probe nuove in root (untracked): `_heroink.mjs`, `_rolllink.mjs`, `_wordmark.mjs`, `_nextproj.mjs`, `_runway.mjs`, `_contrast.mjs` (campionamento WCAG su pixel reali — riusalo per OGNI testo su gradiente/canvas).
+
+**Lezioni nuove (oltre a quelle Nightfall):** ① `end:"55% top"` su ScrollTrigger risolve la % contro il DOCUMENTO, non il trigger — usare `"+=55%"`. ② il body dipinge il suo background SOPRA i figli fixed a z negativo — mai `-z-*` per backdrop sotto `bg-paper`. ③ `useGSAP` con deps senza `revertOnUpdate` = deferCleanup (cleanup solo a unmount): ogni flip locale/reduced accumula context/listener/trigger. ④ tween creati async (subscription/delayedCall) vivono FUORI dal context GSAP → kill + clearProps manuali. ⑤ headless WebGPU = SwiftShader (secondi per frame): nelle probe Playwright forza `navigator.gpu = undefined` e verifica il fluido in Chrome reale.
+
+### ▶ PROSSIMO (candidati)
+- **Continuous Curtain** (exit-cover via TransitionLink) — item 7 del panel, L effort, branch dedicato + matrice QA navigazione (modifier/middle-click, popstate, timeout release, `refresh(true)` rider su RouteTransition:58).
+- Dal backlog PLAN: SerSan contenuti reali (🔵), stills `Work.textureSrc` (sbloccano gli effetti image-driven), Lighthouse/axe pass (WP-10), #4 Flip grid (🔵 confirm-feel).
+
+---
+
+## ⏯ sessione 2026-07-04 (lane Codrops, mandato AUTO-MERGE)
 
 **Mandato attivo di Alberto:** ogni feature della lane Codrops si mergia su `main` **in automatico** (push = deploy Vercel). Restano gated solo G4 (solver fluido), G5 (asset a pagamento) e i contenuti.
 

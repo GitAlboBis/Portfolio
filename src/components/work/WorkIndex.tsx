@@ -43,7 +43,7 @@ export function WorkIndex() {
               href="/"
               prefix="←"
               label={t.journey.back}
-              className="t-meta"
+              className="t-meta transition-colors duration-300 hover:text-ember-ink"
             />
           </div>
         </nav>

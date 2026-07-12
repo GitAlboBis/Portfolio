@@ -50,7 +50,7 @@ export function AboutJourney() {
               href="/"
               prefix="←"
               label={j.back}
-              className="t-meta"
+              className="t-meta transition-colors duration-300 hover:text-ember-ink"
             />
           </div>
         </nav>

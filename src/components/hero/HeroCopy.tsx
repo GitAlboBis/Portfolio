@@ -123,9 +123,11 @@ export function HeroCopy() {
       // end "+=55%" = 55% of the viewport past the start (the hero is exactly
       // 100dvh). NOT "55% top": a bare percentage there resolves against the
       // whole DOCUMENT height (verified: end landed at 0.55×docHeight).
+      // `opacity`, NOT autoAlpha: visibility:hidden would drop the page's only
+      // h1 out of the accessibility tree for anyone parked below the hero.
       const out = gsap.to(el, {
         y: -48,
-        autoAlpha: 0,
+        opacity: 0,
         ease: "none",
         scrollTrigger: { trigger: "#hero", start: "top top", end: "+=55%", scrub: true },
       });
@@ -157,31 +159,37 @@ export function HeroCopy() {
           Decorative support, not a section: the night BAND stays unique. */}
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 h-[52vh]"
+        className="absolute inset-x-0 bottom-0 h-[58vh]"
         style={{
+          // mid-stop holds density where the copy actually sits (the top line
+          // was landing on the gradient's thin tail and failing AA — measured)
           background:
-            "linear-gradient(to top, color-mix(in oklab, var(--color-night) 72%, var(--color-dusk)) 0%, transparent 100%)",
-          opacity: 0.38,
+            "linear-gradient(to top, color-mix(in oklab, var(--color-night) 72%, var(--color-dusk)) 0%, color-mix(in srgb, color-mix(in oklab, var(--color-night) 72%, var(--color-dusk)) 72%, transparent) 48%, transparent 100%)",
+          opacity: 0.56,
         }}
       />
 
       <div className="container-edit relative pb-[clamp(2.5rem,6vh,4.5rem)]">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-10">
           <div>
-            <p data-hero-line className="t-meta text-paper/80">
+            <p data-hero-line className="t-meta text-paper">
               {t.hero.role}
             </p>
+            {/* h1 = the name alone; the role is the line above, and <title> +
+                JSON-LD carry "Software Engineer" for SEO — no hardcoded
+                sr-only suffix bypassing the dict. */}
             <h1 className="t-display mt-3 text-paper">
               <span data-hero-line className="block">
                 {t.hero.name}
               </span>
-              <span className="sr-only"> — Software Engineer</span>
             </h1>
-            <p data-hero-line className="t-lead mt-5 max-w-[28ch] text-paper/85">
+            <p data-hero-line className="t-lead mt-5 max-w-[28ch] text-paper/90">
               {accentAt >= 0 ? (
                 <>
                   {tagline.slice(0, accentAt)}
-                  <span className="text-amber">{accent}</span>
+                  {/* font-semibold lifts the jewel word into the large-text
+                      contrast class (AA 3:1) at the mobile t-lead size */}
+                  <span className="font-semibold text-amber">{accent}</span>
                   {tagline.slice(accentAt + accent.length)}
                 </>
               ) : (
@@ -191,7 +199,7 @@ export function HeroCopy() {
           </div>
 
           <div data-hero-cue className="flex flex-col items-center gap-3 pb-1">
-            <span className="t-meta text-paper/70">{t.hero.scroll}</span>
+            <span className="t-meta text-paper/85">{t.hero.scroll}</span>
             <span className="hero-cue-track" aria-hidden>
               <span className="hero-cue-line" />
             </span>

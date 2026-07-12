@@ -39,7 +39,7 @@ export function About() {
             href="/about"
             label={t.journey.eyebrow}
             suffix="→"
-            className="mt-8 inline-block t-meta text-ember-ink"
+            className="mt-8 inline-block t-meta text-ember-ink transition-opacity duration-300 hover:opacity-75"
           />
         </div>
       </div>

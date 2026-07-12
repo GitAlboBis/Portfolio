@@ -384,6 +384,9 @@ body {
     background-position: 0% 100%;
   }
   @media (prefers-reduced-motion: reduce) {
+    /* Base rule too: the retract (leaving :hover) reads the BASE transition,
+       so guarding only the hover state would still animate the exit. */
+    .link,
     .link:hover,
     .link:focus-visible {
       transition: none;
@@ -419,7 +422,7 @@ body {
   width: 1px;
   height: 2rem;
   overflow: hidden;
-  background: rgb(251 246 239 / 0.25);
+  background: color-mix(in oklab, var(--color-paper) 25%, transparent);
 }
 .hero-cue-line {
   display: block;

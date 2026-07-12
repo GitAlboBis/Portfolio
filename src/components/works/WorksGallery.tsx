@@ -131,7 +131,7 @@ export function WorksGallery() {
                 href={`/work/${w.slug}`}
                 label={t.works.open}
                 suffix="→"
-                className="t-meta text-ember-ink"
+                className="t-meta text-ember-ink transition-opacity duration-300 hover:opacity-75"
               />
             ) : (
               <span className="t-meta text-ink-mute">{t.works.wip}</span>

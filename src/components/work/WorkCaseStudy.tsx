@@ -58,7 +58,7 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
             href="/#works"
             prefix="←"
             label={t.works.back}
-            className="t-meta"
+            className="t-meta transition-colors duration-300 hover:text-ember-ink"
           />
         </nav>
       </header>

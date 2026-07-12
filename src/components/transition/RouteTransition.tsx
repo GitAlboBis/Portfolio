@@ -42,10 +42,23 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
       }).__lenis;
       // Cross-page HASH navs (/#works, /#contact) must land ON the section:
       // a blind scrollTo(0) clobbered Next's hash handling under the cover.
-      const hashTarget = window.location.hash
-        ? document.querySelector<HTMLElement>(window.location.hash)
-        : null;
-      lenis?.scrollTo(hashTarget ?? 0, { immediate: true });
+      // One snap is NOT enough in prod: late web fonts + the code-split R3F
+      // gallery chunk grow the layout ABOVE the target after the first snap
+      // (measured ~1300px drift on Vercel; invisible in dev's warm cache), so
+      // re-snap on fonts.ready and once more when the lift completes — all
+      // while the curtain still covers or is lifting.
+      const snapToHash = () => {
+        const target = window.location.hash
+          ? document.querySelector<HTMLElement>(window.location.hash)
+          : null;
+        lenis?.scrollTo(target ?? 0, { immediate: true });
+      };
+      snapToHash();
+      let fontsAlive = true;
+      if (window.location.hash) {
+        document.fonts?.ready?.then(() => fontsAlive && snapToHash());
+      }
+      const lateSnap = window.location.hash ? gsap.delayedCall(1.4, snapToHash) : null;
 
       // Start fully covered — night over the sunset wave — with the page hidden
       // beneath. useGSAP runs in a layout effect (pre-paint), so no flash.
@@ -62,6 +75,7 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
             lead.setAttribute("d", "M0 0H0Z");
             night.setAttribute("d", "M0 0H0Z");
             gsap.set(el, { clearProps: "opacity,visibility" });
+            if (window.location.hash) snapToHash();
             // refresh(true) — a bare refresh() is FORCED (bypasses the
             // live-scroll guard → sync whole-doc reflow mid-Lenis-glide).
             ScrollTrigger.refresh(true);
@@ -73,6 +87,11 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
         // up just beneath the retreating night — the last light before it clears.
         .to(nightP, { v: 0, duration: 0.62, ease: "power3.inOut", onUpdate: () => night.setAttribute("d", curtainPath(nightP.v, 4.2)) }, 0)
         .to(leadP, { v: 0, duration: 0.66, ease: "power3.inOut", onUpdate: () => lead.setAttribute("d", curtainPath(leadP.v, 1.7)) }, 0.1);
+
+      return () => {
+        fontsAlive = false; // a late fonts.ready must not scroll a NEWER route
+        lateSnap?.kill();
+      };
     },
     { scope: ref },
   );

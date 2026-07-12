@@ -244,12 +244,16 @@ export function WorkHorizontal() {
 
               return (
                 <li key={w.slug} className="relative h-full w-screen overflow-hidden" style={{ background: w.mood.base }}>
-                  {/* mood wash — breathes with the spotlight (opacity only) */}
+                  {/* mood wash — breathes with the spotlight (opacity only).
+                      transform-gpu = permanent own layer so the scrubbed
+                      opacity is compositor-only (un-promoted, each frame
+                      repainted two viewport-size gradients). Static promotion
+                      OUTSIDE the tween — the will-change rule is untouched. */}
                   <span
                     ref={(el) => {
                       washRefs.current[i] = el;
                     }}
-                    className="pointer-events-none absolute inset-0"
+                    className="pointer-events-none absolute inset-0 transform-gpu"
                     style={{
                       background: `radial-gradient(55% 70% at 18% 28%, ${w.mood.blob1}59, transparent 70%), radial-gradient(50% 65% at 84% 78%, ${w.mood.blob2}47, transparent 70%)`,
                     }}

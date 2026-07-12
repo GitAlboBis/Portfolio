@@ -206,7 +206,10 @@ function NextProject({ slug }: { slug: string }) {
         tl.kill();
       };
     },
-    { scope: ref, dependencies: [reduced, next?.slug] },
+    // revertOnUpdate: a live reduced-motion flip re-runs this effect and
+    // early-returns — without it the old scrubbed trigger survives (and a
+    // flip-back stacks a duplicate). Same pattern/comment as WorkHorizontal.
+    { scope: ref, dependencies: [reduced, next?.slug], revertOnUpdate: true },
   );
 
   if (!next || next.slug === slug) return null;
@@ -225,7 +228,9 @@ function NextProject({ slug }: { slug: string }) {
 
       <Link href={`/work/${next.slug}`} className="group block">
         <div className="container-edit relative py-[clamp(4rem,12vh,8rem)]">
-          <p className="t-eyebrow eyebrow-tick">{t.works.next}</p>
+          {/* ink-mute: t-eyebrow's ember-ink is 4.30:1 on paper-deep (AA needs
+              4.5 at this size) — the ember tick keeps the accent instead */}
+          <p className="t-eyebrow eyebrow-tick text-ink-mute">{t.works.next}</p>
           <h2
             data-next-title
             className="mt-5 max-w-[14ch] font-display font-bold leading-[0.95] tracking-[-0.03em] text-ink [font-size:clamp(2.5rem,7vw,7rem)]"

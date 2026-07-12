@@ -141,6 +141,11 @@ export function HeroCopy() {
         failsafe?.kill();
         entrance?.kill();
         cueTween?.kill();
+        // entrance/cueTween are created ASYNC (subscription/delayedCall), so
+        // they live outside the useGSAP context: kill() stops them but leaves
+        // whatever inline opacity the kill caught. A dep re-run (locale flip)
+        // would then gsap.from() toward that stale value — cue stuck dim.
+        if (cue) gsap.set(cue, { clearProps: "opacity,visibility" });
         out.scrollTrigger?.kill();
         out.kill();
         split.revert();
@@ -187,9 +192,9 @@ export function HeroCopy() {
               {accentAt >= 0 ? (
                 <>
                   {tagline.slice(0, accentAt)}
-                  {/* font-semibold lifts the jewel word into the large-text
-                      contrast class (AA 3:1) at the mobile t-lead size */}
-                  <span className="font-semibold text-amber">{accent}</span>
+                  {/* font-BOLD (700): WCAG's 14pt-bold large-text branch needs
+                      real bold — 600 doesn't qualify at the 20.8px mobile size */}
+                  <span className="font-bold text-amber">{accent}</span>
                   {tagline.slice(accentAt + accent.length)}
                 </>
               ) : (

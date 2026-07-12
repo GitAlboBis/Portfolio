@@ -109,7 +109,10 @@ export function RollLink({
       );
       return () => mm.revert();
     },
-    { scope: ref, dependencies: [label, prefix, suffix] },
+    // revertOnUpdate: locale flips change `label` — without it every flip
+    // stacks a matchMedia context + 4 listeners + a paused timeline that keep
+    // targeting the reused char spans (index keys) until unmount.
+    { scope: ref, dependencies: [label, prefix, suffix], revertOnUpdate: true },
   );
 
   const words = label.split(" ");

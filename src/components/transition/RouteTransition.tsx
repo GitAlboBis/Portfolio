@@ -37,8 +37,15 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
         firstMount = false;
         return;
       }
-      const lenis = (window as unknown as { __lenis?: { scrollTo: (t: number, o?: object) => void } }).__lenis;
-      lenis?.scrollTo(0, { immediate: true });
+      const lenis = (window as unknown as {
+        __lenis?: { scrollTo: (t: number | HTMLElement, o?: object) => void };
+      }).__lenis;
+      // Cross-page HASH navs (/#works, /#contact) must land ON the section:
+      // a blind scrollTo(0) clobbered Next's hash handling under the cover.
+      const hashTarget = window.location.hash
+        ? document.querySelector<HTMLElement>(window.location.hash)
+        : null;
+      lenis?.scrollTo(hashTarget ?? 0, { immediate: true });
 
       // Start fully covered — night over the sunset wave — with the page hidden
       // beneath. useGSAP runs in a layout effect (pre-paint), so no flash.
@@ -89,7 +96,12 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
         <path ref={leadRef} d="M0 0H0Z" fill="url(#route-sunset)" />
         <path ref={nightRef} d="M0 0H0Z" fill="var(--color-night)" />
       </svg>
-      <div ref={ref}>{children}</div>
+      {/* data-page-root: CoverOverlay toggles `inert` here while the exit
+          curtain is up, so the covered (invisible) page can't be operated
+          by keyboard/AT during the pending window. */}
+      <div ref={ref} data-page-root>
+        {children}
+      </div>
     </>
   );
 }

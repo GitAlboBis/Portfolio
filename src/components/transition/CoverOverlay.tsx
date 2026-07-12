@@ -74,11 +74,26 @@ export function CoverOverlay() {
     const paint = () => {
       lead.setAttribute("d", curtainPath(proxy.v, 1.7));
       night.setAttribute("d", curtainPath(Math.max(proxy.v * 1.12 - 0.12, 0), 4.2));
+      // The painted region SWALLOWS input (paths only — the svg root stays
+      // pointer-events-none, so the not-yet-covered area keeps its semantics
+      // during the descend). Without this, the fully-opaque pending window
+      // left the invisible old page click-operable (hamburger, locale…).
+      const swallow = proxy.v > 0.002 ? "auto" : "none";
+      lead.style.pointerEvents = swallow;
+      night.style.pointerEvents = swallow;
     };
+    // Keyboard/focus can't be stopped by pointer-events: the old page goes
+    // `inert` for the covered window (RouteTransition marks its content div
+    // with data-page-root). The new route mounts a FRESH root without the
+    // attribute, and handoff/bail/unmount all lift it — belt and suspenders.
+    const setInert = (on: boolean) =>
+      document.querySelector("[data-page-root]")?.toggleAttribute("inert", on);
     const clear = () => {
       proxy.v = 0;
       lead.setAttribute("d", "M0 0H0Z");
       night.setAttribute("d", "M0 0H0Z");
+      lead.style.pointerEvents = "none";
+      night.style.pointerEvents = "none";
     };
     const stop = () => {
       tween?.kill();
@@ -93,6 +108,7 @@ export function CoverOverlay() {
           return;
         }
         stop();
+        setInert(true);
         tween = gsap.to(proxy, {
           v: 1,
           duration: 0.42,
@@ -101,19 +117,30 @@ export function CoverOverlay() {
           onUpdate: paint,
           onComplete: () => {
             onCovered();
-            // released by the pathname handoff; this only fires on a hung nav
-            timeout = gsap.delayedCall(1.8, () => controller?.bail());
+            // Released by the pathname handoff. 2.5s covers real-world slow
+            // RSC fetches (prod prefetch makes most pushes instant); a push
+            // that outlives it is treated as hung. If it STILL commits later,
+            // the enter plays as a hard cut — exactly the pre-curtain enter
+            // behavior, acceptable for so rare a straggler.
+            timeout = gsap.delayedCall(2.5, () => controller?.bail());
           },
         });
       },
       handoff() {
+        // A LIVE descend here means the user already covered for ANOTHER nav
+        // and this commit is a stale straggler: let the new cover finish (it
+        // will push and hand off on its own) instead of killing it and
+        // silently dropping that navigation.
+        if (tween && tween.isActive()) return;
         stop();
         navigating = false;
+        setInert(false);
         clear();
       },
       bail() {
         stop();
         navigating = false;
+        setInert(false);
         if (proxy.v <= 0.002) return clear();
         tween = gsap.to(proxy, {
           v: 0,
@@ -129,6 +156,7 @@ export function CoverOverlay() {
     return () => {
       stop();
       clear();
+      setInert(false);
       controller = null;
       navigating = false;
     };
@@ -147,6 +175,7 @@ export function CoverOverlay() {
 
   return (
     <svg
+      id="exit-cover"
       aria-hidden
       className="pointer-events-none fixed inset-0 z-[90] h-full w-full"
       viewBox="0 0 100 100"

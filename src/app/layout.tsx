@@ -4,6 +4,7 @@ import { CanvasHost } from "@/webgl/CanvasHost";
 import { Smooth } from "@/app/_providers/Smooth";
 import { ScrollProgress } from "@/components/nav/ScrollProgress";
 import { Preloader } from "@/components/Preloader";
+import { CoverOverlay } from "@/components/transition/CoverOverlay";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -112,6 +113,9 @@ export default function RootLayout({
         <Smooth />
         <ScrollProgress />
         <CanvasHost />
+        {/* EXIT curtain (Continuous Curtain) — must live HERE, not in
+            template.tsx: it has to survive the route swap it covers. */}
+        <CoverOverlay />
         {children}
         <script
           type="application/ld+json"

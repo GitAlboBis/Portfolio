@@ -55,7 +55,9 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
             lead.setAttribute("d", "M0 0H0Z");
             night.setAttribute("d", "M0 0H0Z");
             gsap.set(el, { clearProps: "opacity,visibility" });
-            ScrollTrigger.refresh();
+            // refresh(true) — a bare refresh() is FORCED (bypasses the
+            // live-scroll guard → sync whole-doc reflow mid-Lenis-glide).
+            ScrollTrigger.refresh(true);
           },
         })
         // page fades in beneath the lifting curtain

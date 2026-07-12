@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { WorkHorizontal } from "@/components/work/WorkHorizontal";
+import { RollLink } from "@/components/motion/RollLink";
 
 /**
  * WorkIndex — the /work index page: a minimal header + the scroll-driven
@@ -37,9 +38,13 @@ export function WorkIndex() {
             >
               {locale === "en" ? "IT" : "EN"}
             </button>
-            <Link href="/" className="t-meta transition-colors duration-300 hover:text-ember-ink">
-              ← {t.journey.back}
-            </Link>
+            <RollLink
+              as={Link}
+              href="/"
+              prefix="←"
+              label={t.journey.back}
+              className="t-meta transition-colors duration-300 hover:text-ember-ink"
+            />
           </div>
         </nav>
       </header>

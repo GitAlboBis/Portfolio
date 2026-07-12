@@ -6,6 +6,7 @@ import { useUI } from "@/store/ui";
 import { MenuOverlay } from "@/components/nav/MenuOverlay";
 import { MenuToggle } from "@/components/nav/MenuToggle";
 import { Magnetic } from "@/components/motion/Magnetic";
+import { RollLink } from "@/components/motion/RollLink";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
 type Lenis = { scrollTo: (t: HTMLElement | number, o?: { offset?: number }) => void };
@@ -135,19 +136,20 @@ export function Nav() {
           <div className="hidden items-center gap-1 md:flex">
             {links.map((l) => (
               <Magnetic key={l.id} strength={0.25}>
-                <button
+                <RollLink
+                  as="button"
+                  label={l.label}
                   onClick={() => goTo(l.id)}
                   aria-current={active === l.id ? "true" : undefined}
                   className="group relative px-3 py-1 t-meta text-ink-mute transition-colors duration-300 hover:text-ink"
                 >
-                  {l.label}
                   <span
                     aria-hidden
                     className={`absolute inset-x-3 -bottom-0.5 h-px origin-center bg-ember transition-transform duration-300 ease-[var(--ease-tide)] ${
                       active === l.id ? "scale-x-100" : "scale-x-0"
                     }`}
                   />
-                </button>
+                </RollLink>
               </Magnetic>
             ))}
           </div>

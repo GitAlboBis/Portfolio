@@ -35,10 +35,12 @@ export function WorkHorizontal() {
   const hydrated = useHydrated();
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLUListElement>(null);
-  const counterRef = useRef<HTMLSpanElement>(null);
+  const stripRef = useRef<HTMLSpanElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const titleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const indexRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const washRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const groupRefs = useRef<(HTMLElement | null)[]>([]);
   const n = works.length;
 
   useGSAP(
@@ -47,6 +49,23 @@ export function WorkHorizontal() {
       const section = sectionRef.current;
       const track = trackRef.current;
       if (!section || !track) return;
+
+      // Odometer: ONE strip of all n numbers behind a 1-row clip; on active-slide
+      // change it glides to the new row as a DISCRETE tween outside the scrub.
+      // overwrite:'auto' RETARGETS mid-flight, so a violent Lenis reversal bends
+      // the glide instead of queueing digits — no kill/rebuild bookkeeping.
+      let shown = 0;
+      const swapTo = (i: number) => {
+        if (i === shown) return;
+        shown = i;
+        if (stripRef.current)
+          gsap.to(stripRef.current, {
+            yPercent: -(100 / n) * i,
+            duration: 0.3,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+      };
 
       const tl = gsap.timeline({
         defaults: { ease: "none" },
@@ -58,8 +77,7 @@ export function WorkHorizontal() {
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             if (barRef.current) barRef.current.style.transform = `scaleX(${self.progress})`;
-            const i = Math.min(n - 1, Math.round(self.progress * (n - 1)));
-            if (counterRef.current) counterRef.current.textContent = pad(i + 1);
+            swapTo(Math.min(n - 1, Math.round(self.progress * (n - 1))));
           },
         },
       });
@@ -83,6 +101,29 @@ export function WorkHorizontal() {
         });
       drift(titleRefs.current, TITLE_DRIFT);
       drift(indexRefs.current, INDEX_DRIFT);
+
+      // Spotlight: each slide peaks (v=1) exactly when centred (time i) and
+      // recedes toward its neighbours — same [i−1, i+1] window as drift(), same
+      // timeline, zero extra ScrollTriggers. The scale group is the slide's
+      // CONTENT container only (wash + ghost numeral are siblings: the far
+      // layer must not breathe with the foreground).
+      const focus = (
+        els: (HTMLElement | null)[],
+        at: (v: number) => gsap.TweenVars,
+      ) =>
+        els.forEach((el, i) => {
+          if (!el) return;
+          const t0 = Math.max(i - 1, 0);
+          const t1 = Math.min(i + 1, n - 1);
+          if (t0 < i) tl.fromTo(el, at(0), { ...at(1), duration: i - t0 }, t0);
+          else tl.set(el, at(1), 0);
+          if (t1 > i) tl.to(el, { ...at(0), duration: t1 - i }, i);
+        });
+      focus(washRefs.current, (v) => ({ opacity: 0.55 + 0.45 * v }));
+      focus(groupRefs.current, (v) => ({
+        scale: 0.968 + 0.032 * v,
+        transformOrigin: "50% 60%",
+      }));
     },
     // revertOnUpdate: on a live reduced-motion flip the effect re-runs and
     // early-returns — without it the old ScrollTrigger would leak on detached DOM.
@@ -170,12 +211,13 @@ export function WorkHorizontal() {
                     ) : null}
                   </div>
 
-                  {/* the drifting giant title */}
+                  {/* the drifting giant title — no static will-change: GSAP
+                      manages promotion during the scrub (n giant permanently
+                      promoted glyph layers broke the repo's own rule) */}
                   <div
                     ref={(el) => {
                       titleRefs.current[i] = el;
                     }}
-                    className="will-change-transform"
                   >
                     <h2 className="font-display text-[clamp(2.5rem,8vw,8.5rem)] font-bold leading-[0.92] tracking-[-0.03em] text-ink [text-wrap:balance]">
                       {w.title}
@@ -202,19 +244,27 @@ export function WorkHorizontal() {
 
               return (
                 <li key={w.slug} className="relative h-full w-screen overflow-hidden" style={{ background: w.mood.base }}>
-                  {/* mood wash — static gradients, they only translate with the track */}
+                  {/* mood wash — breathes with the spotlight (opacity only).
+                      transform-gpu = permanent own layer so the scrubbed
+                      opacity is compositor-only (un-promoted, each frame
+                      repainted two viewport-size gradients). Static promotion
+                      OUTSIDE the tween — the will-change rule is untouched. */}
                   <span
-                    className="pointer-events-none absolute inset-0"
+                    ref={(el) => {
+                      washRefs.current[i] = el;
+                    }}
+                    className="pointer-events-none absolute inset-0 transform-gpu"
                     style={{
                       background: `radial-gradient(55% 70% at 18% 28%, ${w.mood.blob1}59, transparent 70%), radial-gradient(50% 65% at 84% 78%, ${w.mood.blob2}47, transparent 70%)`,
                     }}
                   />
-                  {/* ghost index — the far parallax layer */}
+                  {/* ghost index — the far parallax layer (no static will-change;
+                      36vw glyphs must not stay promoted for the session) */}
                   <span
                     ref={(el) => {
                       indexRefs.current[i] = el;
                     }}
-                    className="pointer-events-none absolute -bottom-[7vw] right-[2vw] font-display text-[36vw] font-bold leading-none will-change-transform"
+                    className="pointer-events-none absolute -bottom-[7vw] right-[2vw] font-display text-[36vw] font-bold leading-none"
                     style={{ color: "color-mix(in oklab, var(--color-ink) 6%, transparent)" }}
                   >
                     {pad(i + 1)}
@@ -224,12 +274,20 @@ export function WorkHorizontal() {
                     <Link
                       href={`/work/${w.slug}`}
                       tabIndex={-1}
+                      ref={(el) => {
+                        groupRefs.current[i] = el;
+                      }}
                       className="group relative flex h-full flex-col justify-between px-[var(--gutter)] pb-28 pt-[calc(var(--nav-h)+1.5rem)]"
                     >
                       {inner}
                     </Link>
                   ) : (
-                    <div className="relative flex h-full flex-col justify-between px-[var(--gutter)] pb-28 pt-[calc(var(--nav-h)+1.5rem)]">
+                    <div
+                      ref={(el) => {
+                        groupRefs.current[i] = el;
+                      }}
+                      className="relative flex h-full flex-col justify-between px-[var(--gutter)] pb-28 pt-[calc(var(--nav-h)+1.5rem)]"
+                    >
                       {inner}
                     </div>
                   )}
@@ -241,8 +299,18 @@ export function WorkHorizontal() {
           {/* progress — counter + ember line, fixed inside the sticky stage */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0">
             <div className="container-edit flex items-center gap-5 pb-9">
-              <p className="t-index shrink-0 text-ink">
-                <span ref={counterRef}>01</span> / {pad(n)}
+              <p className="t-index flex shrink-0 items-baseline text-ink">
+                {/* odometer clip: one strip of all n numbers, one row visible */}
+                <span className="inline-block h-[1em] overflow-hidden">
+                  <span ref={stripRef} className="block">
+                    {works.map((_, i) => (
+                      <span key={i} className="block h-[1em] leading-none">
+                        {pad(i + 1)}
+                      </span>
+                    ))}
+                  </span>
+                </span>
+                <span className="whitespace-pre"> / {pad(n)}</span>
               </p>
               <div className="relative h-px flex-1 bg-[var(--color-rule)]">
                 <div ref={barRef} className="absolute inset-0 origin-left bg-ember" style={{ transform: "scaleX(0)" }} />

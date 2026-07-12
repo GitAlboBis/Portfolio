@@ -364,6 +364,35 @@ body {
     background: var(--color-ember);
   }
 
+  /* ── .link — directional underline-draw for in-flow text links ──────────
+     The line ENTERS from the left and EXITS to the right (anchor swap at the
+     invisible extremes: position jumps while size is 0% or 100%). Uses
+     currentColor so it re-themes free (amber links on night, ember-ink on
+     paper). Paint-layer exception, sanctioned: a 1px strip on inline text,
+     hover-only, never scrubbed. Partition vs RollLink: see RollLink.tsx. */
+  .link {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    background-position: 100% 100%;
+    padding-bottom: 0.15em;
+    transition: background-size 0.3s var(--ease-tide);
+  }
+  .link:hover,
+  .link:focus-visible {
+    background-size: 100% 1px;
+    background-position: 0% 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* Base rule too: the retract (leaving :hover) reads the BASE transition,
+       so guarding only the hover state would still animate the exit. */
+    .link,
+    .link:hover,
+    .link:focus-visible {
+      transition: none;
+    }
+  }
+
   /* Night band (Contact / Footer): re-theme text on the one dark section. */
   .night {
     color: var(--color-paper);
@@ -384,6 +413,35 @@ body {
   }
   .night .eyebrow-tick::before {
     background: var(--color-amber);
+  }
+}
+
+/* ── Hero scroll cue (HeroCopy) — a drop of light running down a hairline ── */
+.hero-cue-track {
+  display: block;
+  width: 1px;
+  height: 2rem;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--color-paper) 25%, transparent);
+}
+.hero-cue-line {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--color-amber);
+  animation: cue-run 2.1s var(--ease-drift) infinite;
+}
+@keyframes cue-run {
+  from {
+    transform: translateY(-105%);
+  }
+  to {
+    transform: translateY(105%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-cue-line {
+    animation: none;
   }
 }
 

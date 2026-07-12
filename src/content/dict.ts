@@ -23,6 +23,8 @@ const sectionSchema = z.object({
     name: z.string(),
     role: z.string(),
     tagline: z.string(),
+    /** The one jewel word inside `tagline` (must be a substring of it). */
+    taglineAccent: z.string(),
     scroll: z.string(),
   }),
   about: z.object({
@@ -41,6 +43,7 @@ const sectionSchema = z.object({
     roleLabel: z.string(),
     wip: z.string(),
     back: z.string(),
+    next: z.string(),
   }),
   tech: z.object({
     eyebrow: z.string(),
@@ -71,6 +74,8 @@ const sectionSchema = z.object({
     place: z.string(),
     sound: z.string(),
     rights: z.string(),
+    email: z.string(),
+    top: z.string(),
   }),
 });
 
@@ -83,6 +88,7 @@ const en: Dict = {
     name: "Alberto Tuveri",
     role: "Full-stack engineer · AI at the edge",
     tagline: "I build interfaces that move like water.",
+    taglineAccent: "water",
     scroll: "Scroll to dive",
   },
   about: {
@@ -101,6 +107,7 @@ const en: Dict = {
     roleLabel: "Role",
     wip: "Work in progress",
     back: "All work",
+    next: "Next project",
   },
   tech: {
     eyebrow: "02 — Stack",
@@ -148,7 +155,13 @@ const en: Dict = {
     more: "Selected work",
     back: "Back to home",
   },
-  footer: { place: "Masua · 39°09′N 8°25′E", sound: "Ambient", rights: "All rights reserved" },
+  footer: {
+    place: "Masua · 39°09′N 8°25′E",
+    sound: "Ambient",
+    rights: "All rights reserved",
+    email: "Email",
+    top: "Top",
+  },
 };
 
 const it: Dict = {
@@ -158,6 +171,7 @@ const it: Dict = {
     name: "Alberto Tuveri",
     role: "Full-stack engineer · AI sul bordo",
     tagline: "Costruisco interfacce che si muovono come l'acqua.",
+    taglineAccent: "acqua",
     scroll: "Scorri per immergerti",
   },
   about: {
@@ -176,6 +190,7 @@ const it: Dict = {
     roleLabel: "Ruolo",
     wip: "In lavorazione",
     back: "Tutti i lavori",
+    next: "Prossimo progetto",
   },
   tech: {
     eyebrow: "02 — Stack",
@@ -223,7 +238,13 @@ const it: Dict = {
     more: "Lavori scelti",
     back: "Torna alla home",
   },
-  footer: { place: "Masua · 39°09′N 8°25′E", sound: "Ambiente", rights: "Tutti i diritti riservati" },
+  footer: {
+    place: "Masua · 39°09′N 8°25′E",
+    sound: "Ambiente",
+    rights: "Tutti i diritti riservati",
+    email: "Email",
+    top: "Su",
+  },
 };
 
 // Dev-only shape guard: surfaces en/it drift early.

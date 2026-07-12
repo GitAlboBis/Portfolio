@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Nav } from "@/components/nav/Nav";
 import { HeroScrollSettle } from "@/components/hero/HeroScrollSettle";
+import { HeroCopy } from "@/components/hero/HeroCopy";
 import { About } from "@/components/sections/About";
 import { WorksGallery } from "@/components/works/WorksGallery";
 import { Tech } from "@/components/sections/Tech";
@@ -25,28 +26,29 @@ export const metadata: Metadata = {
     sunset sky gradient read through it.
   • Content below sits on an opaque `bg-paper` layer so it covers the fixed
     sunset gradient once you scroll past the hero (the gradient is hero-only).
-    Order: About → Tech sphere → (Works / Contact / Footer to come).
+    Order: About → Works (depth gallery) → Nightfall(Tech) → night: Contact → Footer.
 */
 export default function Home() {
   return (
     <main id="main" className="relative">
-      {/* Accessible page title — the visual "title" is the WebGPU water "A" (decorative,
-          aria-hidden), so the document's single h1 is provided here for AT + SEO. */}
-      <h1 className="sr-only">Alberto Tuveri — Software Engineer</h1>
       <Nav />
 
       {/* Scroll WRITER for the hero "A" dive (writes heroStore.explode; read by
           WaterBallHero). Renders null; no-op under reduced-motion / no-WebGPU. */}
       <HeroScrollSettle />
 
-      {/* Hero viewport — the fixed fluid "A" + sunset sky show through this band. */}
-      <section id="hero" aria-hidden className="relative h-dvh" />
+      {/* Hero viewport — the fixed fluid "A" + sunset sky show through this band.
+          HeroCopy carries the page's real h1 (name/role/tagline + scroll cue), so
+          the section is NOT aria-hidden — only the canvas layers are decorative. */}
+      <section id="hero" className="relative h-dvh">
+        <HeroCopy />
+      </section>
 
       {/* Editorial content on paper. */}
       <div className="relative z-10 bg-paper">
         <About />
 
-        {/* Selected Works — depth-fade gallery (home). The 3D carousel index lives at /work. */}
+        {/* Selected Works — depth-fade gallery (home). The horizontal index lives at /work. */}
         <WorksGallery />
 
         {/* Tech-stack — editorial heading + signature 3D icon cloud. Nightfall pins

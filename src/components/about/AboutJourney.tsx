@@ -9,6 +9,7 @@ import { Appear } from "@/components/motion/Appear";
 import { JourneyTimeline } from "@/components/about/JourneyTimeline";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
+import { RollLink } from "@/components/motion/RollLink";
 
 /**
  * AboutJourney — the long-form "/about" page: extended bio, Education, an Experience
@@ -44,9 +45,13 @@ export function AboutJourney() {
             >
               {locale === "en" ? "IT" : "EN"}
             </button>
-            <Link href="/" className="t-meta transition-colors duration-300 hover:text-ember-ink">
-              ← {j.back}
-            </Link>
+            <RollLink
+              as={Link}
+              href="/"
+              prefix="←"
+              label={j.back}
+              className="t-meta transition-colors duration-300 hover:text-ember-ink"
+            />
           </div>
         </nav>
       </header>
@@ -135,7 +140,7 @@ export function AboutJourney() {
           <p className="t-title max-w-[16ch]">{t.contact.headline}</p>
           <Link
             href="/#contact"
-            className="t-meta whitespace-nowrap text-amber transition-colors duration-300 hover:text-paper"
+            className="link t-meta whitespace-nowrap text-amber transition-colors duration-300 hover:text-paper"
           >
             {t.contact.cta} →
           </Link>

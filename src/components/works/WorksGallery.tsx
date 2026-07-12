@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
+import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { works as WORKS } from "@/content/works";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";

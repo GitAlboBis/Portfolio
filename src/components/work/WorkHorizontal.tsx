@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useDict } from "@/content/dict";

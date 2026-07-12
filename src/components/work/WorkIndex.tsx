@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { WorkHorizontal } from "@/components/work/WorkHorizontal";

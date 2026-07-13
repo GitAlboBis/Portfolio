@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { works } from "@/content/works";
 import { gsap } from "@/lib/gsap";
 import { DUR, EASE, VELOCITY_GAIN } from "@/lib/motion";
+import { ARTWORK_GLSL, PATTERN_BY_SLUG } from "@/webgl/artwork";
 
 /*
   WorkRunwayCanvas — the GL artwork layer under the /work runway type (LA MAREA
@@ -33,14 +34,6 @@ const ART_PARALLAX = 0.13;
 // Bend strength as a fraction of plane width at |velocity| = 1 slide/s.
 const BEND = 0.055;
 
-const PATTERN: Record<string, number> = {
-  badante24h: 0,
-  "doit-voice-ai-agent": 1,
-  "agricultural-supply-chain": 2,
-  "sersan-project-1": 3,
-  "sersan-project-2": 3,
-};
-
 const VERT = /* glsl */ `
   varying vec2 vUv;
   uniform float uVel;
@@ -65,59 +58,11 @@ const FRAG = /* glsl */ `
   uniform float uPattern; // 0 contours · 1 voice bars · 2 field rows · 3 dot grid
   uniform float uSeed;
 
-  float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-  float noise(vec2 p){
-    vec2 i = floor(p), f = fract(p);
-    float a = hash(i), b = hash(i + vec2(1.0, 0.0));
-    float c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0));
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-  }
-  float fbm(vec2 p){
-    float v = 0.0, a = 0.5;
-    for (int k = 0; k < 4; k++) { v += a * noise(p); p *= 2.03; a *= 0.5; }
-    return v;
-  }
+  ${ARTWORK_GLSL}
 
   void main(){
     vec2 uv = vUv;
-    vec3 col = uBase;
-
-    if (uPattern < 0.5) {
-      // 0 — geographies of care: soft map isolines around two warm centres.
-      float field = fbm(uv * 2.2 + uSeed);
-      float rings = abs(fract(field * 6.0 + uTime * 0.02) - 0.5) * 2.0;
-      float line = smoothstep(0.24, 0.0, rings);
-      float g1 = smoothstep(0.55, 0.0, distance(uv, vec2(0.36, 0.62)));
-      float g2 = smoothstep(0.48, 0.0, distance(uv, vec2(0.72, 0.28)));
-      col = mix(uBase, uA, line * 0.8);
-      col = mix(col, uB, (g1 * 0.45 + g2 * 0.35));
-    } else if (uPattern < 1.5) {
-      // 1 — voice spectrum: slow-breathing bars around the reading line.
-      float nb = 26.0;
-      float bx = floor(uv.x * nb);
-      float amp = 0.22 + 0.5 * (0.5 + 0.5 * sin(bx * 1.7 + uSeed * 7.0 + uTime * 0.5))
-                       * (0.55 + 0.45 * hash(vec2(bx, uSeed)));
-      float d = abs(uv.y - 0.5);
-      float body = smoothstep(amp * 0.5 + 0.012, amp * 0.5 - 0.012, d);
-      float fx = fract(uv.x * nb);
-      float colm = smoothstep(0.10, 0.20, fx) * smoothstep(0.90, 0.80, fx);
-      col = mix(uBase, mix(uA, uB, uv.x), body * colm);
-    } else if (uPattern < 2.5) {
-      // 2 — field rows: sinuous terraced bands, a light sweep across them.
-      float rows = sin((uv.y * 9.0 + fbm(vec2(uv.x * 2.2, uSeed)) * 2.6) * 3.14159265);
-      col = mix(uBase, uA, smoothstep(-0.1, 0.75, rows) * 0.38);
-      col = mix(col, uB, smoothstep(0.93, 1.0, abs(rows)) * 0.28);
-      col += 0.05 * smoothstep(0.55, 1.0, sin((uv.x + uv.y) * 2.5 + uTime * 0.08));
-    } else {
-      // 3 — work in progress: a calm halftone grid, breathing.
-      vec2 g = uv * vec2(15.0, 21.0);
-      vec2 cell = fract(g) - 0.5;
-      float breath = 0.5 + 0.5 * sin(uTime * 0.45 + floor(g).x * 0.6 + floor(g).y * 0.4 + uSeed);
-      float r = 0.10 + 0.10 * breath;
-      float dotm = smoothstep(r, r - 0.05, length(cell));
-      col = mix(uBase, mix(uA, uB, uv.y), dotm * 0.55);
-    }
+    vec3 col = artwork(uv, uPattern, uSeed, uTime, uBase, uA, uB);
 
     // Focus: out-of-centre slides rest desaturated and quiet (scrub-welded).
     float gray = dot(col, vec3(0.299, 0.587, 0.114));
@@ -125,11 +70,11 @@ const FRAG = /* glsl */ `
 
     // Vignette + cinematic grain.
     col *= mix(0.93, 1.0, smoothstep(1.05, 0.45, distance(uv, vec2(0.5))));
-    col += (hash(uv * vec2(760.0, 540.0) + fract(uTime)) - 0.5) * 0.035;
+    col += (aw_hash(uv * vec2(760.0, 540.0) + fract(uTime)) - 0.5) * 0.035;
 
     // Tide reveal: the artwork rises from below behind a noisy waterline,
     // a golden edge riding the front (r3f-image-reveal, re-themed).
-    float n = fbm(uv * 3.5 + uSeed * 3.0);
+    float n = aw_fbm(uv * 3.5 + uSeed * 3.0);
     float coord = uv.y + (n - 0.5) * 0.3;
     float edge = (1.0 - uReveal) * 1.4 - 0.2;
     float alpha = smoothstep(edge, edge + 0.22, coord);
@@ -195,7 +140,7 @@ function Scene({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
               uVel: { value: 0 },
               uFocus: { value: 0 },
               uReveal: { value: 0 },
-              uPattern: { value: PATTERN[w.slug] ?? 3 },
+              uPattern: { value: PATTERN_BY_SLUG[w.slug] ?? 3 },
               uSeed: { value: i * 1.7 + 0.4 },
             },
           }),

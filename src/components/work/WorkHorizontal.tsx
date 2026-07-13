@@ -1,7 +1,8 @@
 "use client";
 
 import { TransitionLink as Link } from "@/components/transition/TransitionLink";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
@@ -9,6 +10,13 @@ import { works } from "@/content/works";
 import { useHydrated } from "@/lib/use-hydrated";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
+
+// GL artwork layer (three/R3F chunk) — code-split off the initial bundle and
+// mounted only as the runway nears (same pattern as the home WorksGalleryCanvas).
+const WorkRunwayCanvas = dynamic(
+  () => import("@/components/work/WorkRunwayCanvas").then((m) => m.WorkRunwayCanvas),
+  { ssr: false },
+);
 
 /*
   WorkHorizontal — the /work index as a scroll-driven horizontal gallery. A
@@ -41,6 +49,10 @@ export function WorkHorizontal() {
   const indexRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const washRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const groupRefs = useRef<(HTMLElement | null)[]>([]);
+  // GL hand-over: once the runway canvas context is live it paints the slide
+  // base colours itself (so the artwork sits UNDER the DOM type); the CSS
+  // backgrounds stand down — and take back over on context loss (failsafe).
+  const [glReady, setGlReady] = useState(false);
   const n = works.length;
 
   useGSAP(
@@ -194,6 +206,18 @@ export function WorkHorizontal() {
 
       <section ref={sectionRef} aria-labelledby="works-title" className="relative" style={{ height: `${n * 100}vh` }}>
         <div aria-hidden className="sticky top-0 h-screen overflow-hidden">
+          {/* GL artwork layer — one generative "still" per project (LA MAREA Pass 2),
+              BEFORE the track in DOM: the type stays plain DOM above the canvas.
+              Reads the section geometry only — zero hooks into the timeline below.
+              No WebGL / no JS → the CSS slide backgrounds render exactly as before. */}
+          <LazyOnView style={{ position: "absolute", inset: 0, pointerEvents: "none" }} rootMargin={600}>
+            <WorkRunwayCanvas
+              sectionRef={sectionRef}
+              onReady={() => setGlReady(true)}
+              onLost={() => setGlReady(false)}
+            />
+          </LazyOnView>
+
           <ul ref={trackRef} className="flex h-full w-max will-change-transform">
             {works.map((w, i) => {
               const inner = (
@@ -243,7 +267,11 @@ export function WorkHorizontal() {
               );
 
               return (
-                <li key={w.slug} className="relative h-full w-screen overflow-hidden" style={{ background: w.mood.base }}>
+                <li
+                  key={w.slug}
+                  className="relative h-full w-screen overflow-hidden"
+                  style={{ background: glReady ? undefined : w.mood.base }}
+                >
                   {/* mood wash — breathes with the spotlight (opacity only).
                       transform-gpu = permanent own layer so the scrubbed
                       opacity is compositor-only (un-promoted, each frame

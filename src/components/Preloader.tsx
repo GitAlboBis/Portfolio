@@ -2,17 +2,24 @@
 
 import * as React from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { DUR, EASE } from "@/lib/motion";
+import { curtainPath } from "@/lib/curtain";
 import { useUI } from "@/store/ui";
 
 /**
  * Preloader — "the surface before the dive". A warm paper sheet present at first
  * paint (SSR'd, so there's no FOUC) while the fonts + WebGPU hero spin up: the "A"
- * focuses in over a thin ember progress line, then the whole sheet wipes upward to
- * reveal the hero water "A" beneath.
+ * focuses in over a thin ember progress line and a percentage counter, then the
+ * whole sheet wipes upward — trailing a sunset hem (the same curtainPath language
+ * as the menu/route curtains) — to reveal the hero water "A" beneath.
+ *
+ * The counter is honest about what we actually await: it rides the line to 99
+ * while fonts load, holds, and only says 100 the instant the exit is unlocked.
  *
  * Robustness: the exit is gated on document.fonts.ready RACED against a hard 1.1s
  * timeout, and globals.css gives `.preloader` a CSS failsafe animation that lifts
- * the sheet at 2.4s — so even if the JS never runs the page can NEVER stay trapped.
+ * the sheet at 2.4s — so even if the JS never runs the page can NEVER stay trapped
+ * (the hem SVG lives inside the sheet, so it rides the failsafe too).
  * prefers-reduced-motion -> a short plain fade (no wipe). Sets ui.loaded on exit.
  * Decorative (aria-hidden); the real content is underneath the whole time.
  */
@@ -20,6 +27,7 @@ export function Preloader() {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const markRef = React.useRef<HTMLDivElement>(null);
   const lineRef = React.useRef<HTMLDivElement>(null);
+  const countRef = React.useRef<HTMLParagraphElement>(null);
   const setLoaded = useUI((s) => s.setLoaded);
 
   useGSAP(
@@ -36,9 +44,16 @@ export function Preloader() {
         return;
       }
 
+      // Counter: sweeps with the line to 99, then waits for the real gate.
+      const count = { v: 0 };
+      const renderCount = () => {
+        if (countRef.current) countRef.current.textContent = `${Math.round(count.v)}%`;
+      };
+
       gsap.timeline()
-        .from(markRef.current, { autoAlpha: 0, yPercent: 22, filter: "blur(10px)", duration: 0.7, ease: "power3.out" }, 0.1)
-        .fromTo(lineRef.current, { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power2.inOut" }, 0.15);
+        .from(markRef.current, { autoAlpha: 0, yPercent: 22, filter: "blur(10px)", duration: DUR.swell, ease: EASE.tide }, 0.1)
+        .fromTo(lineRef.current, { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: EASE.dive }, 0.15)
+        .to(count, { v: 99, duration: 0.9, ease: EASE.dive, onUpdate: renderCount }, 0.15);
 
       const ready = Promise.race([
         document.fonts?.ready ?? Promise.resolve(),
@@ -46,9 +61,11 @@ export function Preloader() {
       ]);
 
       ready.then(() => {
+        count.v = 100;
+        renderCount();
         gsap.timeline({ onComplete: done })
-          .to([markRef.current, lineRef.current], { autoAlpha: 0, yPercent: -18, duration: 0.4, ease: "power2.in" })
-          .to(root, { yPercent: -100, duration: 0.9, ease: "power3.inOut" }, "-=0.05");
+          .to([markRef.current, lineRef.current, countRef.current], { autoAlpha: 0, yPercent: -18, duration: 0.4, ease: EASE.dive })
+          .to(root, { yPercent: -100, duration: DUR.tide, ease: EASE.dive }, "-=0.05");
       });
     },
     { scope: rootRef },
@@ -62,6 +79,26 @@ export function Preloader() {
       <div className="preloader-track">
         <div ref={lineRef} className="preloader-line" />
       </div>
+      <p ref={countRef} className="t-index">
+        0%
+      </p>
+      {/* Sunset hem — hangs below the sheet and sweeps the viewport as it lifts
+          (one static curtainPath wave; the sheet's transform carries it). */}
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-full h-[10vh] w-full"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id="preloader-sunset" x1="0" y1="0" x2="0.35" y2="1">
+            <stop offset="0%" stopColor="var(--color-amber)" />
+            <stop offset="55%" stopColor="var(--color-coral)" />
+            <stop offset="100%" stopColor="var(--color-ember)" />
+          </linearGradient>
+        </defs>
+        <path d={curtainPath(0.85, 2.6)} fill="url(#preloader-sunset)" />
+      </svg>
     </div>
   );
 }

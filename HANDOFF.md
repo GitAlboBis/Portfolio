@@ -1,6 +1,6 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-13** (**LA MAREA — overhaul motion su branch `feat/awwwards-motion`**, 5 commit, in attesa di ok G3 per il merge). This is the "continue here" doc.
+> Last updated: **2026-07-13** (**LA MAREA MERGED & DEPLOYED** — main `374e069`: token motion, GL artwork sui works, preloader counter+skip, costellazione "A", a11y pass; Lighthouse desktop 98/96/100/100). This is the "continue here" doc.
 
 ---
 
@@ -15,7 +15,9 @@ Missione carte-blanche di Alberto: overhaul animazioni verso SOTD. Piano + consu
 | **Preloader**: counter % onesto + orlo sunset curtainPath nel wipe; **CountUp** su metriche case study | `e9eb7f1` |
 | **Wildcard**: costellazione "A" in NightSky a fine pagina (uConst, ignizione scaglionata, clamp mobile) | `aab8cb7` |
 
-QA: probe Playwright per ogni pass (desktop+mobile+reduced su 4 route, console pulita), typecheck+build verdi. ⚠ Lezione ambiente: **screenshot claude-in-chrome si bloccano con canvas WebGL attivo in viewport** (anche su main puro — CDP capture starvation, il renderer è vivo): pixel-QA delle zone canvas SOLO via probe Playwright. Pendenze: Lighthouse (WP-10), still reali (`textureSrc` monta in `artwork.ts`), contenuti SerSan (🔵). **Merge su main = G3.**
+**MERGED su main con ok G3 di Alberto** (`e63a95f` + fix a11y `5fd43f1` + `374e069` preloader-skip) e pushato (= deploy Vercel). **Lighthouse prod**: desktop 98/96/100/100; mobile degradato 77/96/100/100 — e col hook `?nopre` misurato che **il preloader NON è il collo di bottiglia LCP** (5.0s identico senza): il WP-10 vero è hydration JS + re-hide del testo SSR nell'entrance hero. Preloader ora si salta alle visite ripetute (sessionStorage, hide pre-paint). Restano di design: color-contrast delle parole non-lette del read-along (risolte allo scroll, reduced=visibili).
+
+QA: probe Playwright per ogni pass (`_runwaygl/_gallerygl/_pass4/_constellation/_qa/_preskip.mjs`, untracked in root — desktop+mobile+reduced su 4 route, console pulita), typecheck+build verdi. ⚠ Lezione ambiente: **screenshot claude-in-chrome si bloccano con canvas WebGL attivo in viewport** (anche su main puro — CDP capture starvation, il renderer è vivo): pixel-QA delle zone canvas SOLO via probe Playwright. Pendenze: WP-10 (LCP mobile, direzione sopra), still reali (`textureSrc` monta in `artwork.ts`), contenuti SerSan (🔵).
 
 ---
 

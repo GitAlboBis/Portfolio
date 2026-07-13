@@ -177,18 +177,21 @@ export function HeroCopy() {
       <div className="container-edit relative pb-[clamp(2.5rem,6vh,4.5rem)]">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-10">
           <div>
-            <p data-hero-line className="t-meta text-paper">
+            {/* role="group" on the split hosts: SplitText aria:"auto" puts the
+                aria-label here, and naming is prohibited on bare p/span (axe
+                aria-prohibited-attr) — group is the lightest role that allows it. */}
+            <p data-hero-line role="group" className="t-meta text-paper">
               {t.hero.role}
             </p>
             {/* h1 = the name alone; the role is the line above, and <title> +
                 JSON-LD carry "Software Engineer" for SEO — no hardcoded
                 sr-only suffix bypassing the dict. */}
             <h1 className="t-display mt-3 text-paper">
-              <span data-hero-line className="block">
+              <span data-hero-line role="group" className="block">
                 {t.hero.name}
               </span>
             </h1>
-            <p data-hero-line className="t-lead mt-5 max-w-[28ch] text-paper/90">
+            <p data-hero-line role="group" className="t-lead mt-5 max-w-[28ch] text-paper/90">
               {accentAt >= 0 ? (
                 <>
                   {tagline.slice(0, accentAt)}

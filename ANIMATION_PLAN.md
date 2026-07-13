@@ -135,7 +135,12 @@ verde + prova visiva prima di ogni commit. **Merge su main = G3** (ok esplicito 
 ha già 6 trattamenti); cursore custom non reintrodotto (rimozione deliberata su main); sweep dei
 literal in MenuOverlay/Nav non fatto (superfici hand-tuned e già revisionate — si tocca solo con
 A/B visivo); zoom-GL come exit non necessario (CoverOverlay copre già le uscite).
-**Pendenze reali:** Lighthouse pass (WP-10, pre-esistente); still reali `Work.textureSrc`
+**Lighthouse (build prod, 2026-07-13):** DESKTOP **98/96/100/100** (perf/a11y/bp/seo — bar ≥90 ✓);
+MOBILE tier degradato (no WebGPU) **77/96/100/100**. A11y axe-clean tranne il color-contrast
+delle parole non-lette del read-along (opacity .16 **di design**, risolte allo scroll;
+reduced = visibili). LCP mobile 5.0s = catena preloader→hero-ink **pre-esistente** (WP-10);
+direzione di fix documentata nel commit: copy dipinta sotto il foglio / entrance pre-wipe, con A/B.
+**Pendenze reali:** LCP mobile di cui sopra; still reali `Work.textureSrc`
 (il branch texture monta in `artwork.ts` in un punto solo); contenuti SerSan (🔵 Alberto).
 
 **Manopole per Alberto:** curve/durate in `@theme`+`:root` (globals.css) e `src/lib/motion.ts`

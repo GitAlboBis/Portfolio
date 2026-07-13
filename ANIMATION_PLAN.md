@@ -138,8 +138,11 @@ A/B visivo); zoom-GL come exit non necessario (CoverOverlay copre già le uscite
 **Lighthouse (build prod, 2026-07-13):** DESKTOP **98/96/100/100** (perf/a11y/bp/seo — bar ≥90 ✓);
 MOBILE tier degradato (no WebGPU) **77/96/100/100**. A11y axe-clean tranne il color-contrast
 delle parole non-lette del read-along (opacity .16 **di design**, risolte allo scroll;
-reduced = visibili). LCP mobile 5.0s = catena preloader→hero-ink **pre-esistente** (WP-10);
-direzione di fix documentata nel commit: copy dipinta sotto il foglio / entrance pre-wipe, con A/B.
+reduced = visibili). LCP mobile 5.0s: misurato ANCHE senza preloader (`?nopre` → LCP identico 5.0s, perf 73) —
+**il preloader NON è il collo di bottiglia**; è l'hydration JS su CPU throttled + l'entrance
+hero che ri-nasconde il testo SSR. Il fix WP-10 vero sta lì (entrance senza re-hide del testo
+già dipinto, o dieta del JS critico), non nel preloader. Aggiunto skip del preloader per
+visite ripetute (sessionStorage, hide pre-paint via script inline; `?nopre` = hook QA).
 **Pendenze reali:** LCP mobile di cui sopra; still reali `Work.textureSrc`
 (il branch texture monta in `artwork.ts` in un punto solo); contenuti SerSan (🔵 Alberto).
 

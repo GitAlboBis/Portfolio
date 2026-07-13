@@ -22,7 +22,15 @@ import { useUI } from "@/store/ui";
  * (the hem SVG lives inside the sheet, so it rides the failsafe too).
  * prefers-reduced-motion -> a short plain fade (no wipe). Sets ui.loaded on exit.
  * Decorative (aria-hidden); the real content is underneath the whole time.
+ *
+ * REPEAT VISITS SKIP: the intro is a first-impression beat, not a toll booth —
+ * once seen in this tab session (sessionStorage) the sheet is hidden PRE-PAINT
+ * by the inline script below (no flash: it runs during HTML parse) and `loaded`
+ * flips immediately. `?nopre` forces the skip (QA / Lighthouse A-B hook).
  */
+const SEEN_KEY = "at-preloader-seen";
+const SKIP_SCRIPT = `try{if(sessionStorage.getItem("${SEEN_KEY}")||location.search.indexOf("nopre")>-1){document.getElementById("preloader").style.display="none"}}catch(e){}`;
+
 export function Preloader() {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const markRef = React.useRef<HTMLDivElement>(null);
@@ -37,7 +45,19 @@ export function Preloader() {
       const done = () => {
         root.style.display = "none";
         setLoaded(true);
+        try {
+          sessionStorage.setItem(SEEN_KEY, "1");
+        } catch {
+          /* storage unavailable (private mode) — the intro just replays */
+        }
       };
+
+      // Already hidden pre-paint by the inline skip script (repeat visit / ?nopre):
+      // unlock the page immediately, no animations.
+      if (root.style.display === "none" || getComputedStyle(root).display === "none") {
+        done();
+        return;
+      }
 
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         gsap.to(root, { autoAlpha: 0, duration: 0.3, delay: 0.2, onComplete: done });
@@ -72,7 +92,8 @@ export function Preloader() {
   );
 
   return (
-    <div ref={rootRef} className="preloader" aria-hidden>
+    <>
+      <div ref={rootRef} id="preloader" className="preloader" aria-hidden>
       <div ref={markRef} className="preloader-mark">
         A
       </div>
@@ -99,6 +120,10 @@ export function Preloader() {
         </defs>
         <path d={curtainPath(0.85, 2.6)} fill="url(#preloader-sunset)" />
       </svg>
-    </div>
+      </div>
+      {/* Runs during HTML parse (pre-paint): repeat visits never see the sheet,
+          not even for a frame. Must stay AFTER the #preloader div. */}
+      <script dangerouslySetInnerHTML={{ __html: SKIP_SCRIPT }} />
+    </>
   );
 }

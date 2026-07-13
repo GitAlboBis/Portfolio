@@ -120,9 +120,26 @@ zero CLS; console pulita; 60fps desktop, degrado mobile (bend dimezzato, segment
 Branch `feat/awwwards-motion` (basato su `main@8a7fdc4`), commit atomici per pass, build
 verde + prova visiva prima di ogni commit. **Merge su main = G3** (ok esplicito di Alberto).
 
-## 8. Consuntivo (si compila a fine lavori)
-- **Pass 1 ✅** — token system LA MAREA: `--ease-crest` + `--dur-*` (CSS), `DUR/EASE/STAGGER/
-  VELOCITY_GAIN` (`src/lib/motion.ts`), CustomEase tide/dive/drift/crest + Flip/Observer
-  (`src/lib/gsap.ts`); migrazioni: RouteTransition, WordGenerate, Appear, JourneyTimeline,
-  caption WorksGallery; Marquee bilingue; Reveal.tsx rimosso.
-  **Manopole**: curve in `@theme` (globals.css) + `src/lib/motion.ts` (un punto per tutto il sito).
+## 8. Consuntivo (2026-07-13 — branch `feat/awwwards-motion`, 5 commit, merge = G3)
+
+| Pass | Stato | Dove vive |
+|---|---|---|
+| 1 — Token LA MAREA | ✅ `144ba06` | `globals.css` (`--ease-crest`, `--dur-*`), `src/lib/motion.ts` (DUR/EASE/STAGGER/VELOCITY_GAIN), `src/lib/gsap.ts` (CustomEase tide/dive/drift/crest + Flip/Observer). Migrati: RouteTransition, WordGenerate, Appear, JourneyTimeline, caption gallery. Marquee bilingue (`dict.tech.ariaMarquee`), Reveal.tsx rimosso |
+| 2 — GL runway /work ⭐ | ✅ `47ac525` | `src/components/work/WorkRunwayCanvas.tsx` + hook in `WorkHorizontal.tsx`. Artwork generativi per-slug, bend da velocità, tide-reveal, parallax medio. Fondi slide → quad GL con handoff reversibile (failsafe CSS) |
+| 3 — Depth gallery home | ✅ `d7736ef` | `src/webgl/artwork.ts` (chunk condiviso) + `WorksGalleryCanvas.tsx`: stessi artwork, banking di camera, tilt piani |
+| 4 — Preloader counter + CountUp | ✅ `e9eb7f1` | `Preloader.tsx` (counter onesto 99→100 + orlo curtainPath), `motion/CountUp.tsx` su metriche `/work/[slug]` (lo 0 conta alla rovescia) |
+| 6 — Wildcard costellazione "A" | ✅ `aab8cb7` | `NightSky.tsx`: uniform `uConst` → 7 stelle a ignizione scaglionata + linee che si disegnano; completa a fine documento; clamp mobile; reduced = disegnata |
+| 7 — QA | ✅ | Probe Playwright (`_runwaygl/_gallerygl/_pass4/_constellation/_qa.mjs`, untracked): 5 slide + 5 fuochi gallery desktop, mobile 390, mid-motion bend, reduced-motion su 4 route, console pulita ovunque; typecheck+build verdi a ogni pass |
+
+**Scelte deliberate (non buchi):** OnScrollFilter parcheggiato (saturazione tipografica — il sito
+ha già 6 trattamenti); cursore custom non reintrodotto (rimozione deliberata su main); sweep dei
+literal in MenuOverlay/Nav non fatto (superfici hand-tuned e già revisionate — si tocca solo con
+A/B visivo); zoom-GL come exit non necessario (CoverOverlay copre già le uscite).
+**Pendenze reali:** Lighthouse pass (WP-10, pre-esistente); still reali `Work.textureSrc`
+(il branch texture monta in `artwork.ts` in un punto solo); contenuti SerSan (🔵 Alberto).
+
+**Manopole per Alberto:** curve/durate in `@theme`+`:root` (globals.css) e `src/lib/motion.ts`
+(un punto per tutto il sito); `VELOCITY_GAIN` (quanto la velocità deforma il mondo);
+`ART_PARALLAX`/`BEND` in testa a `WorkRunwayCanvas.tsx`; pattern per-progetto in
+`src/webgl/artwork.ts` (mappa `PATTERN_BY_SLUG` + GLSL); punti/soglie della costellazione
+nel blocco `constStar/constLine` di `NightSky.tsx`.

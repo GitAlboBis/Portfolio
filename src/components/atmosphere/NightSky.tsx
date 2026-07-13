@@ -40,6 +40,7 @@ precision mediump float;
 uniform vec2  uRes;
 uniform float uTime;
 uniform float uReveal;
+uniform float uConst;   // 0..1 — the "A" constellation forms as the page reaches its end
 uniform vec2  uMouse;   // cursor in band space (0..1, y-up); rest = (0.5, 0.5)
 uniform float uMouseK;  // spotlight strength 0..1 (0 on touch / off-band / reduced-motion)
 
@@ -73,6 +74,22 @@ float starLayer(vec2 p, float density, float size, float twk){
   float d  = length(f - off);
   float tw = 0.55 + 0.45 * sin(uTime * twk + r.x * 6.2831);
   return smoothstep(size, 0.0, d) * present * tw;
+}
+
+// one star of the "A" constellation: a bright core + soft halo, igniting at its
+// own threshold as uConst rises (staggered — the letter assembles star by star)
+float constStar(vec2 cp, vec2 pt, float th){
+  float on = smoothstep(th, th + 0.22, uConst);
+  float d = length(cp - pt);
+  return (smoothstep(0.045, 0.0, d) + smoothstep(0.16, 0.0, d) * 0.25) * on;
+}
+// a constellation line drawing itself from a toward b once its stars are lit
+float constLine(vec2 cp, vec2 a, vec2 b, float t0){
+  float prog = clamp((uConst - t0) * 3.2, 0.0, 1.0);
+  vec2 pa = cp - a, ba = b - a;
+  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+  float d = length(pa - ba * h);
+  return smoothstep(0.022, 0.004, d) * step(h, prog) * smoothstep(0.0, 0.2, prog);
 }
 
 // one lane of warm embers drifting upward
@@ -142,6 +159,28 @@ void main(){
   spot *= mix(0.4, 1.0, ground);
   col = mix(col, mix(EMBER, AMBER, 0.35), spot * 0.22);   // warm the night toward the cursor
   col += mix(EMBER, ROSE, 0.30) * spot * 0.10;            // faint additive bloom core
+
+  // ── the "A" returns in the stars: as the page reaches its very end, seven
+  //    stars ignite one by one high in the night and thin golden lines draw the
+  //    hero's letter between them — the water "A" of the golden hour, remembered
+  //    as a constellation. Centre clamps inside narrow (mobile) viewports.
+  vec2 cc = vec2(min(0.40, aspect * 0.5 - 0.24), 0.72);
+  vec2 cp = (p - cc) / 0.16;
+  float cs = 0.0;
+  cs += constStar(cp, vec2( 0.00,  0.95), 0.05);
+  cs += constStar(cp, vec2(-0.31,  0.20), 0.15);
+  cs += constStar(cp, vec2( 0.31,  0.20), 0.25);
+  cs += constStar(cp, vec2(-0.30,  0.05), 0.35);
+  cs += constStar(cp, vec2( 0.30,  0.05), 0.45);
+  cs += constStar(cp, vec2(-0.62, -0.55), 0.55);
+  cs += constStar(cp, vec2( 0.62, -0.55), 0.62);
+  float cl = 0.0;
+  cl += constLine(cp, vec2(0.00, 0.95), vec2(-0.62, -0.55), 0.55);
+  cl += constLine(cp, vec2(0.00, 0.95), vec2( 0.62, -0.55), 0.66);
+  cl += constLine(cp, vec2(-0.30, 0.05), vec2( 0.30, 0.05), 0.78);
+  float ctw = 0.86 + 0.14 * sin(uTime * 1.4 + cp.x * 3.0);
+  col += STAR * cs * ctw * 0.9;
+  col += mix(STAR, AMBER, 0.45) * cl * 0.28;
 
   // ── fine grain (breaks gradient banding on the dark plum). Wrapped time phase:
   //    unbounded uTime*60 collapses fp32 fract() into structured stripes within
@@ -237,6 +276,7 @@ export function NightSky({ className }: { className?: string }) {
     const uRes = gl.getUniformLocation(prog, "uRes");
     const uTime = gl.getUniformLocation(prog, "uTime");
     const uReveal = gl.getUniformLocation(prog, "uReveal");
+    const uConstLoc = gl.getUniformLocation(prog, "uConst");
     const uMouseLoc = gl.getUniformLocation(prog, "uMouse");
     const uMouseKLoc = gl.getUniformLocation(prog, "uMouseK");
 
@@ -272,6 +312,14 @@ export function NightSky({ className }: { className?: string }) {
       const r = host.getBoundingClientRect();
       return Math.max(0, Math.min(1, (window.innerHeight - r.top) / (window.innerHeight * 0.8)));
     };
+    // constellation progress: 0 as the band enters → 1 exactly at the page's end
+    // (the "A" completes only when the story does). Short bands fall back to reveal.
+    let constN = reduced ? 1 : 0;
+    const sampleConst = () => {
+      const r = host.getBoundingClientRect();
+      const denom = r.height - window.innerHeight;
+      return denom > 40 ? Math.max(0, Math.min(1, -r.top / denom)) : reveal;
+    };
     const inViewNow = () => {
       const r = host.getBoundingClientRect();
       return r.bottom > -120 && r.top < window.innerHeight + 120;
@@ -305,6 +353,7 @@ export function NightSky({ className }: { className?: string }) {
     const draw = (t: number) => {
       gl.uniform1f(uTime, t);
       gl.uniform1f(uReveal, reveal);
+      gl.uniform1f(uConstLoc, constN);
       gl.uniform2f(uMouseLoc, mx, my);
       gl.uniform1f(uMouseKLoc, mk);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -345,6 +394,7 @@ export function NightSky({ className }: { className?: string }) {
         const dt = Math.min(0.05, (now - prev) / 1000);
         prev = now;
         reveal += (sampleTarget() - reveal) * Math.min(1, dt * 3);
+        constN += (sampleConst() - constN) * Math.min(1, dt * 2.5);
         const ms = Math.min(1, dt * 6); // spotlight follow / fade
         mx += (tmx - mx) * ms;
         my += (tmy - my) * ms;

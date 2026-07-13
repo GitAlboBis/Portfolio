@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { gsap, SplitText, useGSAP } from "@/lib/gsap";
+import { DUR, EASE, STAGGER } from "@/lib/motion";
 import { useUI } from "@/store/ui";
 
 type WordGenerateProps = {
@@ -28,7 +29,7 @@ export const WordGenerate = React.memo(function WordGenerate({
   children,
   blur = true,
   start = "top 85%",
-  stagger = 0.06,
+  stagger = STAGGER.words,
 }: WordGenerateProps) {
   const ref = React.useRef<HTMLElement>(null);
   const reduced = useUI((s) => s.reducedMotion);
@@ -51,8 +52,8 @@ export const WordGenerate = React.memo(function WordGenerate({
           return gsap.from(self.words, {
             autoAlpha: 0,
             ...(useBlur ? { filter: "blur(10px)" } : {}),
-            duration: 0.5,
-            ease: "power2.out",
+            duration: DUR.swell,
+            ease: EASE.tide,
             stagger,
             scrollTrigger: { trigger: el, start, once: true },
           });

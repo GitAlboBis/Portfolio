@@ -49,6 +49,7 @@ const sectionSchema = z.object({
     eyebrow: z.string(),
     title: z.string(),
     marquee: z.array(z.string()),
+    ariaMarquee: z.string(),
   }),
   contact: z.object({
     eyebrow: z.string(),
@@ -121,6 +122,7 @@ const en: Dict = {
       "Interaction",
       "Performance",
     ],
+    ariaMarquee: "Fields I work in",
   },
   contact: {
     eyebrow: "03 — Contact",
@@ -204,6 +206,7 @@ const it: Dict = {
       "Interazione",
       "Performance",
     ],
+    ariaMarquee: "Gli ambiti in cui lavoro",
   },
   contact: {
     eyebrow: "03 — Contatti",

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { DUR, EASE } from "@/lib/motion";
 import { useUI } from "@/store/ui";
 
 type AppearProps = {
@@ -48,8 +49,8 @@ export function Appear({
         y,
         autoAlpha: 0,
         ...(useBlur ? { filter: "blur(8px)" } : {}),
-        duration: 0.9,
-        ease: "power3.out",
+        duration: DUR.tide,
+        ease: EASE.tide,
         ...(stagger > 0 ? { stagger } : {}),
         scrollTrigger: { trigger: el, start, once: true },
       });

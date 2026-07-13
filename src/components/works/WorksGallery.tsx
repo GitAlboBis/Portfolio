@@ -7,6 +7,7 @@ import { works as WORKS } from "@/content/works";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { DUR, EASE, STAGGER } from "@/lib/motion";
 import { useHydrated } from "@/lib/use-hydrated";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { RollLink } from "@/components/motion/RollLink";
@@ -47,9 +48,9 @@ export function WorksGallery() {
       if (!root) return;
       const title = root.querySelector(".js-work-title");
       const meta = root.querySelectorAll(".js-work-meta");
-      if (title) gsap.fromTo(title, { yPercent: 100 }, { yPercent: 0, duration: 0.5, ease: "power3.out" });
+      if (title) gsap.fromTo(title, { yPercent: 100 }, { yPercent: 0, duration: DUR.swell, ease: EASE.tide });
       if (meta.length)
-        gsap.fromTo(meta, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.05, ease: "power2.out" });
+        gsap.fromTo(meta, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: DUR.swell, stagger: STAGGER.words, ease: EASE.tide });
     },
     { scope: captionRef, dependencies: [active] },
   );

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { curtainPath } from "@/lib/curtain";
+import { DUR, EASE } from "@/lib/motion";
 
 // Module-level: the Preloader owns the very first intro, so the route transition
 // only plays on genuine client-side navigations (not the initial hard load).
@@ -82,11 +83,11 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
           },
         })
         // page fades in beneath the lifting curtain
-        .to(el, { autoAlpha: 1, duration: 0.5, ease: "power2.out" }, 0.2)
+        .to(el, { autoAlpha: 1, duration: DUR.swell, ease: EASE.tide }, 0.2)
         // night lifts first; the sunset wave trails a beat, so a golden edge rides
         // up just beneath the retreating night — the last light before it clears.
-        .to(nightP, { v: 0, duration: 0.62, ease: "power3.inOut", onUpdate: () => night.setAttribute("d", curtainPath(nightP.v, 4.2)) }, 0)
-        .to(leadP, { v: 0, duration: 0.66, ease: "power3.inOut", onUpdate: () => lead.setAttribute("d", curtainPath(leadP.v, 1.7)) }, 0.1);
+        .to(nightP, { v: 0, duration: DUR.swell, ease: EASE.dive, onUpdate: () => night.setAttribute("d", curtainPath(nightP.v, 4.2)) }, 0)
+        .to(leadP, { v: 0, duration: DUR.swell, ease: EASE.dive, onUpdate: () => lead.setAttribute("d", curtainPath(leadP.v, 1.7)) }, 0.1);
 
       return () => {
         fontsAlive = false; // a late fonts.ready must not scroll a NEWER route

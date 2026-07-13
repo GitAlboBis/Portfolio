@@ -26,6 +26,7 @@ export function Tech() {
       {/* Velocity-coupled keyword ticker — a warm-air ribbon leading into the stack. */}
       <Marquee
         items={t.tech.marquee}
+        label={t.tech.ariaMarquee}
         className="bleed mb-[var(--section-y)] border-y border-[var(--color-rule)]"
       />
 

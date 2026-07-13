@@ -1,6 +1,21 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-12** (**Motion package MERGED & DEPLOYED** — hero ink, link identities, footer wordmark, case-study loop, runway spotlight). This is the "continue here" doc.
+> Last updated: **2026-07-13** (**LA MAREA — overhaul motion su branch `feat/awwwards-motion`**, 5 commit, in attesa di ok G3 per il merge). This is the "continue here" doc.
+
+---
+
+## ⏯ CONTINUA DA QUI — sessione 2026-07-13 (LA MAREA, branch `feat/awwwards-motion`)
+
+Missione carte-blanche di Alberto: overhaul animazioni verso SOTD. Piano + consuntivo completo in **`ANIMATION_PLAN.md`** (§8). In sintesi, sul branch:
+| Cosa | Commit |
+|---|---|
+| **Token motion** (`--dur-*`, `--ease-crest`, CustomEase tide/dive/drift/crest, `src/lib/motion.ts`, Flip/Observer registrati) + migrazioni prime superfici + Marquee bilingue | `144ba06` |
+| **GL artwork layer sotto la runway /work** (still generativi per-slug, bend da velocità, tide-reveal; fondi slide→quad GL con failsafe CSS reversibile) | `47ac525` |
+| **Stessi artwork nella depth gallery home** (`src/webgl/artwork.ts` condiviso) + banking camera + tilt piani | `d7736ef` |
+| **Preloader**: counter % onesto + orlo sunset curtainPath nel wipe; **CountUp** su metriche case study | `e9eb7f1` |
+| **Wildcard**: costellazione "A" in NightSky a fine pagina (uConst, ignizione scaglionata, clamp mobile) | `aab8cb7` |
+
+QA: probe Playwright per ogni pass (desktop+mobile+reduced su 4 route, console pulita), typecheck+build verdi. ⚠ Lezione ambiente: **screenshot claude-in-chrome si bloccano con canvas WebGL attivo in viewport** (anche su main puro — CDP capture starvation, il renderer è vivo): pixel-QA delle zone canvas SOLO via probe Playwright. Pendenze: Lighthouse (WP-10), still reali (`textureSrc` monta in `artwork.ts`), contenuti SerSan (🔵). **Merge su main = G3.**
 
 ---
 

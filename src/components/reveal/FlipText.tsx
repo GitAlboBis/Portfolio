@@ -66,5 +66,8 @@ export function FlipText({
     { scope: ref, dependencies: [reduced, start, text], revertOnUpdate: true },
   );
 
-  return React.createElement(Tag, { ref, className }, children);
+  // SplitText aria:"auto" names this host; naming is prohibited on bare p/span/div
+  // (axe aria-prohibited-attr) — group is the lightest role that permits it.
+  const role = typeof Tag === "string" && /^(p|span|div)$/.test(Tag) ? "group" : undefined;
+  return React.createElement(Tag, { ref, className, role }, children);
 }

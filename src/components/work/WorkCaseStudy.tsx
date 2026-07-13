@@ -9,6 +9,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
+import { CountUp } from "@/components/motion/CountUp";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
 import { RollLink } from "@/components/motion/RollLink";
@@ -100,7 +101,8 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
           >
             {s.metrics.map((m, i) => (
               <div key={i}>
-                <p className="font-display text-5xl font-semibold text-ember">{m.value}</p>
+                {/* the number counts to its value as it enters (0 counts DOWN — arrived at) */}
+                <CountUp value={m.value} className="font-display text-5xl font-semibold text-ember" />
                 <p className="t-meta mt-2">{tx(m.label)}</p>
               </div>
             ))}

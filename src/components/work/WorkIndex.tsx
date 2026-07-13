@@ -33,10 +33,10 @@ export function WorkIndex() {
           <div className="flex items-center gap-5 sm:gap-7">
             <button
               onClick={toggleLocale}
-              aria-label="Toggle language"
               className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
             >
               {locale === "en" ? "IT" : "EN"}
+              <span className="sr-only"> — {t.nav.langToggle}</span>
             </button>
             <RollLink
               as={Link}

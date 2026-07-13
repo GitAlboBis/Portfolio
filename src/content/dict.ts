@@ -17,6 +17,8 @@ const sectionSchema = z.object({
     contact: z.string(),
     menu: z.string(),
     close: z.string(),
+    /** sr-only suffix on the EN/IT toggle (the visible text must stay in the a11y name). */
+    langToggle: z.string(),
   }),
   hero: z.object({
     eyebrow: z.string(),
@@ -49,6 +51,7 @@ const sectionSchema = z.object({
     eyebrow: z.string(),
     title: z.string(),
     marquee: z.array(z.string()),
+    ariaMarquee: z.string(),
   }),
   contact: z.object({
     eyebrow: z.string(),
@@ -82,7 +85,7 @@ const sectionSchema = z.object({
 export type Dict = z.infer<typeof sectionSchema>;
 
 const en: Dict = {
-  nav: { work: "Work", about: "About", contact: "Contact", menu: "Menu", close: "Close" },
+  nav: { work: "Work", about: "About", contact: "Contact", menu: "Menu", close: "Close", langToggle: "switch language" },
   hero: {
     eyebrow: "Software Engineer · Full-stack & AI",
     name: "Alberto Tuveri",
@@ -121,6 +124,7 @@ const en: Dict = {
       "Interaction",
       "Performance",
     ],
+    ariaMarquee: "Fields I work in",
   },
   contact: {
     eyebrow: "03 — Contact",
@@ -165,7 +169,7 @@ const en: Dict = {
 };
 
 const it: Dict = {
-  nav: { work: "Lavori", about: "Chi sono", contact: "Contatti", menu: "Menu", close: "Chiudi" },
+  nav: { work: "Lavori", about: "Chi sono", contact: "Contatti", menu: "Menu", close: "Chiudi", langToggle: "cambia lingua" },
   hero: {
     eyebrow: "Software Engineer · Full-stack & AI",
     name: "Alberto Tuveri",
@@ -204,6 +208,7 @@ const it: Dict = {
       "Interazione",
       "Performance",
     ],
+    ariaMarquee: "Gli ambiti in cui lavoro",
   },
   contact: {
     eyebrow: "03 — Contatti",

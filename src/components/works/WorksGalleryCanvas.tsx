@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useRef, useMemo, useEffect, type RefObject } from "react";
 import { works as WORKS, type Work } from "@/content/works";
+import { ARTWORK_GLSL, PATTERN_BY_SLUG } from "@/webgl/artwork";
 
 /*
   WorksGalleryCanvas — the R3F half of the home depth gallery (three + @react-three/fiber).
@@ -26,20 +27,31 @@ const VERT = /* glsl */ `
   void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `;
 
-// Project plane: duotone sunset gradient + soft highlight + vignette. (Placeholder
-// until real stills are wired via Work.textureSrc.)
+// Project plane: the shared generative artwork per slug (src/webgl/artwork.ts —
+// same "still" the /work runway draws), cross-faded by depth. Out-of-focus
+// planes rest desaturated; the focused one comes to full colour. Texture branch
+// (Work.textureSrc) replaces the artwork() call when real stills land.
 const FRAG = /* glsl */ `
   varying vec2 vUv;
+  uniform vec3 uBase;
   uniform vec3 uA;
   uniform vec3 uB;
   uniform float uOpacity;
+  uniform float uTime;
+  uniform float uPattern;
+  uniform float uSeed;
+
+  ${ARTWORK_GLSL}
+
   void main(){
-    vec3 c = mix(uB, uA, smoothstep(0.0, 1.0, vUv.y));
-    float d = distance(vUv, vec2(0.30, 0.72));
-    c = mix(c, uA * 1.12, smoothstep(0.55, 0.0, d) * 0.4);
+    vec3 c = artwork(vUv, uPattern, uSeed, uTime, uBase, uA, uB);
+    // depth focus: opacity doubles as the focus signal (1 = centred).
+    float gray = dot(c, vec3(0.299, 0.587, 0.114));
+    c = mix(mix(vec3(gray), uBase, 0.25), c, 0.4 + 0.6 * uOpacity);
     float v = smoothstep(1.15, 0.25, distance(vUv, vec2(0.5)));
     c *= mix(0.92, 1.0, v);
-    gl_FragColor = vec4(c, uOpacity);
+    c += (aw_hash(vUv * vec2(820.0, 600.0) + fract(uTime)) - 0.5) * 0.03;
+    gl_FragColor = vec4(clamp(c, 0.0, 1.0), uOpacity);
   }
 `;
 
@@ -118,16 +130,20 @@ function Scene({
   const materials = useMemo(
     () =>
       works.map(
-        (w) =>
+        (w, i) =>
           new THREE.ShaderMaterial({
             vertexShader: VERT,
             fragmentShader: FRAG,
             transparent: true,
             depthWrite: false,
             uniforms: {
+              uBase: { value: new THREE.Color(w.mood.base) },
               uA: { value: new THREE.Color(w.mood.blob1) },
               uB: { value: new THREE.Color(w.mood.blob2) },
               uOpacity: { value: 0 },
+              uTime: { value: 0 },
+              uPattern: { value: PATTERN_BY_SLUG[w.slug] ?? 3 },
+              uSeed: { value: i * 1.7 + 0.4 },
             },
           }),
       ),
@@ -173,8 +189,14 @@ function Scene({
     camera.position.x += (pointer.x * 0.7 - camera.position.x) * 0.05;
     camera.position.y += (pointer.y * 0.4 - camera.position.y) * 0.05;
 
-    const vel = Math.min(1, Math.abs(camera.position.z - lastCamZ.current) * 4);
+    const dzCam = camera.position.z - lastCamZ.current;
+    const vel = Math.min(1, Math.abs(dzCam) * 4);
     lastCamZ.current = camera.position.z;
+
+    // Banking: the camera leans into the dive and settles level at rest —
+    // the fly-through reads as a turn, not an elevator (transform-only).
+    const bank = Math.max(-0.04, Math.min(0.04, dzCam * 0.55));
+    camera.rotation.z += (bank - camera.rotation.z) * 0.06;
 
     let best = 0;
     let bestD = Infinity;
@@ -182,6 +204,7 @@ function Scene({
       const target = -i * GAP + VIEW;
       const dz = Math.abs(camera.position.z - target);
       materials[i].uniforms.uOpacity.value = 1 - smooth(0, GAP * 0.95, dz);
+      materials[i].uniforms.uTime.value = state.clock.elapsedTime;
       if (dz < bestD) {
         bestD = dz;
         best = i;
@@ -215,6 +238,8 @@ function Scene({
         <mesh
           key={w.slug}
           position={[((i % 2) * 2 - 1) * 1.25, 0, -i * GAP]}
+          /* a slight inward tilt gives each plane real dimensionality in the dive */
+          rotation={[0, ((i % 2) * 2 - 1) * -0.09, 0]}
           material={materials[i]}
           renderOrder={works.length - i}
         >

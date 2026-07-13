@@ -7,6 +7,8 @@ import { useUI } from "@/store/ui";
 
 type MarqueeProps = {
   items: string[];
+  /** Accessible name for the band (bilingual — pass it from dict.ts). */
+  label: string;
   className?: string;
   /** Base loop duration (s) at rest; scroll velocity speeds it up from here. */
   baseDuration?: number;
@@ -21,7 +23,7 @@ type MarqueeProps = {
  * reduced-motion -> a static, non-scrolling keyword row (CSS `motion-reduce`).
  * Decorative band.
  */
-export function Marquee({ items, className, baseDuration = 36 }: MarqueeProps) {
+export function Marquee({ items, label, className, baseDuration = 36 }: MarqueeProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   const reduced = useUI((s) => s.reducedMotion);
 
@@ -58,7 +60,7 @@ export function Marquee({ items, className, baseDuration = 36 }: MarqueeProps) {
   return (
     <div
       ref={ref}
-      aria-label="What I work in"
+      aria-label={label}
       className={cn(
         "group flex overflow-hidden py-4 select-none",
         "[--marquee-gap:3rem]",

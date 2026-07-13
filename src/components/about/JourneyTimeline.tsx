@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { DUR, EASE } from "@/lib/motion";
 import { useUI } from "@/store/ui";
 import { DrawLine } from "@/components/reveal/DrawLine";
 
@@ -35,8 +36,8 @@ export function JourneyTimeline({ items }: { items: JourneyEntry[] }) {
         gsap.from(row, {
           y: 16,
           autoAlpha: 0,
-          duration: 0.7,
-          ease: "power3.out",
+          duration: DUR.swell,
+          ease: EASE.tide,
           scrollTrigger: { trigger: row, start: "top 85%", once: true },
         });
       });
@@ -49,8 +50,8 @@ export function JourneyTimeline({ items }: { items: JourneyEntry[] }) {
           {
             scale: 1,
             autoAlpha: 1,
-            duration: 0.55,
-            ease: "back.out(2.2)",
+            duration: DUR.swell,
+            ease: EASE.crest,
             scrollTrigger: { trigger: node, start: "top 82%", once: true },
           },
         );

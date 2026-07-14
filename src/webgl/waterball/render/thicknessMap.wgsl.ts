@@ -1,25 +1,27 @@
 export default `struct RenderUniforms {
-    texel_size: vec2f, 
-    sphere_size: f32, 
-    inv_projection_matrix: mat4x4f, 
-    projection_matrix: mat4x4f, 
-    view_matrix: mat4x4f, 
-    inv_view_matrix: mat4x4f, 
+    texel_size: vec2f,
+    sphere_size: f32,
+    inv_projection_matrix: mat4x4f,
+    projection_matrix: mat4x4f,
+    view_matrix: mat4x4f,
+    inv_view_matrix: mat4x4f,
 }
 
 struct VertexOutput {
-    @builtin(position) position: vec4f, 
-    @location(0) uv: vec2f, 
+    @builtin(position) position: vec4f,
+    @location(0) uv: vec2f,
+    @location(1) speed: f32,
 }
 
 struct FragmentInput {
-    @location(0) uv: vec2f, 
+    @location(0) uv: vec2f,
+    @location(1) speed: f32,
 }
 
 struct PosVel {
-    position: vec3f, 
-    v: vec3f, 
-    density: f32, 
+    position: vec3f,
+    v: vec3f,
+    density: f32,
 }
 
 @group(0) @binding(0) var<storage> particles: array<PosVel>;
@@ -28,6 +30,11 @@ struct PosVel {
 
 override restDensity: f32;
 override densitySizeScale: f32;
+
+// normalized-speed reference: the churn idles well below this, a mouse-poke /
+// explode splash flies well above -> foam appears ONLY on real splashes.
+// (14 never fired in QA — real splash speeds hover around 4-8 grid units.)
+const SPEED_REF: f32 = 7.0;
 
 // assuming center is origin
 fn computeStretchedVertex(position: vec2f, velocity_dir: vec2f, strength: f32) -> vec2f {
@@ -54,8 +61,8 @@ fn scaleQuad(vel: vec2f, r: f32, strength: f32) -> f32 {
 }
 
 @vertex
-fn vs(    
-    @builtin(vertex_index) vertex_index: u32, 
+fn vs(
+    @builtin(vertex_index) vertex_index: u32,
     @builtin(instance_index) instance_index: u32
 ) -> VertexOutput {
     var corner_positions = array(
@@ -79,7 +86,11 @@ fn vs(
 
     let out_position = uniforms.projection_matrix * vec4f(view_position + corner, 1.0);
 
-    return VertexOutput(out_position, uv);
+    // per-particle normalized speed -> accumulated (speed-weighted) alongside the
+    // thickness so fluid.wgsl can recover the mean speed per pixel (the foam signal)
+    let speed = clamp(length(particles[instance_index].v) / SPEED_REF, 0.0, 1.0);
+
+    return VertexOutput(out_position, uv, speed);
 }
 
 @fragment
@@ -90,7 +101,12 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         discard;
     }
     var thickness: f32 = sqrt(1.0 - r2);
-    let particle_alpha = 0.05;
+    // 0.05 -> 0.038: the freshly-seeded "A" is optically overstuffed and reads as
+    // dark olive mud; thinner accumulation lets the backlit sunset glow through
+    // (QA: the post-splash, redistributed letter looked RIGHT — this matches it).
+    let particle_alpha = 0.038;
 
-    return vec4f(vec3f(particle_alpha * thickness), 1.0);
+    // r = thickness, g = speed-weighted thickness (both additively blended)
+    let t = particle_alpha * thickness;
+    return vec4f(t, t * input.speed, 0.0, 1.0);
 }`;

@@ -23,8 +23,8 @@ HORIZON     = rgb("ff9e63")   # warm coral horizon
 HORIZON_HOT = rgb("ffd9a0")   # bright band right at the horizon
 SUN_CORE    = rgb("fff3d8")   # near-white warm sun
 SUN_GLOW    = rgb("ff7a3c")   # ember halo
-SEA_NEAR    = rgb("b85f4e")   # warm reflected horizon on the water/ground
-SEA_DEEP    = rgb("241526")   # deep warm night below
+SEA_NEAR    = rgb("d98a5a")   # warm reflected horizon on the water/ground (bright: the sea MIRRORS the sky)
+SEA_DEEP    = rgb("46284a")   # dusky violet below — a sunset sea is luminous, not black
 
 def smooth(e0, e1, x):
     t = np.clip((x - e0) / (e1 - e0), 0.0, 1.0)
@@ -65,6 +65,14 @@ def sky(dx, dy, dz):
     col = mix(col, SUN_CORE, halo2)
     disk = smooth(0.9975, 0.9990, d)
     col = mix(col, SUN_CORE, disk)
+
+    # --- sun GLITTER PATH on the sea: the mirrored sun, below the horizon only.
+    # This is what the water hero refracts/reflects downward — without it the
+    # bottom hemisphere reads as mud and the fluid's lower faces go dark.
+    below = (y < 0).astype(np.float64)
+    dm = np.clip(dx*SUN[0] + (-dy)*SUN[1] + dz*SUN[2], 0.0, 1.0)
+    col = mix(col, SUN_GLOW, np.power(dm, 6.0) * 0.45 * below)
+    col = mix(col, SUN_CORE, np.power(dm, 28.0) * 0.6 * below)
 
     return np.clip(col, 0.0, 1.0)
 

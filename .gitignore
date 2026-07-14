@@ -27,6 +27,9 @@ yarn-error.log*
 .env
 .env*.local
 
+# claude code — personal overrides (contains secrets, e.g. API_KEY_21ST)
+.claude/settings.local.json
+
 # vercel
 .vercel
 

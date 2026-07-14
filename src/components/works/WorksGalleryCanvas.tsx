@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useRef, useMemo, useEffect, type RefObject } from "react";
+import { useRef, useMemo, useEffect, useState, type RefObject } from "react";
 import { works as WORKS, type Work } from "@/content/works";
 import { ARTWORK_GLSL, PATTERN_BY_SLUG } from "@/webgl/artwork";
 
@@ -87,6 +87,32 @@ const FRAG_BG = /* glsl */ `
 function smooth(e0: number, e1: number, x: number) {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
   return t * t * (3 - 2 * t);
+}
+
+/* ── Type at scene depth (the Everswap sky-writing insight) ────────────────
+   Each project's title lives BETWEEN the planes as a giant ghost billboard
+   (Bricolage outline, ember) — the camera flies TOWARD it and the nearer
+   artwork paints over it, so the type reads at real depth instead of as a
+   flat DOM overlay. Canvas-texture, fit-to-width, redrawn on fonts.ready. */
+const TITLE_W = 8.4;
+const TITLE_CANVAS = { w: 2048, h: 320 };
+
+function drawTitle(c: HTMLCanvasElement, text: string) {
+  const ctx = c.getContext("2d");
+  if (!ctx) return;
+  const family =
+    getComputedStyle(document.documentElement).getPropertyValue("--font-display").trim() ||
+    '"Bricolage Grotesque", sans-serif';
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `600 100px ${family}`;
+  const at100 = ctx.measureText(text).width || 1;
+  const size = Math.min(230, ((c.width - 140) / at100) * 100);
+  ctx.font = `600 ${size}px ${family}`;
+  ctx.lineWidth = Math.max(2, size * 0.014);
+  ctx.strokeStyle = "rgba(238, 91, 35, 0.55)"; // ember outline — ghost, decorative
+  ctx.strokeText(text, c.width / 2, c.height / 2);
 }
 
 /*
@@ -177,6 +203,41 @@ function Scene({
     [works],
   );
 
+  // Depth titles: one canvas-texture billboard per project, redrawn once the
+  // display font is really loaded (same pattern as the murmuration glyph).
+  const [titleMats, setTitleMats] = useState<THREE.MeshBasicMaterial[] | null>(null);
+  useEffect(() => {
+    const canvases = works.map((w) => {
+      const c = document.createElement("canvas");
+      c.width = TITLE_CANVAS.w;
+      c.height = TITLE_CANVAS.h;
+      drawTitle(c, w.title);
+      return c;
+    });
+    const mats = canvases.map((c) => {
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      return new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false });
+    });
+    let alive = true;
+    document.fonts?.ready.then(() => {
+      if (!alive) return;
+      canvases.forEach((c, i) => {
+        drawTitle(c, works[i].title);
+        if (mats[i].map) (mats[i].map as THREE.CanvasTexture).needsUpdate = true;
+      });
+    });
+    setTitleMats(mats);
+    return () => {
+      alive = false;
+      mats.forEach((m) => {
+        m.map?.dispose();
+        m.dispose();
+      });
+    };
+  }, [works]);
+
   useFrame((state) => {
     const sec = sectionRef.current;
     if (!sec) return;
@@ -223,6 +284,17 @@ function Scene({
       bgRef.current.position.set(camera.position.x, camera.position.y, camera.position.z - 22);
     }
 
+    // depth titles: swell as the camera approaches, snuff fast once passed —
+    // the type is always BETWEEN you and the next work, never on the glass
+    if (titleMats)
+      for (let i = 0; i < titleMats.length; i++) {
+        const rel = camera.position.z - (-(i * GAP) - GAP * 0.55);
+        titleMats[i].opacity =
+          rel >= 0
+            ? 0.5 * (1 - smooth(0.4, GAP * 2.8, rel))
+            : 0.5 * (1 - smooth(0, GAP * 0.4, -rel));
+      }
+
     if (best !== prevActive.current) {
       prevActive.current = best;
       onActive(best);
@@ -246,6 +318,23 @@ function Scene({
           <planeGeometry args={[5.2, 3.3]} />
         </mesh>
       ))}
+      {/* ghost titles at depth: opposite side of their plane, half a GAP deeper,
+          renderOrder .5 UNDER the nearer plane so the artwork occludes the type */}
+      {titleMats &&
+        works.map((w, i) => (
+          <mesh
+            key={`title-${w.slug}`}
+            material={titleMats[i]}
+            position={[
+              -((i % 2) * 2 - 1) * 1.7,
+              i % 2 ? -0.85 : 0.85,
+              -i * GAP - GAP * 0.55,
+            ]}
+            renderOrder={works.length - i - 0.5}
+          >
+            <planeGeometry args={[TITLE_W, (TITLE_W * TITLE_CANVAS.h) / TITLE_CANVAS.w]} />
+          </mesh>
+        ))}
     </>
   );
 }

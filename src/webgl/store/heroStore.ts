@@ -29,3 +29,9 @@ export const useHeroStore = create<HeroState>((set) => ({
   video: 0,
   set: (p) => set(p),
 }));
+
+// dev-only QA handle (same pattern as __heroOutST / __menuTL): lets probes read
+// the live explode/reveal values the sim consumes. Tree-shaken out of prod.
+if (process.env.NODE_ENV !== "production" && typeof window !== "undefined") {
+  (window as unknown as { __heroStore?: typeof useHeroStore }).__heroStore = useHeroStore;
+}

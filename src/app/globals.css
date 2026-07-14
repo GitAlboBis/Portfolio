@@ -604,6 +604,94 @@ html.cc-on * {
   }
 }
 
+/* ── Golden motes ─────────────────────────────────────────────────────────────
+   Sunset pollen drifting up through the About band (GoldenHaze). Pure CSS:
+   transform+opacity only, per-mote variety via custom properties, negative
+   delays start each one mid-cycle so nothing is "born" together. Reduced
+   motion: parked as faint static dust. */
+.golden-mote {
+  position: absolute;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-amber) 85%, white);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--color-amber) 45%, transparent);
+  opacity: 0;
+  animation: mote-drift var(--mote-dur, 22s) linear infinite;
+  animation-delay: var(--mote-delay, 0s);
+}
+@keyframes mote-drift {
+  0% {
+    transform: translate3d(0, 3.5vh, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--mote-peak, 0.5);
+  }
+  50% {
+    transform: translate3d(var(--mote-sway, 1.4rem), -4.5vh, 0);
+  }
+  88% {
+    opacity: var(--mote-peak, 0.5);
+  }
+  100% {
+    transform: translate3d(calc(var(--mote-sway, 1.4rem) * -0.6), -13vh, 0);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .golden-mote {
+    animation: none;
+    opacity: 0.16;
+  }
+}
+
+/* ── Horizon glint ────────────────────────────────────────────────────────────
+   A spark of last light sliding along the About band's horizon hairline every
+   few breaths — light catching a taut wire. Width is 8% of the line, so a
+   1150% translateX walks it end to end (transform-only). Hidden entirely under
+   reduced motion (the still picture keeps just the line). */
+.horizon-glint {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 8%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-amber) 80%, white),
+    transparent
+  );
+  opacity: 0;
+  animation: horizon-glint 9s var(--ease-drift) 2.5s infinite;
+}
+@keyframes horizon-glint {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  3% {
+    opacity: 0.85;
+  }
+  24% {
+    transform: translateX(1050%);
+    opacity: 0.85;
+  }
+  28% {
+    transform: translateX(1150%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(1150%);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .horizon-glint {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* ── Keyframes ─────────────────────────────────────────────────────────────  */
 @keyframes rise {
   from {

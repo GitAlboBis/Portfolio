@@ -3,6 +3,7 @@
 import * as React from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useUI } from "@/store/ui";
+import { GoldenMotes } from "@/components/atmosphere/GoldenMotes";
 
 /*
   GoldenHaze — the About band's atmosphere (decorative, aria-hidden).
@@ -23,27 +24,6 @@ import { useUI } from "@/store/ui";
 
 const GRAIN =
   "url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>\")";
-
-// Golden motes — sunset pollen drifting up through the band. Values are
-// DETERMINISTIC per index (hash-fract, no Math.random): the same numbers render
-// on the server and the client, so hydration never mismatches. Pure CSS motion
-// (.golden-mote in globals.css); most ride amber, a few catch coral.
-const MOTES = Array.from({ length: 14 }, (_, i) => {
-  const fr = (n: number) => {
-    const x = Math.sin(i * 127.1 + n * 311.7) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  return {
-    left: 4 + fr(1) * 92, // %
-    top: 8 + fr(2) * 80, // %
-    size: 2 + fr(3) * 3, // px
-    dur: 16 + fr(4) * 14, // s
-    delay: -fr(5) * 30, // s — negative: each starts mid-cycle
-    sway: (fr(6) * 2 - 1) * 2.2, // rem
-    peak: 0.3 + fr(7) * 0.35,
-    coral: fr(8) > 0.72,
-  };
-});
 
 export function GoldenHaze() {
   const root = React.useRef<HTMLDivElement>(null);
@@ -124,29 +104,7 @@ export function GoldenHaze() {
       </div>
 
       {/* Golden motes — pollen catching the last light, rising through the band. */}
-      <div className="absolute inset-0 overflow-hidden">
-        {MOTES.map((m, i) => (
-          <span
-            key={i}
-            className="golden-mote"
-            style={
-              {
-                left: `${m.left}%`,
-                top: `${m.top}%`,
-                width: `${m.size}px`,
-                height: `${m.size}px`,
-                background: m.coral
-                  ? "color-mix(in srgb, var(--color-coral) 88%, white)"
-                  : undefined,
-                "--mote-dur": `${m.dur.toFixed(1)}s`,
-                "--mote-delay": `${m.delay.toFixed(1)}s`,
-                "--mote-sway": `${m.sway.toFixed(2)}rem`,
-                "--mote-peak": m.peak.toFixed(2),
-              } as React.CSSProperties
-            }
-          />
-        ))}
-      </div>
+      <GoldenMotes count={14} />
 
       {/* Film grain — static tile, painted once (editorial paper physicality). */}
       <div

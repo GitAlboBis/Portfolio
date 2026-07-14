@@ -10,6 +10,7 @@ import { JourneyTimeline } from "@/components/about/JourneyTimeline";
 import { FilmScrub } from "@/components/home/FilmScrub";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
+import { GoldenMotes } from "@/components/atmosphere/GoldenMotes";
 import { RollLink } from "@/components/motion/RollLink";
 
 /**
@@ -56,6 +57,24 @@ export function AboutJourney() {
           </div>
         </nav>
       </header>
+
+      {/* Atmosphere — the Sulcis coast itself as a faint watercolor chart
+          (terracotta/amber/dusk washes, multiply -> melts into the paper),
+          anchored where the intro leaves air, plus golden pollen drifting up
+          the first two viewports. Decorative; the headline names this coast. */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[220vh] overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/coast/sulcis-map.webp"
+          alt=""
+          className="absolute -right-[6%] top-[-2%] w-[min(56vw,860px)] mix-blend-multiply opacity-40"
+          style={{
+            maskImage: "linear-gradient(to bottom, black 55%, transparent 95%)",
+            WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 95%)",
+          }}
+        />
+        <GoldenMotes count={12} salt={7} />
+      </div>
 
       {/* Intro — over the ShallowWater atmosphere: golden-hour caustics on the
           paper (the Sulcis coast the headline names), dissolving into dry ground

@@ -108,10 +108,15 @@ export function Preloader() {
           .add("reveal", "-=0.05")
           .call(unlock, [], "reveal")
           .to(root, { yPercent: -100, duration: DUR.tide, ease: EASE.dive }, "reveal")
-          .to(markRef.current, { y: () => window.innerHeight, duration: DUR.tide, ease: EASE.dive }, "reveal")
+          // THE MELT: the ink letter doesn't inflate away — it POURS. Stretched
+          // from its top edge, narrowing, accelerating down past the viewport
+          // into the sea... where the fountain (WaterBallHero initFountain) is
+          // already rising to give it back as water. Ink falls; the sea answers.
+          .set(markRef.current, { transformOrigin: "50% 0%" }, "reveal")
+          .to(markRef.current, { y: () => window.innerHeight * 1.1, duration: DUR.tide, ease: "power2.in" }, "reveal")
           .to(
             markRef.current,
-            { scale: 3.4, autoAlpha: 0, filter: "blur(16px)", duration: 0.85, ease: "power2.in" },
+            { scaleY: 3.1, scaleX: 0.78, autoAlpha: 0, filter: "blur(14px)", duration: 0.8, ease: "power2.in" },
             "reveal",
           );
       });

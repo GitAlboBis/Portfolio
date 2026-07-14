@@ -6,6 +6,7 @@ import { useUI } from "@/store/ui";
 import { useDict } from "@/content/dict";
 import { useHydrated } from "@/lib/use-hydrated";
 import { marea } from "@/lib/sound";
+import { wavePath, WAVE_W } from "@/lib/wave";
 
 /*
   AscentSurface — "LA RISALITA": the missing half of the dive.
@@ -74,21 +75,9 @@ function droplets(count: number) {
   });
 }
 
-/* ── the living waterline: a 2-period wave path (drifts -50% seamlessly) ── */
-const WAVE_W = 2880;
+/* ── the living waterline: a 2-period wave path (drifts -50% seamlessly).
+      Geometry lives in src/lib/wave.ts — shared with the footer's TideEbb. ── */
 const WAVE_H = 44;
-function wavePath(amp: number, yBase: number, halfPeriods: number, flip: boolean) {
-  const step = WAVE_W / halfPeriods;
-  let d = `M0 0 L0 ${yBase}`;
-  for (let i = 0; i < halfPeriods; i++) {
-    const x1 = ((i + 1) * step).toFixed(1);
-    const up = (i % 2 === 0) !== flip;
-    const cy = (yBase + (up ? -amp : amp)).toFixed(1);
-    d += ` Q${((i + 0.5) * step).toFixed(1)} ${cy} ${x1} ${yBase}`;
-  }
-  d += ` L${WAVE_W} 0 Z`;
-  return d;
-}
 const WAVE_MAIN = wavePath(11, 22, 16, false);
 const WAVE_FOAM = wavePath(13, 20, 16, true);
 

@@ -42,8 +42,10 @@ export function Preloader() {
     () => {
       const root = rootRef.current;
       if (!root) return;
-      const done = () => {
-        root.style.display = "none";
+      // Split exit: `unlock` flips ui.loaded the INSTANT the reveal starts (the
+      // hero copy entrance rides the same shot as the lifting sheet — one
+      // continuous take, not curtain-then-scene); `finish` just retires the DOM.
+      const unlock = () => {
         setLoaded(true);
         try {
           sessionStorage.setItem(SEEN_KEY, "1");
@@ -51,16 +53,28 @@ export function Preloader() {
           /* storage unavailable (private mode) — the intro just replays */
         }
       };
+      const finish = () => {
+        root.style.display = "none";
+      };
 
       // Already hidden pre-paint by the inline skip script (repeat visit / ?nopre):
       // unlock the page immediately, no animations.
       if (root.style.display === "none" || getComputedStyle(root).display === "none") {
-        done();
+        unlock();
+        finish();
         return;
       }
 
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        gsap.to(root, { autoAlpha: 0, duration: 0.3, delay: 0.2, onComplete: done });
+        gsap.to(root, {
+          autoAlpha: 0,
+          duration: 0.3,
+          delay: 0.2,
+          onComplete: () => {
+            unlock();
+            finish();
+          },
+        });
         return;
       }
 
@@ -83,9 +97,23 @@ export function Preloader() {
       ready.then(() => {
         count.v = 100;
         renderCount();
-        gsap.timeline({ onComplete: done })
-          .to([markRef.current, lineRef.current, countRef.current], { autoAlpha: 0, yPercent: -18, duration: 0.4, ease: EASE.dive })
-          .to(root, { yPercent: -100, duration: DUR.tide, ease: EASE.dive }, "-=0.05");
+        // THE CONTINUOUS SHOT (the Everswap loader→hero insight, cheap version):
+        // chrome fades, then — in the same take — the sheet lifts while the
+        // typographic "A" stays PINNED to the viewport (counter-translated
+        // against the sheet, same ease) and inflates/dissolves into the water
+        // "A" forming behind it: the letter melts into the fluid. `unlock`
+        // fires at reveal start, so the hero copy rises as the hem passes it.
+        gsap.timeline({ onComplete: finish })
+          .to([lineRef.current, countRef.current], { autoAlpha: 0, yPercent: -14, duration: 0.35, ease: EASE.dive })
+          .add("reveal", "-=0.05")
+          .call(unlock, [], "reveal")
+          .to(root, { yPercent: -100, duration: DUR.tide, ease: EASE.dive }, "reveal")
+          .to(markRef.current, { y: () => window.innerHeight, duration: DUR.tide, ease: EASE.dive }, "reveal")
+          .to(
+            markRef.current,
+            { scale: 3.4, autoAlpha: 0, filter: "blur(16px)", duration: 0.85, ease: "power2.in" },
+            "reveal",
+          );
       });
     },
     { scope: rootRef },
@@ -93,7 +121,11 @@ export function Preloader() {
 
   return (
     <>
-      <div ref={rootRef} id="preloader" className="preloader" aria-hidden>
+      {/* suppressHydrationWarning: the inline SKIP_SCRIPT below hides this node
+          pre-paint on repeat visits by writing style.display BEFORE React
+          hydrates — a deliberate, single-element attribute mismatch (this was
+          the one recurring console error on every returning visit). */}
+      <div ref={rootRef} id="preloader" className="preloader" aria-hidden suppressHydrationWarning>
       <div ref={markRef} className="preloader-mark">
         A
       </div>

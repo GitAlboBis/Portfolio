@@ -6,6 +6,9 @@ import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Parallax } from "@/components/motion/Parallax";
 import { RollLink } from "@/components/motion/RollLink";
+import { GoldenHaze } from "@/components/atmosphere/GoldenHaze";
+import { Murmuration } from "@/components/atmosphere/Murmuration";
+import { DriftBand } from "@/components/motion/DriftBand";
 
 /**
  * About — first content section (the descent below the hero).
@@ -13,12 +16,23 @@ import { RollLink } from "@/components/motion/RollLink";
  * (col-read). The lead line rises in on scroll (Reveal split-text, blur on
  * desktop). All copy from the EN/IT dictionary; all styling from the Golden
  * Hour tokens/type scale.
+ *
+ * The band is no longer flat paper: GoldenHaze paints the sky continuing
+ * behind it (afterglow bleed → warm haze → horizon → grain → works-mood
+ * pre-echo), the MURMURATION — a WebGL flock of boids that idles into the
+ * letter "A" and scatters with scroll velocity — flies through it, and
+ * DriftBand closes the section with a kinetic type seam the flock crosses.
+ * All three live inside this section so `overflow-clip` frames the sky.
+ * Atmosphere first in DOM = painted under the positioned content after it.
  */
 export function About() {
   const t = useDict();
   return (
-    <section id="about" className="scroll-anchor">
-      <div className="container-edit grid-edit">
+    <section id="about" className="scroll-anchor relative overflow-clip pt-[var(--section-y)]">
+      <GoldenHaze />
+      <Murmuration />
+
+      <div className="container-edit grid-edit relative">
         <Parallax className="col-meta mb-8 lg:mb-0" from={70}>
           <p className="t-eyebrow eyebrow-tick">{t.about.eyebrow}</p>
         </Parallax>
@@ -43,6 +57,18 @@ export function About() {
           />
         </div>
       </div>
+
+      {/* Kinetic seam into Selected Work: the works title + the hero tagline
+          (its echo, after the hero scrolled it away) counter-drift at display
+          scale, steered by scroll velocity. Decorative — the real works h2
+          lives (sr-only) in the gallery; the tagline is the hero h1's sibling. */}
+      <DriftBand
+        className="relative mt-[clamp(4.5rem,11vh,8.5rem)] pb-[clamp(3rem,7vh,5.5rem)]"
+        rows={[
+          { text: t.works.title, dir: 1, variant: "stroke" },
+          { text: t.hero.tagline, dir: -1, variant: "ink" },
+        ]}
+      />
     </section>
   );
 }

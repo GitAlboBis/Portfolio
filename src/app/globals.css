@@ -401,6 +401,25 @@ body {
     }
   }
 
+  /* ── .drift-line — DriftBand's display-scale kinetic type (decorative) ───
+     Ghost fill + ember stroke: texture, not reading matter — both voices stay
+     far under the section's real ink so the About copy keeps the floor. */
+  .drift-line {
+    font-family: var(--font-display);
+    font-weight: 640;
+    font-size: clamp(3rem, 8.5vw, 8.5rem);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+  }
+  .drift-line--ink {
+    color: color-mix(in oklab, var(--color-ink) 13%, transparent);
+  }
+  .drift-line--stroke {
+    color: transparent;
+    -webkit-text-stroke: 1.5px color-mix(in srgb, var(--color-ember) 55%, transparent);
+  }
+
   /* Night band (Contact / Footer): re-theme text on the one dark section. */
   .night {
     color: var(--color-paper);

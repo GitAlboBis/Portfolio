@@ -101,6 +101,9 @@ export function WorksGallery() {
       style={{ height: `${(WORKS.length + 1) * 100}vh` }}
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
+        {/* The section's real heading: visually the title lives in About's
+            DriftBand (decorative, aria-hidden), so AT gets it here instead. */}
+        <h2 className="sr-only">{t.works.title}</h2>
         <div className="container-edit absolute inset-x-0 top-[calc(var(--nav-h)+1rem)] z-10">
           <p className="t-eyebrow eyebrow-tick">{t.works.eyebrow}</p>
         </div>

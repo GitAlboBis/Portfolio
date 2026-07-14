@@ -1,7 +1,8 @@
 # PLAN — Next steps (prioritized)
 
 > Backlog for the Golden Hour portfolio. See **`HANDOFF.md`** for current state + file map, **`CLAUDE.md`** for the operational brain (rules, reference links + code-extraction, skill routing, gates), **`WATER-WAVE-PLAN.md`** for the water sim.
-> Updated **2026-07-12** (motion package merged @ `5c9d12c`: hero ink, RollLink/.link, footer wordmark, next-project loop, runway spotlight+odometer — 2 adversarial review rounds, deployed & verified in prod).
+> Updated **2026-07-15**. Latest shipped (see HANDOFF §2026-07-14/15): LA RISALITA (underwater ascent band + surface break), IL RIFLUSSO (footer night tide + `tide-touch`), constellation flare, `src/lib/wave.ts` shared waterline. **WP-10 mobile è VERDE: Lighthouse mobile prod = 84** (misura 2026-07-15 — il punto 3 sotto resta solo per axe/reduced end-to-end, non per il punteggio). **Prossimi round candidati (dettagliati in HANDOFF §▶ PROSSIMI ROUND): ① menu-portale desktop con anteprime fotografiche ② case study vivi ③ nuovi beat drone (11 clip nel Drive) ④ works gallery DoF ⑤ estensioni ecosistema (tide-touch/surface-break/submerge).**
+> (Storico) 2026-07-12: motion package merged @ `5c9d12c` — hero ink, RollLink/.link, footer wordmark, next-project loop, runway spotlight+odometer.
 
 ## ✅ Done 2026-07-12 (motion package — dettagli in HANDOFF)
 - Hero copy over the water "A" (h1 reale, AA pixel-misurato, no-WebGPU fallback rescued) · RollLink char-roll + .link underline-draw (partition table in RollLink.tsx) · footer FlipText wordmark + © dinamico · next-project handoff band sui case study · /work spotlight + odometer + will-change cleanup.

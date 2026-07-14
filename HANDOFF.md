@@ -59,6 +59,17 @@ Mandato carte-blanche di Alberto ("pieno controllo, lasciami a bocca aperta"): *
 
 **Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain + raggi/gabbiani/motes + LA RISALITA + IL RIFLUSSO + flare costellazione a schermo (feel fine con leva — finestra Chrome in primo piano!).
 
+### ▶ PROSSIMI ROUND — candidati valutati (sessione 2026-07-15, in ordine di wow-per-rischio)
+1. **IL MENU-PORTALE** — promuovere il MenuOverlay (oggi mobile-only, già ottimo: curtain+SplitText+focus trap) anche su **desktop** (trigger "Menu" nella pill, ADDITIVO — i link pill restano) con **anteprime fotografiche per rotta** al hover (still del mare/Masua/works/notte, strappo TornEdge, parallax). Superficie che ogni giurato apre per prima; asset già tutti in `public/`. Rischio: taste-call sull'IA desktop → prototipa e gate spietato.
+2. **CASE STUDY VIVI** — le pagine più asciutte del sito: interludi fotografici tra le sezioni PARC (still + TornEdge + parallax), stack "vivo", eventualmente loop kling per progetto (G5, ~17.5cr/10s — preflight `get_cost`; still soul_2 = gratis).
+3. **BEAT DRONE NUOVI** — restano **11 clip reali** nel Drive "ALBE DRONE" (ID dall'HTML pubblico del folder, LUT `_air3s.cube` OBBLIGATORIA, pipeline in §LA ROCCIA). Candidati: banda film su /work, secondo beat /about, o materiale per il menu-portale.
+4. **WORKS GALLERY DoF** (PLAN P1) — pass bokeh/depth-of-field sul fly-through home (i ghost title a profondità ci sono già; manca la sfocatura fisica dei piani fuori fuoco).
+5. **Ecosistema, estensioni**: nuovi listener per `tide-touch`/`surface-break`/`submerge` (sono eventi window già live); es. motes che reagiscono, marquee che rallenta sott'acqua.
+6. 🔵 **Bloccati su Alberto**: contenuti SerSan ×2 (works provvisori), #4 Flip grid (confirm-feel), `NEXT_PUBLIC_SITE_URL` env su Vercel (OG/canonical assoluti), feel-review generale.
+7. **Housekeeping**: `DESIGN-SYSTEM.md` ancora "Ocean v1" da archiviare; `docs/*` storici; cache Turbopack se il dev server dà 500 "Jest worker" (kill + `Remove-Item .next`).
+
+**Stato QA/probe (untracked in root):** `_ascent_qa.mjs` (Risalita: desktop/mobile/reduced + surface-break), `_tide_qa.mjs` (Riflusso: tide-touch 1/1/0), `_flare_qa.mjs` (flare costellazione before/peak/settled), `_exitseam.mjs` (cucitura Risalita→Tech). Lighthouse mobile prod **84** (report nello scratchpad di sessione; rimisura: `npx lighthouse <prod> --only-categories=performance --form-factor=mobile`).
+
 ---
 
 ## ⏯ CONTINUA DA QUI — sessione 2026-07-13 (LA MAREA, branch `feat/awwwards-motion`)

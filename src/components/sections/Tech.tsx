@@ -1,8 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useDict } from "@/content/dict";
-import { TechCloud } from "@/components/tech-cloud";
 import { techIcons } from "@/data/skill-icons";
+
+// Code-split: tech-cloud.tsx does `import * as THREE from "three"` — a static
+// import here was the ONE path still pulling the whole three module into the
+// home route's initial client chunk (LazyOnView defers the MOUNT, not the
+// download). dynamic+ssr:false keeps the chunk off the wire until the section
+// nears the viewport, same split the works gallery and murmuration use.
+const TechCloud = dynamic(() => import("@/components/tech-cloud").then((m) => m.TechCloud), {
+  ssr: false,
+});
 import { Parallax } from "@/components/motion/Parallax";
 import { TideReveal } from "@/components/reveal/TideReveal";
 import { Marquee } from "@/components/motion/Marquee";

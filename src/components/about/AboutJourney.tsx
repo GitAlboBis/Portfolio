@@ -7,6 +7,7 @@ import { DualWaveText } from "@/components/reveal/DualWaveText";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
 import { JourneyTimeline } from "@/components/about/JourneyTimeline";
+import { FilmScrub } from "@/components/home/FilmScrub";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
 import { RollLink } from "@/components/motion/RollLink";
@@ -92,6 +93,19 @@ export function AboutJourney() {
           </div>
         </div>
       </section>
+
+      {/* LA ROCCIA — real drone film of Masua/Porto Flavia (scroll-scrubbed):
+          the coast the footer coordinates point at, and a 1924 lesson in
+          engineering carved into the landscape. Real footage (G. Ghiani). */}
+      <FilmScrub
+        srcDesktop="/coast/rock-1600.mp4"
+        srcMobile="/coast/rock-960.mp4"
+        poster="/coast/rock-poster.jpg"
+        eyebrow={j.film.eyebrow}
+        title={j.film.title}
+        meta={j.film.meta}
+        heightVh={220}
+      />
 
       {/* Education + Experience */}
       <section className="container-edit pb-[var(--section-y)]">

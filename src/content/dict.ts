@@ -77,6 +77,11 @@ const sectionSchema = z.object({
     thesis: z.string(),
     more: z.string(),
     back: z.string(),
+    film: z.object({
+      eyebrow: z.string(),
+      title: z.string(),
+      meta: z.string(),
+    }),
   }),
   footer: z.object({
     place: z.string(),
@@ -171,6 +176,11 @@ const en: Dict = {
       "“From Autocomplete to Agentic Orchestration: Architectural Analysis and Security of OS-Level Agents” — maps the evolution from code completion to autonomous agentic systems (MCP, RAG, multi-agent orchestration) and proposes Zero-Trust defensive strategies against OS-level attack vectors.",
     more: "Selected work",
     back: "Back to home",
+    film: {
+      eyebrow: "The rock",
+      title: "Engineering, carved into the coast.",
+      meta: "Porto Flavia · Masua, Sardinia · est. 1924",
+    },
   },
   footer: {
     place: "Masua · 39°09′N 8°25′E",
@@ -262,6 +272,11 @@ const it: Dict = {
       "“From Autocomplete to Agentic Orchestration: Architectural Analysis and Security of OS-Level Agents” — mappa l'evoluzione dal completamento del codice ai sistemi agentici autonomi (MCP, RAG, orchestrazione multi-agente) e propone strategie difensive Zero-Trust contro i vettori di attacco a livello OS.",
     more: "Lavori scelti",
     back: "Torna alla home",
+    film: {
+      eyebrow: "La roccia",
+      title: "Ingegneria scavata nella costa.",
+      meta: "Porto Flavia · Masua, Sardegna · 1924",
+    },
   },
   footer: {
     place: "Masua · 39°09′N 8°25′E",

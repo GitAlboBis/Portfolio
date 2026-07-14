@@ -52,6 +52,14 @@ const sectionSchema = z.object({
     title: z.string(),
     meta: z.string(),
   }),
+  ascent: z.object({
+    eyebrow: z.string(),
+    /** the held-breath line, alone underwater (reads clean by itself) */
+    deep: z.string(),
+    /** the release line on paper — `deep + " " + breathe` must read as one sentence */
+    breathe: z.string(),
+    meta: z.string(),
+  }),
   tech: z.object({
     eyebrow: z.string(),
     title: z.string(),
@@ -129,6 +137,12 @@ const en: Dict = {
     eyebrow: "The coast",
     title: "Where the water learned to move.",
     meta: "Pan di Zucchero · Sardinia · 39.96° N, 8.42° E",
+  },
+  ascent: {
+    eyebrow: "The ascent",
+    deep: "Hold your breath",
+    breathe: "— and breathe.",
+    meta: "Below the surface · Pan di Zucchero",
   },
   tech: {
     eyebrow: "02 — Stack",
@@ -225,6 +239,12 @@ const it: Dict = {
     eyebrow: "La costa",
     title: "Dove l'acqua ha imparato a muoversi.",
     meta: "Pan di Zucchero · Sardegna · 39,96° N, 8,42° E",
+  },
+  ascent: {
+    eyebrow: "La risalita",
+    deep: "Trattieni il fiato",
+    breathe: "— e respira.",
+    meta: "Sotto la superficie · Pan di Zucchero",
   },
   tech: {
     eyebrow: "02 — Stack",

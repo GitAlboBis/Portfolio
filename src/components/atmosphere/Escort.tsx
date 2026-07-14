@@ -142,6 +142,28 @@ export function Escort() {
     };
     window.addEventListener("marea", onMarea);
 
+    // LA RISALITA: the escort can't follow you underwater — while submerged the
+    // sky empties (presence forced to 0 in the tick)…
+    let submerged = false;
+    const onSubmerge = (e: Event) => {
+      submerged = !!(e as CustomEvent).detail;
+    };
+    window.addEventListener("submerge", onSubmerge);
+    // …and when you BREAK the surface the flock bursts back in to greet you —
+    // summoned scattered (a lighter kick than the marea storm), then it falls
+    // into formation as you keep scrolling.
+    const onSurface = () => {
+      submerged = false;
+      presTarget = 1;
+      slowSince = t + 1.5;
+      stormUntil = Math.max(stormUntil, t + 0.7);
+      for (const b of birds) {
+        b.vy -= 90 + Math.random() * 160;
+        b.vx += (Math.random() - 0.5) * 260;
+      }
+    };
+    window.addEventListener("surface-break", onSurface);
+
     const tick = (_time: number, deltaMs: number) => {
       const dt = Math.min(deltaMs, 50) / 1000;
       t += dt;
@@ -157,6 +179,8 @@ export function Escort() {
       } else if (vAbs < 1.5 && t - slowSince > 0.8 && t > stormUntil) {
         presTarget = 0;
       }
+      // underwater there are no gulls — LA RISALITA empties the sky until the break
+      if (submerged) presTarget = 0;
       const rate = presTarget > presence ? 3.2 : 1.1;
       presence += (presTarget - presence) * (1 - Math.exp(-rate * dt));
 
@@ -287,6 +311,8 @@ export function Escort() {
       window.removeEventListener("resize", resize);
       window.removeEventListener("marea", onMarea);
       window.removeEventListener("hero-splash", onSplash);
+      window.removeEventListener("submerge", onSubmerge);
+      window.removeEventListener("surface-break", onSurface);
     };
   }, [reduced]);
 

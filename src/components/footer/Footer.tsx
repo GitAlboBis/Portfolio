@@ -56,7 +56,7 @@ export function Footer() {
                   answers to. The click IS the WebAudio user gesture. */}
               <button
                 type="button"
-                onClick={() => setSoundEnabled(!soundOn)}
+                onClick={() => setSoundEnabled(!soundEnabled)}
                 aria-pressed={soundOn}
                 className="t-meta flex items-center gap-2 transition-colors duration-300 hover:text-amber"
               >
@@ -66,7 +66,11 @@ export function Footer() {
                     soundOn ? "animate-pulse bg-amber" : "bg-paper/35"
                   }`}
                 />
-                {t.footer.sound} · {soundOn ? t.footer.soundOn : t.footer.soundOff}
+                {t.footer.sound}
+                {/* state suffix is VISUAL only: the accessible name stays the
+                    stable "Ambient" (state lives in aria-pressed — double-
+                    announcing it also breaks voice-control targeting) */}
+                <span aria-hidden> · {soundOn ? t.footer.soundOn : t.footer.soundOff}</span>
               </button>
               <RollLink
                 as="a"

@@ -85,6 +85,9 @@ export function Escort() {
     let dir = 1; // 1 = diving (scroll down), -1 = climbing
     let stormUntil = 0;
     let cleared = false;
+    let nightBand: HTMLElement | null = null;
+    let nightT = 0;
+    let frame = 0;
 
     const onMarea = () => {
       stormUntil = t + 1.5;
@@ -96,8 +99,6 @@ export function Escort() {
       }
     };
     window.addEventListener("marea", onMarea);
-
-    const nightEl = () => document.getElementById("nightfall");
 
     const tick = (_time: number, deltaMs: number) => {
       const dt = Math.min(deltaMs, 50) / 1000;
@@ -133,12 +134,15 @@ export function Escort() {
       const ly =
         h * (dir > 0 ? 0.3 : 0.62) + Math.sin(t * 0.75) * h * 0.045;
 
-      // — night tint: as the night band rises into view, ink → amber embers
-      let nightT = 0;
-      const night = nightEl();
-      if (night) {
-        const r = night.getBoundingClientRect();
-        nightT = Math.min(1, Math.max(0, 1 - r.top / h));
+      // — night tint: as the night band rises into view, ink → amber embers.
+      // Element cached; rect read every 5th frame only (a per-frame gBCR can
+      // force layout mid-scroll) — the color lerp hides the quantization.
+      if (frame++ % 5 === 0) {
+        nightBand ??= document.getElementById("nightfall");
+        if (nightBand) {
+          const r = nightBand.getBoundingClientRect();
+          nightT = Math.min(1, Math.max(0, 1 - r.top / h));
+        }
       }
       const cr = Math.round(INK.r + (AMBER.r - INK.r) * nightT);
       const cg = Math.round(INK.g + (AMBER.g - INK.g) * nightT);

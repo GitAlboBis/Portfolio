@@ -24,6 +24,54 @@ let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let graph: Graph | null = null;
 let running = false;
+let lastK = -1;
+
+/*
+  Autoplay discipline: soundEnabled is PERSISTED, so enable() also fires on a
+  plain page load for a returning opted-in user — with no user activation.
+  Creating/resuming an AudioContext there is blocked by Chrome (silent-ON +
+  console warning). So: without activation we don't touch WebAudio at all —
+  we arm one-shot gesture listeners and boot on the first real interaction.
+*/
+let armed: (() => void) | null = null;
+function disarm() {
+  if (!armed) return;
+  window.removeEventListener("pointerdown", armed);
+  window.removeEventListener("keydown", armed);
+  armed = null;
+}
+function arm() {
+  if (armed) return;
+  const on = () => {
+    disarm();
+    if (running) startNow();
+  };
+  armed = on;
+  window.addEventListener("pointerdown", on, { passive: true });
+  window.addEventListener("keydown", on);
+}
+
+/** Build/resume the sea — call only under (assumed) user activation. */
+function startNow() {
+  if (!ctx) {
+    const AC =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return;
+    ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = 0;
+    master.connect(ctx.destination);
+  }
+  void ctx.resume();
+  if (!graph && master) graph = buildGraph(ctx, master);
+  if (master) {
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setTargetAtTime(MASTER_VOL, ctx.currentTime, 0.9); // ~2.5s rise
+  }
+  // belt: if the policy still held us back, the next gesture retries
+  if (ctx.state === "suspended") arm();
+}
 
 function buildGraph(ac: AudioContext, out: GainNode): Graph {
   const stops: Array<() => void> = [];
@@ -112,30 +160,27 @@ export const marea = {
     return running;
   },
 
-  /** Start (or resume) the sea. MUST be called from a user gesture. */
+  /** Start (or resume) the sea — safe on both the toggle click AND the
+      persisted-restore page load (defers to the first gesture there). */
   enable() {
     if (running) return;
-    if (!ctx) {
-      const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!AC) return;
-      ctx = new AC();
-      master = ctx.createGain();
-      master.gain.value = 0;
-      master.connect(ctx.destination);
-    }
-    void ctx.resume();
-    if (!graph && master) graph = buildGraph(ctx, master);
-    if (master) {
-      master.gain.cancelScheduledValues(ctx.currentTime);
-      master.gain.setTargetAtTime(MASTER_VOL, ctx.currentTime, 0.9); // ~2.5s rise
-    }
     running = true;
+    lastK = -1;
+    const ua = (navigator as unknown as { userActivation?: { isActive: boolean } })
+      .userActivation;
+    if (!ctx && ua && !ua.isActive) {
+      arm(); // restore path: no WebAudio until a real interaction
+      return;
+    }
+    startNow();
   },
 
   /** Fade out and quiesce (graph torn down; context kept for re-enable). */
   disable() {
-    if (!running || !ctx || !master) return;
+    if (!running) return;
     running = false;
+    disarm();
+    if (!ctx || !master) return;
     const ac = ctx;
     const deadGraph = graph;
     graph = null;
@@ -155,10 +200,14 @@ export const marea = {
     if (running && ctx) void ctx.resume();
   },
 
-  /** 0..1 — scroll velocity: the surf rises and brightens as you dive. */
+  /** 0..1 — scroll velocity: the surf rises and brightens as you dive.
+      Dead-banded: an idle page must not schedule ~120 identical AudioParam
+      automation events per second on the audio thread. */
   setIntensity(v: number) {
     if (!running || !ctx || !graph) return;
     const k = Math.min(1, Math.max(0, v));
+    if (Math.abs(k - lastK) < 0.004) return;
+    lastK = k;
     graph.surfGain.gain.setTargetAtTime(SURF_BASE + k * 0.11, ctx.currentTime, 0.18);
     graph.padFilter.frequency.setTargetAtTime(320 + k * 380, ctx.currentTime, 0.25);
   },

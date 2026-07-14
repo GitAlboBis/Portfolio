@@ -41,7 +41,8 @@ export function Cursor() {
     const label = el.querySelector<HTMLElement>("[data-c-label]");
     if (!dot || !halo || !label) return;
 
-    document.documentElement.classList.add("cc-on");
+    // cc-on (cursor:none) is added on the FIRST pointer move, not at mount —
+    // a keyboard-only session with an idle mouse keeps the native cursor.
 
     let tx = window.innerWidth / 2;
     let ty = window.innerHeight / 2;
@@ -63,6 +64,7 @@ export function Cursor() {
         dx = hx = px = tx;
         dy = hy = py = ty;
         el.style.opacity = "1";
+        document.documentElement.classList.add("cc-on");
       }
     };
     const onDocLeave = () => {
@@ -71,7 +73,13 @@ export function Cursor() {
     };
     const onOver = (e: PointerEvent) => {
       const t = (e.target as Element | null)?.closest?.(INTERACTIVE) as HTMLElement | null;
-      if (!t) return;
+      if (!t) {
+        // de-escalate here too: a hovered element REMOVED from the DOM (route
+        // nav, menu close) never fires pointerout — the re-hit-test lands
+        // pointerover on whatever is underneath, and this resets the latch.
+        setMode("base");
+        return;
+      }
       if (t.dataset.cursor === "view") setMode("view", t.dataset.cursorLabel || "→");
       else setMode("hover");
     };
@@ -113,6 +121,11 @@ export function Cursor() {
       document.removeEventListener("pointerout", onOut);
       document.documentElement.removeEventListener("pointerleave", onDocLeave);
       document.documentElement.classList.remove("cc-on");
+      // restore the resting state — a mid-session reduced-motion flip re-runs
+      // this effect and must NOT leave a frozen ghost cursor painted on screen
+      el.style.opacity = "0";
+      el.dataset.mode = "base";
+      label.textContent = "";
     };
   }, [reduced]);
 

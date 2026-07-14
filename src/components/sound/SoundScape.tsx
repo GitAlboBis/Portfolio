@@ -26,6 +26,7 @@ export function SoundScape() {
     marea.enable();
 
     const tick = () => {
+      if (document.hidden) return;
       const lenis = (window as unknown as { __lenis?: { velocity?: number } }).__lenis;
       marea.setIntensity(Math.abs(lenis?.velocity ?? 0) / 40);
     };

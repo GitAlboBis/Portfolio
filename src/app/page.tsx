@@ -8,6 +8,7 @@ import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
 import { NightSky } from "@/components/atmosphere/NightSky";
+import { Escort } from "@/components/atmosphere/Escort";
 import { Nightfall } from "@/components/home/Nightfall";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 
@@ -32,6 +33,11 @@ export default function Home() {
   return (
     <main id="main" className="relative">
       <Nav />
+
+      {/* LA SCIA — the companion flock: gull glyphs that appear when you dive
+          (scroll velocity), escort the descent in loose V, plane away at rest,
+          and turn ember as the night band rises. 2D canvas, decorative. */}
+      <Escort />
 
       {/* Scroll WRITER for the hero "A" dive (writes heroStore.explode; read by
           WaterBallHero). Renders null; no-op under reduced-motion / no-WebGPU. */}

@@ -125,8 +125,9 @@ const FRAG = /* glsl */ `
     vec3 col = mix(uInk, uFade, vShade * 0.5);
     // golden-hour shimmer: when a banking wing plane swings through the sun
     // angle the silhouette catches fire for a beat — waves of amber roll
-    // across the flock as turn-fronts propagate.
-    col = mix(col, uGlow, smoothstep(0.62, 0.97, vLight) * 0.55);
+    // across the flock as turn-fronts propagate. Threshold kept HIGH so the
+    // flash stays a rare jewel (two-accents rule), not a glitter carpet.
+    col = mix(col, uGlow, smoothstep(0.72, 0.985, vLight) * 0.5);
     gl_FragColor = vec4(col, 1.0);
     // ColorManagement feeds uniforms in LINEAR working space; without this the
     // raw values hit the sRGB framebuffer and the espresso inks crush to black.
@@ -546,9 +547,14 @@ function Flock({ count }: { count: number }) {
       // component of f perpendicular to the heading, in the screen plane),
       // smoothed per bird so the roll reads as intention, not jitter. Banking
       // is what swings the wing plane through the sun → the shimmer.
+      // The speed factor kills the roll as a bird parks on its glyph seat:
+      // lat divides by spXY, so near-hover the ratio explodes and parked birds
+      // would hold random full banks (glitter noise inside the still letter);
+      // a hovering bird has no airspeed to bank against anyway.
       const spXY = Math.sqrt(vx * vx + vy * vy) || 1e-4;
       const lat = (-fx * vy + fy * vx) / spXY; // signed lateral accel
-      const bankTarget = Math.max(-1.1, Math.min(1.1, -lat * 0.16));
+      const bankTarget =
+        Math.max(-1.1, Math.min(1.1, -lat * 0.16)) * Math.min(1, spXY / 1.1);
       bank[i] += (bankTarget - bank[i]) * (1 - Math.exp(-6 * dt));
 
       dummy.position.set(pos[ix], pos[ix + 1], pos[ix + 2]);

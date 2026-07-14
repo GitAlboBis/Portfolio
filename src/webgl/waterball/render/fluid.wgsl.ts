@@ -102,7 +102,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     // absorption: LOW enough that the backlit sunset actually GLOWS through the
     // letter (the sun sits behind the "A" — see SUN_DIR_WORLD). 0.7 read as murky
     // mud in QA; 0.42 keeps the teal body but lets the golden light transmit.
-    var density = 0.34;
+    var density = 0.30; // re-lit for the shader sky+sea backdrop (darker than the old CSS gradient)
 
     var diffuseColor = vec3f(0.0, 0.7375, 0.95);
     var transmittance: vec3f = exp(-density * thickness * (1.0 - diffuseColor));

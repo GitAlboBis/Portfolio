@@ -680,7 +680,8 @@ html.cc-on * {
 }
 
 /* the waterline strips: 200%-wide tracks drifting one full period (-50%) —
-   seamless loop, transform-only. Two tracks counter-drift for parallax foam. */
+   seamless loop, transform-only. Two tracks counter-drift for parallax foam.
+   Shared language: LA RISALITA's surface sheet AND the footer's TideEbb. */
 .asc-wave-track {
   position: absolute;
   left: 0;
@@ -696,6 +697,50 @@ html.cc-on * {
 @media (prefers-reduced-motion: reduce) {
   .asc-wave-track {
     animation: none;
+  }
+}
+
+/* ── Tide ebb (IL RIFLUSSO) ───────────────────────────────────────────────────
+   The closing tide at the page's very bottom: the water body breathes on a
+   slow 9s cycle, star glints twinkle on the crest zone. Reduced motion: the
+   sea holds still, the stars stay as faint fixed points. */
+.tide-breathe {
+  animation: tide-breathe 9s ease-in-out infinite;
+}
+@keyframes tide-breathe {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+.tide-glint {
+  position: absolute;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-amber) 55%, white);
+  box-shadow: 0 0 4px 1px rgb(242 163 60 / 0.25);
+  opacity: 0;
+  animation: tide-glint var(--tg-dur, 5s) ease-in-out infinite;
+  animation-delay: var(--tg-delay, 0s);
+}
+@keyframes tide-glint {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: var(--tg-peak, 0.4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tide-breathe {
+    animation: none;
+  }
+  .tide-glint {
+    animation: none;
+    opacity: 0.16;
   }
 }
 

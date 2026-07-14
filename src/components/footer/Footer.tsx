@@ -6,6 +6,7 @@ import { useHydrated } from "@/lib/use-hydrated";
 import { Appear } from "@/components/motion/Appear";
 import { RollLink } from "@/components/motion/RollLink";
 import { FlipText } from "@/components/reveal/FlipText";
+import { TideEbb } from "@/components/footer/TideEbb";
 
 type Lenis = { scrollTo: (t: number, o?: { offset?: number }) => void };
 
@@ -95,6 +96,9 @@ export function Footer() {
           </p>
         </Appear>
       </div>
+
+      {/* IL RIFLUSSO — the page ends the way it began: in the sea. */}
+      <TideEbb />
     </footer>
   );
 }

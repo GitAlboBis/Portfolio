@@ -7,6 +7,7 @@ import { Preloader } from "@/components/Preloader";
 import { CoverOverlay } from "@/components/transition/CoverOverlay";
 import { Cursor } from "@/components/cursor/Cursor";
 import { SoundScape } from "@/components/sound/SoundScape";
+import { TideEgg } from "@/components/motion/TideEgg";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -122,6 +123,7 @@ export default function RootLayout({
             engine (bodies for WP-9 and the footer's sound toggle). */}
         <Cursor />
         <SoundScape />
+        <TideEgg />
         {children}
         <script
           type="application/ld+json"

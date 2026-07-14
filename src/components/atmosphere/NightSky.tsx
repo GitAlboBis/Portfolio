@@ -41,6 +41,7 @@ uniform vec2  uRes;
 uniform float uTime;
 uniform float uReveal;
 uniform float uConst;   // 0..1 — the "A" constellation forms as the page reaches its end
+uniform float uFlare;   // 0..1 — tide-touch: the constellation flares when the sea meets you
 uniform vec2  uMouse;   // cursor in band space (0..1, y-up); rest = (0.5, 0.5)
 uniform float uMouseK;  // spotlight strength 0..1 (0 on touch / off-band / reduced-motion)
 
@@ -179,8 +180,11 @@ void main(){
   cl += constLine(cp, vec2(0.00, 0.95), vec2( 0.62, -0.55), 0.66);
   cl += constLine(cp, vec2(-0.30, 0.05), vec2( 0.30, 0.05), 0.78);
   float ctw = 0.86 + 0.14 * sin(uTime * 1.4 + cp.x * 3.0);
-  col += STAR * cs * ctw * 0.9;
-  col += mix(STAR, AMBER, 0.45) * cl * 0.28;
+  // tide-touch flare: the letter answers the sea — stars surge, lines brighten,
+  // and a soft golden breath blooms around the constellation, then it all settles
+  col += STAR * cs * ctw * (0.9 + uFlare * 1.3);
+  col += mix(STAR, AMBER, 0.45) * cl * (0.28 + uFlare * 0.45);
+  col += AMBER * uFlare * 0.10 * smoothstep(1.7, 0.0, length(cp)) * smoothstep(0.5, 1.0, uConst);
 
   // ── fine grain (breaks gradient banding on the dark plum). Wrapped time phase:
   //    unbounded uTime*60 collapses fp32 fract() into structured stripes within
@@ -277,6 +281,7 @@ export function NightSky({ className }: { className?: string }) {
     const uTime = gl.getUniformLocation(prog, "uTime");
     const uReveal = gl.getUniformLocation(prog, "uReveal");
     const uConstLoc = gl.getUniformLocation(prog, "uConst");
+    const uFlareLoc = gl.getUniformLocation(prog, "uFlare");
     const uMouseLoc = gl.getUniformLocation(prog, "uMouse");
     const uMouseKLoc = gl.getUniformLocation(prog, "uMouseK");
 
@@ -350,10 +355,20 @@ export function NightSky({ className }: { className?: string }) {
     };
     if (fine && !reduced) window.addEventListener("pointermove", onMove, { passive: true });
 
+    // tide-touch (TideEbb, page bottom): the constellation flares, then settles.
+    // The band is always in view when the tide can be touched, so the running
+    // loop decays it — no extra invalidation needed. Skipped under reduced.
+    let flare = 0;
+    const onTide = () => {
+      flare = 1;
+    };
+    if (!reduced) window.addEventListener("tide-touch", onTide);
+
     const draw = (t: number) => {
       gl.uniform1f(uTime, t);
       gl.uniform1f(uReveal, reveal);
       gl.uniform1f(uConstLoc, constN);
+      gl.uniform1f(uFlareLoc, flare);
       gl.uniform2f(uMouseLoc, mx, my);
       gl.uniform1f(uMouseKLoc, mk);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -395,6 +410,7 @@ export function NightSky({ className }: { className?: string }) {
         prev = now;
         reveal += (sampleTarget() - reveal) * Math.min(1, dt * 3);
         constN += (sampleConst() - constN) * Math.min(1, dt * 2.5);
+        flare *= Math.exp(-dt * 1.6); // the flare breathes out over ~1.5s
         const ms = Math.min(1, dt * 6); // spotlight follow / fade
         mx += (tmx - mx) * ms;
         my += (tmy - my) * ms;
@@ -408,6 +424,7 @@ export function NightSky({ className }: { className?: string }) {
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("tide-touch", onTide);
       canvas.removeEventListener("webglcontextlost", onLost as EventListener);
       gl.deleteBuffer(buf);
       gl.deleteProgram(prog);

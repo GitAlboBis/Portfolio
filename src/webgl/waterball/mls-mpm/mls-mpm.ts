@@ -71,6 +71,7 @@ export class MLSMPMSimulator {
     splashExplodeGrav: number  // downward gravity during the burst (leva-tunable)
     splashExplodeDamp: number  // per-frame velocity damping during the burst (leva, slow-mo)
     splashExplodeCap: number   // max particle speed at full explode (leva, slow-mo)
+    splashBallistic: number    // world gravity on ESCAPED splash droplets (arcs, leva-tunable)
 
     constructor (particleBuffer: GPUBuffer, posvelBuffer: GPUBuffer, renderDiameter: number, device: GPUDevice,
         renderUniformBuffer: GPUBuffer, depthMapTextureView: GPUTextureView, canvas: HTMLCanvasElement) 
@@ -101,6 +102,7 @@ export class MLSMPMSimulator {
         this.splashExplodeGrav = 2.5
         this.splashExplodeDamp = 0.08
         this.splashExplodeCap = 16.0
+        this.splashBallistic = 0.35
         this.splashParamsValues = new Float32Array(12)
         const clearGridModule = device.createShaderModule({ code: clearGrid });
         const spawnParticlesModule = device.createShaderModule({ code: spawnParticles });
@@ -231,7 +233,7 @@ export class MLSMPMSimulator {
         })
         this.splashParamsBuffer = device.createBuffer({
             label: 'splash params buffer',
-            size: 48, // 11x f32 (7 confinement/explode + 4 explode-burst knobs) padded to 48
+            size: 48, // 12x f32 — MUST match SplashParams in g2p.wgsl field-for-field
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
 
@@ -460,7 +462,7 @@ export class MLSMPMSimulator {
 
         // live splash params (leva) -- MUST match SplashParams struct order in g2p.wgsl:
         // inflate, gravity, drag, restoreK, speedGate, leashRadius, explode,
-        // explodeOut, explodeGrav, explodeDamp, explodeCap
+        // explodeOut, explodeGrav, explodeDamp, explodeCap, ballistic
         this.splashParamsValues[0] = this.splashInflate
         this.splashParamsValues[1] = this.splashGravity
         this.splashParamsValues[2] = this.splashDrag
@@ -472,6 +474,7 @@ export class MLSMPMSimulator {
         this.splashParamsValues[8] = this.splashExplodeGrav
         this.splashParamsValues[9] = this.splashExplodeDamp
         this.splashParamsValues[10] = this.splashExplodeCap
+        this.splashParamsValues[11] = this.splashBallistic
         this.device.queue.writeBuffer(this.splashParamsBuffer, 0, this.splashParamsValues)
 
         if (this.frameCount % 2 == 0 && this.numParticles < targetNumParticles) {

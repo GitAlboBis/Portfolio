@@ -145,18 +145,19 @@ export class FluidRenderer {
                 constants: renderEffectConstants,  
             }, 
             fragment: {
-                module: thicknessMapModule, 
+                module: thicknessMapModule,
                 targets: [
                     {
-                        format: 'r16float',
-                        writeMask: GPUColorWrite.RED,
+                        // rg: r = thickness, g = speed-weighted thickness (foam signal)
+                        format: 'rg16float',
+                        writeMask: GPUColorWrite.RED | GPUColorWrite.GREEN,
                         blend: {
                             color: { operation: 'add', srcFactor: 'one', dstFactor: 'one' },
                             alpha: { operation: 'add', srcFactor: 'one', dstFactor: 'one' },
                         }
                     }
                 ],
-            }, 
+            },
             primitive: {
                 topology: 'triangle-list', 
             },
@@ -172,7 +173,7 @@ export class FluidRenderer {
                 module: thicknessFilterModule,
                 targets: [
                     {
-                        format: 'r16float',
+                        format: 'rg16float',
                     },
                 ],
             },
@@ -208,16 +209,16 @@ export class FluidRenderer {
             format: 'r32float',
         });
         const thicknessTexture = device.createTexture({
-            label: 'thickness map texture', 
+            label: 'thickness map texture',
             size: [canvas.width, canvas.height, 1],
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'r16float',
+            format: 'rg16float',
         });
         const tmpThicknessTexture = device.createTexture({
-            label: 'temporary thickness map texture', 
+            label: 'temporary thickness map texture',
             size: [canvas.width, canvas.height, 1],
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'r16float',
+            format: 'rg16float',
         });
         const depthTestTexture = device.createTexture({
             size: [canvas.width, canvas.height, 1],

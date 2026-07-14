@@ -21,6 +21,7 @@ struct SplashParams {
     explodeGrav: f32,
     explodeDamp: f32,
     explodeCap: f32,
+    ballistic: f32,
 }
 
 override fixed_point_multiplier: f32;
@@ -160,6 +161,16 @@ fn g2p(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         // optional damping (default 0 keeps the churn alive, like the original)
         particles[id.x].v *= (1.0 - splash.drag);
+
+        // BALLISTIC ARC: splashed droplets in FLIGHT fall under real-world gravity,
+        // so a poke sprays water that arcs up, over, and rains back down instead of
+        // flying in straight lines until the leash reels it in. The gate is PURELY
+        // POSITIONAL (clearly outside the letter tube): the churning interior often
+        // runs faster than speedGate, so a speed/hold gate would sag the whole
+        // resting "A" into a heap on the floor (proven by QA screenshot) — distance
+        // cannot lie: dAxis <= halfW gets exactly zero.
+        let escaped = smoothstep(halfW * 1.6, halfW * 3.2, dAxis);
+        particles[id.x].v += vec3f(0.0, -splash.ballistic, 0.0) * escaped * calm;
 
         // EXPLODE beat (Direction A): a NATURAL water burst in SLOW MOTION -- a RADIAL
         // break in ALL directions (so it reads as an explosion of water, not a downward

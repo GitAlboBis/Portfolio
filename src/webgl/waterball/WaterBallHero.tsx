@@ -42,7 +42,7 @@ const NUM_PARTICLES = 120000;
 const INIT_BOX = [80, 60, 18];
 const INIT_DISTANCE = 72; // frame the box (~screen) so the spray is visible around the "A"
 const SPHERE_RADIUS = 20; // fluid cohesion sphere radius (grid units)
-const MOUSE_RADIUS = 9; // grid-cell radius of the mouse poke (WaterBall medium = 6; wider = bigger splash)
+const MOUSE_RADIUS = 7; // grid-cell radius of the mouse poke (9 smeared the WHOLE letter into a blob on a cross-sweep; 7 tears a crisp local jet — WaterBall medium = 6)
 const STRETCH = 2.0;
 const FOV = (45 * Math.PI) / 180;
 const MLS_RADIUS = 0.7;
@@ -67,7 +67,10 @@ const SPLASH_DEFAULTS = {
   restoreK: 0.1,
   speedGate: 1.5,
   leashRadius: 60,
-  pokeForce: 0.5,
+  pokeForce: 0.85, // raised 0.5 -> 0.85: with the ballistic arc the splash needs the extra energy to read
+  // world gravity on ESCAPED droplets only (hold≈0) — the splash arcs + rains back
+  // down like real water; the resting "A" never feels it (see g2p.wgsl).
+  ballistic: 0.35,
   // EXPLODE-burst feel (the slow-mo water splash). Dial these live in the leva
   // "splash" panel, then tell me the numbers to bake in.
   explodeOut: 4.0, // radial burst force (0 = no burst)
@@ -95,6 +98,7 @@ function useDevHeroControls(): { splash: SplashValues; cam: CamValues } {
     speedGate: { value: SPLASH_DEFAULTS.speedGate, min: 0.1, max: 60, step: 0.1 },
     leashRadius: { value: SPLASH_DEFAULTS.leashRadius, min: 5, max: 120, step: 1 },
     pokeForce: { value: SPLASH_DEFAULTS.pokeForce, min: 0, max: 4, step: 0.01 },
+    ballistic: { value: SPLASH_DEFAULTS.ballistic, min: 0, max: 1.5, step: 0.05 },
     explodeOut: { value: SPLASH_DEFAULTS.explodeOut, min: 0, max: 20, step: 0.5 },
     explodeGrav: { value: SPLASH_DEFAULTS.explodeGrav, min: 0, max: 15, step: 0.5 },
     explodeDamp: { value: SPLASH_DEFAULTS.explodeDamp, min: 0, max: 0.4, step: 0.01 },
@@ -347,6 +351,7 @@ export function WaterBallHero() {
         sim.splashSpeedGate = sp.speedGate;
         sim.splashLeashRadius = sp.leashRadius;
         sim.pokeForce = sp.pokeForce;
+        sim.splashBallistic = sp.ballistic;
         sim.splashExplodeOut = sp.explodeOut;
         sim.splashExplodeGrav = sp.explodeGrav;
         sim.splashExplodeDamp = sp.explodeDamp;
@@ -389,6 +394,9 @@ export function WaterBallHero() {
         camera.currentYtheta = ramp * cc.sway * 0.55 * Math.cos(phase);
         camera.recalculateView();
         sim.changeBoxSize(realBoxSize);
+        // animation clock for the render shaders (fluid.wgsl micro-ripples + foam
+        // breakup) — lives in the padding hole of RenderUniforms, see common.ts
+        renderUniformsViews.time.set([elapsed]);
         dev.queue.writeBuffer(renderUniformBuffer, 0, renderUniformsValues);
         const enc = dev.createCommandEncoder();
         sim.execute(

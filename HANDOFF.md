@@ -1,6 +1,29 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-13** (**LA MAREA MERGED & DEPLOYED** — main `374e069`: token motion, GL artwork sui works, preloader counter+skip, costellazione "A", a11y pass; Lighthouse desktop 98/96/100/100). This is the "continue here" doc.
+> Last updated: **2026-07-14** (branch `feat/hero-water-flock-realism`, NON ancora su main: acqua hero fotorealistica + murmurazione viva). This is the "continue here" doc.
+
+---
+
+## ⏯ CONTINUA DA QUI — sessione 2026-07-14 (REALISM, branch `feat/hero-water-flock-realism`)
+
+Mandato carte-blanche di Alberto ("pieno controllo, lasciami a bocca aperta"): **acqua+splash dell'hero** e **stormo della murmurazione** portati a livello realistico. G4 sbloccato da lui per questa missione. 2 commit sul branch, **merge su main = G3 (🔵 serve ok esplicito)**.
+
+| Cosa | Commit |
+|---|---|
+| **Acqua hero**: glint solare dorato (prima lo speculare era `* 0.0`!), micro-increspature animate (uniform `time` nel BUCO DI PADDING a offset 12 di RenderUniforms — layout/size invariati), dispersione cromatica, **foam bianco velocity-driven** (thickness `r16float`→`rg16float`, G = spessore·velocità, ratio = velocità media per pixel), **gravità balistica** sulle gocce (archi veri), density 0.7→0.38 (controluce!), cubemap rigenerata con mare luminoso + glitter path | `35b751c` |
+| **Murmurazione**: campo raffiche curl-noise condiviso (vortici coerenti), banking nelle virate + shimmer ambra sun-oriented (`side: DoubleSide` OBBLIGATORIO), onde di allarme propagate dt-normalizzate (poke del cursore → onda di fuga nella "A" che guarisce), battito asimmetrico + planate, 560→820 uccelli desktop | `cf00565` |
+
+**Gotcha CRITICI scoperti in QA (non regredire):**
+- ⚠ la **gravità balistica DEVE essere gated posizionalmente** (`smoothstep(halfW·1.6, halfW·3.2, dAxis)`): il churn interno supera `speedGate` anche a riposo, quindi qualsiasi gate su speed/hold **fa collassare la "A" in un cumulo sul pavimento** (visto a schermo).
+- ⚠ il canvas è `alphaMode:'premultiplied'`: ogni termine ADDITIVO in fluid.wgsl (glint) va clampato `min(finalColor, 1.0)` o color>alpha = compositing indefinito da spec.
+- ⚠ texture procedurali world-space sul fluido (breakup foam) **aliasano a scacchiera sulle superfici edge-on** — modulare col facing, mai pattern ad alta frequenza.
+- ⚠ velocità reali degli splash ≈ 4–8 unità griglia → `SPEED_REF` foam = **7** (a 14 il foam non scattava MAI).
+- Probe WebGPU: il Chromium di Playwright NON ha dxil.dll (device fail) → **`chromium.launch({ channel: "chrome", headless: true })`** funziona (Chrome reale headless con DXC). Skip preloader: `sessionStorage["at-preloader-seen"]="1"` in addInitScript. Probe: `_water_qa.mjs` (untracked, root).
+- Tuning live: slider leva `ballistic` aggiunto; pokeForce 0.85, MOUSE_RADIUS 7 (9 smerigliava l'intera lettera).
+
+**Review avversariale** (workflow 5 lenti × 3 verifier, 44 agenti): 13 finding grezzi → 3 unici confermati, tutti fixati (clamp premultiplied, DoubleSide, onda allarme dt-normalizzata). Warning console pre-esistenti (non del diff): `Element not found: #hero` (GSAP, da HeroScrollSettle/HeroCopy — probabile race al mount) e `THREE.Clock deprecated` (R3F internals) — candidati housekeeping WP-10.
+
+**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain a schermo (il feel fine si dial-a con leva); 🔵 G3 per merge+deploy; valutare `w-rest` iniziale vs post-splash (il fill iniziale è leggermente più denso del regime).
 
 ---
 

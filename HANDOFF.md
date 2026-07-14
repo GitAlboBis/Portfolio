@@ -25,7 +25,11 @@ Mandato carte-blanche di Alberto ("pieno controllo, lasciami a bocca aperta"): *
 
 **MERGED su main con ok G3 di Alberto ("mergia e continua") e pushato** (`1f234f5` → deploy Vercel). Follow-up su `feat/realism-polish`: **root-caused e fixato il warning `Element not found: #hero`** — NON era una race: `useGSAP` con `scope: root` risolve le stringhe-selettore via `root.querySelector`, e `#hero` è il GENITORE di root → mai trovato, trigger silenziosamente caduto sul fallback (funzionava per coincidenza: hero a scroll 0). Fix: `trigger: el.closest("#hero")`. ⚠ Lezione generale: **dentro `useGSAP` con `scope`, mai selettori-stringa per elementi FUORI dallo scope** — passare l'elemento. Resta solo `THREE.Clock deprecated` (2×, interno R3F v9 con three 0.184 — non nostro, non fixabile senza patch).
 
-**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain a schermo (feel fine con leva, slider `ballistic` incluso); il fill iniziale è leggermente più denso del regime post-splash (differenza modesta dopo il fix particle_alpha — si assesta col churn in pochi secondi).
+**Perfection pass (`87a92ed`, merged+pushed):** bank spento a bassa velocità (un uccello parcheggiato teneva roll casuali — `lat` divide per `spXY`≈0), shimmer più raro (soglia 0.72–0.985), density 0.34 (controluce anche nello stato denso iniziale), handle dev `window.__heroStore` per i probe.
+
+⚠ **Lezione ambiente NUOVA (2026-07-14): finestra Chrome OCCLUSA = rAF congelato = stati fantasma.** Con la finestra dietro altre (`visibilityState:"hidden"`, 0 tick rAF) GSAP/preloader restano congelati e la sim WebGPU avanza solo a raffiche quando lo screenshot CDP forza un frame → screenshot di transitori impossibili (la "A" in nuvola gigante, preloader eterno, h1 assente) che SEMBRANO bug gravissimi ma non lo sono. Prima di giudicare screenshot claude-in-chrome: `document.visibilityState` + contatore rAF via javascript_tool; se hidden → finestra in primo piano o probe Playwright headless (`channel:"chrome"`). Probabile causa-radice anche degli stall storici della cattura.
+
+**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain a schermo (feel fine con leva, slider `ballistic` incluso — finestra Chrome in primo piano!).
 
 ---
 

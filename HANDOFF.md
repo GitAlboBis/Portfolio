@@ -53,7 +53,11 @@ Mandato carte-blanche di Alberto ("pieno controllo, lasciami a bocca aperta"): *
 
 **IL RIFLUSSO (`21fffd3`, su main+pushato) — il bookend:** il sito nasce dall'acqua e ora ci FINISCE: al fondo assoluto della pagina (footer, banda night) un corpo d'acqua scura lambisce l'orlo — 2 creste in controderiva (linguaggio waterline della Risalita, geometria estratta in **`src/lib/wave.ts`**, byte-identical, condivisa da entrambe le bande), schiuma illuminata dalla luna, glints stellari, respiro di marea 9s. Al fondo pagina il mare sale a incontrarti: lift one-shot + swell MAREA + evento **`tide-touch`** (hook ecosistema, cooldown con grace 800ms al load). Decorativo aria-hidden; reduced GESTITO SOLO IN CSS (media guards: acqua ferma, glints fissi) = zero branch a render = zero superficie hydration. **Anti-cucitura by construction**: clip statico `overflow-hidden` incollato all'orlo pagina + layer interno sbordato 24px — respiro (-6px) e lift (-10px) non staccano MAI il bordo inferiore (finding della mini-review avversariale, fixato; anche il baseline del cooldown). QA `_tide_qa.mjs`: tide-touch 1/1/0 (desktop/mobile/reduced), console pulita.
 
-**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain + raggi/gabbiani/motes + LA RISALITA + IL RIFLUSSO a schermo (feel fine con leva — finestra Chrome in primo piano!). ▶ Prossimo round candidato: **WP-10 mobile** (Lighthouse mobile 77 → ≥80, hydration JS + re-hide testo SSR hero — il budget CLAUDE.md è vincolante).
+**IL CIELO RISPONDE (`e424235`, su main+pushato):** `tide-touch` → la costellazione "A" DIVAMPA (uniform `uFlare` in NightSky: stelle +145%, linee accese, respiro dorato attorno alla lettera gated su `uConst`; decadimento esponenziale ~1.5s nel loop esistente; reduced = nessun listener). Il cerchio dell'ecosistema si chiude: mare→cielo. QA `_flare_qa.mjs` (before/peak/settled visti a occhio, console pulita).
+
+**WP-10 RISOLTO SENZA INTERVENTO (misura 2026-07-15):** Lighthouse mobile prod = **84** (era 77 il 13/07 — i lavori successivi l'hanno risanato). FCP 1.2s · LCP 3.1s (hero line, render delay 2.2s) · TBT 230ms · CLS 0 · SI 6.0s (debole ma inerente al preloader — toccarlo = rischio estetico per pochi punti; lasciato). Budget CLAUDE.md ≥80 ✅. Report: scratchpad `lh-mobile-before.json` della sessione.
+
+**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain + raggi/gabbiani/motes + LA RISALITA + IL RIFLUSSO + flare costellazione a schermo (feel fine con leva — finestra Chrome in primo piano!).
 
 ---
 

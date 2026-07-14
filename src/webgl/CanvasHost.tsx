@@ -61,9 +61,11 @@ export function CanvasHost() {
         className="pointer-events-none fixed inset-0 z-0"
         style={{ background: SEA_GRADIENT }}
       />
-      {/* Crepuscular rays UNDER the fluid (DOM order): the translucent "A"
-          refracts a sky that visibly radiates from its sun. */}
-      <SunRays />
+      {/* Crepuscular rays + drifting clouds — the FALLBACK sky (no-WebGPU /
+          reduced-motion). When the fluid mounts, its canvas now paints its own
+          LIVING sky+sea (render/sky.wgsl) and fully covers this layer, so we
+          skip compositing it at all. */}
+      {!showFluid && <SunRays />}
       {showFluid && <WaterBallHero />}
     </>
   );

@@ -18,6 +18,11 @@ type Graph = {
   stops: Array<() => void>;
   surfGain: GainNode;
   padFilter: BiquadFilterNode;
+  surfFilter: BiquadFilterNode;
+  /** LFO depths — scaled with submersion so base − depth can't go negative
+      (a phase-inverted surf trough / a 0 Hz-clamped pad read as thumps) */
+  swellAmt: GainNode;
+  padLfoAmt: GainNode;
 };
 
 let ctx: AudioContext | null = null;
@@ -25,6 +30,26 @@ let master: GainNode | null = null;
 let graph: Graph | null = null;
 let running = false;
 let lastK = -1;
+let lastSub = -1;
+let intensK = 0;
+let subK = 0;
+/** ctx time until which surfaceBreak() owns surfGain.gain — applyDynamics
+    must not stomp the swell on the very next scroll frame */
+let swellHold = 0;
+
+/* combined dynamics: scroll intensity opens the sea up, submersion muffles it
+   (the underwater lowpass of LA RISALITA — ears break the surface too). */
+function applyDynamics() {
+  if (!ctx || !graph) return;
+  const t0 = ctx.currentTime;
+  if (t0 >= swellHold) {
+    graph.surfGain.gain.setTargetAtTime((SURF_BASE + intensK * 0.11) * (1 - 0.45 * subK), t0, 0.18);
+  }
+  graph.padFilter.frequency.setTargetAtTime((320 + intensK * 380) * (1 - 0.7 * subK), t0, 0.25);
+  graph.surfFilter.frequency.setTargetAtTime(650 * (1 - 0.64 * subK), t0, 0.3);
+  graph.swellAmt.gain.setTargetAtTime(0.035 * (1 - 0.8 * subK), t0, 0.25);
+  graph.padLfoAmt.gain.setTargetAtTime(140 * (1 - 0.75 * subK), t0, 0.25);
+}
 
 /*
   Autoplay discipline: soundEnabled is PERSISTED, so enable() also fires on a
@@ -152,7 +177,7 @@ function buildGraph(ac: AudioContext, out: GainNode): Graph {
     swell.stop();
   });
 
-  return { stops, surfGain, padFilter };
+  return { stops, surfGain, padFilter, surfFilter, swellAmt, padLfoAmt };
 }
 
 export const marea = {
@@ -166,6 +191,7 @@ export const marea = {
     if (running) return;
     running = true;
     lastK = -1;
+    lastSub = -1;
     const ua = (navigator as unknown as { userActivation?: { isActive: boolean } })
       .userActivation;
     if (!ctx && ua && !ua.isActive) {
@@ -208,7 +234,32 @@ export const marea = {
     const k = Math.min(1, Math.max(0, v));
     if (Math.abs(k - lastK) < 0.004) return;
     lastK = k;
-    graph.surfGain.gain.setTargetAtTime(SURF_BASE + k * 0.11, ctx.currentTime, 0.18);
-    graph.padFilter.frequency.setTargetAtTime(320 + k * 380, ctx.currentTime, 0.25);
+    intensK = k;
+    applyDynamics();
+  },
+
+  /** 0..1 — how deep underwater the "camera" is (LA RISALITA drives this):
+      1 = fully submerged (muffled lowpass), 0 = surfaced. Dead-banded like
+      setIntensity — scrubbed scroll must not spam the audio thread. */
+  setSubmerged(v: number) {
+    const k = Math.min(1, Math.max(0, v));
+    if (Math.abs(k - lastSub) < 0.004) return;
+    lastSub = k;
+    subK = k;
+    if (!running || !ctx || !graph) return;
+    applyDynamics();
+  },
+
+  /** the break itself: a quick surf swell as the head clears the water.
+      swellHold keeps applyDynamics off surfGain.gain while it plays. */
+  surfaceBreak() {
+    if (!running || !ctx || !graph) return;
+    const t0 = ctx.currentTime;
+    swellHold = t0 + 0.8;
+    const base = (SURF_BASE + intensK * 0.11) * (1 - 0.45 * subK);
+    const g = graph.surfGain.gain;
+    g.cancelScheduledValues(t0);
+    g.setTargetAtTime(Math.min(0.26, base * 3), t0, 0.05);
+    g.setTargetAtTime(base, t0 + 0.22, 0.5);
   },
 };

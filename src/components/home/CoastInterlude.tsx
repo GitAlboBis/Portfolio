@@ -23,6 +23,9 @@ export function CoastInterlude() {
       eyebrow={t.coast.eyebrow}
       title={t.coast.title}
       meta={t.coast.meta}
+      // the film ends underwater and LA RISALITA continues the same water —
+      // no paper tear between the two halves of the dive
+      tearBottom={false}
     />
   );
 }

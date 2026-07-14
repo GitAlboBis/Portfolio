@@ -3,6 +3,7 @@
 import * as React from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useUI } from "@/store/ui";
+import { useHydrated } from "@/lib/use-hydrated";
 import { TornEdge } from "@/components/atmosphere/TornEdge";
 
 /*
@@ -32,10 +33,20 @@ export type FilmScrubProps = {
   meta: string;
   /** pin length in vh (default 260) */
   heightVh?: number;
+  /** the bottom paper tear — off when the band flows into another sea band
+      (LA COSTA → LA RISALITA: a paper tear between two waters reads wrong) */
+  tearBottom?: boolean;
 };
 
-export function FilmScrub({ srcDesktop, srcMobile, poster, eyebrow, title, meta, heightVh = 260 }: FilmScrubProps) {
+export function FilmScrub({ srcDesktop, srcMobile, poster, eyebrow, title, meta, heightVh = 260, tearBottom = true }: FilmScrubProps) {
   const reduced = useUI((s) => s.reducedMotion);
+  // render-time reduced branches must wait for hydration (the store resolves
+  // reducedMotion from matchMedia at module load → first client render would
+  // mismatch the server HTML; effect-time reads below are fine as-is).
+  // Hook called unconditionally — `reduced` is live via Smooth.tsx's media-
+  // query listener, so short-circuiting it would change the hook count.
+  const hydrated = useHydrated();
+  const showReduced = reduced && hydrated;
   const root = React.useRef<HTMLElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [src, setSrc] = React.useState<string | null>(null);
@@ -113,7 +124,9 @@ export function FilmScrub({ srcDesktop, srcMobile, poster, eyebrow, title, meta,
         video.removeEventListener("loadedmetadata", onMeta);
       };
     },
-    { scope: root, dependencies: [reduced, src] },
+    // revertOnUpdate: the src-attach re-run must revert the first run's tweens
+    // (deferred cleanup would stack a duplicate caption tween per deps change)
+    { scope: root, dependencies: [reduced, src], revertOnUpdate: true },
   );
 
   return (
@@ -121,10 +134,10 @@ export function FilmScrub({ srcDesktop, srcMobile, poster, eyebrow, title, meta,
       ref={root}
       aria-label={eyebrow}
       className="relative bg-night"
-      style={{ height: reduced ? "100dvh" : `${heightVh}vh` }}
+      style={{ height: showReduced ? "100dvh" : `${heightVh}vh` }}
     >
       <div className="sticky top-0 h-dvh overflow-hidden">
-        {src && !reduced ? (
+        {src && !showReduced ? (
           <video
             ref={videoRef}
             aria-hidden
@@ -167,7 +180,7 @@ export function FilmScrub({ srcDesktop, srcMobile, poster, eyebrow, title, meta,
 
       {/* the paper TEARS to reveal the film — ragged fibre seams, not hard cuts */}
       <TornEdge side="top" seed={3} />
-      <TornEdge side="bottom" seed={8} />
+      {tearBottom && <TornEdge side="bottom" seed={8} />}
     </section>
   );
 }

@@ -5,6 +5,7 @@ import { HeroCopy } from "@/components/hero/HeroCopy";
 import { About } from "@/components/sections/About";
 import { WorksGallery } from "@/components/works/WorksGallery";
 import { CoastInterlude } from "@/components/home/CoastInterlude";
+import { AscentSurface } from "@/components/home/AscentSurface";
 import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
@@ -59,8 +60,16 @@ export default function Home() {
         <WorksGallery />
 
         {/* LA COSTA — scroll-scrubbed drone film of Pan di Zucchero at golden
-            hour: the real place behind the site's water + sunset language. */}
+            hour: the real place behind the site's water + sunset language.
+            The film ends UNDERWATER — LA RISALITA below completes the dive. */}
         <CoastInterlude />
+
+        {/* LA RISALITA — you hang in the real underwater light (loop cut from
+            the same footage), bubbles rise, and scroll performs the ascent:
+            the page descends as a living waterline and you break the surface
+            back onto paper (surface-break → the escort scatters, MAREA
+            un-muffles). */}
+        <AscentSurface />
 
         {/* Tech-stack — editorial heading + signature 3D icon cloud. Nightfall pins
             it in its final reading position while the night band slides over it:

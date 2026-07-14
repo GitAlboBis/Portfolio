@@ -638,6 +638,67 @@ html.cc-on * {
   }
 }
 
+/* ── The ascent (LA RISALITA) ─────────────────────────────────────────────────
+   Underwater breath rising through the teal light, and the living waterline
+   the page descends as. Pure CSS motion: transform+opacity only; per-bubble
+   variety via custom properties; negative delays so nothing is born together.
+   Reduced motion: the band renders a static still instead (component-level). */
+.asc-bubble {
+  position: absolute;
+  bottom: -4%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 30%, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.12) 62%);
+  box-shadow: 0 0 5px 1px rgb(255 255 255 / 0.16);
+  opacity: 0;
+  animation: bubble-rise var(--bub-dur, 11s) linear infinite;
+  animation-delay: var(--bub-delay, 0s);
+}
+@keyframes bubble-rise {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  8% {
+    opacity: var(--bub-peak, 0.35);
+  }
+  55% {
+    transform: translate3d(var(--bub-sway, 1rem), -58vh, 0);
+  }
+  92% {
+    opacity: var(--bub-peak, 0.35);
+  }
+  100% {
+    transform: translate3d(calc(var(--bub-sway, 1rem) * -0.5), -108vh, 0);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .asc-bubble {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* the waterline strips: 200%-wide tracks drifting one full period (-50%) —
+   seamless loop, transform-only. Two tracks counter-drift for parallax foam. */
+.asc-wave-track {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  will-change: transform;
+  animation: wave-drift var(--wave-dur, 13s) linear infinite;
+}
+@keyframes wave-drift {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .asc-wave-track {
+    animation: none;
+  }
+}
+
 /* ── Keyframes ─────────────────────────────────────────────────────────────  */
 @keyframes rise {
   from {

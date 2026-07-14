@@ -31,7 +31,9 @@ Mandato carte-blanche di Alberto ("pieno controllo, lasciami a bocca aperta"): *
 
 **Ambient pass (`7632b74`, su main+pushato):** ① **SunRays** — god-rays crepuscolari dal sole della cubemap, due ventagli conici controrotanti CSS-only (`.hero-rays` in globals, statici in reduced-motion), montati da CanvasHost tra `#sea-backdrop` e il canvas fluido; ② **gabbiani ambientali** in Escort — 3-4 silhouette lontane planano sull'orizzonte quando la pagina riposa in cima, fade se scrolli o evochi la scia; ③ **ecosistema**: poke violento → `hero-splash` (WaterBallHero, mouseVel>1.6 throttled 1.2s) → i gabbiani si spaventano (scatto su + battiti rapidi, poi crociera). ⚠ Il "sole CSS" fu bocciato nell'ABOUT: i raggi hero sono altra cosa (ventaglio di luce, non disco) — se Alberto storce il naso, si spengono rimuovendo `<SunRays/>` da CanvasHost.
 
-**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain + raggi/gabbiani a schermo (feel fine con leva — finestra Chrome in primo piano!).
+**Golden ambience (`cc2312e`, su main+pushato):** GOLDEN MOTES — 14 motes di polline dorato che salgono per la banda About (CSS puro, valori deterministici per indice = zero hydration mismatch, delay negativi, reduced-motion = polvere statica) + HORIZON GLINT — scintilla che corre lungo la hairline dell'orizzonte ogni ~9s (sibling della linea, non figlio: lo scaleX del draw la schiaccerebbe).
+
+**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain + raggi/gabbiani/motes a schermo (feel fine con leva — finestra Chrome in primo piano!).
 
 ---
 

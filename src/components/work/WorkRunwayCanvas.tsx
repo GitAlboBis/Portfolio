@@ -58,11 +58,29 @@ const FRAG = /* glsl */ `
   uniform float uPattern; // 0 contours · 1 voice bars · 2 field rows · 3 dot grid
   uniform float uSeed;
 
+  uniform sampler2D uTex;
+  uniform float uHasTex;
+  uniform float uTexAspect;
+  uniform float uPlaneAspect;
+
   ${ARTWORK_GLSL}
 
   void main(){
     vec2 uv = vUv;
-    vec3 col = artwork(uv, uPattern, uSeed, uTime, uBase, uA, uB);
+    vec3 col;
+    if (uHasTex > 0.5) {
+      // cover-fit the real still (plane aspect follows the live layout)
+      vec2 tuv = uv;
+      float rx = uPlaneAspect / max(uTexAspect, 1e-3);
+      if (rx < 1.0) { tuv.x = 0.5 + (tuv.x - 0.5) * rx; }
+      else { tuv.y = 0.5 + (tuv.y - 0.5) / rx; }
+      col = texture2D(uTex, tuv).rgb;
+      // duotone pull toward the slide's mood — one series, one system
+      float tl = dot(col, vec3(0.299, 0.587, 0.114));
+      col = mix(col, mix(uBase, uA, smoothstep(0.12, 0.88, tl)), 0.14);
+    } else {
+      col = artwork(uv, uPattern, uSeed, uTime, uBase, uA, uB);
+    }
 
     // Focus: out-of-centre slides rest desaturated and quiet (scrub-welded).
     float gray = dot(col, vec3(0.299, 0.587, 0.114));
@@ -123,6 +141,12 @@ function Scene({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
       ),
     [],
   );
+  // 1px placeholder keeps uTex bound while stills load (uHasTex gates sampling)
+  const placeholderTex = useMemo(() => {
+    const t = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+    t.needsUpdate = true;
+    return t;
+  }, []);
   const materials = useMemo(
     () =>
       works.map(
@@ -142,18 +166,44 @@ function Scene({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
               uReveal: { value: 0 },
               uPattern: { value: PATTERN_BY_SLUG[w.slug] ?? 3 },
               uSeed: { value: i * 1.7 + 0.4 },
+              uTex: { value: placeholderTex },
+              uHasTex: { value: 0 },
+              uTexAspect: { value: 1.5 },
+              uPlaneAspect: { value: 1 },
             },
           }),
       ),
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [placeholderTex],
   );
+  // Real stills (Work.textureSrc) — swap in over the procedural artwork.
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    const loaded: THREE.Texture[] = [];
+    works.forEach((w, i) => {
+      if (!w.textureSrc) return;
+      loader.load(w.textureSrc, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 4;
+        loaded.push(tex);
+        const u = materials[i].uniforms;
+        u.uTex.value = tex;
+        u.uTexAspect.value = (tex.image?.width ?? 3) / (tex.image?.height ?? 2);
+        u.uHasTex.value = 1;
+      });
+    });
+    return () => {
+      loaded.forEach((t) => t.dispose());
+    };
+  }, [materials]);
   useEffect(
     () => () => {
       geometry.dispose();
       materials.forEach((m) => m.dispose());
       baseMaterials.forEach((m) => m.dispose());
+      placeholderTex.dispose();
     },
-    [geometry, materials, baseMaterials],
+    [geometry, materials, baseMaterials, placeholderTex],
   );
 
   useFrame((state, delta) => {
@@ -201,6 +251,7 @@ function Scene({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
       u.uTime.value = state.clock.elapsedTime;
       u.uFocus.value = 1 - Math.min(1, Math.abs(off));
       u.uVel.value = vel.current * VELOCITY_GAIN * (isMobile ? 0.5 : 1);
+      u.uPlaneAspect.value = pw / ph; // live layout aspect for the still's cover-fit
 
       // First approach → the artwork rises once, like the tide coming in.
       if (!revealed.current[i] && Math.abs(off) < 1.05) {

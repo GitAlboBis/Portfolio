@@ -54,6 +54,7 @@ export const works: Work[] = [
     stack: ["Next.js 15", "React 19", "TypeScript", "Supabase", "PostGIS", "Serwist (PWA)", "Web Push (VAPID)", "Leaflet", "Sentry", "GitHub Actions"],
     status: "confirmed",
     mood: { base: palette.paper, blob1: palette.amber, blob2: palette.coral },
+    textureSrc: "/works/badante24h.webp",
     study: {
       summary: {
         en: "A production PWA that matches families with home-care caregivers across the Italian domiciliary-care market.",
@@ -87,6 +88,7 @@ export const works: Work[] = [
     stack: ["Azure Speech", "Copilot Studio", "Power Automate", "Dynamics 365", "Angular", "TypeScript"],
     status: "confirmed",
     mood: { base: palette.paperDeep, blob1: palette.coral, blob2: palette.ember },
+    textureSrc: "/works/doit-voice-ai-agent.webp",
     study: {
       summary: {
         en: "A hands-free voice AI agent inside Microsoft Teams for managing appointments by voice note.",
@@ -115,6 +117,7 @@ export const works: Work[] = [
     stack: ["Java", "Spring Boot", "Spring Security", "PostgreSQL", "JWT", "REST", "UML"],
     status: "confirmed",
     mood: { base: palette.paper, blob1: palette.ember, blob2: palette.rose },
+    textureSrc: "/works/agricultural-supply-chain.webp",
     study: {
       summary: {
         en: "A multi-actor platform modelling an agricultural supply chain with 10 distinct roles, built as a university software-engineering project.",

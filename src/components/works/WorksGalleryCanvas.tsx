@@ -27,10 +27,10 @@ const VERT = /* glsl */ `
   void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `;
 
-// Project plane: the shared generative artwork per slug (src/webgl/artwork.ts —
-// same "still" the /work runway draws), cross-faded by depth. Out-of-focus
-// planes rest desaturated; the focused one comes to full colour. Texture branch
-// (Work.textureSrc) replaces the artwork() call when real stills land.
+// Project plane: the REAL still (Work.textureSrc, cover-fit + a gentle duotone
+// pull toward the slide's mood so the series stays one system) or the shared
+// generative artwork per slug (src/webgl/artwork.ts) while a still is absent/
+// loading. Cross-faded by depth; out-of-focus planes rest desaturated.
 const FRAG = /* glsl */ `
   varying vec2 vUv;
   uniform vec3 uBase;
@@ -40,11 +40,27 @@ const FRAG = /* glsl */ `
   uniform float uTime;
   uniform float uPattern;
   uniform float uSeed;
+  uniform sampler2D uTex;
+  uniform float uHasTex;
+  uniform float uTexAspect;
 
   ${ARTWORK_GLSL}
 
   void main(){
-    vec3 c = artwork(vUv, uPattern, uSeed, uTime, uBase, uA, uB);
+    vec3 c;
+    if (uHasTex > 0.5) {
+      // cover-fit: crop the overflowing axis (plane is 5.2 x 3.3)
+      vec2 tuv = vUv;
+      float rx = 1.5757576 / max(uTexAspect, 1e-3);
+      if (rx < 1.0) { tuv.x = 0.5 + (tuv.x - 0.5) * rx; }
+      else { tuv.y = 0.5 + (tuv.y - 0.5) / rx; }
+      c = texture2D(uTex, tuv).rgb;
+      // marry the photograph to the slide's mood (duotone pull, subtle)
+      float lum = dot(c, vec3(0.299, 0.587, 0.114));
+      c = mix(c, mix(uBase, uA, smoothstep(0.12, 0.88, lum)), 0.14);
+    } else {
+      c = artwork(vUv, uPattern, uSeed, uTime, uBase, uA, uB);
+    }
     // depth focus: opacity doubles as the focus signal (1 = centred).
     float gray = dot(c, vec3(0.299, 0.587, 0.114));
     c = mix(mix(vec3(gray), uBase, 0.25), c, 0.4 + 0.6 * uOpacity);
@@ -153,6 +169,13 @@ function Scene({
   const lastCamZ = useRef(VIEW);
   const bgRef = useRef<THREE.Mesh>(null);
 
+  // 1px placeholder so uTex is always a valid binding (uHasTex gates sampling)
+  const placeholderTex = useMemo(() => {
+    const t = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+    t.needsUpdate = true;
+    return t;
+  }, []);
+
   const materials = useMemo(
     () =>
       works.map(
@@ -170,11 +193,36 @@ function Scene({
               uTime: { value: 0 },
               uPattern: { value: PATTERN_BY_SLUG[w.slug] ?? 3 },
               uSeed: { value: i * 1.7 + 0.4 },
+              uTex: { value: placeholderTex },
+              uHasTex: { value: 0 },
+              uTexAspect: { value: 1.5 },
             },
           }),
       ),
-    [works],
+    [works, placeholderTex],
   );
+
+  // Real stills: load async, swap in when ready (artwork keeps the seat warm —
+  // no pop: the still fades in with the next depth cross-fade anyway).
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    const loaded: THREE.Texture[] = [];
+    works.forEach((w, i) => {
+      if (!w.textureSrc) return;
+      loader.load(w.textureSrc, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 4;
+        loaded.push(tex);
+        const u = materials[i].uniforms;
+        u.uTex.value = tex;
+        u.uTexAspect.value = (tex.image?.width ?? 3) / (tex.image?.height ?? 2);
+        u.uHasTex.value = 1;
+      });
+    });
+    return () => {
+      loaded.forEach((t) => t.dispose());
+    };
+  }, [works, materials]);
 
   const bgMat = useMemo(
     () =>

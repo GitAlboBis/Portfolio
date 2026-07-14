@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { useUI } from "@/store/ui";
 
 /*
   GoldenHaze — the About band's atmosphere (decorative, aria-hidden).
@@ -25,12 +26,15 @@ const GRAIN =
 
 export function GoldenHaze() {
   const root = React.useRef<HTMLDivElement>(null);
+  // Reactive store flag (mirrored from the media query by Smooth.tsx) so a
+  // mid-session Reduce Motion flip re-runs the effect and reverts the scrubs.
+  const reduced = useUI((s) => s.reducedMotion);
 
   useGSAP(
     () => {
       const el = root.current;
       if (!el) return;
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (reduced || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
       const section = el.closest("section") ?? el;
       const haze = el.querySelector("[data-haze]");
@@ -58,7 +62,7 @@ export function GoldenHaze() {
         },
       );
     },
-    { scope: root },
+    { scope: root, dependencies: [reduced], revertOnUpdate: true },
   );
 
   return (

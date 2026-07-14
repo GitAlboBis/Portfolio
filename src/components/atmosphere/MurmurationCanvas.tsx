@@ -94,6 +94,9 @@ const FRAG = /* glsl */ `
   varying float vShade;
   void main() {
     gl_FragColor = vec4(mix(uInk, uFade, vShade * 0.55), 1.0);
+    // ColorManagement feeds uniforms in LINEAR working space; without this the
+    // raw values hit the sRGB framebuffer and the espresso inks crush to black.
+    #include <colorspace_fragment>
   }
 `;
 
@@ -229,26 +232,34 @@ function Flock({ count }: { count: number }) {
     };
   }, [sim, count, rand, viewport.width, viewport.height, size.height]);
 
-  // Pointer predator — canvas is pointer-events-none, so listen on window and
-  // project into the canvas' world plane. {-1e3} parks it far away when idle.
-  const predator = useRef(new THREE.Vector2(-1e3, -1e3));
+  // Pointer predator — canvas is pointer-events-none, so listen on window.
+  // Only SCREEN coords are stored here; the world projection happens per frame
+  // against the LIVE canvas rect (a screen point stored as world coords goes
+  // stale the moment the page scrolls under a stationary cursor, leaving a
+  // phantom repulsion bubble parked on the glyph). Parked on blur/leave.
+  const pointerScreen = useRef({ x: 0, y: 0, active: false });
   useEffect(() => {
     if (!window.matchMedia("(pointer: fine)").matches) return;
+    const p = pointerScreen.current;
     const onMove = (e: PointerEvent) => {
-      const r = gl.domElement.getBoundingClientRect();
-      if (e.clientY < r.top || e.clientY > r.bottom) {
-        predator.current.set(-1e3, -1e3);
-        return;
-      }
-      const wpp = viewport.height / size.height;
-      predator.current.set(
-        (e.clientX - r.left - r.width / 2) * wpp,
-        -(e.clientY - r.top - r.height / 2) * wpp,
-      );
+      p.x = e.clientX;
+      p.y = e.clientY;
+      p.active = true;
+    };
+    const park = () => {
+      p.active = false;
     };
     window.addEventListener("pointermove", onMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onMove);
-  }, [gl, viewport.height, size.height]);
+    window.addEventListener("blur", park);
+    document.addEventListener("pointerleave", park);
+    document.addEventListener("visibilitychange", park);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("blur", park);
+      document.removeEventListener("pointerleave", park);
+      document.removeEventListener("visibilitychange", park);
+    };
+  }, []);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const grid = useMemo(() => new Map<number, number[]>(), []);
@@ -261,12 +272,14 @@ function Flock({ count }: { count: number }) {
     sim.time += dt;
     material.uniforms.uTime.value = sim.time;
 
-    // Scroll → formation weight. Fast break, slow re-gather.
+    // Scroll → formation weight. Fast break, slow re-gather — dt-normalized
+    // exponential smoothing so the feel is identical at 60Hz and 144Hz.
     const lenis = (window as unknown as { __lenis?: { velocity?: number } }).__lenis;
     const v = lenis?.velocity ?? 0;
     const vAbs = Math.abs(v);
     const formTarget = Math.min(1, Math.max(0, 1 - (vAbs - 1.5) / 9));
-    sim.form += (formTarget - sim.form) * (formTarget < sim.form ? 0.18 : 0.03);
+    const formRate = formTarget < sim.form ? 12 : 1.8; // per second
+    sim.form += (formTarget - sim.form) * (1 - Math.exp(-formRate * dt));
     const form = sim.form;
 
     // Formed, the flock must PACK into the glyph strokes: separation radius
@@ -283,8 +296,18 @@ function Flock({ count }: { count: number }) {
     const maxSpeed = 2.2 + (1 - form) * 2.6 + Math.min(vAbs * 0.03, 1.4);
     const bx = viewport.width * 0.47;
     const by = viewport.height * 0.47;
-    const px = predator.current.x;
-    const py = predator.current.y;
+    // Predator world position from the LIVE rect (tracks scroll correctly).
+    let px = -1e3;
+    let py = -1e3;
+    if (pointerScreen.current.active) {
+      const rect = gl.domElement.getBoundingClientRect();
+      const sy = pointerScreen.current.y;
+      if (sy >= rect.top && sy <= rect.bottom) {
+        const wpp = viewport.height / size.height;
+        px = (pointerScreen.current.x - rect.left - rect.width / 2) * wpp;
+        py = -(sy - rect.top - rect.height / 2) * wpp;
+      }
+    }
 
     // spatial hash rebuild
     grid.clear();
@@ -437,18 +460,20 @@ function Flock({ count }: { count: number }) {
 
 export function MurmurationCanvas() {
   // Client-only file (dynamic ssr:false) — window is safe here.
-  const count = window.innerWidth < 768 ? 260 : 560;
+  const isMobile = window.innerWidth < 768;
+  // Mobile degrades gracefully: fewer birds, dpr cap 1.25, no MSAA — this
+  // canvas spans the whole tall section, so framebuffer memory is the cost.
   return (
     <Canvas
       aria-hidden
       camera={{ position: [0, 0, CAM_Z], fov: FOV }}
-      dpr={[1, 1.5]}
+      dpr={[1, isMobile ? 1.25 : 1.5]}
       frameloop="demand"
-      gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
+      gl={{ alpha: true, antialias: !isMobile, powerPreference: "low-power" }}
       style={{ position: "absolute", inset: 0 }}
     >
       <FrameGate />
-      <Flock count={count} />
+      <Flock count={isMobile ? 260 : 560} />
     </Canvas>
   );
 }

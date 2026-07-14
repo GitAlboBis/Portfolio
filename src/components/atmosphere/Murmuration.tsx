@@ -30,7 +30,11 @@ export function Murmuration() {
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">
-      <LazyOnView style={{ position: "absolute", inset: 0 }} rootMargin={350}>
+      {/* NEGATIVE rootMargin: About starts flush under the 100dvh hero, so a
+          positive margin would mount the GL context at first paint. -280 defers
+          it until the hero is ~1/3 scrolled away; the flock entering as a loose
+          cloud (form ramps from 0) makes the late mount read as arrival. */}
+      <LazyOnView style={{ position: "absolute", inset: 0 }} rootMargin={-280}>
         <MurmurationCanvas />
       </LazyOnView>
     </div>

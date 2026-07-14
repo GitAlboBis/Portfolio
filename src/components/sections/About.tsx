@@ -32,7 +32,23 @@ export function About() {
       <GoldenHaze />
       <Murmuration />
 
-      <div className="container-edit grid-edit relative">
+      <div className="container-edit grid-edit relative z-10">
+        {/* Reading shield — a feathered paper veil UNDER the copy (own stacking
+            context via z-10, shield at -z-10): birds and haze crossing the text
+            zone get pushed into atmospheric depth, so ink/ink-mute/ember-ink
+            hold AA no matter where the flock flies. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-x-10 -inset-y-12 -z-10 md:-inset-x-20 md:-inset-y-16"
+          style={{
+            background: "color-mix(in srgb, var(--color-paper) 85%, transparent)",
+            // feather must die out BEFORE the box edges or the veil hard-cuts
+            maskImage:
+              "radial-gradient(ellipse 50% 50% at 42% 40%, #000 38%, transparent 88%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 50% 50% at 42% 40%, #000 38%, transparent 88%)",
+          }}
+        />
         <Parallax className="col-meta mb-8 lg:mb-0" from={70}>
           <p className="t-eyebrow eyebrow-tick">{t.about.eyebrow}</p>
         </Parallax>

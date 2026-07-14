@@ -3,6 +3,7 @@
 import * as React from "react";
 import { gsap } from "@/lib/gsap";
 import { cn } from "@/lib/cn";
+import { useUI } from "@/store/ui";
 import { VELOCITY_GAIN } from "@/lib/motion";
 
 /*
@@ -39,19 +40,25 @@ type DriftRow = {
 
 export function DriftBand({ rows, className }: { rows: DriftRow[]; className?: string }) {
   const root = React.useRef<HTMLDivElement>(null);
+  // Store flag, not a one-shot matchMedia snapshot: Smooth.tsx mirrors the
+  // media query into the store on CHANGE too, so flipping Reduce Motion
+  // mid-session re-runs this effect and parks the band (house rule).
+  const reduced = useUI((s) => s.reducedMotion);
 
   React.useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const el = root.current;
     if (!el) return;
+    const tracks = Array.from(el.querySelectorAll<HTMLElement>("[data-drift-track]"));
+    if (reduced || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      tracks.forEach((t) => (t.style.transform = ""));
+      return;
+    }
 
     type RowState = { track: HTMLElement; unit: number; pos: number; base: number; cur: number };
-    const state: RowState[] = Array.from(el.querySelectorAll<HTMLElement>("[data-drift-track]")).map(
-      (track) => {
-        const base = Number(track.dataset.dir) || 1;
-        return { track, unit: 0, pos: 0, base, cur: base };
-      },
-    );
+    const state: RowState[] = tracks.map((track) => {
+      const base = Number(track.dataset.dir) || 1;
+      return { track, unit: 0, pos: 0, base, cur: base };
+    });
     if (!state.length) return;
 
     const measure = () =>
@@ -74,7 +81,9 @@ export function DriftBand({ rows, className }: { rows: DriftRow[]; className?: s
       const boost = Math.min(Math.abs(v) * 0.045, 4); // up to ~5× under a hard flick
       // Scroll direction steers the band (dead zone so rest keeps the base drift).
       const sign = v > 0.5 ? 1 : v < -0.5 ? -1 : 0;
-      const dt = deltaMs / 1000;
+      // lagSmoothing(0) is set globally, so the first tick after a hidden tab
+      // carries the WHOLE away-time — clamp or the band phase-teleports.
+      const dt = Math.min(deltaMs, 50) / 1000;
       for (const r of state) {
         if (sign) r.cur = r.base * sign;
         if (r.unit <= 0) continue;
@@ -88,10 +97,14 @@ export function DriftBand({ rows, className }: { rows: DriftRow[]; className?: s
       ro.disconnect();
       io.disconnect();
     };
-  }, []);
+  }, [reduced]);
 
   return (
-    <div ref={root} aria-hidden className={cn("relative flex flex-col gap-2", className)}>
+    <div
+      ref={root}
+      aria-hidden
+      className={cn("pointer-events-none relative flex select-none flex-col gap-2", className)}
+    >
       {rows.map((row, i) => (
         <div key={i} className="overflow-hidden whitespace-nowrap">
           <div data-drift-track data-dir={row.dir} className="flex w-max items-center will-change-transform">

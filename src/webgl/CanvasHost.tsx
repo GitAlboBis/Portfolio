@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
-import { SunRays } from "@/components/atmosphere/SunRays";
+import { SeaBackdrop } from "@/components/atmosphere/SeaBackdrop";
 
 /*
   Hero canvas host (clean-slate, minimal).
@@ -61,11 +61,11 @@ export function CanvasHost() {
         className="pointer-events-none fixed inset-0 z-0"
         style={{ background: SEA_GRADIENT }}
       />
-      {/* Crepuscular rays + drifting clouds — the FALLBACK sky (no-WebGPU /
-          reduced-motion). When the fluid mounts, its canvas now paints its own
-          LIVING sky+sea (render/sky.wgsl) and fully covers this layer, so we
-          skip compositing it at all. */}
-      {!showFluid && <SunRays />}
+      {/* THE REAL SEA — photoreal golden-hour ocean loop (poster-first, video
+          fades in; reduced-motion = the still). The gradient above stays as the
+          ultimate no-asset failsafe. The water "A" composites transparently on
+          top: the letter stands over actual shimmering water. */}
+      <SeaBackdrop />
       {showFluid && <WaterBallHero />}
     </>
   );

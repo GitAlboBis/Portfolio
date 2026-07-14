@@ -88,6 +88,19 @@ export default function Home() {
         <LazyOnView>
           <NightSky />
         </LazyOnView>
+        {/* The REAL night — Pan di Zucchero under the Milky Way, screen-blended
+            OVER the NightSky shader: its stars/embers/constellation keep living,
+            the photograph adds the rock's silhouette and the galaxy's dust.
+            Non-destructive: kill this div and the shader scene is intact. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/coast/night-sea.webp"
+            alt=""
+            className="h-full w-full object-cover"
+            style={{ mixBlendMode: "screen", opacity: 0.55 }}
+          />
+        </div>
         <Contact />
         <Footer />
       </div>

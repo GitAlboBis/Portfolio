@@ -6,7 +6,6 @@ import fullScreen from './fullScreen.wgsl'
 import thicknessMap from './thicknessMap.wgsl'
 import gaussian from './gaussian.wgsl'
 import sphere from './sphere.wgsl'
-import sky from './sky.wgsl'
 
 
 export class FluidRenderer {
@@ -16,8 +15,6 @@ export class FluidRenderer {
     thicknessFilterPipeline: GPURenderPipeline
     fluidPipeline: GPURenderPipeline
     spherePipeline: GPURenderPipeline
-    skyPipeline: GPURenderPipeline
-    skyBindGroup: GPUBindGroup
 
     depthMapTextureView: GPUTextureView
     tmpDepthMapTextureView: GPUTextureView
@@ -73,7 +70,6 @@ export class FluidRenderer {
         const sphereModule = device.createShaderModule({ code: sphere })
         const thicknessMapModule = device.createShaderModule({ code: thicknessMap })
         const thicknessFilterModule = device.createShaderModule({ code: gaussian })
-        const skyModule = device.createShaderModule({ code: sky })
 
         // pipelines
         this.spherePipeline = device.createRenderPipeline({
@@ -196,31 +192,9 @@ export class FluidRenderer {
                 module: fluidModule,
                 targets: [
                     {
-                        format: presentationFormat,
-                        // premultiplied blend OVER the sky pass (same canvas):
-                        // the fluid's transparent fringe dissolves into the
-                        // living sky instead of the page background
-                        blend: {
-                            color: { operation: 'add', srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-                            alpha: { operation: 'add', srcFactor: 'one', dstFactor: 'one-minus-src-alpha' },
-                        },
+                        format: presentationFormat
                     }
                 ],
-            },
-            primitive: {
-                topology: 'triangle-list',
-            },
-        });
-        this.skyPipeline = device.createRenderPipeline({
-            label: 'sky pipeline',
-            layout: 'auto',
-            vertex: {
-                module: vertexModule,
-                constants: screenConstants
-            },
-            fragment: {
-                module: skyModule,
-                targets: [{ format: presentationFormat }],
             },
             primitive: {
                 topology: 'triangle-list',
@@ -356,11 +330,6 @@ export class FluidRenderer {
             ],
         })
 
-        this.skyBindGroup = device.createBindGroup({
-            label: 'sky bind group',
-            layout: this.skyPipeline.getBindGroupLayout(0),
-            entries: [{ binding: 0, resource: { buffer: renderUniformBuffer } }],
-        })
 
         this.sphereBindGroup = device.createBindGroup({
             label: 'ball bind group', 
@@ -456,22 +425,12 @@ export class FluidRenderer {
             }
         ]
 
-        const canvasView = context.getCurrentTexture().createView()
-        const skyPassDescriptor: GPURenderPassDescriptor = {
-            colorAttachments: [
-                {
-                    view: canvasView,
-                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                    loadOp: 'clear',
-                    storeOp: 'store',
-                },
-            ],
-        }
         const fluidPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
                 {
-                    view: canvasView,
-                    loadOp: 'load', // the sky pass painted this frame — blend the fluid over it
+                    view: context.getCurrentTexture().createView(),
+                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, // transparent -> the REAL sea video (SeaBackdrop) shows through
+                    loadOp: 'clear',
                     storeOp: 'store',
                 },
             ],
@@ -501,13 +460,6 @@ export class FluidRenderer {
         }
 
         if (!sphereRenderFl) {
-            // living sunset sky + sea, opaque, under everything (same canvas)
-            const skyPassEncoder = commandEncoder.beginRenderPass(skyPassDescriptor);
-            skyPassEncoder.setBindGroup(0, this.skyBindGroup);
-            skyPassEncoder.setPipeline(this.skyPipeline);
-            skyPassEncoder.draw(6);
-            skyPassEncoder.end();
-
             const depthMapPassEncoder = commandEncoder.beginRenderPass(depthMapPassDescriptor);
             depthMapPassEncoder.setBindGroup(0, this.depthMapBindGroup);
             depthMapPassEncoder.setPipeline(this.depthMapPipeline);

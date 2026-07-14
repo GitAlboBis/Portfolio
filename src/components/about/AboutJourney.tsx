@@ -6,6 +6,7 @@ import { useUI } from "@/store/ui";
 import { DualWaveText } from "@/components/reveal/DualWaveText";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
+import { Parallax } from "@/components/motion/Parallax";
 import { JourneyTimeline } from "@/components/about/JourneyTimeline";
 import { FilmScrub } from "@/components/home/FilmScrub";
 import { LazyOnView } from "@/components/motion/LazyOnView";
@@ -100,6 +101,29 @@ export function AboutJourney() {
         </div>
       </section>
 
+      {/* The coast itself — the REAL Masua cliff (Gianluca's drone, DJI-LUT
+          graded): a full-bleed editorial strip with a slow parallax window.
+          The page opens on the place, not on empty paper. */}
+      <figure aria-hidden className="relative mb-[var(--section-y)] h-[54vh] overflow-hidden">
+        <Parallax from={-36} to={36} className="absolute inset-x-0 -inset-y-[12%]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/coast/masua-cliff.webp"
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </Parallax>
+        {/* the photograph melts into the paper at both seams */}
+        <div
+          className="absolute inset-x-0 top-0 h-16"
+          style={{ background: "linear-gradient(to bottom, var(--color-paper), transparent)" }}
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 h-16"
+          style={{ background: "linear-gradient(to top, var(--color-paper), transparent)" }}
+        />
+      </figure>
+
       {/* Bio */}
       <section className="container-edit pb-[var(--section-y)]">
         <div className="grid-edit">
@@ -167,9 +191,25 @@ export function AboutJourney() {
         </div>
       </section>
 
-      {/* Closing CTA — night band */}
-      <section className="night bleed" style={{ background: "var(--color-night)" }}>
-        <div className="container-edit flex flex-col items-start gap-6 py-16 sm:flex-row sm:items-center sm:justify-between">
+      {/* Closing CTA — night band over the REAL night: Pan di Zucchero under
+          the Milky Way (warm-dark overlay keeps the copy AA on any pixel). */}
+      <section className="night bleed relative overflow-hidden" style={{ background: "var(--color-night)" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/coast/night-sea.webp"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover object-[center_38%]"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to right, color-mix(in srgb, var(--color-night) 78%, transparent), color-mix(in srgb, var(--color-night) 45%, transparent))",
+          }}
+        />
+        <div className="container-edit relative flex flex-col items-start gap-6 py-16 sm:flex-row sm:items-center sm:justify-between">
           <p className="t-title max-w-[16ch]">{t.contact.headline}</p>
           <Link
             href="/#contact"

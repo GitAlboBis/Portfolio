@@ -13,6 +13,20 @@ import { palette } from "@/content/tokens";
     rendered as ONE InstancedMesh of paper-bird triangles — wing flap runs in
     the vertex shader off a per-instance phase, so per-frame JS cost is just
     the sim + matrix writes.
+  • GUSTS — turbulence is a SHARED analytic curl field (divergence-free trig
+    curl), not per-bird jitter: coherent vortices roll THROUGH the flock, so a
+    scattered cloud moves like one organism caught in the wind.
+  • BANKING + SHIMMER — birds roll into their turns (lateral-steering bank,
+    smoothed per bird); the vertex shader lights the wing plane against a low
+    golden-hour sun, so a turning wavefront flashes amber across the flock —
+    the signature starling shimmer.
+  • ALARM WAVES — a scare (the pointer-predator) sets a per-bird alarm that
+    PROPAGATES through neighbours and decays: alarmed birds fly faster, align
+    harder and shed their glyph seat for a beat, so a poke ripples an escape
+    wave through the "A" and the letter heals behind it.
+  • FLIGHT — asymmetric wing stroke (snappy downstroke) with intermittent
+    per-bird GLIDES held in a raised dihedral V; small silhouettes read as
+    real starlings, not metronomes.
   • FORMATION — each bird owns a home point sampled from the letter "A"
     (Bricolage, drawn to an offscreen 2D canvas): idle, the flock settles into
     the mark — the hero's water "A" reborn as birds. Re-sampled once
@@ -75,13 +89,26 @@ const VERT = /* glsl */ `
   attribute float aScale;
   attribute float aShade;
   uniform float uTime;
+  uniform vec3 uSun;
   varying float vShade;
+  varying float vLight;
   void main() {
     vec3 p = position;
-    // per-bird flap frequency + phase; only |x| (wing tips) moves
-    float flap = sin(uTime * (7.0 + fract(aPhase) * 5.0) + aPhase * 6.2831);
-    p.y += abs(position.x) * flap * 0.55;
+    // per-bird flap frequency + phase; only |x| (wing tips) moves.
+    float ph = uTime * (7.0 + fract(aPhase) * 5.0) + aPhase * 6.2831;
+    // asymmetric stroke: the downbeat is snappier than the recovery (real wings)
+    float flap = sin(ph) + 0.35 * sin(2.0 * ph + 0.9);
+    // intermittent GLIDE: a slow per-bird duty cycle folds the flap away and
+    // holds the wings in a slightly raised V (dihedral) — starlings interleave
+    // flap bursts with glides, and the mix is what reads as "alive".
+    float glide = smoothstep(0.55, 0.85, sin(uTime * (0.31 + fract(aPhase * 7.31) * 0.24) + aPhase * 11.0));
+    float amp = mix(0.55, 0.07, glide);
+    p.y += abs(position.x) * (flap * amp + glide * 0.30);
     p *= aScale;
+    // wing-plane normal in world space: banking tilts it through the low sun,
+    // firing the murmuration shimmer (see FRAG).
+    vec3 n = normalize(mat3(instanceMatrix) * vec3(0.0, 1.0, 0.0));
+    vLight = 0.5 + 0.5 * dot(n, uSun);
     // downstroke reads a touch darker — cheap fake shading
     vShade = aShade * 0.8 + 0.2 * (flap * 0.5 + 0.5);
     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(p, 1.0);
@@ -91,9 +118,16 @@ const VERT = /* glsl */ `
 const FRAG = /* glsl */ `
   uniform vec3 uInk;
   uniform vec3 uFade;
+  uniform vec3 uGlow;
   varying float vShade;
+  varying float vLight;
   void main() {
-    gl_FragColor = vec4(mix(uInk, uFade, vShade * 0.55), 1.0);
+    vec3 col = mix(uInk, uFade, vShade * 0.5);
+    // golden-hour shimmer: when a banking wing plane swings through the sun
+    // angle the silhouette catches fire for a beat — waves of amber roll
+    // across the flock as turn-fronts propagate.
+    col = mix(col, uGlow, smoothstep(0.62, 0.97, vLight) * 0.55);
+    gl_FragColor = vec4(col, 1.0);
     // ColorManagement feeds uniforms in LINEAR working space; without this the
     // raw values hit the sRGB framebuffer and the espresso inks crush to black.
     #include <colorspace_fragment>
@@ -153,6 +187,20 @@ function sampleGlyphHomes(
   }
 }
 
+// ── shared gust field ───────────────────────────────────────────────────────
+// Analytic curl of a trig vector potential → EXACTLY divergence-free swirls.
+// Every bird samples the SAME field, so turbulence arrives as coherent gusts
+// (vortices ~4–9 world units across, drifting in time) instead of the old
+// per-bird sin(i) jitter that read as static noise.
+const GK1 = 1.1;
+const GK2 = 0.7;
+const GK3 = 1.6;
+function gustField(x: number, y: number, z: number, t: number, out: Float32Array) {
+  out[0] = (-GK3 * Math.sin(GK3 * y + 0.4 * t) - GK3 * Math.cos(GK3 * z + 0.7 * t)) * 0.42;
+  out[1] = (-GK2 * Math.sin(GK2 * z - 0.6 * t) - GK2 * Math.cos(GK2 * x - 0.8 * t)) * 0.42;
+  out[2] = (-GK1 * Math.sin(GK1 * x + 0.5 * t) - GK1 * Math.cos(GK1 * y + 0.9 * t)) * 0.28;
+}
+
 function Flock({ count }: { count: number }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const { viewport, size, gl } = useThree();
@@ -169,10 +217,16 @@ function Flock({ count }: { count: number }) {
       new THREE.ShaderMaterial({
         vertexShader: VERT,
         fragmentShader: FRAG,
+        // the paper birds are single-sided triangles; the bank roll (±1.1 rad)
+        // would cull a coherently turning cohort into thin air without this
+        side: THREE.DoubleSide,
         uniforms: {
           uTime: { value: 0 },
           uInk: { value: new THREE.Color(palette.ink) },
           uFade: { value: new THREE.Color(palette.inkMute) },
+          uGlow: { value: new THREE.Color(palette.amber) },
+          // low golden-hour sun, slightly viewer-side so banking wings flash
+          uSun: { value: new THREE.Vector3(-0.38, 0.22, 0.9).normalize() },
         },
       }),
     [],
@@ -192,6 +246,9 @@ function Flock({ count }: { count: number }) {
     const pos = new Float32Array(count * 3);
     const vel = new Float32Array(count * 3);
     const home = new Float32Array(count * 3);
+    const bank = new Float32Array(count); // smoothed roll (bank-into-turn)
+    const alarm = new Float32Array(count); // propagating scare level 0..1
+    const alarmNext = new Float32Array(count);
     const bx = viewport.width * 0.44;
     const by = viewport.height * 0.44;
     for (let i = 0; i < count; i++) {
@@ -206,7 +263,7 @@ function Flock({ count }: { count: number }) {
       home[i * 3 + 1] = pos[i * 3 + 1];
       home[i * 3 + 2] = 0;
     }
-    return { pos, vel, home, form: 0, time: 0 };
+    return { pos, vel, home, bank, alarm, alarmNext, form: 0, time: 0 };
     // viewport extents only seed the start cloud — no need to re-create on resize
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count, rand]);
@@ -221,6 +278,7 @@ function Flock({ count }: { count: number }) {
         sim.vel[i + 1] += (Math.random() - 0.5) * 9;
         sim.vel[i + 2] += (Math.random() - 0.5) * 2;
       }
+      sim.alarm.fill(1); // full-flock scare
     };
     window.addEventListener("marea", onMarea);
     return () => window.removeEventListener("marea", onMarea);
@@ -281,12 +339,13 @@ function Flock({ count }: { count: number }) {
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const grid = useMemo(() => new Map<number, number[]>(), []);
+  const gust = useMemo(() => new Float32Array(3), []);
 
   useFrame((_, delta) => {
     const m = mesh.current;
     if (!m) return;
     const dt = Math.min(Math.max(delta, 0.001), 0.033);
-    const { pos, vel, home } = sim;
+    const { pos, vel, home, bank, alarm, alarmNext } = sim;
     sim.time += dt;
     material.uniforms.uTime.value = sim.time;
 
@@ -315,6 +374,11 @@ function Flock({ count }: { count: number }) {
     const maxSpeed = 2.2 + (1 - form) * 2.6 + Math.min(vAbs * 0.03, 1.4);
     const bx = viewport.width * 0.47;
     const by = viewport.height * 0.47;
+    // alarm dynamics: exponential decay + neighbour propagation (the escape wave).
+    // hopBlend dt-normalizes the per-frame neighbour hop: without it the wavefront
+    // crosses the flock ~2.4x faster on a 144Hz display than at 60Hz.
+    const alarmDecay = Math.exp(-1.9 * dt);
+    const hopBlend = 1 - Math.exp(-110 * dt);
     // Predator world position from the LIVE rect (tracks scroll correctly).
     let px = -1e3;
     let py = -1e3;
@@ -350,12 +414,14 @@ function Flock({ count }: { count: number }) {
       let fx = 0;
       let fy = 0;
       let fz = 0;
+      const a0 = alarm[i];
 
       // — neighbors (27-cell walk, capped)
       let n = 0;
       let sx = 0, sy = 0, sz = 0; // separation
       let ax = 0, ay = 0, az = 0; // alignment
       let cx = 0, cy = 0, cz = 0; // cohesion
+      let nAlarm = 0; // loudest scare among neighbours → propagation
       const cxi = (x / CELL) | 0;
       const cyi = (y / CELL) | 0;
       const czi = (z / CELL) | 0;
@@ -386,31 +452,43 @@ function Flock({ count }: { count: number }) {
                 cy += dy;
                 cz += dz;
               }
+              if (alarm[j] > nAlarm) nAlarm = alarm[j];
               if (++n >= MAX_NEIGHBORS) break outer;
             }
           }
       if (n > 0) {
-        fx += sx * sepW + (ax / n) * aliW * 0.4 + (cx / n) * cohW;
-        fy += sy * sepW + (ay / n) * aliW * 0.4 + (cy / n) * cohW;
-        fz += sz * sepW + (az / n) * aliW * 0.4 + (cz / n) * cohW;
+        // alarmed birds align HARD — that's what turns a local scare into a
+        // travelling wavefront instead of a lone deserter.
+        const aliBoost = 1 + a0 * 1.6;
+        fx += sx * sepW + (ax / n) * aliW * 0.4 * aliBoost + (cx / n) * cohW;
+        fy += sy * sepW + (ay / n) * aliW * 0.4 * aliBoost + (cy / n) * cohW;
+        fz += sz * sepW + (az / n) * aliW * 0.4 * aliBoost + (cz / n) * cohW;
       }
 
-      // — home seek (the "A"), arrive-damped
+      // — home seek (the "A"), arrive-damped; alarmed birds shed their seat
       const hx = home[ix] - x;
       const hy = home[ix + 1] - y;
       const hz = home[ix + 2] - z;
       const hd = Math.sqrt(hx * hx + hy * hy + hz * hz) || 1e-4;
       const arrive = Math.min(1, hd / 0.5);
-      fx += (hx / hd) * seekW * arrive * 3.2;
-      fy += (hy / hd) * seekW * arrive * 3.2;
-      fz += (hz / hd) * seekW * arrive * 3.2;
+      const seekA = seekW * (1 - a0 * 0.8);
+      fx += (hx / hd) * seekA * arrive * 3.2;
+      fy += (hy / hd) * seekA * arrive * 3.2;
+      fz += (hz / hd) * seekA * arrive * 3.2;
 
-      // — wander/turbulence (cheap trig noise; explodes when the form breaks)
-      fx += Math.sin(t * 1.3 + i * 1.7) * noiseW * 0.6;
-      fy += Math.cos(t * 1.1 + i * 2.3) * noiseW * 0.5 + windY;
-      fz += Math.sin(t * 0.9 + i * 3.1) * noiseW * 0.25;
+      // — gusts: shared curl field (coherent vortices) + scroll wind. Alarm adds
+      // its own erratic burst so a fleeing pocket looks panicked, not smooth.
+      gustField(x, y, z, t, gust);
+      const gW = noiseW * (1 + a0 * 1.2);
+      fx += gust[0] * gW;
+      fy += gust[1] * gW + windY;
+      fz += gust[2] * gW * 0.6;
+      if (a0 > 0.02) {
+        fx += Math.sin(t * 9.1 + i * 2.7) * a0 * 1.6;
+        fy += Math.cos(t * 8.3 + i * 1.9) * a0 * 1.4;
+      }
 
-      // — predator (pointer) flee
+      // — predator (pointer) flee → also the alarm SOURCE
       const pdx = x - px;
       const pdy = y - py;
       const pd2 = pdx * pdx + pdy * pdy;
@@ -419,7 +497,11 @@ function Flock({ count }: { count: number }) {
         const w = (1 - pd / 1.8) * 5;
         fx += (pdx / pd) * w;
         fy += (pdy / pd) * w;
+        nAlarm = 1;
       }
+      // decay own scare, catch the neighbours' (attenuated → the wave dies out
+      // with distance instead of ringing forever; uptake dt-normalized via hopBlend)
+      alarmNext[i] = Math.min(1, Math.max(a0 * alarmDecay, a0 + (nAlarm * 0.88 - a0) * hopBlend));
 
       // — soft bounds (spring past the frame) + z shell
       if (x > bx) fx -= (x - bx) * 2.4;
@@ -428,7 +510,7 @@ function Flock({ count }: { count: number }) {
       else if (y < -by) fy -= (y + by) * 2.4;
       fz -= z * 0.4;
 
-      // — integrate (accel cap, speed clamp)
+      // — integrate (accel cap, speed clamp; alarm lends extra burst speed)
       const fMag = Math.sqrt(fx * fx + fy * fy + fz * fz);
       const fCap = 9;
       if (fMag > fCap) {
@@ -447,8 +529,9 @@ function Flock({ count }: { count: number }) {
         vy *= damp;
         vz *= damp;
       }
+      const mspd = maxSpeed + a0 * 2.4;
       const sp = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1e-4;
-      const cl = sp > maxSpeed ? maxSpeed / sp : sp < minSpeed ? minSpeed / sp : 1;
+      const cl = sp > mspd ? mspd / sp : sp < minSpeed ? minSpeed / sp : 1;
       vx *= cl;
       vy *= cl;
       vz *= cl;
@@ -459,12 +542,25 @@ function Flock({ count }: { count: number }) {
       pos[ix + 1] = y + vy * dt;
       pos[ix + 2] = z + vz * dt;
 
+      // — bank INTO the turn: roll follows the lateral steering force (the
+      // component of f perpendicular to the heading, in the screen plane),
+      // smoothed per bird so the roll reads as intention, not jitter. Banking
+      // is what swings the wing plane through the sun → the shimmer.
+      const spXY = Math.sqrt(vx * vx + vy * vy) || 1e-4;
+      const lat = (-fx * vy + fy * vx) / spXY; // signed lateral accel
+      const bankTarget = Math.max(-1.1, Math.min(1.1, -lat * 0.16));
+      bank[i] += (bankTarget - bank[i]) * (1 - Math.exp(-6 * dt));
+
       dummy.position.set(pos[ix], pos[ix + 1], pos[ix + 2]);
       _v.set(pos[ix] + vx, pos[ix + 1] + vy, pos[ix + 2] + vz);
       dummy.lookAt(_v);
+      dummy.rotateZ(bank[i]); // roll about the body axis (nose = +Z)
       dummy.updateMatrix();
       m.setMatrixAt(i, dummy.matrix);
     }
+    // swap alarm buffers (write-then-swap keeps propagation order-independent)
+    sim.alarm = alarmNext;
+    sim.alarmNext = alarm;
     m.instanceMatrix.needsUpdate = true;
   });
 
@@ -482,6 +578,8 @@ export function MurmurationCanvas() {
   const isMobile = window.innerWidth < 768;
   // Mobile degrades gracefully: fewer birds, dpr cap 1.25, no MSAA — this
   // canvas spans the whole tall section, so framebuffer memory is the cost.
+  // Desktop 820: the denser flock packs a crisper "A" and the alarm/shimmer
+  // waves need bodies to travel through; sim is O(n·12 neighbours) — cheap.
   return (
     <Canvas
       aria-hidden
@@ -492,7 +590,7 @@ export function MurmurationCanvas() {
       style={{ position: "absolute", inset: 0 }}
     >
       <FrameGate />
-      <Flock count={isMobile ? 260 : 560} />
+      <Flock count={isMobile ? 280 : 820} />
     </Canvas>
   );
 }

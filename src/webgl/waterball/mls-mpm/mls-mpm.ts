@@ -424,6 +424,95 @@ export class MLSMPMSimulator {
         return idx;
     }
 
+    // --- THE BIRTH: fountain assembly -------------------------------------------------
+    // Same "A"-volume sampling as initFromHomes, but every particle SPAWNS at the
+    // bottom of the box (the sea line of the real backdrop) with a velocity AIMED at
+    // its home: v = (home - spawn) / flightT. The swarm erupts as one coordinated
+    // fountain; as each droplet nears its column the existing confinement (axis
+    // gravity + recall + incompressibility) captures it and the letter closes around
+    // itself. Solver untouched — this only seeds positions/velocities (G4-safe).
+    initFountain(initBoxSize: number[], maxParticles: number, baseSpacing = 0.5, flightT = 1.8) {
+        const halfW = 5.0;
+        const zh = 5.0;
+        const apex = [40.0, 48.0];
+        const lfoot = [26.0, 12.0];
+        const rfoot = [54.0, 12.0];
+        const tcross = (48.0 - 26.0) / (48.0 - 12.0);
+        const cl = [apex[0] + (lfoot[0] - apex[0]) * tcross, apex[1] + (lfoot[1] - apex[1]) * tcross];
+        const cr = [apex[0] + (rfoot[0] - apex[0]) * tcross, apex[1] + (rfoot[1] - apex[1]) * tcross];
+        const zc = initBoxSize[2] * 0.5;
+
+        const distSeg = (px: number, py: number, a: number[], b: number[]) => {
+            const abx = b[0] - a[0];
+            const aby = b[1] - a[1];
+            const t = Math.max(0, Math.min(1, ((px - a[0]) * abx + (py - a[1]) * aby) / Math.max(abx * abx + aby * aby, 1e-6)));
+            const cx = a[0] + t * abx;
+            const cy = a[1] + t * aby;
+            return Math.hypot(px - cx, py - cy);
+        };
+        const inA = (x: number, y: number, z: number) => {
+            if (Math.abs(z - zc) > zh) return false;
+            const d = Math.min(distSeg(x, y, apex, lfoot), distSeg(x, y, apex, rfoot), distSeg(x, y, cl, cr));
+            return d <= halfW;
+        };
+
+        const x0 = 21, x1 = 59, y0 = 7, y1 = 53;
+        const z0 = zc - zh, z1 = zc + zh;
+        const cap = Math.min(maxParticles, numParticlesMax);
+
+        const countAt = (s: number) => {
+            let c = 0;
+            for (let z = z0; z <= z1; z += s)
+                for (let y = y0; y <= y1; y += s)
+                    for (let x = x0; x <= x1; x += s)
+                        if (inA(x, y, z)) c++;
+            return c;
+        };
+        let s = baseSpacing;
+        let n = countAt(s);
+        if (n > cap) {
+            s *= Math.cbrt(n / cap) * 1.02;
+            n = countAt(s);
+        }
+
+        // velocity is applied per SIM step (dt per substep, 2 substeps/frame) — the
+        // aim works in "grid units per step", so scale the flight by the step count
+        // the flightT seconds will actually run (~60fps * 2 substeps).
+        const steps = Math.max(1, flightT * 60 * 2);
+        const particlesBuf = new ArrayBuffer(mlsmpmParticleStructSize * numParticlesMax);
+        let idx = 0;
+        for (let z = z0; z <= z1 && idx < cap; z += s) {
+            for (let y = y0; y <= y1 && idx < cap; y += s) {
+                for (let x = x0; x <= x1 && idx < cap; x += s) {
+                    if (!inA(x, y, z)) { continue; }
+                    // home (with the same settle jitter as initFromHomes)
+                    const hx = x + (Math.random() - 0.5) * s * 0.6;
+                    const hy = y + (Math.random() - 0.5) * s * 0.6;
+                    const hz = z + (Math.random() - 0.5) * s * 0.6;
+                    // spawn: a shallow "sea" sheet at the bottom, loosely under its column
+                    const px = hx + (Math.random() - 0.5) * 10;
+                    const py = 2.0 + Math.random() * 3.0;
+                    const pz = hz + (Math.random() - 0.5) * 4;
+                    const off = mlsmpmParticleStructSize * idx;
+                    new Float32Array(particlesBuf, off + 0, 3).set([px, py, pz]);
+                    // aim at home over flightT (dt is baked into the integrator, so
+                    // velocity here is displacement per step * steps ~ (home-spawn))
+                    const k = 1 / (steps * 0.13); // dt = 0.13 per substep
+                    new Float32Array(particlesBuf, off + 16, 3).set([
+                        (hx - px) * k,
+                        (hy - py) * k * (1.05 + Math.random() * 0.15), // slight overshoot -> crest
+                        (hz - pz) * k,
+                    ]);
+                    idx++;
+                }
+            }
+        }
+
+        this.device.queue.writeBuffer(this.particleBuffer, 0, particlesBuf, 0, mlsmpmParticleStructSize * idx);
+        this.changeNumParticles(idx);
+        return idx;
+    }
+
     reset(initBoxSize: number[], sphereRadius: number) {
         renderUniformsViews.sphere_size.set([this.renderDiameter])
         const maxGridCount = this.max_x_grids * this.max_y_grids * this.max_z_grids;

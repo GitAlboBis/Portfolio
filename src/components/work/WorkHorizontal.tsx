@@ -305,6 +305,8 @@ export function WorkHorizontal() {
                       ref={(el) => {
                         groupRefs.current[i] = el;
                       }}
+                      data-cursor="view"
+                      data-cursor-label={t.works.open}
                       className="group relative flex h-full flex-col justify-between px-[var(--gutter)] pb-28 pt-[calc(var(--nav-h)+1.5rem)]"
                     >
                       {inner}

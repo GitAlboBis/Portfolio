@@ -76,6 +76,9 @@ const sectionSchema = z.object({
   footer: z.object({
     place: z.string(),
     sound: z.string(),
+    /** State suffixes for the ambient toggle ("Ambient · On/Off"). */
+    soundOn: z.string(),
+    soundOff: z.string(),
     rights: z.string(),
     email: z.string(),
     top: z.string(),
@@ -162,6 +165,8 @@ const en: Dict = {
   footer: {
     place: "Masua · 39°09′N 8°25′E",
     sound: "Ambient",
+    soundOn: "On",
+    soundOff: "Off",
     rights: "All rights reserved",
     email: "Email",
     top: "Top",
@@ -246,6 +251,8 @@ const it: Dict = {
   footer: {
     place: "Masua · 39°09′N 8°25′E",
     sound: "Ambiente",
+    soundOn: "On",
+    soundOff: "Off",
     rights: "Tutti i diritti riservati",
     email: "Email",
     top: "Su",

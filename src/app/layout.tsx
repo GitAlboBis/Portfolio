@@ -5,6 +5,8 @@ import { Smooth } from "@/app/_providers/Smooth";
 import { ScrollProgress } from "@/components/nav/ScrollProgress";
 import { Preloader } from "@/components/Preloader";
 import { CoverOverlay } from "@/components/transition/CoverOverlay";
+import { Cursor } from "@/components/cursor/Cursor";
+import { SoundScape } from "@/components/sound/SoundScape";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -116,6 +118,10 @@ export default function RootLayout({
         {/* EXIT curtain (Continuous Curtain) — must live HERE, not in
             template.tsx: it has to survive the route swap it covers. */}
         <CoverOverlay />
+        {/* Interaction identity: the drop-of-light cursor + the MAREA ambient
+            engine (bodies for WP-9 and the footer's sound toggle). */}
+        <Cursor />
+        <SoundScape />
         {children}
         <script
           type="application/ld+json"

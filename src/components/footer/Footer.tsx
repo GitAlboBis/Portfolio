@@ -1,6 +1,8 @@
 "use client";
 
 import { useDict } from "@/content/dict";
+import { useUI } from "@/store/ui";
+import { useHydrated } from "@/lib/use-hydrated";
 import { Appear } from "@/components/motion/Appear";
 import { RollLink } from "@/components/motion/RollLink";
 import { FlipText } from "@/components/reveal/FlipText";
@@ -24,6 +26,10 @@ function toTop() {
  */
 export function Footer() {
   const t = useDict();
+  const soundEnabled = useUI((s) => s.soundEnabled);
+  const setSoundEnabled = useUI((s) => s.setSoundEnabled);
+  // Persisted flag: render the OFF state until hydration so SSR HTML matches.
+  const soundOn = useHydrated() && soundEnabled;
   return (
     <footer className="night bleed relative z-10">
       <div className="container-edit py-16">
@@ -45,7 +51,23 @@ export function Footer() {
           <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <p className="t-meta">{t.footer.place}</p>
 
-            <nav className="flex gap-7">
+            <nav className="flex items-center gap-7">
+              {/* MAREA ambient toggle — the switch the engine in lib/sound.ts
+                  answers to. The click IS the WebAudio user gesture. */}
+              <button
+                type="button"
+                onClick={() => setSoundEnabled(!soundOn)}
+                aria-pressed={soundOn}
+                className="t-meta flex items-center gap-2 transition-colors duration-300 hover:text-amber"
+              >
+                <span
+                  aria-hidden
+                  className={`inline-block size-1.5 rounded-full transition-colors duration-300 ${
+                    soundOn ? "animate-pulse bg-amber" : "bg-paper/35"
+                  }`}
+                />
+                {t.footer.sound} · {soundOn ? t.footer.soundOn : t.footer.soundOff}
+              </button>
               <RollLink
                 as="a"
                 href={`mailto:${t.contact.email}`}

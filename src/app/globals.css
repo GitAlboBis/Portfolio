@@ -443,6 +443,84 @@ body {
   }
 }
 
+/* ── Custom cursor (Cursor.tsx) — "a drop of light" ────────────────────────
+   JS writes transforms on the OUTER .cc-layer boxes (position + velocity
+   stretch); the mode morphs live on the INNER elements via [data-mode] — the
+   two transform owners never fight. Zero-box grid trick centers children on
+   the exact pointer point. Native cursor hidden only while .cc-on is set
+   (pointer:fine + motion allowed — Cursor.tsx guards). */
+html.cc-on,
+html.cc-on * {
+  cursor: none !important;
+}
+.cc {
+  transition: opacity 0.25s ease;
+}
+.cc-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+/* children center on the exact pointer point via the independent `translate`
+   property — it composes with the `transform: scale()` morphs instead of
+   fighting them (the grid zero-box trick mis-aligned across browsers) */
+.cc-layer > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+}
+.cc-dot-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-ember);
+  /* hairline paper rim: the drop reads on warm paper AND on the night band */
+  box-shadow: 0 0 0 1.5px rgb(251 246 239 / 0.6);
+  transition: transform 0.3s var(--ease-tide), opacity 0.25s ease;
+}
+.cc-halo-inner {
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-rule-strong);
+  box-shadow: 0 0 0 1px rgb(251 246 239 / 0.22);
+  transition:
+    transform 0.35s var(--ease-tide),
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    opacity 0.3s ease;
+}
+.cc-label {
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-paper);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s ease 0.08s;
+}
+.cc[data-mode="hover"] .cc-halo-inner {
+  transform: scale(1.55);
+  border-color: var(--color-ember);
+}
+.cc[data-mode="hover"] .cc-dot-inner {
+  transform: scale(0.45);
+}
+.cc[data-mode="view"] .cc-halo-inner {
+  transform: scale(2.5);
+  background: color-mix(in srgb, var(--color-ember) 94%, transparent);
+  border-color: transparent;
+}
+.cc[data-mode="view"] .cc-dot-inner {
+  opacity: 0;
+}
+.cc[data-mode="view"] .cc-label {
+  opacity: 1;
+}
+
 /* ── Hero scroll cue (HeroCopy) — a drop of light running down a hairline ── */
 .hero-cue-track {
   display: block;

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useUI } from "@/store/ui";
+import { TornEdge } from "@/components/atmosphere/TornEdge";
 
 /*
   FilmScrub — the shared scroll-scrubbed film band (the Apple/awwwards video-
@@ -163,6 +164,10 @@ export function FilmScrub({ srcDesktop, srcMobile, poster, eyebrow, title, meta,
           </p>
         </div>
       </div>
+
+      {/* the paper TEARS to reveal the film — ragged fibre seams, not hard cuts */}
+      <TornEdge side="top" seed={3} />
+      <TornEdge side="bottom" seed={8} />
     </section>
   );
 }

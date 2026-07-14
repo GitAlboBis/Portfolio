@@ -395,6 +395,11 @@ export function WaterBallHero() {
         const phase = elapsed * cc.swaySpeed;
         camera.currentXtheta = ramp * cc.sway * Math.sin(phase);
         camera.currentYtheta = ramp * cc.sway * 0.55 * Math.cos(phase);
+        // CINEMATIC DOLLY (WP-6): as the drain beat rises the camera pushes IN
+        // toward the pouring letter — you dive INTO the water, not past it.
+        // Camera-only (the solver never feels it); scrub-eased by Lenis already,
+        // and fully reversible with the scroll. 72 -> ~56 at full drain.
+        camera.currentDistance = INIT_DISTANCE - explodeBeat * 16;
         camera.recalculateView();
         sim.changeBoxSize(realBoxSize);
         // animation clock for the render shaders (fluid.wgsl micro-ripples + foam

@@ -29,7 +29,9 @@ Mandato carte-blanche di Alberto ("pieno controllo, lasciami a bocca aperta"): *
 
 ⚠ **Lezione ambiente NUOVA (2026-07-14): finestra Chrome OCCLUSA = rAF congelato = stati fantasma.** Con la finestra dietro altre (`visibilityState:"hidden"`, 0 tick rAF) GSAP/preloader restano congelati e la sim WebGPU avanza solo a raffiche quando lo screenshot CDP forza un frame → screenshot di transitori impossibili (la "A" in nuvola gigante, preloader eterno, h1 assente) che SEMBRANO bug gravissimi ma non lo sono. Prima di giudicare screenshot claude-in-chrome: `document.visibilityState` + contatore rAF via javascript_tool; se hidden → finestra in primo piano o probe Playwright headless (`channel:"chrome"`). Probabile causa-radice anche degli stall storici della cattura.
 
-**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain a schermo (feel fine con leva, slider `ballistic` incluso — finestra Chrome in primo piano!).
+**Ambient pass (`7632b74`, su main+pushato):** ① **SunRays** — god-rays crepuscolari dal sole della cubemap, due ventagli conici controrotanti CSS-only (`.hero-rays` in globals, statici in reduced-motion), montati da CanvasHost tra `#sea-backdrop` e il canvas fluido; ② **gabbiani ambientali** in Escort — 3-4 silhouette lontane planano sull'orizzonte quando la pagina riposa in cima, fade se scrolli o evochi la scia; ③ **ecosistema**: poke violento → `hero-splash` (WaterBallHero, mouseVel>1.6 throttled 1.2s) → i gabbiani si spaventano (scatto su + battiti rapidi, poi crociera). ⚠ Il "sole CSS" fu bocciato nell'ABOUT: i raggi hero sono altra cosa (ventaglio di luce, non disco) — se Alberto storce il naso, si spengono rimuovendo `<SunRays/>` da CanvasHost.
+
+**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain + raggi/gabbiani a schermo (feel fine con leva — finestra Chrome in primo piano!).
 
 ---
 

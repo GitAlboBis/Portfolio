@@ -16,6 +16,9 @@
 export function SunRays() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {/* drifting warm cloud masses — the sky moves even before the water does */}
+      <div className="hero-cloud hero-cloud--a" />
+      <div className="hero-cloud hero-cloud--b" />
       <div className="hero-rays" />
       <div className="hero-rays hero-rays--b" />
     </div>

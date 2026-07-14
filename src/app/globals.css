@@ -604,6 +604,58 @@ html.cc-on * {
   }
 }
 
+/* ── Hero drifting clouds ─────────────────────────────────────────────────────
+   Two vast, soft warm masses crossing the sunset extremely slowly (opposite
+   directions, different periods → the sky never repeats). Screen-blended
+   light, blurred to atmosphere; transform-only; parked under reduced motion. */
+.hero-cloud {
+  position: absolute;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  filter: blur(46px);
+  animation: hero-cloud-drift var(--cloud-dur, 120s) linear infinite alternate;
+}
+.hero-cloud--a {
+  left: -30%;
+  top: 6%;
+  width: 72vmax;
+  height: 26vmax;
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255 217 160 / 0.16),
+    rgb(255 158 99 / 0.06) 55%,
+    transparent 75%
+  );
+  --cloud-dur: 130s;
+}
+.hero-cloud--b {
+  right: -34%;
+  top: 24%;
+  width: 64vmax;
+  height: 20vmax;
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255 138 76 / 0.12),
+    rgb(225 93 107 / 0.05) 55%,
+    transparent 75%
+  );
+  --cloud-dur: 170s;
+  animation-direction: alternate-reverse;
+}
+@keyframes hero-cloud-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(26vw, -3vh, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-cloud {
+    animation: none;
+  }
+}
+
 /* ── Golden motes ─────────────────────────────────────────────────────────────
    Sunset pollen drifting up through the About band (GoldenHaze). Pure CSS:
    transform+opacity only, per-mote variety via custom properties, negative

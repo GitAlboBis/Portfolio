@@ -47,6 +47,11 @@ const sectionSchema = z.object({
     back: z.string(),
     next: z.string(),
   }),
+  coast: z.object({
+    eyebrow: z.string(),
+    title: z.string(),
+    meta: z.string(),
+  }),
   tech: z.object({
     eyebrow: z.string(),
     title: z.string(),
@@ -114,6 +119,11 @@ const en: Dict = {
     wip: "Work in progress",
     back: "All work",
     next: "Next project",
+  },
+  coast: {
+    eyebrow: "The coast",
+    title: "Where the water learned to move.",
+    meta: "Pan di Zucchero · Sardinia · 39.96° N, 8.42° E",
   },
   tech: {
     eyebrow: "02 — Stack",
@@ -200,6 +210,11 @@ const it: Dict = {
     wip: "In lavorazione",
     back: "Tutti i lavori",
     next: "Prossimo progetto",
+  },
+  coast: {
+    eyebrow: "La costa",
+    title: "Dove l'acqua ha imparato a muoversi.",
+    meta: "Pan di Zucchero · Sardegna · 39,96° N, 8,42° E",
   },
   tech: {
     eyebrow: "02 — Stack",

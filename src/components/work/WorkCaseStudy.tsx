@@ -10,8 +10,10 @@ import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
 import { CountUp } from "@/components/motion/CountUp";
+import { Parallax } from "@/components/motion/Parallax";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
+import { TornEdge } from "@/components/atmosphere/TornEdge";
 import { RollLink } from "@/components/motion/RollLink";
 
 /**
@@ -90,6 +92,19 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
           </div>
         </div>
       </section>
+
+      {/* Editorial banner — the project's still (same art the galleries carry),
+          torn open in the paper with a slow parallax window. Decorative. */}
+      {work.textureSrc ? (
+        <figure aria-hidden className="relative mb-[var(--section-y)] h-[46vh] overflow-hidden">
+          <Parallax from={-30} to={30} className="absolute inset-x-0 -inset-y-[12%]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={work.textureSrc} alt="" className="h-full w-full object-cover" />
+          </Parallax>
+          <TornEdge side="top" seed={4} />
+          <TornEdge side="bottom" seed={9} />
+        </figure>
+      ) : null}
 
       {/* Metrics */}
       {s.metrics?.length ? (

@@ -12,6 +12,7 @@ import { FilmScrub } from "@/components/home/FilmScrub";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
 import { GoldenMotes } from "@/components/atmosphere/GoldenMotes";
+import { TornEdge } from "@/components/atmosphere/TornEdge";
 import { RollLink } from "@/components/motion/RollLink";
 
 /**
@@ -113,15 +114,9 @@ export function AboutJourney() {
             className="h-full w-full object-cover"
           />
         </Parallax>
-        {/* the photograph melts into the paper at both seams */}
-        <div
-          className="absolute inset-x-0 top-0 h-16"
-          style={{ background: "linear-gradient(to bottom, var(--color-paper), transparent)" }}
-        />
-        <div
-          className="absolute inset-x-0 bottom-0 h-16"
-          style={{ background: "linear-gradient(to top, var(--color-paper), transparent)" }}
-        />
+        {/* the paper TEARS open on the photograph — ragged fibre seams */}
+        <TornEdge side="top" seed={5} />
+        <TornEdge side="bottom" seed={11} />
       </figure>
 
       {/* Bio */}

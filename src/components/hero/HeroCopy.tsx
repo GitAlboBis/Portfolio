@@ -125,11 +125,16 @@ export function HeroCopy() {
       // whole DOCUMENT height (verified: end landed at 0.55×docHeight).
       // `opacity`, NOT autoAlpha: visibility:hidden would drop the page's only
       // h1 out of the accessibility tree for anyone parked below the hero.
+      // trigger: an ELEMENT, not "#hero" — useGSAP's `scope: root` resolves
+      // selector strings via root.querySelector, and #hero is root's PARENT:
+      // the string never matched ("Element not found" in console) and the
+      // trigger silently fell back to the scroller top (same math only because
+      // the hero sits at scroll 0). closest() names the intended section.
       const out = gsap.to(el, {
         y: -48,
         opacity: 0,
         ease: "none",
-        scrollTrigger: { trigger: "#hero", start: "top top", end: "+=55%", scrub: true },
+        scrollTrigger: { trigger: el.closest("#hero") ?? el, start: "top top", end: "+=55%", scrub: true },
       });
       // dev-only handle for deterministic QA (see MenuOverlay's __menuTL); harmless.
       if (process.env.NODE_ENV !== "production") {

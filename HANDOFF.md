@@ -21,9 +21,11 @@ Mandato carte-blanche di Alberto ("pieno controllo, lasciami a bocca aperta"): *
 - Probe WebGPU: il Chromium di Playwright NON ha dxil.dll (device fail) → **`chromium.launch({ channel: "chrome", headless: true })`** funziona (Chrome reale headless con DXC). Skip preloader: `sessionStorage["at-preloader-seen"]="1"` in addInitScript. Probe: `_water_qa.mjs` (untracked, root).
 - Tuning live: slider leva `ballistic` aggiunto; pokeForce 0.85, MOUSE_RADIUS 7 (9 smerigliava l'intera lettera).
 
-**Review avversariale** (workflow 5 lenti × 3 verifier, 44 agenti): 13 finding grezzi → 3 unici confermati, tutti fixati (clamp premultiplied, DoubleSide, onda allarme dt-normalizzata). Warning console pre-esistenti (non del diff): `Element not found: #hero` (GSAP, da HeroScrollSettle/HeroCopy — probabile race al mount) e `THREE.Clock deprecated` (R3F internals) — candidati housekeeping WP-10.
+**Review avversariale** (workflow 5 lenti × 3 verifier, 44 agenti): 13 finding grezzi → 3 unici confermati, tutti fixati (clamp premultiplied, DoubleSide, onda allarme dt-normalizzata).
 
-**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain a schermo (il feel fine si dial-a con leva); 🔵 G3 per merge+deploy; valutare `w-rest` iniziale vs post-splash (il fill iniziale è leggermente più denso del regime).
+**MERGED su main con ok G3 di Alberto ("mergia e continua") e pushato** (`1f234f5` → deploy Vercel). Follow-up su `feat/realism-polish`: **root-caused e fixato il warning `Element not found: #hero`** — NON era una race: `useGSAP` con `scope: root` risolve le stringhe-selettore via `root.querySelector`, e `#hero` è il GENITORE di root → mai trovato, trigger silenziosamente caduto sul fallback (funzionava per coincidenza: hero a scroll 0). Fix: `trigger: el.closest("#hero")`. ⚠ Lezione generale: **dentro `useGSAP` con `scope`, mai selettori-stringa per elementi FUORI dallo scope** — passare l'elemento. Resta solo `THREE.Clock deprecated` (2×, interno R3F v9 con three 0.184 — non nostro, non fixabile senza patch).
+
+**Pendenze:** 🔵 far VEDERE ad Alberto rest/splash/drain a schermo (feel fine con leva, slider `ballistic` incluso); il fill iniziale è leggermente più denso del regime post-splash (differenza modesta dopo il fix particle_alpha — si assesta col churn in pochi secondi).
 
 ---
 

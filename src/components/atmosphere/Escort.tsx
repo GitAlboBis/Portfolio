@@ -21,6 +21,14 @@ import { useHydrated } from "@/lib/use-hydrated";
 
   Listens for the "marea" CustomEvent (TideEgg): the squad bursts wide for a
   beat, then falls back into formation.
+
+  AMBIENT GLIDE — while the page rests at the top (no dive, no escort), a
+  handful of DISTANT gulls cruise the hero's horizon band, so the sunset sky
+  is inhabited before the flock is ever summoned. A violent water poke
+  ("hero-splash", dispatched by WaterBallHero) STARTLES them: they kick up,
+  beat hard for a second, then settle back into the lazy glide — the page
+  reacts as one ecosystem. Same canvas, same shared ticker, ≤4 tiny strokes
+  per frame, only while the hero is on screen.
 */
 
 type Bird = {
@@ -89,6 +97,40 @@ export function Escort() {
     let nightT = 0;
     let frame = 0;
 
+    // ── ambient gulls (hero horizon band) ──────────────────────────────────
+    type Gull = {
+      x: number;
+      y: number;
+      baseY: number;
+      vx: number;
+      vy: number;
+      phase: number;
+      size: number;
+      boost: number; // startle timer (s): hard wingbeats + climb
+    };
+    const gulls: Gull[] = Array.from({ length: w < 768 ? 3 : 4 }, (_, i) => {
+      const baseY = h * (0.26 + Math.random() * 0.2);
+      return {
+        x: Math.random() * w,
+        y: baseY,
+        baseY,
+        vx: (i % 2 ? 1 : -1) * (9 + Math.random() * 11),
+        vy: 0,
+        phase: Math.random() * 10,
+        size: 4.5 + Math.random() * 3.5,
+        boost: 0,
+      };
+    });
+    let ambPresence = 0;
+    const onSplash = () => {
+      for (const g of gulls) {
+        g.vy -= 35 + Math.random() * 55;
+        g.vx += (Math.random() - 0.5) * 50;
+        g.boost = 1.3;
+      }
+    };
+    window.addEventListener("hero-splash", onSplash);
+
     const onMarea = () => {
       stormUntil = t + 1.5;
       presTarget = 1;
@@ -118,7 +160,14 @@ export function Escort() {
       const rate = presTarget > presence ? 3.2 : 1.1;
       presence += (presTarget - presence) * (1 - Math.exp(-rate * dt));
 
-      if (presence < 0.015) {
+      // ambient gulls live while the hero band is on screen and the escort is
+      // absent; summoning the flock (or scrolling away) fades them out fast.
+      const atHero = window.scrollY < h * 0.7;
+      const ambTarget = atHero && presence < 0.2 ? 1 : 0;
+      const ambRate = ambTarget > ambPresence ? 1.4 : 3.4;
+      ambPresence += (ambTarget - ambPresence) * (1 - Math.exp(-ambRate * dt));
+
+      if (presence < 0.015 && ambPresence < 0.015) {
         if (!cleared) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           cleared = true;
@@ -128,15 +177,10 @@ export function Escort() {
       cleared = false;
       if (document.hidden) return;
 
-      // — leader drifts across the sky; diving rides high, climbing rides low
-      const storm = t < stormUntil;
-      const lx = w * (0.5 + Math.sin(t * 0.33) * 0.2);
-      const ly =
-        h * (dir > 0 ? 0.3 : 0.62) + Math.sin(t * 0.75) * h * 0.045;
-
-      // — night tint: as the night band rises into view, ink → amber embers.
-      // Element cached; rect read every 5th frame only (a per-frame gBCR can
-      // force layout mid-scroll) — the color lerp hides the quantization.
+      // — night tint (shared by escort + ambient): as the night band rises
+      // into view, ink → amber embers. Element cached; rect read every 5th
+      // frame only (a per-frame gBCR can force layout mid-scroll) — the color
+      // lerp hides the quantization.
       if (frame++ % 5 === 0) {
         nightBand ??= document.getElementById("nightfall");
         if (nightBand) {
@@ -152,6 +196,53 @@ export function Escort() {
       ctx.save();
       ctx.scale(dpr, dpr);
       ctx.lineCap = "round";
+
+      // — AMBIENT: distant gulls lazing along the sunset horizon
+      if (ambPresence >= 0.015) {
+        ctx.strokeStyle = `rgb(${cr} ${cg} ${cb} / ${(0.4 * ambPresence).toFixed(3)})`;
+        for (const g of gulls) {
+          g.boost = Math.max(0, g.boost - dt);
+          // soft spring back to the cruise line after a startle
+          g.vy += (g.baseY - g.y) * 1.6 * dt;
+          g.vy *= 1 - Math.min(1, 1.5 * dt);
+          g.x += g.vx * dt;
+          g.y += g.vy * dt;
+          if (g.x < -50) {
+            g.x = w + 45;
+            g.baseY = h * (0.26 + Math.random() * 0.2);
+          } else if (g.x > w + 50) {
+            g.x = -45;
+            g.baseY = h * (0.26 + Math.random() * 0.2);
+          }
+          // lazy glide with sparse beats; a startle beats hard and fast
+          g.phase += dt * (2.6 + g.boost * 9);
+          const beat = Math.sin(g.phase);
+          const arc = 1.2 + (beat * 0.5 + 0.5) * (1.6 + g.boost * 3.4);
+          const s = g.size;
+          ctx.save();
+          ctx.translate(g.x, g.y);
+          ctx.rotate(g.vx > 0 ? 0.05 : -0.05);
+          ctx.lineWidth = Math.max(1, s * 0.16);
+          ctx.beginPath();
+          ctx.moveTo(-s, 0);
+          ctx.quadraticCurveTo(-s * 0.45, -arc, 0, 0);
+          ctx.quadraticCurveTo(s * 0.45, -arc, s, 0);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      if (presence < 0.015) {
+        ctx.restore();
+        return; // ambient only — no escort to draw
+      }
+
+      // — leader drifts across the sky; diving rides high, climbing rides low
+      const storm = t < stormUntil;
+      const lx = w * (0.5 + Math.sin(t * 0.33) * 0.2);
+      const ly =
+        h * (dir > 0 ? 0.3 : 0.62) + Math.sin(t * 0.75) * h * 0.045;
+
       ctx.strokeStyle = `rgb(${cr} ${cg} ${cb} / ${(0.9 * presence).toFixed(3)})`;
 
       const speedBoost = Math.min(vAbs * 0.02, 1.6);
@@ -195,6 +286,7 @@ export function Escort() {
       gsap.ticker.remove(tick);
       window.removeEventListener("resize", resize);
       window.removeEventListener("marea", onMarea);
+      window.removeEventListener("hero-splash", onSplash);
     };
   }, [reduced]);
 

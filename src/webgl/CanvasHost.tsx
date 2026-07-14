@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
+import { SunRays } from "@/components/atmosphere/SunRays";
 
 /*
   Hero canvas host (clean-slate, minimal).
@@ -60,6 +61,9 @@ export function CanvasHost() {
         className="pointer-events-none fixed inset-0 z-0"
         style={{ background: SEA_GRADIENT }}
       />
+      {/* Crepuscular rays UNDER the fluid (DOM order): the translucent "A"
+          refracts a sky that visibly radiates from its sun. */}
+      <SunRays />
       {showFluid && <WaterBallHero />}
     </>
   );

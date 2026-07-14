@@ -315,6 +315,9 @@ export function WaterBallHero() {
       camera.prevHoverY = camera.currentHoverY;
       const realBoxSize = [...INIT_BOX];
       const swayStart = performance.now();
+      // cross-system beat: a violent poke STARTLES the ambient gulls (Escort
+      // listens for "hero-splash"). Throttled; purely decorative JS-side hook.
+      let lastSplashEvt = 0;
       // DRAIN beat is scrub-driven (Direction A). Track whether we've drained so the
       // "A" is refilled cleanly once scrolled fully back to the top.
       let drained = false;
@@ -399,10 +402,15 @@ export function WaterBallHero() {
         renderUniformsViews.time.set([elapsed]);
         dev.queue.writeBuffer(renderUniformBuffer, 0, renderUniformsValues);
         const enc = dev.createCommandEncoder();
+        const mouseVel = camera.calcMouseVelocity();
+        if (Math.hypot(mouseVel[0], mouseVel[1]) > 1.6 && performance.now() - lastSplashEvt > 1200) {
+          lastSplashEvt = performance.now();
+          window.dispatchEvent(new CustomEvent("hero-splash"));
+        }
         sim.execute(
           enc,
           [camera.currentHoverX / canvas.clientWidth, camera.currentHoverY / canvas.clientHeight],
-          camera.calcMouseVelocity(),
+          mouseVel,
           sim.numParticles, // home-fill already seeded all particles -> keep the jet off
           MOUSE_RADIUS,
         );

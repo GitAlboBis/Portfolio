@@ -185,6 +185,9 @@ function Flock({ count }: { count: number }) {
     [geometry, material],
   );
 
+  // TideEgg storm gate: while sim.time < stormUntil the formation stays broken.
+  const stormUntil = useRef(0);
+
   const sim = useMemo(() => {
     const pos = new Float32Array(count * 3);
     const vel = new Float32Array(count * 3);
@@ -207,6 +210,21 @@ function Flock({ count }: { count: number }) {
     // viewport extents only seed the start cloud — no need to re-create on resize
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count, rand]);
+
+  // TideEgg: typing "marea" (TideEgg.tsx) bursts the flock into a brief storm —
+  // random impulse per bird + the form gate held at zero, then slow re-gather.
+  useEffect(() => {
+    const onMarea = () => {
+      stormUntil.current = sim.time + 1.7;
+      for (let i = 0; i < sim.vel.length; i += 3) {
+        sim.vel[i] += (Math.random() - 0.5) * 9;
+        sim.vel[i + 1] += (Math.random() - 0.5) * 9;
+        sim.vel[i + 2] += (Math.random() - 0.5) * 2;
+      }
+    };
+    window.addEventListener("marea", onMarea);
+    return () => window.removeEventListener("marea", onMarea);
+  }, [sim]);
 
   // Glyph homes: where the flock settles. Sized/positioned in VIEWPORT terms
   // (the canvas spans the whole tall section): ~62vh tall, right-of-center on
@@ -277,7 +295,8 @@ function Flock({ count }: { count: number }) {
     const lenis = (window as unknown as { __lenis?: { velocity?: number } }).__lenis;
     const v = lenis?.velocity ?? 0;
     const vAbs = Math.abs(v);
-    const formTarget = Math.min(1, Math.max(0, 1 - (vAbs - 1.5) / 9));
+    let formTarget = Math.min(1, Math.max(0, 1 - (vAbs - 1.5) / 9));
+    if (sim.time < stormUntil.current) formTarget = 0; // TideEgg storm
     const formRate = formTarget < sim.form ? 12 : 1.8; // per second
     sim.form += (formTarget - sim.form) * (1 - Math.exp(-formRate * dt));
     const form = sim.form;

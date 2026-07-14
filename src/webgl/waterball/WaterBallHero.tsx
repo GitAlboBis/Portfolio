@@ -298,10 +298,15 @@ export function WaterBallHero() {
 
       camera = new Camera(canvas, { orbit: false, zoom: false, hoverTarget: window });
       sim.reset(INIT_BOX, SPHERE_RADIUS);
-      // step 1a: fill the "A" instantly by seeding particles on sampled home positions
-      // (replaces the ~13s jet). With no gravity, they hold the shape; the existing
-      // g2p wall still confines. Disables the jet (numParticles already == target).
-      sim.initFromHomes(INIT_BOX, NUM_PARTICLES);
+      // THE BIRTH: on arrival the "A" doesn't exist yet — a coordinated fountain
+      // erupts from the sea line of the real backdrop and ASSEMBLES into the
+      // letter (initFountain aims every droplet at its home; the confinement
+      // closes the shape). The preloader covers the first ~2s, so the visitor
+      // opens their eyes on water becoming a name. Reforms after the drain use
+      // the instant fill (initFromHomes) — the birth plays once per load.
+      sim.initFountain(INIT_BOX, NUM_PARTICLES);
+      // the eruption startles the ambient gulls (Escort) — one ecosystem
+      window.setTimeout(() => window.dispatchEvent(new CustomEvent("hero-splash")), 600);
       // face the "A" head-on (+Z) and frame its center. The letter lives in box XY
       // (apex y=52, feet y=9 -> center ~30.5); reset() defaults to a side-on angle that
       // suited the symmetric ball but would show the flat letter edge-on.

@@ -253,6 +253,10 @@ export function WaterBallHero() {
       const cubemapView = cubemapTexture.createView({ dimension: "cube" });
 
       renderUniformsViews.texel_size.set([1.0 / canvas.width, 1.0 / canvas.height]);
+      // THE CONTACT: the letter STANDS IN the sea — below this line (backing px)
+      // fluid.wgsl refracts, melts and foam-belts the letter into the water.
+      renderUniformsViews.waterline.set([canvas.height * 0.86]);
+      renderUniformsViews.refl_strength.set([0.85]);
 
       const particleBuffer = dev.createBuffer({
         size: mlsmpmParticleStructSize * numParticlesMax,

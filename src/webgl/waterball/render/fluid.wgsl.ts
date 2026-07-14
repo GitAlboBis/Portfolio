@@ -12,6 +12,10 @@ struct RenderUniforms {
     projection_matrix: mat4x4f,
     view_matrix: mat4x4f,
     inv_view_matrix: mat4x4f,
+    // sea-reflection pass: screen-space y (backing px) of the video backdrop's
+    // horizon + the mirror strength (0 disables)
+    waterline: f32,
+    refl_strength: f32,
 }
 
 struct FragmentInput {
@@ -55,9 +59,10 @@ fn ripplePerturb(wp: vec3f, t: f32) -> vec3f {
     );
 }
 
-@fragment
-fn fs(input: FragmentInput) -> @location(0) vec4f {
-    var depth: f32 = abs(textureLoad(texture, vec2u(input.iuv), 0).r);
+// The full screen-space-fluid shading for one pixel (premultiplied rgba).
+// Parameterized so the SEA-REFLECTION pass can re-run it at mirrored coords.
+fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
+    var depth: f32 = abs(textureLoad(texture, vec2u(iuvf), 0).r);
 
     if (depth >= 1e4) {
         // no fluid here -> TRANSPARENT so the sunset backdrop shows through. The "A"
@@ -65,12 +70,12 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
         return vec4f(0.0, 0.0, 0.0, 0.0);
     }
 
-    var viewPos: vec3f = computeViewPosFromUVDepth(input.uv, depth); // z is negative
+    var viewPos: vec3f = computeViewPosFromUVDepth(uvf, depth); // z is negative
 
-    var ddx: vec3f = getViewPosFromTexCoord(input.uv + vec2f(uniforms.texel_size.x, 0.), input.iuv + vec2f(1.0, 0.0)) - viewPos;
-    var ddy: vec3f = getViewPosFromTexCoord(input.uv + vec2f(0., uniforms.texel_size.y), input.iuv + vec2f(0.0, 1.0)) - viewPos;
-    var ddx2: vec3f = viewPos - getViewPosFromTexCoord(input.uv + vec2f(-uniforms.texel_size.x, 0.), input.iuv + vec2f(-1.0, 0.0));
-    var ddy2: vec3f = viewPos - getViewPosFromTexCoord(input.uv + vec2f(0., -uniforms.texel_size.y), input.iuv + vec2f(0.0, -1.0));
+    var ddx: vec3f = getViewPosFromTexCoord(uvf + vec2f(uniforms.texel_size.x, 0.), iuvf + vec2f(1.0, 0.0)) - viewPos;
+    var ddy: vec3f = getViewPosFromTexCoord(uvf + vec2f(0., uniforms.texel_size.y), iuvf + vec2f(0.0, 1.0)) - viewPos;
+    var ddx2: vec3f = viewPos - getViewPosFromTexCoord(uvf + vec2f(-uniforms.texel_size.x, 0.), iuvf + vec2f(-1.0, 0.0));
+    var ddy2: vec3f = viewPos - getViewPosFromTexCoord(uvf + vec2f(0., -uniforms.texel_size.y), iuvf + vec2f(0.0, -1.0));
 
     if (abs(ddx.z) > abs(ddx2.z)) {
         ddx = ddx2;
@@ -85,7 +90,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     //   r = blurred optical thickness, g = speed-weighted thickness.
     // Their ratio is the mean normalized SPEED of the fluid at this pixel — the
     // foam signal: fast, churned-up water is aerated and reads white.
-    let thickData: vec2f = textureLoad(thickness_texture, vec2u(input.iuv), 0).rg;
+    let thickData: vec2f = textureLoad(thickness_texture, vec2u(iuvf), 0).rg;
     var thickness: f32 = thickData.r;
     let speedAvg: f32 = thickData.g / max(thickness, 1e-4);
 
@@ -176,5 +181,43 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     let sprayAlpha: f32 = foamAmt * smoothstep(0.02, 0.30, thickness) * 0.9;
     let alpha: f32 = clamp(max(edgeFade, sprayAlpha), 0.0, 1.0);
     return vec4f(finalColor * alpha, alpha);
+}
+
+@fragment
+fn fs(input: FragmentInput) -> @location(0) vec4f {
+    // THE CONTACT: the letter doesn't float in front of the sea video — it
+    // STANDS IN it. Below the contact line (uniforms.waterline, set from JS at
+    // ~7/8 of the viewport) the letter is progressively (1) REFRACTED — the
+    // sampling wobbles harder with depth, as if seen through the real water —
+    // (2) DISSOLVED into the sea, and (3) a sparkling FOAM BELT rides the
+    // contact line itself where the letter's body crosses it.
+    let cl = uniforms.waterline;
+    let screenH = 1.0 / uniforms.texel_size.y;
+    var uvf = input.uv;
+    var iuvf = input.iuv;
+    var sub = 0.0; // 0 above the waterline, -> 1 toward the bottom of the screen
+    if (uniforms.refl_strength > 0.001 && input.iuv.y > cl) {
+        sub = clamp((input.iuv.y - cl) / max(screenH - cl, 1.0), 0.0, 1.0);
+        let wob = (sin(input.iuv.y * 0.09 + uniforms.time * 2.2)
+                 + 0.6 * sin(input.iuv.y * 0.031 - uniforms.time * 1.1)) * 7.0 * sub;
+        iuvf = vec2f(clamp(input.iuv.x + wob, 1.0, 1.0 / uniforms.texel_size.x - 2.0), input.iuv.y);
+        uvf = iuvf * uniforms.texel_size;
+    }
+
+    var col = waterColor(uvf, iuvf);
+    if (col.a <= 0.003) {
+        return vec4f(0.0, 0.0, 0.0, 0.0);
+    }
+
+    if (sub > 0.0) {
+        // submerged: sink into the sea (alpha melts away with depth)
+        let melt = 1.0 - sub * uniforms.refl_strength;
+        col = col * melt;
+        // foam belt at the contact line — the sea holds the letter
+        let belt = 1.0 - clamp(abs(input.iuv.y - cl) / (screenH * 0.008), 0.0, 1.0);
+        let sparkle = 0.6 + 0.4 * sin(input.iuv.x * 0.11 + uniforms.time * 2.6);
+        col = vec4f(min(col.rgb + FOAM_COLOR * belt * sparkle * 0.35 * col.a, vec3f(col.a)), col.a);
+    }
+    return col;
 }
 `;

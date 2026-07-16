@@ -1,8 +1,10 @@
 "use client";
 
+import * as React from "react";
 import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
+import { ScrollTrigger } from "@/lib/gsap";
 import { DualWaveText } from "@/components/reveal/DualWaveText";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
@@ -26,6 +28,14 @@ export function AboutJourney() {
   const j = t.journey;
   const locale = useUI((s) => s.locale);
   const toggleLocale = useUI((s) => s.toggleLocale);
+
+  // A locale flip re-flows the whole bio (EN/IT copy lengths differ) while the
+  // scrubbed triggers outside the remounted subtrees keep stale positions —
+  // one debounced refresh after the swap settles (same fix as WorkCaseStudy).
+  React.useEffect(() => {
+    const id = window.setTimeout(() => ScrollTrigger.refresh(), 160);
+    return () => window.clearTimeout(id);
+  }, [locale]);
 
   return (
     <main id="main" className="relative min-h-dvh bg-paper">
@@ -52,10 +62,12 @@ export function AboutJourney() {
           >
             Alberto&nbsp;Tuveri
           </Link>
-          <div className="flex items-center gap-5 sm:gap-7">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* px/py: tap target toward the 44px bar (Nav.tsx's padded-toggle
+                pattern); the tighter gap keeps the optical spacing unchanged */}
             <button
               onClick={toggleLocale}
-              className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
+              className="t-meta px-3 py-2 text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
             >
               {locale === "en" ? "IT" : "EN"}
               <span className="sr-only"> — {t.nav.langToggle}</span>

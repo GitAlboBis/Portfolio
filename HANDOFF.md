@@ -21,7 +21,9 @@ Mandato "continua, lasciami a bocca aperta". Chiusi i round ② e ④ dell'elenc
 - ⚠ **Toggle locale su pagine piene di trigger scrubbati**: il reflow EN/IT lascia trigger stali (ScrollTrigger ri-misura solo su resize/load) → `ScrollTrigger.refresh()` debounced ~160ms su `locale` (fatto in WorkCaseStudy + AboutJourney).
 - Il cursore custom "drop-of-light" nelle probe headless resta parcheggiato all'ultima posizione del click Playwright: il cerchio-punto negli screenshot NON e' un bug.
 
-**QA probe (untracked, root):** `_casestudy.mjs` (3 contesti × 8 beat + funzionali + sticky), `_casemetrics.mjs`/`_casescrim.mjs` (one-off metriche/scrim/flip IT), `_dof.mjs` (6 step di progress × 2 viewport, console = zero errori shader). `_routesweep.mjs` ALL CLEAN post-merge. Build 13 pagine verde.
+**QA probe (untracked, root):** `_casestudy.mjs` (3 contesti × 8 beat + funzionali + sticky), `_casemetrics.mjs`/`_casescrim.mjs` (one-off metriche/scrim/flip IT), `_dof.mjs` (6 step di progress × 2 viewport, console = zero errori shader). `_routesweep.mjs` ALL CLEAN post-merge su dev. Build 13 pagine verde; probe rilanciate anche contro `next start` (build prod) — funzionali tutti PASS.
+
+**Osservazione aperta (pre-esistente, NON di questa sessione):** sulla build PROD (`next start` e prod Vercel) la console di /work e /work/[slug] mostra `[warning] The resource /coast/night-sea.webp was preloaded using link preload but not used…`. Un `<link rel=preload as=image href=/coast/night-sea.webp>` compare nel DOM a runtime ma NON e' nell'HTML servito ne' nel nostro codice (grep preload/appendChild/ReactDOM.preload = zero; warm.ts usa fetch low-priority). Sospetti da verificare con calma: prefetch RSC di next/link che rigioca hint float, o comportamento nuovo di next 16.2.10. Benigno ma juror-visible in devtools — da root-causare.
 
 **▶ Prossimi round** (dall'elenco 2026-07-15): ③ **beat drone** (11 clip nel Drive "ALBE DRONE", LUT `_air3s.cube`, pipeline §LA ROCCIA) ⑤ **estensioni ecosistema** (tide-touch/surface-break/submerge listener nuovi) · eventuale kling loop per case study (G5, preflight `get_cost`). 🔵 Su Alberto: SerSan ×2, feel-review, #4 Flip grid.
 

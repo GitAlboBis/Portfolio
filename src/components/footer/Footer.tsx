@@ -1,8 +1,10 @@
 "use client";
 
+import * as React from "react";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { useHydrated } from "@/lib/use-hydrated";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { Appear } from "@/components/motion/Appear";
 import { RollLink } from "@/components/motion/RollLink";
 import { FlipText } from "@/components/reveal/FlipText";
@@ -29,8 +31,45 @@ export function Footer() {
   const t = useDict();
   const soundEnabled = useUI((s) => s.soundEnabled);
   const setSoundEnabled = useUI((s) => s.setSoundEnabled);
+  const reduced = useUI((s) => s.reducedMotion);
   // Persisted flag: render the OFF state until hydration so SSR HTML matches.
   const soundOn = useHydrated() && soundEnabled;
+
+  // ECOSYSTEM — the tide reaches the page and the wave exits through the
+  // period: the wordmark ripple (FlipText rippleOn) crosses "Alberto Tuveri"
+  // in ~0.4s, then the ember full-stop takes the same dip-lift-settle, a beat
+  // later and a touch higher (it's the jewel — it gets the crest). Listener-
+  // born tween → killed manually in cleanup (the async-tween lesson).
+  const dotRef = React.useRef<HTMLSpanElement>(null);
+  useGSAP(
+    () => {
+      const dot = dotRef.current;
+      if (!dot || reduced) return;
+      let hop: gsap.core.Tween | null = null;
+      const onTide = () => {
+        hop?.kill();
+        hop = gsap.to(dot, {
+          keyframes: [
+            { y: 5, duration: 0.16, ease: "power2.in" },
+            { y: -13, duration: 0.24, ease: "power2.out" },
+            { y: 0, duration: 0.9, ease: "elastic.out(1, 0.4)" },
+          ],
+          delay: 0.42,
+        });
+      };
+      window.addEventListener("tide-touch", onTide);
+      return () => {
+        window.removeEventListener("tide-touch", onTide);
+        // kill freezes the current inline transform — clearProps puts the
+        // period back on the baseline (a reduced flip mid-hop would otherwise
+        // strand it displaced forever; TideEbb's cleanup pattern)
+        hop?.kill();
+        gsap.set(dot, { clearProps: "y" });
+      };
+    },
+    { scope: dotRef, dependencies: [reduced], revertOnUpdate: true },
+  );
+
   return (
     <footer className="night bleed relative z-10">
       <div className="container-edit py-16">
@@ -40,10 +79,10 @@ export function Footer() {
             period sits OUTSIDE the split target (a non-split sibling), so the
             accessible name stays the clean "Alberto Tuveri". */}
         <p className="font-display font-bold leading-[0.95] tracking-[-0.03em] text-paper [font-size:clamp(3.25rem,10.5vw,8.5rem)]">
-          <FlipText as="span" className="inline-block">
+          <FlipText as="span" className="inline-block" rippleOn="tide-touch">
             Alberto Tuveri
           </FlipText>
-          <span aria-hidden className="text-ember">
+          <span aria-hidden ref={dotRef} className="inline-block text-ember">
             .
           </span>
         </p>

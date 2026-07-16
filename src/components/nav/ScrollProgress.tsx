@@ -17,7 +17,7 @@
   Fades out while the Preloader is up or the menu overlay is open.
 */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUI } from "@/store/ui";
 
 type LenisLike = {
@@ -30,6 +30,39 @@ export function ScrollProgress() {
   const ref = useRef<HTMLDivElement>(null);
   const loaded = useUI((s) => s.loaded);
   const menuOpen = useUI((s) => s.menuOpen);
+  const reduced = useUI((s) => s.reducedMotion);
+
+  // ECOSYSTEM — the day's arc lives in the world: underwater (the Ascent's
+  // `submerge`) the light dims and desaturates; breaking the surface (or the
+  // footer tide touching the page) flares it for a beat. Pure filter state on
+  // a 3px fixed bar — compositor-cheap. The emitting machinery (pins, scrub)
+  // never runs under reduced-motion, but the guard makes that explicit.
+  const [phase, setPhase] = useState<"day" | "under" | "flare">("day");
+  useEffect(() => {
+    if (reduced) return;
+    let flareId: number | undefined;
+    const flare = () => {
+      setPhase("flare");
+      window.clearTimeout(flareId);
+      flareId = window.setTimeout(() => setPhase("day"), 650);
+    };
+    const onSubmerge = (e: Event) => {
+      window.clearTimeout(flareId);
+      setPhase((e as CustomEvent).detail ? "under" : "day");
+    };
+    window.addEventListener("submerge", onSubmerge);
+    window.addEventListener("surface-break", flare);
+    window.addEventListener("tide-touch", flare);
+    return () => {
+      window.clearTimeout(flareId);
+      window.removeEventListener("submerge", onSubmerge);
+      window.removeEventListener("surface-break", flare);
+      window.removeEventListener("tide-touch", flare);
+      // never leave a phase behind: detaching cancels the flare's own
+      // restore-timeout, and under reduced no event will ever reset it
+      setPhase("day");
+    };
+  }, [reduced]);
 
   useEffect(() => {
     const el = ref.current;
@@ -99,11 +132,20 @@ export function ScrollProgress() {
         WebkitClipPath: "inset(0 calc((1 - var(--p, 0)) * 100%) 0 0)",
         // warm bloom + a thin neutral shadow so the line stays legible even over the
         // warm Works mood ramp (where a purely warm glow would camouflage it).
+        // Ecosystem phases append to it: dimmed underwater, over-bright on a flare.
         filter:
-          "drop-shadow(0 0 4px rgb(238 91 35 / 0.40)) drop-shadow(0 1px 2px rgb(28 14 10 / 0.45))",
+          "drop-shadow(0 0 4px rgb(238 91 35 / 0.40)) drop-shadow(0 1px 2px rgb(28 14 10 / 0.45))" +
+          (phase === "under"
+            ? " saturate(0.35) brightness(0.7)"
+            : phase === "flare"
+              ? " saturate(1.5) brightness(1.6)"
+              : ""),
         willChange: "clip-path",
         opacity: loaded && !menuOpen ? 1 : 0,
-        transition: "opacity 600ms var(--ease-tide)",
+        transition:
+          "opacity 600ms var(--ease-tide), filter " +
+          (phase === "flare" ? "180ms" : "800ms") +
+          " var(--ease-tide)",
       }}
     />
   );

@@ -9,6 +9,7 @@ import { MLSMPMSimulator, mlsmpmParticleStructSize } from "./mls-mpm/mls-mpm";
 import { FluidRenderer } from "./render/fluidRender";
 import { renderUniformsViews, renderUniformsValues, numParticlesMax } from "./common";
 import { useHeroStore } from "@/webgl/store/heroStore";
+import { useUI } from "@/store/ui";
 // leva (the debug GUI) is a DEV-ONLY authoring tool. Its bindings are referenced ONLY
 // inside `if (IS_DEV) { ... }` branches below; because IS_DEV resolves from
 // process.env.NODE_ENV — a build-time literal in Next.js — Terser drops the dead dev
@@ -349,8 +350,10 @@ export function WaterBallHero() {
 
       const frame = () => {
         if (cancelled || !device || !camera) return;
-        // hero scrolled out of view -> idle the GPU (no compute, no render)
-        if (!heroVisible) {
+        // hero scrolled out of view OR fully occluded by the opaque menu
+        // overlay -> idle the GPU (no compute, no render). Render-only gate;
+        // the solver/params stay untouched (G4).
+        if (!heroVisible || useUI.getState().menuOpen) {
           rafId = requestAnimationFrame(frame);
           return;
         }

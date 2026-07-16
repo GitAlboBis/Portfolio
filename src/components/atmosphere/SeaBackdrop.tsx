@@ -27,13 +27,23 @@ const SRC_MOBILE = "/coast/sea-loop-960.mp4";
 
 export function SeaBackdrop() {
   const reduced = useUI((s) => s.reducedMotion);
+  const menuOpen = useUI((s) => s.menuOpen);
   const [src, setSrc] = React.useState<string | null>(null);
   const [live, setLive] = React.useState(false);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
 
   React.useEffect(() => {
     if (reduced || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     setSrc(window.innerWidth < 768 ? SRC_MOBILE : SRC_DESKTOP);
   }, [reduced]);
+
+  // the opaque menu overlay fully covers the sea — stop decoding under it
+  React.useEffect(() => {
+    const v = videoRef.current;
+    if (!v || !src) return;
+    if (menuOpen) v.pause();
+    else void v.play().catch(() => {});
+  }, [menuOpen, src]);
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
@@ -41,6 +51,7 @@ export function SeaBackdrop() {
       <img src={POSTER} alt="" className="absolute inset-0 h-full w-full object-cover" />
       {src && (
         <video
+          ref={videoRef}
           autoPlay
           muted
           loop

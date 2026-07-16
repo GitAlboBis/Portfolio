@@ -19,6 +19,13 @@ const sectionSchema = z.object({
     close: z.string(),
     /** sr-only suffix on the EN/IT toggle (the visible text must stay in the a11y name). */
     langToggle: z.string(),
+    /** Captions under the menu-portal route previews (decorative panel, desktop only). */
+    preview: z.object({
+      home: z.string(),
+      about: z.string(),
+      works: z.string(),
+      contact: z.string(),
+    }),
   }),
   hero: z.object({
     eyebrow: z.string(),
@@ -106,7 +113,15 @@ const sectionSchema = z.object({
 export type Dict = z.infer<typeof sectionSchema>;
 
 const en: Dict = {
-  nav: { work: "Work", about: "About", contact: "Contact", menu: "Menu", close: "Close", langToggle: "switch language" },
+  nav: {
+    work: "Work",
+    about: "About",
+    contact: "Contact",
+    menu: "Menu",
+    close: "Close",
+    langToggle: "switch language",
+    preview: { home: "The golden hour", about: "Masua, Sulcis", works: "Selected work", contact: "After sunset" },
+  },
   hero: {
     eyebrow: "Software Engineer · Full-stack & AI",
     name: "Alberto Tuveri",
@@ -208,7 +223,15 @@ const en: Dict = {
 };
 
 const it: Dict = {
-  nav: { work: "Lavori", about: "Chi sono", contact: "Contatti", menu: "Menu", close: "Chiudi", langToggle: "cambia lingua" },
+  nav: {
+    work: "Lavori",
+    about: "Chi sono",
+    contact: "Contatti",
+    menu: "Menu",
+    close: "Chiudi",
+    langToggle: "cambia lingua",
+    preview: { home: "L'ora d'oro", about: "Masua, Sulcis", works: "Lavori scelti", contact: "Dopo il tramonto" },
+  },
   hero: {
     eyebrow: "Software Engineer · Full-stack & AI",
     name: "Alberto Tuveri",

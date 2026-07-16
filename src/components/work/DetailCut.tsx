@@ -71,9 +71,11 @@ export function DetailCut({
         defaults: { ease: "none" },
         scrollTrigger: { trigger: root, start: "top bottom", end: "bottom top", scrub: true },
       });
+      // 1.06: the settle must never push the source past its resolution
+      // ceiling (the stills are 1280px — see the zoom note in WorkCaseStudy)
       tl.fromTo(drift, { y: -26 }, { y: 26 }, 0).fromTo(
         zoomEl,
-        { scale: 1.12 },
+        { scale: 1.06 },
         { scale: 1 },
         0,
       );
@@ -89,8 +91,9 @@ export function DetailCut({
 
   const win = (
     <div className="relative w-full overflow-hidden" style={{ height, minHeight: "300px" }}>
-      {/* drift layer overscans 9% so the parallax never shows the window edge */}
-      <div data-cut-drift className="absolute inset-x-0 -inset-y-[9%]">
+      {/* drift layer overscans 10% (>=30px at the 300px min height) so the
+          ±26px parallax can never expose the window edge, even at zoom≈1 */}
+      <div data-cut-drift className="absolute inset-x-0 -inset-y-[10%]">
         <div
           className="h-full w-full"
           style={{ transform: `scale(${zoom})`, transformOrigin: focal }}

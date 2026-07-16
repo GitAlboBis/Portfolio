@@ -66,23 +66,29 @@ const FRAG = /* glsl */ `
       if (rx < 1.0) { tuv.x = 0.5 + (tuv.x - 0.5) * rx; }
       else { tuv.y = 0.5 + (tuv.y - 0.5) / rx; }
 
-      float bias = uBlur * 3.2;                  // mip climb — base blur
-      float rad  = uBlur * 0.030;                // disk radius (uv)
-      vec2  ca   = (vUv - 0.5) * uBlur * 0.012;  // chromatic fringe, radial
-      vec2 offs[5];
-      offs[0] = vec2(0.0, 0.0);
-      offs[1] = vec2( 0.94,  0.33);
-      offs[2] = vec2(-0.33,  0.94);
-      offs[3] = vec2(-0.94, -0.33);
-      offs[4] = vec2( 0.33, -0.94);
-      vec3 acc = vec3(0.0);
-      for (int i = 0; i < 5; i++) {
-        vec2 p = tuv + offs[i] * rad;
-        acc.r += texture2D(uTex, p + ca, bias).r;
-        acc.g += texture2D(uTex, p, bias).g;
-        acc.b += texture2D(uTex, p - ca, bias).b;
+      // uniform early-out: the focused plane (the largest on screen) pays one
+      // tap, not fifteen — at uBlur=0 the taps would all read the same texel
+      if (uBlur < 0.003) {
+        c = texture2D(uTex, tuv).rgb;
+      } else {
+        float bias = uBlur * 3.2;                  // mip climb — base blur
+        float rad  = uBlur * 0.030;                // disk radius (uv)
+        vec2  ca   = (vUv - 0.5) * uBlur * 0.012;  // chromatic fringe, radial
+        vec2 offs[5];
+        offs[0] = vec2(0.0, 0.0);
+        offs[1] = vec2( 0.94,  0.33);
+        offs[2] = vec2(-0.33,  0.94);
+        offs[3] = vec2(-0.94, -0.33);
+        offs[4] = vec2( 0.33, -0.94);
+        vec3 acc = vec3(0.0);
+        for (int i = 0; i < 5; i++) {
+          vec2 p = tuv + offs[i] * rad;
+          acc.r += texture2D(uTex, p + ca, bias).r;
+          acc.g += texture2D(uTex, p, bias).g;
+          acc.b += texture2D(uTex, p - ca, bias).b;
+        }
+        c = acc / 5.0;
       }
-      c = acc / 5.0;
       // marry the photograph to the slide's mood (duotone pull, subtle)
       float lum = dot(c, vec3(0.299, 0.587, 0.114));
       c = mix(c, mix(uBase, uA, smoothstep(0.12, 0.88, lum)), 0.14);
@@ -109,19 +115,33 @@ const FRAG = /* glsl */ `
 // Ghost-title billboard: canvas-texture outline type at scene depth. The DoF
 // pass blurs it with the same focal grammar as the planes (3-tap + mip bias —
 // outline strokes need less machinery than photographs).
+// The tonemapping/colorspace includes reproduce MeshBasicMaterial's output
+// pipeline exactly (sRGB decode → ACES → sRGB encode): without them the ember
+// outline leaves the token — linear values written to an sRGB framebuffer read
+// as dark blood-red (review finding, confirmed against three 0.184 sources).
 const FRAG_TITLE = /* glsl */ `
   varying vec2 vUv;
   uniform sampler2D uMap;
   uniform float uOpacity;
   uniform float uBlur;
   void main(){
-    float bias = uBlur * 3.0;
-    float rad = uBlur * 0.010;
-    vec4 t = texture2D(uMap, vUv, bias);
-    t += texture2D(uMap, vUv + vec2(rad, rad * 2.4), bias);
-    t += texture2D(uMap, vUv - vec2(rad, rad * 2.4), bias);
-    t /= 3.0;
+    vec4 t;
+    if (uBlur < 0.003) {
+      t = texture2D(uMap, vUv);
+    } else {
+      float bias = uBlur * 3.0;
+      vec2 off = vec2(uBlur * 0.010, uBlur * 0.024);
+      vec4 s0 = texture2D(uMap, vUv, bias);
+      vec4 s1 = texture2D(uMap, vUv + off, bias);
+      vec4 s2 = texture2D(uMap, vUv - off, bias);
+      // alpha-weighted mean: the canvas' transparent texels are BLACK — an
+      // unweighted average darkens the blurred glyph instead of blooming it
+      float w = s0.a + s1.a + s2.a + 1e-4;
+      t = vec4((s0.rgb * s0.a + s1.rgb * s1.a + s2.rgb * s2.a) / w, w / 3.0);
+    }
     gl_FragColor = vec4(t.rgb, t.a * uOpacity);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
   }
 `;
 

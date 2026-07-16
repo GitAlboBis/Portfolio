@@ -5,7 +5,7 @@ import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { works, worksConfirmed } from "@/content/works";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { DUR, EASE } from "@/lib/motion";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
@@ -32,24 +32,28 @@ import { RollLink } from "@/components/motion/RollLink";
  */
 
 /* Art direction per still — where each detail crop looks and how tight.
-   (Focal = object-position AND zoom origin; values chosen per photograph.) */
+   (Focal = object-position AND zoom origin; values chosen per photograph.)
+   Zoom ceiling is set by the SOURCE resolution: the stills are 1280×858, so
+   anything past ~1.7 (inset window) / ~1.5 (full-bleed at 1440) magnifies
+   compression blocking instead of photography (review finding). The detail
+   read comes from the focal offset + mood wash, not from macro magnification. */
 const CUTS: Record<string, [{ focal: string; zoom: number }, { focal: string; zoom: number }]> = {
   badante24h: [
-    { focal: "30% 32%", zoom: 2.1 },
-    { focal: "72% 62%", zoom: 2.5 },
+    { focal: "30% 32%", zoom: 1.65 },
+    { focal: "72% 62%", zoom: 1.45 },
   ],
   "doit-voice-ai-agent": [
-    { focal: "22% 55%", zoom: 2.2 },
-    { focal: "70% 40%", zoom: 2.6 },
+    { focal: "22% 55%", zoom: 1.7 },
+    { focal: "70% 40%", zoom: 1.5 },
   ],
   "agricultural-supply-chain": [
-    { focal: "25% 65%", zoom: 2.0 },
-    { focal: "75% 30%", zoom: 2.4 },
+    { focal: "25% 65%", zoom: 1.6 },
+    { focal: "75% 30%", zoom: 1.45 },
   ],
 };
 const CUTS_DEFAULT: (typeof CUTS)[string] = [
-  { focal: "30% 40%", zoom: 2.0 },
-  { focal: "70% 60%", zoom: 2.4 },
+  { focal: "30% 40%", zoom: 1.65 },
+  { focal: "70% 60%", zoom: 1.45 },
 ];
 
 export function WorkCaseStudy({ slug }: { slug: string }) {
@@ -57,6 +61,17 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
   const locale = useUI((s) => s.locale);
   const toggleLocale = useUI((s) => s.toggleLocale);
   const work = works.find((w) => w.slug === slug);
+
+  // A locale flip re-flows every PARC block (EN/IT copy lengths differ) but
+  // scrubbed triggers created outside the remounted subtrees (NextProject,
+  // StackChips, DetailCut) keep their old positions — ScrollTrigger only
+  // re-measures on resize/load. One debounced refresh after the swap settles
+  // (same class of fix as Nightfall's stuck-refresh regression).
+  React.useEffect(() => {
+    const id = window.setTimeout(() => ScrollTrigger.refresh(), 160);
+    return () => window.clearTimeout(id);
+  }, [locale]);
+
   if (!work || !work.study) return null;
   const s = work.study;
   const tx = (l: { en: string; it: string }) => l[locale];
@@ -106,10 +121,12 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
           >
             Alberto&nbsp;Tuveri
           </Link>
-          <div className="flex items-center gap-5 sm:gap-7">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* px/py: tap target toward the 44px bar (Nav.tsx's padded-toggle
+                pattern); the tighter gap keeps the optical spacing unchanged */}
             <button
               onClick={toggleLocale}
-              className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
+              className="t-meta px-3 py-2 text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
             >
               {locale === "en" ? "IT" : "EN"}
               <span className="sr-only"> — {t.nav.langToggle}</span>

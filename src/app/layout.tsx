@@ -8,6 +8,7 @@ import { CoverOverlay } from "@/components/transition/CoverOverlay";
 import { Cursor } from "@/components/cursor/Cursor";
 import { SoundScape } from "@/components/sound/SoundScape";
 import { TideEgg } from "@/components/motion/TideEgg";
+import { Warmup } from "@/components/Warmup";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -124,6 +125,10 @@ export default function RootLayout({
         <Cursor />
         <SoundScape />
         <TideEgg />
+        {/* progressive asset warm-up: film scrubs, stills and R3F chunks are
+            fetched into cache right after the preloader unlocks — every band
+            is already local when the scroll reaches it. */}
+        <Warmup />
         {children}
         <script
           type="application/ld+json"

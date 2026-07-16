@@ -1,7 +1,8 @@
 # PLAN — Next steps (prioritized)
 
 > Backlog for the Golden Hour portfolio. See **`HANDOFF.md`** for current state + file map, **`CLAUDE.md`** for the operational brain (rules, reference links + code-extraction, skill routing, gates), **`WATER-WAVE-PLAN.md`** for the water sim.
-> Updated **2026-07-16**. Latest shipped (HANDOFF §2026-07-16, merged @ `d9a5cf5`): **① MENU-PORTALE FATTO** (anteprime fotografiche per rotta + trigger desktop, review avversariale 41 agenti, 15 finding fixati) + **WARM-UP PROGRESSIVO** (video scrub/still/chunk R3F in cache post-preloader — fix "non carica allo scroll") + bump deps (next 16.2.10, react 19.2.7; three fermo a 0.184) + 18 skill nuove (`npx skills add`: GSAP ufficiali, Emil Kowalski, three.js). **WP-10 mobile è VERDE: Lighthouse mobile prod = 84** (2026-07-15). **Prossimi round: ② case study vivi ③ nuovi beat drone (11 clip nel Drive) ④ works gallery DoF (SBLOCCATO — le still reali ci sono) ⑤ estensioni ecosistema (tide-touch/surface-break/submerge).**
+> Updated **2026-07-16 (bis)**. Latest shipped (HANDOFF §2026-07-16 bis, merged @ `f648546`): **② CASE STUDY VIVI FATTO** (IL SERVIZIO FOTOGRAFICO — detail crop tra i capitoli PARC via `DetailCut`, label sticky, stack vivo, scrim header + toggle EN/IT) + **④ WORKS GALLERY DoF FATTO** (RACK FOCUS — blur mip-bias per piano, frangia cromatica, edge feather, ghost title nel piano focale; P1 chiuso). Review avversariale 21 agenti, 5 finding fixati (incl. sRGB dei ghost title e tetto-zoom dalle sorgenti 1280px). **Prossimi round: ③ nuovi beat drone (11 clip nel Drive) ⑤ estensioni ecosistema (tide-touch/surface-break/submerge); eventuale kling loop per case study (G5).**
+> (Storico) 2026-07-16: ① MENU-PORTALE (d9a5cf5) + warm-up progressivo + bump deps + 18 skill. **WP-10 mobile VERDE: Lighthouse mobile prod = 84** (2026-07-15).
 > (Storico) 2026-07-12: motion package merged @ `5c9d12c` — hero ink, RollLink/.link, footer wordmark, next-project loop, runway spotlight+odometer.
 
 ## ✅ Done 2026-07-12 (motion package — dettagli in HANDOFF)
@@ -40,7 +41,7 @@ These came from Workflow research against the CLAUDE.md §6 references; re-imple
 - **Feel review** of the accumulated motion/transitions/nav/carousel — taste sign-off.
 
 ## P1/P2 (from the original plan, still open)
-- **Gallery depth-of-field** for the home `WorksGallery` (it's back on the home — a DoF/bokeh pass on the depth fly-through is now in scope) · **real project stills (WebP)** via `Work.textureSrc` (both the home gallery planes and the `/work` carousel cards currently render duotone gradients — wire a texture branch) · ambient WebGL layer (caustics, under content) · wave physics in `WATER-WAVE-PLAN.md` (only with the "A" as a soft reflecting container) · then **deploy to Vercel** (G3).
+- ~~**Gallery depth-of-field**~~ ✅ FATTO 2026-07-16 bis (RACK FOCUS, `f648546`) · ~~real project stills via `Work.textureSrc`~~ ✅ (still Higgsfield montate su entrambe le superfici, 26bc7de) · ambient WebGL layer (caustics, under content) · wave physics in `WATER-WAVE-PLAN.md` (only with the "A" as a soft reflecting container).
 
 ## Housekeeping
 - Rewrite or archive the dated `docs/*` and `DESIGN-SYSTEM.md` (still "Ocean") for Golden Hour, or delete to avoid confusion (CLAUDE.md already supersedes them).

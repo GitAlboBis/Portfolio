@@ -1,6 +1,29 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-16** (menu-portale + warm-up progressivo + bump deps, merged su main). This is the "continue here" doc.
+> Last updated: **2026-07-16 (bis)** (SERVIZIO FOTOGRAFICO nei case study + RACK FOCUS nella gallery home, merged su main). This is the "continue here" doc.
+
+---
+
+## ⏯ CONTINUA DA QUI — sessione 2026-07-16 bis (CASE STUDY VIVI + WORKS DoF, merged @ `f648546`)
+
+Mandato "continua, lasciami a bocca aperta". Chiusi i round ② e ④ dell'elenco 2026-07-15: i due candidati non bloccati con piu' wow-per-rischio.
+
+| Cosa | Commit |
+|---|---|
+| **IL SERVIZIO FOTOGRAFICO** (round ② — case study vivi): `/work/[slug]` tratta la sua still come un servizio di rivista — wide shot full-bleed d'apertura (settle-zoom), 2 **DETAIL CROP** della stessa foto tra i capitoli PARC (nuovo `src/components/work/DetailCut.tsx`: parallax + Ken Burns scrubbati su elementi SEPARATI, TornEdge, mood wash multiply, caption bilingue `works.detail`), capitoli numerati con **label sticky** accanto alla colonna di lettura, **StackChips** che si posano come carte date, metriche a scala display, numerale ghost runway nell'intro. Header: **scrim di carta** (chrome leggibile sopra foto/night — anche su /about) + **toggle EN/IT** che mancava. | `e274417` |
+| **RACK FOCUS** (round ④ — Works gallery DoF, P1 sbloccato dalle still): `WorksGalleryCanvas` — uniform `uBlur` per piano (dead-zone sul fuoco), disk blur 5 tap × 3 canali su mip bias, frangia cromatica radiale, **edge feather** proporzionale al defocus (il dettaglio che vende l'illusione), grana che si dissolve, swell 4.5%; artwork procedurale appiattito col blur; **ghost title → ShaderMaterial** e obbediscono al piano focale. A uBlur=0 collassa al sample nitido. | `70122d7` |
+| **Review avversariale** (workflow 21 agenti: 5 lenti → dedup → 3 confutatori/finding con evidenza sui sorgenti three/gsap): 5 finding unici, TUTTI confermati e fixati | `9d85bd2` |
+
+**Lezioni NUOVE (hardening, da non regredire):**
+- ⚠ **MeshBasicMaterial → ShaderMaterial raw perde l'output pipeline**: texture sRGB campionata = valori LINEARI; senza `#include <tonemapping_fragment>` + `#include <colorspace_fragment>` in coda al main, il framebuffer sRGB riceve lineare → ember diventa rosso sangue. three risolve gli include anche negli ShaderMaterial: quei due chunk = parita' esatta con MeshBasic.
+- ⚠ **Blur su texture di glifi canvas = media ALPHA-PESATA**: i texel trasparenti sono NERI — la media secca scurisce/assottiglia il glifo sfocato invece di farlo sbocciare.
+- ⚠ **Il tetto dello zoom sulle still e' la risoluzione sorgente**: 1280px → max ~1.7 (finestre inset) / ~1.5 (full-bleed a 1440), oltre si magnifica il blocking WebP, non fotografia. Il "detail" si ottiene con focal offset + mood wash.
+- ⚠ **Toggle locale su pagine piene di trigger scrubbati**: il reflow EN/IT lascia trigger stali (ScrollTrigger ri-misura solo su resize/load) → `ScrollTrigger.refresh()` debounced ~160ms su `locale` (fatto in WorkCaseStudy + AboutJourney).
+- Il cursore custom "drop-of-light" nelle probe headless resta parcheggiato all'ultima posizione del click Playwright: il cerchio-punto negli screenshot NON e' un bug.
+
+**QA probe (untracked, root):** `_casestudy.mjs` (3 contesti × 8 beat + funzionali + sticky), `_casemetrics.mjs`/`_casescrim.mjs` (one-off metriche/scrim/flip IT), `_dof.mjs` (6 step di progress × 2 viewport, console = zero errori shader). `_routesweep.mjs` ALL CLEAN post-merge. Build 13 pagine verde.
+
+**▶ Prossimi round** (dall'elenco 2026-07-15): ③ **beat drone** (11 clip nel Drive "ALBE DRONE", LUT `_air3s.cube`, pipeline §LA ROCCIA) ⑤ **estensioni ecosistema** (tide-touch/surface-break/submerge listener nuovi) · eventuale kling loop per case study (G5, preflight `get_cost`). 🔵 Su Alberto: SerSan ×2, feel-review, #4 Flip grid.
 
 ---
 

@@ -9,6 +9,10 @@ type FlipTextProps = {
   className?: string;
   children: React.ReactNode;
   start?: string;
+  /** Window event that sends a one-shot wave through the chars (ecosystem
+      hook — e.g. "tide-touch": the sea reaches the footer, the name ripples
+      like it's standing in the water). Decorative; never runs under reduced. */
+  rippleOn?: string;
 };
 
 /**
@@ -30,6 +34,7 @@ export function FlipText({
   className,
   children,
   start = "clamp(top 92%)",
+  rippleOn,
 }: FlipTextProps) {
   const ref = React.useRef<HTMLElement>(null);
   const reduced = useUI((s) => s.reducedMotion);
@@ -61,9 +66,32 @@ export function FlipText({
         },
       });
 
-      return () => split.revert();
+      // Ecosystem ripple — a wave travels through the letters: each char dips,
+      // lifts, and settles elastically, staggered left→right. `y` (px), never
+      // yPercent: the entrance owns yPercent, so the two compose instead of
+      // fighting. The tween is born in an event listener (async, outside the
+      // context) → killed manually in cleanup (the async-tween lesson).
+      let ripple: gsap.core.Tween | null = null;
+      const onRipple = () => {
+        ripple?.kill();
+        ripple = gsap.to(split.chars, {
+          keyframes: [
+            { y: 5, duration: 0.16, ease: "power2.in" },
+            { y: -9, duration: 0.24, ease: "power2.out" },
+            { y: 0, duration: 0.9, ease: "elastic.out(1, 0.4)" },
+          ],
+          stagger: { each: 0.03, from: "start" },
+        });
+      };
+      if (rippleOn) window.addEventListener(rippleOn, onRipple);
+
+      return () => {
+        if (rippleOn) window.removeEventListener(rippleOn, onRipple);
+        ripple?.kill();
+        split.revert();
+      };
     },
-    { scope: ref, dependencies: [reduced, start, text], revertOnUpdate: true },
+    { scope: ref, dependencies: [reduced, start, text, rippleOn], revertOnUpdate: true },
   );
 
   // SplitText aria:"auto" names this host; naming is prohibited on bare p/span/div

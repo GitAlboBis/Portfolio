@@ -104,7 +104,10 @@ export function MenuOverlay() {
         // static panel: full night cover, links visible, hidden until opened.
         night.setAttribute("d", "M0 0H100V100H0Z");
         lead.setAttribute("d", "M0 0H0Z");
-        gsap.set(el, { autoAlpha: 0 });
+        // a LIVE reduced flip can land while the menu is open (the store's
+        // reducedMotion follows matchMedia) — never hide an open menu.
+        gsap.set(el, { autoAlpha: openRef.current ? 1 : 0 });
+        el.style.pointerEvents = openRef.current ? "auto" : "none";
         tlRef.current = null;
         return;
       }
@@ -148,6 +151,14 @@ export function MenuOverlay() {
       }
 
       tlRef.current = tl;
+      // a locale/reduced flip can rebuild this while the menu is OPEN: land the
+      // rebuilt timeline in the open pose, not paused-at-zero (invisible menu,
+      // Lenis stopped, aria-expanded lying).
+      if (openRef.current) {
+        gsap.set(el, { autoAlpha: 1 });
+        el.style.pointerEvents = "auto";
+        tl.progress(1);
+      }
       // dev-only handle for deterministic visual QA (seek to a progress); harmless.
       if (process.env.NODE_ENV !== "production") {
         (window as unknown as { __menuTL?: gsap.core.Timeline }).__menuTL = tl;
@@ -158,12 +169,18 @@ export function MenuOverlay() {
         tlRef.current = null;
       };
     },
-    { scope: root, dependencies: [locale, reduced, fontsReady] },
+    // revertOnUpdate: without it @gsap/react DEFERS the cleanup to unmount, so a
+    // locale/reduced flip would stack timelines AND leave the .from() inline
+    // residue (opacity:0/visibility:hidden) for the next build to capture as its
+    // end values — panel and meta row permanently invisible after an EN/IT flip.
+    { scope: root, dependencies: [locale, reduced, fontsReady], revertOnUpdate: true },
   );
 
   // ── preview engine: crossfade between route scraps + pointer parallax ─────────
   // Event-driven tweens go through `contextSafe` so they belong to this context
   // (killed on dep-change/unmount — the async-tween lesson from HANDOFF).
+  const qxRef = useRef<((v: number) => void) | null>(null);
+  const qyRef = useRef<((v: number) => void) | null>(null);
   const { contextSafe } = useGSAP(
     () => {
       const scrap = scrapRef.current;
@@ -172,16 +189,26 @@ export function MenuOverlay() {
       if (reduced) return;
       const qx = gsap.quickTo(scrap, "x", { duration: 0.7, ease: "power3.out" });
       const qy = gsap.quickTo(scrap, "y", { duration: 0.7, ease: "power3.out" });
+      qxRef.current = qx;
+      qyRef.current = qy;
       const onMove = (e: PointerEvent) => {
         if (!openRef.current) return;
+        if (useUI.getState().reducedMotion) return; // live flip — closure is stale
         if (!window.matchMedia(FINE_HOVER).matches) return;
         qx((e.clientX / window.innerWidth - 0.5) * -18);
         qy((e.clientY / window.innerHeight - 0.5) * -12);
       };
       window.addEventListener("pointermove", onMove, { passive: true });
-      return () => window.removeEventListener("pointermove", onMove);
+      return () => {
+        window.removeEventListener("pointermove", onMove);
+        qxRef.current = null;
+        qyRef.current = null;
+      };
     },
-    { scope: root, dependencies: [reduced] },
+    // revertOnUpdate: the returned cleanup must run on the reduced flip too,
+    // or the pointermove listener stacks per flip and keeps gliding the scrap
+    // under reduced-motion.
+    { scope: root, dependencies: [reduced], revertOnUpdate: true },
   );
 
   const figures = () =>
@@ -198,6 +225,7 @@ export function MenuOverlay() {
     activePreview.current = id;
     const rest = all.filter((f) => f !== incoming);
     if (reduced) {
+      gsap.killTweensOf(all); // a leftover crossfade would out-render the set
       gsap.set(rest, { autoAlpha: 0 });
       gsap.set(incoming, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
       return;
@@ -215,13 +243,20 @@ export function MenuOverlay() {
     activePreview.current = "home";
     const all = figures();
     if (!all.length) return;
+    // an in-flight crossfade keeps rendering past a zero-duration set — kill it
+    // first or a quick close→reopen shows the stale scrap stacked over home.
+    gsap.killTweensOf(all);
     gsap.set(all, { autoAlpha: 0 });
     const home = all.find((f) => f.dataset.preview === "home");
     if (home) gsap.set(home, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
   });
 
   const resetScrap = contextSafe(() => {
-    if (scrapRef.current) gsap.to(scrapRef.current, { x: 0, y: 0, duration: 0.4, ease: "power2.out", overwrite: "auto" });
+    // through the SAME quickTo pair — a competing gsap.to with overwrite would
+    // kill the quickTo tweens, and a killed quickTo is permanently inert in
+    // gsap 3 (parallax dead after the first close + console.warn per move).
+    qxRef.current?.(0);
+    qyRef.current?.(0);
   });
 
   const hoverFine = () => window.matchMedia(FINE_HOVER).matches;
@@ -241,8 +276,13 @@ export function MenuOverlay() {
 
     openRef.current = open;
     if (open) {
-      setWarm(true); // mount the preview scraps from now on
-      resetPreview(); // resting scrap while still hidden (no visible jump)
+      // warm the scraps only where the panel can render (lg+): phones would
+      // download ~430KB of images into a display:none subtree.
+      if (window.matchMedia("(min-width: 64rem)").matches) setWarm(true);
+      // instant reset only while truly hidden — on a quick reopen mid-reverse
+      // the panel is still on screen: crossfade home instead of hard-cutting.
+      if ((gsap.getProperty(el, "opacity") as number) < 0.05) resetPreview();
+      else swapTo("home");
       prevFocus.current = document.activeElement as HTMLElement;
       gsap.set(el, { autoAlpha: 1 });
       el.style.pointerEvents = "auto";
@@ -278,6 +318,13 @@ export function MenuOverlay() {
         if (!f.length) return;
         const first = f[0];
         const last = f[f.length - 1];
+        // focus escaped the dialog (backdrop click blurs to <body>) — recapture,
+        // or Tab walks the page underneath the open modal.
+        if (!el.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+          return;
+        }
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last.focus();
@@ -342,6 +389,7 @@ export function MenuOverlay() {
       <div
         ref={panelRef}
         aria-hidden
+        data-portal
         className="pointer-events-none absolute inset-y-0 right-[clamp(2rem,7vw,8rem)] z-[5] hidden items-center lg:flex"
       >
         <div
@@ -390,7 +438,10 @@ export function MenuOverlay() {
         >
           {links.map((l) => (
             <button
-              key={l.id}
+              // keyed by locale: SplitText detaches React's text node, so an
+              // EN/IT flip must RECREATE the button for the re-split to see
+              // the new label (else the menu stays in the old language).
+              key={`${l.id}-${locale}`}
               onClick={() => go(l.id)}
               onPointerEnter={() => {
                 if (hoverFine()) swapTo(l.id as PreviewId);

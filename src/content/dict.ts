@@ -53,6 +53,8 @@ const sectionSchema = z.object({
     wip: z.string(),
     back: z.string(),
     next: z.string(),
+    /** Caption prefix on the case-study photographic detail cuts ("Detail 01"). */
+    detail: z.string(),
   }),
   coast: z.object({
     eyebrow: z.string(),
@@ -147,6 +149,7 @@ const en: Dict = {
     wip: "Work in progress",
     back: "All work",
     next: "Next project",
+    detail: "Detail",
   },
   coast: {
     eyebrow: "The coast",
@@ -257,6 +260,7 @@ const it: Dict = {
     wip: "In lavorazione",
     back: "Tutti i lavori",
     next: "Prossimo progetto",
+    detail: "Dettaglio",
   },
   coast: {
     eyebrow: "La costa",

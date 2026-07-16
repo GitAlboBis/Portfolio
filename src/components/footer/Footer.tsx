@@ -60,7 +60,11 @@ export function Footer() {
       window.addEventListener("tide-touch", onTide);
       return () => {
         window.removeEventListener("tide-touch", onTide);
+        // kill freezes the current inline transform — clearProps puts the
+        // period back on the baseline (a reduced flip mid-hop would otherwise
+        // strand it displaced forever; TideEbb's cleanup pattern)
         hop?.kill();
+        gsap.set(dot, { clearProps: "y" });
       };
     },
     { scope: dotRef, dependencies: [reduced], revertOnUpdate: true },

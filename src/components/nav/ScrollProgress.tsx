@@ -58,6 +58,9 @@ export function ScrollProgress() {
       window.removeEventListener("submerge", onSubmerge);
       window.removeEventListener("surface-break", flare);
       window.removeEventListener("tide-touch", flare);
+      // never leave a phase behind: detaching cancels the flare's own
+      // restore-timeout, and under reduced no event will ever reset it
+      setPhase("day");
     };
   }, [reduced]);
 

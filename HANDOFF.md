@@ -1,6 +1,32 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-14** (branch `feat/hero-water-flock-realism`, NON ancora su main: acqua hero fotorealistica + murmurazione viva). This is the "continue here" doc.
+> Last updated: **2026-07-16** (menu-portale + warm-up progressivo + bump deps, merged su main). This is the "continue here" doc.
+
+---
+
+## ⏯ CONTINUA DA QUI — sessione 2026-07-16 (MENU-PORTALE + WARM-UP, merged @ `d9a5cf5`)
+
+Sessione da un altro PC (sync `git pull` dei 73 commit del 14-15). Mandato: aggiornare e continuare il miglioramento usando `npx skills find`.
+
+| Cosa | Commit |
+|---|---|
+| **Bump deps**: next 16.2.10, react 19.2.7, lenis 1.3.25, tailwind 4.3.2, postprocessing 6.39.2, simple-icons 16.26.0. **three FERMO a 0.184** (drei/fiber si dedupano lì; bump renderer da gated a parte). **TS 7 nativo NON adottato** (rischio>valore). | `463fc90` |
+| **Skill installate** (`npx skills add`, project-level): 8 GSAP ufficiali (greensock/gsap-skills), 5 Emil Kowalski (emil-design-eng, apple-design, improve/review-animations, find-animation-opportunities), 4 three.js (cloudai-x: shaders/animation/interaction/postprocessing), ai-video-generation | `74c73e1` |
+| **IL MENU-PORTALE** (candidato #1 dei round): scrap fotografico TornEdge nel MenuOverlay che crossfade-a per rotta al hover/focus (blur-mask 9px, enter 0.42s/exit 0.26s), parallasse quickTo, caption `nav.preview` EN/IT su scrim, resting = mare all'ora d'oro; trigger hamburger anche desktop (pill, additivo) | `41efcd9` |
+| **WARM-UP PROGRESSIVO** (segnalazione Alberto "non carica il video scroll"): `src/lib/warm.ts` + `<Warmup/>` nel layout — post `ui.loaded`+`load`+idle, coda a priorità bassa porta in HTTP cache chunk R3F (gallery/tech-cloud/murmuration/runway), film scrub (coast/ascent/rock, variante 768px) e still (works/portale), rotta corrente prima + hop probabili; dedupe, skip Save-Data/2G, video skippati in reduced. QA: 12 item senza scroll, coast `readyState=4` in 19ms. NON tocca il primo paint (preloader resta sui font). | `e44cb9a` |
+| **Review avversariale portale** (workflow 41 agenti, 5 lenti × 2 confutatori con repro su gsap 3.15): 18 grezzi → 15 confermati (9 unici) → tutti fixati | `56e9811` |
+
+**Lezioni NUOVE (hardening, da non regredire):**
+- ⚠ **quickTo + tween concorrente con `overwrite` = quickTo PERMANENTEMENTE inerte** (gsap 3: `_op` mai ripulito, `"x not eligible for reset"` console.warn a ogni chiamata anche in prod). Reset SEMPRE attraverso la stessa coppia quickTo (`qx(0)`), mai `gsap.to` sugli stessi prop.
+- ⚠ **SplitText stacca i text node di React**: il flip EN/IT non ritraduce gli split target — servono `key={locale}` sui bottoni splittati (React li ricrea) + `revertOnUpdate`.
+- ⚠ **`.from()` residuo al rebuild**: senza `revertOnUpdate` gli inline style (`opacity:0; visibility:hidden`) del vecchio build diventano gli END VALUES del nuovo → elementi invisibili per sempre dopo un flip locale/reduced.
+- ⚠ **I rebuild degli overlay devono rispettare `openRef`**: un flip reduced/locale a menu aperto altrimenti nasconde l'overlay con Lenis fermo e `aria-expanded` bugiardo.
+- ⚠ **`<img>` in subtree `display:none` viene comunque scaricata**: gate il MOUNT sul breakpoint (`min-width: 64rem`), non fidarsi di `loading="lazy"`.
+- Il menu aperto ora **idle-a la sim WebGPU** (gate rAF su `menuOpen`, render-only, G4 intatto) e **pausa il video mare**.
+
+**QA probe (untracked, root):** `_menuportal.mjs` (stati base desktop/mobile/reduced), `_menuportal2.mjs` (regressioni review: parallasse post-reopen, flip IT, reopen rapido, mobile 0 download), `_warm_qa.mjs` (cache pre-scroll + readyState), `_routesweep.mjs` (5 route × 2 viewport console-clean — ALL CLEAN post-bump).
+
+**▶ Prossimi round** (invariati dall'elenco sotto, il #1 è FATTO): ② case study vivi ③ beat drone (11 clip Drive) ④ **Works gallery DoF — SBLOCCATO** (le still reali ci sono) ⑤ estensioni ecosistema. 🔵 Restano su Alberto: SerSan ×2, `NEXT_PUBLIC_SITE_URL`, feel-review.
 
 ---
 

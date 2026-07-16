@@ -31,12 +31,23 @@ const VERT = /* glsl */ `
 // pull toward the slide's mood so the series stays one system) or the shared
 // generative artwork per slug (src/webgl/artwork.ts) while a still is absent/
 // loading. Cross-faded by depth; out-of-focus planes rest desaturated.
+//
+// DEPTH OF FIELD (the rack-focus pass): uBlur (0 = on the focal plane, 1 = far
+// out of focus) drives a photographic defocus — a 5-tap disk blur riding a mip
+// bias (trilinear does the base gaussian, the taps kill the digital-zoom look),
+// a per-channel radial offset (the chromatic fringe real lenses leave on
+// defocused edges), an EDGE FEATHER that grows with defocus (a blurred plane
+// must not have crisp quad borders — this sells the whole illusion), and grain
+// that dissolves with the focus (grain is a property of the sharp image).
+// At uBlur = 0 every term collapses to the sharp sample: the focused look is
+// bit-identical to the pre-DoF shader.
 const FRAG = /* glsl */ `
   varying vec2 vUv;
   uniform vec3 uBase;
   uniform vec3 uA;
   uniform vec3 uB;
   uniform float uOpacity;
+  uniform float uBlur;
   uniform float uTime;
   uniform float uPattern;
   uniform float uSeed;
@@ -54,20 +65,63 @@ const FRAG = /* glsl */ `
       float rx = 1.5757576 / max(uTexAspect, 1e-3);
       if (rx < 1.0) { tuv.x = 0.5 + (tuv.x - 0.5) * rx; }
       else { tuv.y = 0.5 + (tuv.y - 0.5) / rx; }
-      c = texture2D(uTex, tuv).rgb;
+
+      float bias = uBlur * 3.2;                  // mip climb — base blur
+      float rad  = uBlur * 0.030;                // disk radius (uv)
+      vec2  ca   = (vUv - 0.5) * uBlur * 0.012;  // chromatic fringe, radial
+      vec2 offs[5];
+      offs[0] = vec2(0.0, 0.0);
+      offs[1] = vec2( 0.94,  0.33);
+      offs[2] = vec2(-0.33,  0.94);
+      offs[3] = vec2(-0.94, -0.33);
+      offs[4] = vec2( 0.33, -0.94);
+      vec3 acc = vec3(0.0);
+      for (int i = 0; i < 5; i++) {
+        vec2 p = tuv + offs[i] * rad;
+        acc.r += texture2D(uTex, p + ca, bias).r;
+        acc.g += texture2D(uTex, p, bias).g;
+        acc.b += texture2D(uTex, p - ca, bias).b;
+      }
+      c = acc / 5.0;
       // marry the photograph to the slide's mood (duotone pull, subtle)
       float lum = dot(c, vec3(0.299, 0.587, 0.114));
       c = mix(c, mix(uBase, uA, smoothstep(0.12, 0.88, lum)), 0.14);
     } else {
       c = artwork(vUv, uPattern, uSeed, uTime, uBase, uA, uB);
+      // defocus impression for the generative artwork: flatten toward the
+      // mood field (no texture to tap-blur — contrast falls out of focus)
+      c = mix(c, mix(uBase, (uA + uB) * 0.5, 0.35), uBlur * 0.45);
     }
     // depth focus: opacity doubles as the focus signal (1 = centred).
     float gray = dot(c, vec3(0.299, 0.587, 0.114));
     c = mix(mix(vec3(gray), uBase, 0.25), c, 0.4 + 0.6 * uOpacity);
     float v = smoothstep(1.15, 0.25, distance(vUv, vec2(0.5)));
     c *= mix(0.92, 1.0, v);
-    c += (aw_hash(vUv * vec2(820.0, 600.0) + fract(uTime)) - 0.5) * 0.03;
-    gl_FragColor = vec4(clamp(c, 0.0, 1.0), uOpacity);
+    c += (aw_hash(vUv * vec2(820.0, 600.0) + fract(uTime)) - 0.5) * 0.03 * (1.0 - 0.7 * uBlur);
+    // edge feather — defocused planes melt at their borders (0 at focus)
+    float fe = uBlur * 0.12 + 1e-4;
+    float edge = smoothstep(0.0, fe, vUv.x) * smoothstep(1.0, 1.0 - fe, vUv.x)
+               * smoothstep(0.0, fe, vUv.y) * smoothstep(1.0, 1.0 - fe, vUv.y);
+    gl_FragColor = vec4(clamp(c, 0.0, 1.0), uOpacity * edge);
+  }
+`;
+
+// Ghost-title billboard: canvas-texture outline type at scene depth. The DoF
+// pass blurs it with the same focal grammar as the planes (3-tap + mip bias —
+// outline strokes need less machinery than photographs).
+const FRAG_TITLE = /* glsl */ `
+  varying vec2 vUv;
+  uniform sampler2D uMap;
+  uniform float uOpacity;
+  uniform float uBlur;
+  void main(){
+    float bias = uBlur * 3.0;
+    float rad = uBlur * 0.010;
+    vec4 t = texture2D(uMap, vUv, bias);
+    t += texture2D(uMap, vUv + vec2(rad, rad * 2.4), bias);
+    t += texture2D(uMap, vUv - vec2(rad, rad * 2.4), bias);
+    t /= 3.0;
+    gl_FragColor = vec4(t.rgb, t.a * uOpacity);
   }
 `;
 
@@ -168,6 +222,7 @@ function Scene({
   const prevActive = useRef(-1);
   const lastCamZ = useRef(VIEW);
   const bgRef = useRef<THREE.Mesh>(null);
+  const meshRefs = useRef<(THREE.Mesh | null)[]>([]);
 
   // 1px placeholder so uTex is always a valid binding (uHasTex gates sampling)
   const placeholderTex = useMemo(() => {
@@ -190,6 +245,7 @@ function Scene({
               uA: { value: new THREE.Color(w.mood.blob1) },
               uB: { value: new THREE.Color(w.mood.blob2) },
               uOpacity: { value: 0 },
+              uBlur: { value: 0 },
               uTime: { value: 0 },
               uPattern: { value: PATTERN_BY_SLUG[w.slug] ?? 3 },
               uSeed: { value: i * 1.7 + 0.4 },
@@ -253,7 +309,8 @@ function Scene({
 
   // Depth titles: one canvas-texture billboard per project, redrawn once the
   // display font is really loaded (same pattern as the murmuration glyph).
-  const [titleMats, setTitleMats] = useState<THREE.MeshBasicMaterial[] | null>(null);
+  // ShaderMaterial (not MeshBasic) so the DoF pass can defocus the type too.
+  const [titleMats, setTitleMats] = useState<THREE.ShaderMaterial[] | null>(null);
   useEffect(() => {
     const canvases = works.map((w) => {
       const c = document.createElement("canvas");
@@ -262,27 +319,39 @@ function Scene({
       drawTitle(c, w.title);
       return c;
     });
-    const mats = canvases.map((c) => {
+    const textures = canvases.map((c) => {
       const tex = new THREE.CanvasTexture(c);
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.anisotropy = 4;
-      return new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false });
+      return tex;
     });
+    const mats = textures.map(
+      (tex) =>
+        new THREE.ShaderMaterial({
+          vertexShader: VERT,
+          fragmentShader: FRAG_TITLE,
+          transparent: true,
+          depthWrite: false,
+          uniforms: {
+            uMap: { value: tex },
+            uOpacity: { value: 0 },
+            uBlur: { value: 0 },
+          },
+        }),
+    );
     let alive = true;
     document.fonts?.ready.then(() => {
       if (!alive) return;
       canvases.forEach((c, i) => {
         drawTitle(c, works[i].title);
-        if (mats[i].map) (mats[i].map as THREE.CanvasTexture).needsUpdate = true;
+        textures[i].needsUpdate = true;
       });
     });
     setTitleMats(mats);
     return () => {
       alive = false;
-      mats.forEach((m) => {
-        m.map?.dispose();
-        m.dispose();
-      });
+      textures.forEach((t) => t.dispose());
+      mats.forEach((m) => m.dispose());
     };
   }, [works]);
 
@@ -313,6 +382,12 @@ function Scene({
       const target = -i * GAP + VIEW;
       const dz = Math.abs(camera.position.z - target);
       materials[i].uniforms.uOpacity.value = 1 - smooth(0, GAP * 0.95, dz);
+      // rack focus: a small dead-zone keeps the focal plane pin-sharp, then
+      // defocus climbs with distance from it (drives blur/fringe/feather)
+      const blur = smooth(GAP * 0.15, GAP * 1.1, dz);
+      materials[i].uniforms.uBlur.value = blur;
+      // defocused planes swell slightly (background bokeh breathes outward)
+      meshRefs.current[i]?.scale.setScalar(1 + blur * 0.045);
       materials[i].uniforms.uTime.value = state.clock.elapsedTime;
       if (dz < bestD) {
         bestD = dz;
@@ -333,14 +408,17 @@ function Scene({
     }
 
     // depth titles: swell as the camera approaches, snuff fast once passed —
-    // the type is always BETWEEN you and the next work, never on the glass
+    // the type is always BETWEEN you and the next work, never on the glass.
+    // The type obeys the same focal plane: sharpest just before the camera
+    // reaches it, defocused while still deep in the scene.
     if (titleMats)
       for (let i = 0; i < titleMats.length; i++) {
         const rel = camera.position.z - (-(i * GAP) - GAP * 0.55);
-        titleMats[i].opacity =
+        titleMats[i].uniforms.uOpacity.value =
           rel >= 0
             ? 0.5 * (1 - smooth(0.4, GAP * 2.8, rel))
             : 0.5 * (1 - smooth(0, GAP * 0.4, -rel));
+        titleMats[i].uniforms.uBlur.value = smooth(GAP * 0.5, GAP * 2.4, Math.abs(rel));
       }
 
     if (best !== prevActive.current) {
@@ -357,6 +435,9 @@ function Scene({
       {works.map((w, i) => (
         <mesh
           key={w.slug}
+          ref={(m) => {
+            meshRefs.current[i] = m;
+          }}
           position={[((i % 2) * 2 - 1) * 1.25, 0, -i * GAP]}
           /* a slight inward tilt gives each plane real dimensionality in the dive */
           rotation={[0, ((i % 2) * 2 - 1) * -0.09, 0]}

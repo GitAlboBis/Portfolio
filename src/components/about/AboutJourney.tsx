@@ -31,8 +31,19 @@ export function AboutJourney() {
     <main id="main" className="relative min-h-dvh bg-paper">
       {/* Minimal header (no in-page section nav — those anchors live on home). */}
       <header className="fixed inset-x-0 top-0 z-50">
+        {/* paper scrim — the chrome must stay legible over the photo strips
+            below (paper-on-paper = invisible at rest; same as WorkCaseStudy) */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{
+            height: "calc(var(--nav-h) * 1.6)",
+            background:
+              "linear-gradient(to bottom, var(--color-paper) 38%, color-mix(in oklab, var(--color-paper) 55%, transparent) 68%, transparent)",
+          }}
+        />
         <nav
-          className="container-edit flex items-center justify-between"
+          className="container-edit relative flex items-center justify-between"
           style={{ height: "var(--nav-h)" }}
         >
           <Link

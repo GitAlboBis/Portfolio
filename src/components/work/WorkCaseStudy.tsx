@@ -4,8 +4,9 @@ import * as React from "react";
 import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
-import { works } from "@/content/works";
+import { works, worksConfirmed } from "@/content/works";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { DUR, EASE } from "@/lib/motion";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Appear } from "@/components/motion/Appear";
@@ -13,27 +14,65 @@ import { CountUp } from "@/components/motion/CountUp";
 import { Parallax } from "@/components/motion/Parallax";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
-import { TornEdge } from "@/components/atmosphere/TornEdge";
+import { DetailCut } from "@/components/work/DetailCut";
 import { RollLink } from "@/components/motion/RollLink";
 
 /**
  * WorkCaseStudy — the /work/[slug] case-study page for a CONFIRMED project. All copy
  * is the confirmed Problem → Action → Result content from works.ts (sourced from
  * docs/07-PROJECTS.md; no invented metrics). Bilingual via the Localized study
- * fields + dict labels. Golden Hour editorial layout reusing the motion primitives.
+ * fields + dict labels.
+ *
+ * THE PHOTO ESSAY: the page treats its one project still like a magazine feature
+ * treats the shoot — the wide shot opens the piece (full-bleed banner), then two
+ * DETAIL CROPS of the same photograph punctuate the chapters, each washed toward
+ * one of the project's mood colors (DetailCut). Chapters are numbered, their
+ * labels ride sticky beside the reading column, the stack settles in like dealt
+ * cards, and the metrics count up at display scale.
  */
+
+/* Art direction per still — where each detail crop looks and how tight.
+   (Focal = object-position AND zoom origin; values chosen per photograph.) */
+const CUTS: Record<string, [{ focal: string; zoom: number }, { focal: string; zoom: number }]> = {
+  badante24h: [
+    { focal: "30% 32%", zoom: 2.1 },
+    { focal: "72% 62%", zoom: 2.5 },
+  ],
+  "doit-voice-ai-agent": [
+    { focal: "22% 55%", zoom: 2.2 },
+    { focal: "70% 40%", zoom: 2.6 },
+  ],
+  "agricultural-supply-chain": [
+    { focal: "25% 65%", zoom: 2.0 },
+    { focal: "75% 30%", zoom: 2.4 },
+  ],
+};
+const CUTS_DEFAULT: (typeof CUTS)[string] = [
+  { focal: "30% 40%", zoom: 2.0 },
+  { focal: "70% 60%", zoom: 2.4 },
+];
+
 export function WorkCaseStudy({ slug }: { slug: string }) {
   const t = useDict();
   const locale = useUI((s) => s.locale);
+  const toggleLocale = useUI((s) => s.toggleLocale);
   const work = works.find((w) => w.slug === slug);
   if (!work || !work.study) return null;
   const s = work.study;
   const tx = (l: { en: string; it: string }) => l[locale];
 
-  const Block = ({ label, body }: { label: string; body: string }) => (
+  const confirmedIdx = worksConfirmed.findIndex((w) => w.slug === slug);
+  const indexLabel = String(confirmedIdx + 1).padStart(2, "0");
+  const cuts = CUTS[slug] ?? CUTS_DEFAULT;
+
+  const Block = ({ n, label, body }: { n: number; label: string; body: string }) => (
     <div className="grid-edit border-t border-[var(--color-rule)] py-[var(--block-y)]">
       <div className="col-meta mb-3 lg:mb-0">
-        <p className="t-eyebrow eyebrow-tick">{label}</p>
+        {/* the chapter label rides beside the reading column (lg+ only) */}
+        <div className="lg:sticky lg:top-[calc(var(--nav-h)+1.5rem)]">
+          <p className="t-index mb-2">{String(n).padStart(2, "0")}</p>
+          <p className="t-eyebrow eyebrow-tick">{label}</p>
+        </div>
       </div>
       <div className="col-read">
         <ScrollWords as="p" className="t-lead">
@@ -46,8 +85,19 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
   return (
     <main id="main" className="relative min-h-dvh bg-paper">
       <header className="fixed inset-x-0 top-0 z-50">
+        {/* paper scrim — the chrome must stay legible while the photo essay and
+            the night band scroll beneath it (paper-on-paper = invisible at rest) */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{
+            height: "calc(var(--nav-h) * 1.6)",
+            background:
+              "linear-gradient(to bottom, var(--color-paper) 38%, color-mix(in oklab, var(--color-paper) 55%, transparent) 68%, transparent)",
+          }}
+        />
         <nav
-          className="container-edit flex items-center justify-between"
+          className="container-edit relative flex items-center justify-between"
           style={{ height: "var(--nav-h)" }}
         >
           <Link
@@ -56,13 +106,22 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
           >
             Alberto&nbsp;Tuveri
           </Link>
-          <RollLink
-            as={Link}
-            href="/#works"
-            prefix="←"
-            label={t.works.back}
-            className="t-meta transition-colors duration-300 hover:text-ember-ink"
-          />
+          <div className="flex items-center gap-5 sm:gap-7">
+            <button
+              onClick={toggleLocale}
+              className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
+            >
+              {locale === "en" ? "IT" : "EN"}
+              <span className="sr-only"> — {t.nav.langToggle}</span>
+            </button>
+            <RollLink
+              as={Link}
+              href="/#works"
+              prefix="←"
+              label={t.works.back}
+              className="t-meta transition-colors duration-300 hover:text-ember-ink"
+            />
+          </div>
         </nav>
       </header>
 
@@ -70,12 +129,26 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
           caustics on the paper, dissolving before the metrics. Decorative,
           absolute-fill (zero CLS); no-WebGL falls back to bg-paper. */}
       <section
-        className="relative"
+        className="relative overflow-hidden"
         style={{ paddingBlock: "calc(var(--nav-h) + var(--section-y))" }}
       >
         <LazyOnView>
           <ShallowWater />
         </LazyOnView>
+        {/* the study's index among the confirmed works — runway ghost grammar */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-[2vw] top-[max(var(--nav-h),6vh)] select-none"
+        >
+          <Parallax from={30} to={-30}>
+            <span
+              className="font-display font-bold leading-none [font-size:clamp(7rem,17vw,15rem)]"
+              style={{ color: "color-mix(in oklab, var(--color-ink) 5%, transparent)" }}
+            >
+              {indexLabel}
+            </span>
+          </Parallax>
+        </div>
         <div className="container-edit grid-edit relative">
           <Appear as="div" className="col-meta mb-6 lg:mb-0">
             <p className="t-eyebrow eyebrow-tick">{work.org}</p>
@@ -93,17 +166,19 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
         </div>
       </section>
 
-      {/* Editorial banner — the project's still (same art the galleries carry),
-          torn open in the paper with a slow parallax window. Decorative. */}
+      {/* The wide shot — the still opens the essay, torn into the paper. */}
       {work.textureSrc ? (
-        <figure aria-hidden className="relative mb-[var(--section-y)] h-[46vh] overflow-hidden">
-          <Parallax from={-30} to={30} className="absolute inset-x-0 -inset-y-[12%]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={work.textureSrc} alt="" className="h-full w-full object-cover" />
-          </Parallax>
-          <TornEdge side="top" seed={4} />
-          <TornEdge side="bottom" seed={9} />
-        </figure>
+        <DetailCut
+          src={work.textureSrc}
+          focal="50% 42%"
+          zoom={1.08}
+          tint={work.mood.blob1}
+          caption={`${work.org} · ${work.year}`}
+          seeds={[4, 9]}
+          variant="full"
+          height="48svh"
+          className="mb-[var(--section-y)]"
+        />
       ) : null}
 
       {/* Metrics */}
@@ -117,19 +192,50 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
             {s.metrics.map((m, i) => (
               <div key={i}>
                 {/* the number counts to its value as it enters (0 counts DOWN — arrived at) */}
-                <CountUp value={m.value} className="font-display text-5xl font-semibold text-ember" />
-                <p className="t-meta mt-2">{tx(m.label)}</p>
+                <CountUp
+                  value={m.value}
+                  className="font-display font-semibold leading-none text-ember [font-size:clamp(3rem,6vw,4.5rem)]"
+                />
+                <p className="t-meta mt-3">{tx(m.label)}</p>
               </div>
             ))}
           </Appear>
         </section>
       ) : null}
 
-      {/* Problem → Action → Result */}
+      {/* Problem → Action → Result, punctuated by detail crops of the still */}
+      <section className="container-edit">
+        <Block n={1} label={t.works.problem} body={tx(s.problem)} />
+      </section>
+      {work.textureSrc ? (
+        <DetailCut
+          src={work.textureSrc}
+          focal={cuts[0].focal}
+          zoom={cuts[0].zoom}
+          tint={work.mood.blob1}
+          caption={`${t.works.detail} 01 — ${work.title}`}
+          seeds={[13, 21]}
+          variant="inset"
+          height="min(52vh, 30rem)"
+        />
+      ) : null}
+      <section className="container-edit">
+        <Block n={2} label={t.works.action} body={tx(s.action)} />
+      </section>
+      {work.textureSrc ? (
+        <DetailCut
+          src={work.textureSrc}
+          focal={cuts[1].focal}
+          zoom={cuts[1].zoom}
+          tint={work.mood.blob2}
+          caption={`${t.works.detail} 02 — ${work.title}`}
+          seeds={[27, 35]}
+          variant="full"
+          height="52svh"
+        />
+      ) : null}
       <section className="container-edit pb-[var(--section-y)]">
-        <Block label={t.works.problem} body={tx(s.problem)} />
-        <Block label={t.works.action} body={tx(s.action)} />
-        <Block label={t.works.result} body={tx(s.result)} />
+        <Block n={3} label={t.works.result} body={tx(s.result)} />
       </section>
 
       {/* Stack + links */}
@@ -138,13 +244,7 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
           <div className="col-meta mb-4 lg:mb-0">
             <p className="t-eyebrow eyebrow-tick">{t.works.stackLabel}</p>
           </div>
-          <div className="col-read flex flex-wrap gap-2">
-            {work.stack.map((tech) => (
-              <span key={tech} className="glass rounded-full px-3 py-1 t-meta normal-case">
-                {tech}
-              </span>
-            ))}
-          </div>
+          <StackChips stack={work.stack} />
         </div>
         {s.links?.length ? (
           <div className="grid-edit mt-8">
@@ -180,6 +280,47 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
         </div>
       </section>
     </main>
+  );
+}
+
+/**
+ * StackChips — the stack settles in like dealt cards: each chip rises with a
+ * slight alternating rotation and straightens as it lands (once, on the shared
+ * ScrollTrigger). Chips are static information — no hover affordance (nothing
+ * pretends to be clickable). Reduced-motion: fully visible, no motion.
+ */
+function StackChips({ stack }: { stack: string[] }) {
+  const reduced = useUI((s) => s.reducedMotion);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const root = ref.current;
+      if (!root || reduced || !root.children.length) return;
+      gsap.from(root.children, {
+        y: 16,
+        autoAlpha: 0,
+        rotation: (i: number) => ((i % 3) - 1) * 2.4,
+        duration: DUR.swell,
+        ease: EASE.tide,
+        stagger: 0.045,
+        clearProps: "transform,opacity,visibility",
+        scrollTrigger: { trigger: root, start: "top 88%", once: true },
+      });
+    },
+    // revertOnUpdate: a live reduced-motion flip must not leave chips hidden
+    // by the from()'s inline styles (from-residue lesson).
+    { scope: ref, dependencies: [reduced], revertOnUpdate: true },
+  );
+
+  return (
+    <div ref={ref} className="col-read flex flex-wrap gap-2">
+      {stack.map((tech) => (
+        <span key={tech} className="glass rounded-full px-3 py-1 t-meta normal-case">
+          {tech}
+        </span>
+      ))}
+    </div>
   );
 }
 

@@ -28,10 +28,23 @@ import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { gsap, SplitText, useGSAP } from "@/lib/gsap";
 import { MenuToggle } from "@/components/nav/MenuToggle";
+import { TornEdge } from "@/components/atmosphere/TornEdge";
 import { curtainPath } from "@/lib/curtain";
 
 type Lenis = { scrollTo: (t: HTMLElement) => void; stop: () => void; start: () => void };
 const lenis = () => (window as unknown as { __lenis?: Lenis }).__lenis;
+
+/** The portal previews: one photographic scrap per route the menu can reach.
+ *  `home` doubles as the resting state (the site itself, before any hover). */
+const PREVIEWS = [
+  { id: "home", src: "/coast/sea-poster.webp" },
+  { id: "about", src: "/coast/masua-cliff.webp" },
+  { id: "works", src: "/works/badante24h.webp" },
+  { id: "contact", src: "/coast/night-sea.webp" },
+] as const;
+type PreviewId = (typeof PREVIEWS)[number]["id"];
+
+const FINE_HOVER = "(hover: hover) and (pointer: fine)";
 
 export function MenuOverlay() {
   const t = useDict();
@@ -45,15 +58,31 @@ export function MenuOverlay() {
   const nightRef = useRef<SVGPathElement>(null);
   const linksRef = useRef<HTMLElement>(null);
   const metaRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const scrapRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   const prevFocus = useRef<HTMLElement | null>(null);
   const [fontsReady, setFontsReady] = useState(false);
+  // Preview images mount only once the menu has actually opened (no cost on load).
+  const [warm, setWarm] = useState(false);
+  const activePreview = useRef<PreviewId>("home");
+  const openRef = useRef(false);
+  // the programmatic focus on open must NOT swap the portal — the resting scrap
+  // should breathe until the user actually moves.
+  const justOpened = useRef(false);
 
   const links = [
     { id: "about", label: t.nav.about },
     { id: "works", label: t.nav.work },
     { id: "contact", label: t.nav.contact },
   ];
+
+  const previewCaption: Record<PreviewId, string> = {
+    home: t.nav.preview.home,
+    about: t.nav.preview.about,
+    works: t.nav.preview.works,
+    contact: t.nav.preview.contact,
+  };
 
   useEffect(() => {
     let alive = true;
@@ -112,6 +141,11 @@ export function MenuOverlay() {
           "-=0.24",
         )
         .from(meta, { y: 18, autoAlpha: 0, duration: 0.5, stagger: 0.07, ease: "power2.out" }, "-=0.40");
+      // the portal panel rises with the meta row (desktop only — it's display:none
+      // below lg, so the tween is a no-op there).
+      if (panelRef.current) {
+        tl.from(panelRef.current, { autoAlpha: 0, y: 26, duration: 0.55, ease: "power3.out" }, "-=0.55");
+      }
 
       tlRef.current = tl;
       // dev-only handle for deterministic visual QA (seek to a progress); harmless.
@@ -127,22 +161,99 @@ export function MenuOverlay() {
     { scope: root, dependencies: [locale, reduced, fontsReady] },
   );
 
+  // ── preview engine: crossfade between route scraps + pointer parallax ─────────
+  // Event-driven tweens go through `contextSafe` so they belong to this context
+  // (killed on dep-change/unmount — the async-tween lesson from HANDOFF).
+  const { contextSafe } = useGSAP(
+    () => {
+      const scrap = scrapRef.current;
+      if (!scrap) return;
+      gsap.set(scrap, { rotation: -1.75 });
+      if (reduced) return;
+      const qx = gsap.quickTo(scrap, "x", { duration: 0.7, ease: "power3.out" });
+      const qy = gsap.quickTo(scrap, "y", { duration: 0.7, ease: "power3.out" });
+      const onMove = (e: PointerEvent) => {
+        if (!openRef.current) return;
+        if (!window.matchMedia(FINE_HOVER).matches) return;
+        qx((e.clientX / window.innerWidth - 0.5) * -18);
+        qy((e.clientY / window.innerHeight - 0.5) * -12);
+      };
+      window.addEventListener("pointermove", onMove, { passive: true });
+      return () => window.removeEventListener("pointermove", onMove);
+    },
+    { scope: root, dependencies: [reduced] },
+  );
+
+  const figures = () =>
+    root.current ? Array.from(root.current.querySelectorAll<HTMLElement>(".menu-preview")) : [];
+
+  /** Crossfade to a preview. `fast` = keyboard-driven (no cinematic blur pull). */
+  const swapTo = contextSafe((id: PreviewId, fast = false) => {
+    if (activePreview.current === id) return;
+    const all = figures();
+    const incoming = all.find((f) => f.dataset.preview === id);
+    // figures may not be mounted yet (first open) — bail WITHOUT burning the
+    // active id, or the next hover would be swallowed by the same-id guard.
+    if (!incoming) return;
+    activePreview.current = id;
+    const rest = all.filter((f) => f !== incoming);
+    if (reduced) {
+      gsap.set(rest, { autoAlpha: 0 });
+      gsap.set(incoming, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
+      return;
+    }
+    // blur bridges the two states so the crossfade reads as ONE transformation.
+    if ((gsap.getProperty(incoming, "opacity") as number) < 0.05) {
+      gsap.set(incoming, fast ? { scale: 1, filter: "blur(0px)" } : { scale: 1.05, filter: "blur(9px)" });
+    }
+    gsap.to(incoming, { autoAlpha: 1, scale: 1, filter: "blur(0px)", duration: fast ? 0.18 : 0.42, ease: "power3.out", overwrite: "auto" });
+    gsap.to(rest, { autoAlpha: 0, duration: fast ? 0.12 : 0.26, ease: "power2.out", overwrite: "auto" });
+  });
+
+  /** Instant reset to the resting scrap (used while the overlay is hidden). */
+  const resetPreview = contextSafe(() => {
+    activePreview.current = "home";
+    const all = figures();
+    if (!all.length) return;
+    gsap.set(all, { autoAlpha: 0 });
+    const home = all.find((f) => f.dataset.preview === "home");
+    if (home) gsap.set(home, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
+  });
+
+  const resetScrap = contextSafe(() => {
+    if (scrapRef.current) gsap.to(scrapRef.current, { x: 0, y: 0, duration: 0.4, ease: "power2.out", overwrite: "auto" });
+  });
+
+  const hoverFine = () => window.matchMedia(FINE_HOVER).matches;
+
+  // dev-only handle for deterministic visual QA of the preview crossfade.
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production") {
+      (window as unknown as { __menuSwap?: typeof swapTo }).__menuSwap = swapTo;
+    }
+  });
+
   // ── open / close control + side effects ───────────────────────────────────────
   useEffect(() => {
     const el = root.current;
     if (!el) return;
     const tl = tlRef.current;
 
+    openRef.current = open;
     if (open) {
+      setWarm(true); // mount the preview scraps from now on
+      resetPreview(); // resting scrap while still hidden (no visible jump)
       prevFocus.current = document.activeElement as HTMLElement;
       gsap.set(el, { autoAlpha: 1 });
       el.style.pointerEvents = "auto";
       lenis()?.stop();
       if (tl) tl.timeScale(1).play(); // reduced-motion → no tl, the set above is enough
       const first = el.querySelector<HTMLElement>(".menu-link");
+      justOpened.current = true;
       requestAnimationFrame(() => first?.focus());
     } else {
       lenis()?.start();
+      resetScrap(); // parallax back to rest while the curtain lifts
       if (tl) tl.timeScale(1.35).reverse();
       else {
         gsap.set(el, { autoAlpha: 0 });
@@ -150,6 +261,7 @@ export function MenuOverlay() {
       }
       prevFocus.current?.focus?.();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // ── Esc to close + focus trap while open ──────────────────────────────────────
@@ -225,6 +337,40 @@ export function MenuOverlay() {
         <path ref={nightRef} d="M0 0H0Z" fill="var(--color-night)" />
       </svg>
 
+      {/* THE PORTAL — a photographic scrap per route, torn out of the night.
+          Decorative (aria-hidden), desktop only, parallax-follows the pointer. */}
+      <div
+        ref={panelRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-[clamp(2rem,7vw,8rem)] z-[5] hidden items-center lg:flex"
+      >
+        <div
+          ref={scrapRef}
+          className="relative aspect-[3/2] w-[min(38vw,560px)] overflow-hidden bg-night shadow-[0_36px_90px_rgb(0_0_0/0.5)]"
+        >
+          <TornEdge side="top" seed={7} color="var(--color-night)" />
+          <TornEdge side="bottom" seed={11} color="var(--color-night)" />
+          {warm &&
+            PREVIEWS.map((p) => (
+              <figure
+                key={p.id}
+                data-preview={p.id}
+                className="menu-preview absolute inset-0 m-0"
+                style={{ opacity: p.id === "home" ? 1 : 0 }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.src} alt="" decoding="async" draggable={false} className="h-full w-full object-cover" />
+                <figcaption
+                  className="absolute inset-x-0 bottom-0 px-5 pb-4 pt-12"
+                  style={{ background: "linear-gradient(to top, rgb(16 9 12 / 0.62), transparent)" }}
+                >
+                  <span className="t-meta text-paper">{previewCaption[p.id]}</span>
+                </figcaption>
+              </figure>
+            ))}
+        </div>
+      </div>
+
       {/* close (hamburger ⇄ X), top-right at nav height */}
       <div
         className="absolute right-[var(--gutter)] z-20 flex items-center"
@@ -234,11 +380,28 @@ export function MenuOverlay() {
       </div>
 
       <div className="container-edit pointer-events-none relative z-10 flex h-full flex-col justify-center">
-        <nav ref={linksRef} aria-label="Mobile" className="pointer-events-auto flex w-max flex-col gap-1">
+        <nav
+          ref={linksRef}
+          aria-label="Menu"
+          className="pointer-events-auto flex w-max flex-col gap-1"
+          onPointerLeave={() => {
+            if (hoverFine()) swapTo("home");
+          }}
+        >
           {links.map((l) => (
             <button
               key={l.id}
               onClick={() => go(l.id)}
+              onPointerEnter={() => {
+                if (hoverFine()) swapTo(l.id as PreviewId);
+              }}
+              onFocus={() => {
+                if (justOpened.current) {
+                  justOpened.current = false;
+                  return;
+                }
+                swapTo(l.id as PreviewId, true);
+              }}
               className="menu-link t-display block w-max text-left text-paper transition-[transform,color] duration-300 ease-[var(--ease-tide)] hover:translate-x-2 hover:text-ember"
             >
               {l.label}

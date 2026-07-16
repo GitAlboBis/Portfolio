@@ -164,7 +164,9 @@ export function Nav() {
             <span className="sr-only"> — {t.nav.langToggle}</span>
           </button>
 
-          <MenuToggle className="-mr-1 text-ink md:hidden" />
+          {/* the menu-portal trigger — now on every breakpoint (desktop opens the
+              portal overlay with route previews; the pill links stay). */}
+          <MenuToggle className="-mr-1 text-ink" />
         </nav>
       </header>
       <MenuOverlay />

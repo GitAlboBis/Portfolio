@@ -28,14 +28,26 @@ export function Warmup() {
     if (!loaded || !route || !warmingAllowed()) return;
 
     let cancelled = false;
-    let idleId: number | undefined;
+    let timeoutId: number | undefined;
+    const INTERACTION = ["pointermove", "touchstart", "wheel", "keydown", "scroll"] as const;
+
+    const kick = () => {
+      if (cancelled) return;
+      cancelled = true; // one-shot
+      INTERACTION.forEach((ev) => window.removeEventListener(ev, kick));
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      warmRoute(route);
+    };
+
+    // Warm on the FIRST user interaction, not on a forced idle timeout: the
+    // old rIC {timeout:4000} fired mid-load on throttled devices and the warm
+    // fetches/chunk-execs landed inside the LCP/TTI window (WP-10 measured).
+    // Every warmed asset lives ≥900px below the fold, so first-input is
+    // always early enough — and a patient viewer gets a long quiet fallback.
     const start = () => {
       if (cancelled) return;
-      if (typeof requestIdleCallback === "function") {
-        idleId = requestIdleCallback(() => !cancelled && warmRoute(route), { timeout: 4000 });
-      } else {
-        idleId = window.setTimeout(() => !cancelled && warmRoute(route), 800) as unknown as number;
-      }
+      INTERACTION.forEach((ev) => window.addEventListener(ev, kick, { passive: true, once: false }));
+      timeoutId = window.setTimeout(kick, 12000);
     };
 
     if (document.readyState === "complete") start();
@@ -44,7 +56,8 @@ export function Warmup() {
     return () => {
       cancelled = true;
       window.removeEventListener("load", start);
-      if (idleId !== undefined && typeof cancelIdleCallback === "function") cancelIdleCallback(idleId);
+      INTERACTION.forEach((ev) => window.removeEventListener(ev, kick));
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
   }, [pathname, loaded]);
 

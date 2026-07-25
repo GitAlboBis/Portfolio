@@ -9,8 +9,8 @@ import { AscentSurface } from "@/components/home/AscentSurface";
 import { Tech } from "@/components/sections/Tech";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/footer/Footer";
-import { NightSky } from "@/components/atmosphere/NightSky";
-import { Escort } from "@/components/atmosphere/Escort";
+import { NightSkyLazy as NightSky } from "@/components/atmosphere/NightSkyLazy";
+import { EscortLazy as Escort } from "@/components/atmosphere/EscortLazy";
 import { Nightfall } from "@/components/home/Nightfall";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 

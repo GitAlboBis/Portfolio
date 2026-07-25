@@ -112,6 +112,12 @@ const sectionSchema = z.object({
       meta: z.string(),
     }),
   }),
+  notFound: z.object({
+    eyebrow: z.string(),
+    title: z.string(),
+    body: z.string(),
+    cta: z.string(),
+  }),
   footer: z.object({
     place: z.string(),
     sound: z.string(),
@@ -236,6 +242,12 @@ const en: Dict = {
       meta: "Sea arch · Masua, Sardinia",
     },
   },
+  notFound: {
+    eyebrow: "404 — Adrift",
+    title: "This page slipped off the chart.",
+    body: "Flat calm, open water, no page in sight.",
+    cta: "Back to shore",
+  },
   footer: {
     place: "Masua · 39°09′N 8°25′E",
     sound: "Ambient",
@@ -356,6 +368,12 @@ const it: Dict = {
       title: "Attraverso l'arco, il mare aperto.",
       meta: "Arco naturale · Masua, Sardegna",
     },
+  },
+  notFound: {
+    eyebrow: "404 — Alla deriva",
+    title: "Questa pagina è scivolata fuori dalla carta.",
+    body: "Bonaccia, mare aperto, nessuna pagina in vista.",
+    cta: "Torna a riva",
   },
   footer: {
     place: "Masua · 39°09′N 8°25′E",

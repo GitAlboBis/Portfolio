@@ -37,13 +37,17 @@ const lenis = () => (window as unknown as { __lenis?: Lenis }).__lenis;
 
 /** The portal previews: one photographic scrap per route the menu can reach.
  *  `home` doubles as the resting state (the site itself, before any hover).
- *  `video` = a palindrome drone micro-loop layered over the still (real DJI
- *  footage, LUT-graded). `contact` stays a still ON PURPOSE — the living
- *  routes move, the night waits. */
+ *  `video` = a palindrome drone micro-loop (real DJI footage, LUT-graded)
+ *  that plays ONLY while its link is hovered/focused — the portal comes
+ *  alive when you reach for a route. At rest everything is still: nothing
+ *  auto-plays (WCAG 2.2.2 — motion is user-initiated and stops on leave).
+ *  Only `about` carries footage BY DESIGN: the Porto Flavia orbit IS
+ *  "Masua, Sulcis"; a sea loop under "Selected work" or a midday loop under
+ *  "The golden hour" would contradict caption and still (review finding). */
 const PREVIEWS = [
-  { id: "home", src: "/coast/sea-poster.webp", video: "/portal/home.mp4" },
+  { id: "home", src: "/coast/sea-poster.webp", video: undefined },
   { id: "about", src: "/coast/masua-cliff.webp", video: "/portal/about.mp4" },
-  { id: "works", src: "/works/badante24h.webp", video: "/portal/works.mp4" },
+  { id: "works", src: "/works/badante24h.webp", video: undefined },
   { id: "contact", src: "/coast/night-sea.webp", video: undefined },
 ] as const;
 type PreviewId = (typeof PREVIEWS)[number]["id"];
@@ -190,6 +194,11 @@ export function MenuOverlay() {
   const qyRef = useRef<((v: number) => void) | null>(null);
   const { contextSafe } = useGSAP(
     () => {
+      // a rebuild means the previous context REVERTED: every swapTo tween is
+      // undone and the figures are back at their inline JSX opacities (home
+      // visible, rest hidden). Re-align the ref or the same-id guard in
+      // swapTo would swallow the first hover on the previously-active route.
+      activePreview.current = "home";
       const scrap = scrapRef.current;
       if (!scrap) return;
       gsap.set(scrap, { rotation: -1.75 });
@@ -223,12 +232,16 @@ export function MenuOverlay() {
 
   /** Play only the active scrap's micro-loop; every other one pauses (one
    *  decoder at a time). `null` pauses the lot — a closed menu must not keep
-   *  video ticking behind an invisible overlay. */
+   *  video ticking behind an invisible overlay. The openRef guard makes that
+   *  invariant hold even for the hover window DURING the close reverse
+   *  (pointer-events stay auto until onReverseComplete — a pointerenter
+   *  there must never restart a decoder nobody will pause). */
   const syncLoops = (id: PreviewId | null) => {
+    const target = openRef.current ? id : null;
     for (const f of figures()) {
       const v = f.querySelector("video");
       if (!v) continue;
-      if (id !== null && f.dataset.preview === id) v.play()?.catch(() => {});
+      if (target !== null && f.dataset.preview === target) v.play()?.catch(() => {});
       else v.pause();
     }
   };
@@ -443,19 +456,23 @@ export function MenuOverlay() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.src} alt="" decoding="async" draggable={false} className="h-full w-full object-cover" />
-                {/* the drone micro-loop breathes over the still (poster = the
-                    same still → no flash while the first frame decodes).
-                    Client-only subtree (warm gate) — the reduced read is safe. */}
+                {/* the drone micro-loop over the still. It starts INVISIBLE
+                    and fades in on `playing`: poster and frame 0 are different
+                    images (wide cliff vs tight facade), so an opacity ramp
+                    turns the cold-cache hard cut into a dissolve. Client-only
+                    subtree (warm gate) — the reduced read is safe. */}
                 {p.video && loops && !reduced && (
                   <video
                     src={p.video}
-                    poster={p.src}
                     muted
                     loop
                     playsInline
                     preload="auto"
                     disablePictureInPicture
-                    className="absolute inset-0 h-full w-full object-cover"
+                    onPlaying={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                    }}
+                    className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300"
                   />
                 )}
                 <figcaption

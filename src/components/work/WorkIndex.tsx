@@ -42,10 +42,12 @@ export function WorkIndex() {
           >
             Alberto&nbsp;Tuveri
           </Link>
-          <div className="flex items-center gap-5 sm:gap-7">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* px/py: tap target toward the 44px bar (AboutJourney's padded-
+                toggle pattern); the tighter gap keeps the optical spacing */}
             <button
               onClick={toggleLocale}
-              className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
+              className="t-meta px-3 py-2 text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
             >
               {locale === "en" ? "IT" : "EN"}
               <span className="sr-only"> — {t.nav.langToggle}</span>

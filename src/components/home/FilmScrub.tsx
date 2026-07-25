@@ -4,6 +4,7 @@ import * as React from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useUI } from "@/store/ui";
 import { useHydrated } from "@/lib/use-hydrated";
+import { claimWarm } from "@/lib/warm";
 import { TornEdge } from "@/components/atmosphere/TornEdge";
 
 /*
@@ -59,7 +60,11 @@ export function FilmScrub({ srcDesktop, srcMobile, poster, eyebrow, title, meta,
     const io = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          setSrc(window.innerWidth < 768 ? srcMobile : srcDesktop);
+          const chosen = window.innerWidth < 768 ? srcMobile : srcDesktop;
+          // the <video> streams this file itself from here on — tell the warm
+          // queue to drop/abort it, or the same 12-14MB would download twice
+          claimWarm(chosen);
+          setSrc(chosen);
           io.disconnect();
         }
       },

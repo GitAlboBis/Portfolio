@@ -56,7 +56,8 @@ const loop = (name: string): VideoItem => ({
   mobile: `/portal/${name}.mp4`,
   desktopOnly: true,
 });
-const PORTAL_LOOPS = [loop("home"), loop("about"), loop("works")];
+// only `about` carries footage (hover-only play — see MenuOverlay PREVIEWS)
+const PORTAL_LOOPS = [loop("about")];
 
 const MANIFEST: Record<WarmRoute, WarmItem[]> = {
   home: [
@@ -101,6 +102,20 @@ const keyOf = (it: WarmItem) => (it.kind === "chunk" ? `chunk:${it.id}` : it.kin
 const done = new Set<string>();
 const queue: WarmItem[] = [];
 let running = false;
+// URLs a media element has claimed for itself (FilmScrub attaching its src):
+// warm must never race a streaming <video> for the same bytes — the browser
+// won't coalesce a fetch() with a media range request, so the file would be
+// downloaded TWICE (12-14MB films — measured, not theoretical).
+const claimed = new Set<string>();
+let currentUrl: string | null = null;
+let currentAbort: AbortController | null = null;
+
+/** A media element is about to stream `url` itself: drop it from the warm
+ *  queue and abort an in-flight warm fetch of the same file. */
+export function claimWarm(url: string) {
+  claimed.add(url);
+  if (currentUrl === url) currentAbort?.abort();
+}
 
 const idle = () =>
   new Promise<void>((r) => {
@@ -121,12 +136,27 @@ async function pump() {
         await it.load();
       } else {
         const url = it.kind === "video" ? (window.innerWidth < 768 ? it.mobile : it.desktop) : it.url;
-        const res = await fetch(url, { cache: "force-cache", priority: "low" } as RequestInit);
+        // a band already claimed/streamed this file itself → warming it again
+        // would double the download (resource-timing sees media requests too)
+        if (claimed.has(url) || (it.kind === "video" && performance.getEntriesByName(url).length > 0)) {
+          done.add(k);
+          publish();
+          continue;
+        }
+        currentUrl = url;
+        currentAbort = new AbortController();
+        const res = await fetch(url, {
+          cache: "force-cache",
+          priority: "low",
+          signal: currentAbort.signal,
+        } as RequestInit);
         if (res.ok) await res.blob(); // drain the body → the cache entry completes
       }
     } catch {
-      /* network hiccup — mark done anyway, never retry-loop an asset */
+      /* network hiccup or claim-abort — mark done anyway, never retry-loop */
     }
+    currentUrl = null;
+    currentAbort = null;
     done.add(k);
     publish();
     await idle(); // yield between items — the page always wins

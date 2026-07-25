@@ -4,6 +4,7 @@ import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { WorkHorizontal } from "@/components/work/WorkHorizontal";
+import { FilmScrub } from "@/components/home/FilmScrub";
 import { RollLink } from "@/components/motion/RollLink";
 
 /**
@@ -20,8 +21,19 @@ export function WorkIndex() {
   return (
     <main id="main" className="relative min-h-dvh bg-paper">
       <header className="fixed inset-x-0 top-0 z-50">
+        {/* paper scrim — the chrome must stay legible over the dark outro film
+            (paper-on-paper = invisible at rest; same as WorkCaseStudy/about) */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{
+            height: "calc(var(--nav-h) * 1.6)",
+            background:
+              "linear-gradient(to bottom, var(--color-paper) 38%, color-mix(in oklab, var(--color-paper) 55%, transparent) 68%, transparent)",
+          }}
+        />
         <nav
-          className="container-edit flex items-center justify-between"
+          className="container-edit relative flex items-center justify-between"
           style={{ height: "var(--nav-h)" }}
         >
           <Link
@@ -50,6 +62,21 @@ export function WorkIndex() {
       </header>
 
       <WorkHorizontal />
+
+      {/* THE OUTRO — past the last slide the drone clears Pan di Zucchero's
+          summit and drops over the edge into open water: the runway ends, the
+          sea doesn't. Real DJI footage (G. Ghiani), scroll-scrubbed. The page
+          deliberately ENDS in the film (no bottom tear back to paper). */}
+      <FilmScrub
+        srcDesktop="/coast/runway-1600.mp4"
+        srcMobile="/coast/runway-960.mp4"
+        poster="/coast/runway-poster.webp"
+        eyebrow={t.works.film.eyebrow}
+        title={t.works.film.title}
+        meta={t.works.film.meta}
+        heightVh={220}
+        tearBottom={false}
+      />
     </main>
   );
 }

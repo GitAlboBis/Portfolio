@@ -195,8 +195,22 @@ export function AboutJourney() {
         </div>
       </section>
 
+      {/* L'ARCO — the natural sea arch at the faraglioni's base, the sun
+          passing THROUGH the stone: the passage from formation to the work
+          itself, placed between the timeline and the thesis. Real DJI
+          footage (G. Ghiani), scroll-scrubbed. */}
+      <FilmScrub
+        srcDesktop="/coast/arch-1600.mp4"
+        srcMobile="/coast/arch-960.mp4"
+        poster="/coast/arch-poster.webp"
+        eyebrow={j.film2.eyebrow}
+        title={j.film2.title}
+        meta={j.film2.meta}
+        heightVh={200}
+      />
+
       {/* Thesis */}
-      <section className="container-edit pb-[var(--section-y)]">
+      <section className="container-edit pb-[var(--section-y)]" style={{ paddingTop: "var(--section-y)" }}>
         <div className="grid-edit">
           <div className="col-meta mb-4 lg:mb-0">
             <p className="t-eyebrow eyebrow-tick">{j.thesisTitle}</p>

@@ -30,7 +30,11 @@ Di nuovo sul PC con l'accesso al Drive: Alberto ha ripassato l'URL del folder "A
 
 **Clip ancora INEDITI nel Drive** (per beat futuri): 0032 (orbita torre), 0034 (frontale Pan di Zucchero), 0036 (falesie dall'alto), 0038 (volo costa), 0041 (meditativo), 0343 (mare→cresta con barchetta), 0345 (inseguimento barca a pelo d'acqua).
 
-**Pendenze:** ~~G3~~ **MERGED+pushato (`37ba4be`)** · 🔵 feel-review del portale hover-only + delle due bande a schermo · post-deploy: rimisura Lighthouse mobile (era 84; il round non tocca il primo paint).
+**Pendenze:** ~~G3~~ **MERGED+pushato (`37ba4be`)** · 🔵 feel-review del portale hover-only + delle due bande a schermo.
+
+**CODA SESSIONE ("sorprendimi") — altri 2 beat su main:**
+- **ALLA DERIVA (`15ecb35`)** — la 404 cinematografica che mancava (not-found.tsx non esisteva!): clip 0345, insegui la barca con la scia, la superi, resti solo davanti a Pan di Zucchero. Il POSTER è l'ULTIMO frame del film: apre sulla bonaccia, dissolve nell'inseguimento, si ricongela sugli stessi pixel (cerchio del tempo, zero tagli). Play-once 4.8s < 5s = WCAG 2.2.2 esente by construction. `dict.notFound` EN/IT. QA `_lost404.mjs` 9/9.
+- **WP-10, INDAGINE REGRESSIONE LH (`30a65a0`)** — prod misurava 62-68 (era 84 il 15/07). Root-cause MISURATO: **niente regressione per utenti reali** (probe Chrome reale, CPU 4x + 1.6Mbps: LCP 1.18s, unico candidato = testo SSR); il 5.6s di LH è il modello lantern che incatena il nodo SplitText dietro l'intero grafo JS; `?nopre` A/B = preloader innocente (LCP identico al ms). Fix: `NightSkyLazy`/`EscortLazy` (moduli sotto-fold fuori dal grafo critico) + **Warmup a prima-interazione** (il rIC timeout 4000 sparava nella finestra LCP/TTI: -4/-8 punti misurati). Locale `next start`: **58-64 → 73-74 stabile**. ⚠ Il gap residuo a 80 = dieta JS dei due chunk boot (exec 1547+1269ms su CPU 4x — bundle-analyzer, candidati: trimming plugin GSAP, defer SoundScape/TideEgg) → **prossimo round**. Rimisurare prod post-deploy.
 
 ---
 

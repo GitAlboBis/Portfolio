@@ -55,6 +55,12 @@ const sectionSchema = z.object({
     next: z.string(),
     /** Caption prefix on the case-study photographic detail cuts ("Detail 01"). */
     detail: z.string(),
+    /** The /work outro film band (drone over Pan di Zucchero's summit). */
+    film: z.object({
+      eyebrow: z.string(),
+      title: z.string(),
+      meta: z.string(),
+    }),
   }),
   coast: z.object({
     eyebrow: z.string(),
@@ -95,6 +101,12 @@ const sectionSchema = z.object({
     more: z.string(),
     back: z.string(),
     film: z.object({
+      eyebrow: z.string(),
+      title: z.string(),
+      meta: z.string(),
+    }),
+    /** Second film band on /about — the natural sea arch (the passage). */
+    film2: z.object({
       eyebrow: z.string(),
       title: z.string(),
       meta: z.string(),
@@ -150,6 +162,11 @@ const en: Dict = {
     back: "All work",
     next: "Next project",
     detail: "Detail",
+    film: {
+      eyebrow: "Past the last project",
+      title: "The runway ends. The sea doesn't.",
+      meta: "Pan di Zucchero, from above · Sulcis Iglesiente",
+    },
   },
   coast: {
     eyebrow: "The coast",
@@ -213,6 +230,11 @@ const en: Dict = {
       title: "Engineering, carved into the coast.",
       meta: "Porto Flavia · Masua, Sardinia · est. 1924",
     },
+    film2: {
+      eyebrow: "The passage",
+      title: "Through the arch, open water.",
+      meta: "Sea arch · Masua, Sardinia",
+    },
   },
   footer: {
     place: "Masua · 39°09′N 8°25′E",
@@ -261,6 +283,11 @@ const it: Dict = {
     back: "Tutti i lavori",
     next: "Prossimo progetto",
     detail: "Dettaglio",
+    film: {
+      eyebrow: "Oltre l'ultimo progetto",
+      title: "La pista finisce. Il mare no.",
+      meta: "Pan di Zucchero, dall'alto · Sulcis Iglesiente",
+    },
   },
   coast: {
     eyebrow: "La costa",
@@ -323,6 +350,11 @@ const it: Dict = {
       eyebrow: "La roccia",
       title: "Ingegneria scavata nella costa.",
       meta: "Porto Flavia · Masua, Sardegna · 1924",
+    },
+    film2: {
+      eyebrow: "Il passaggio",
+      title: "Attraverso l'arco, il mare aperto.",
+      meta: "Arco naturale · Masua, Sardegna",
     },
   },
   footer: {

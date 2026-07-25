@@ -1,6 +1,36 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-16 (bis)** (SERVIZIO FOTOGRAFICO nei case study + RACK FOCUS nella gallery home, merged su main). This is the "continue here" doc.
+> Last updated: **2026-07-25** (IL BEAT DRONE — round ③ completo su branch `feat/drone-beats`, 🔵 G3 pending). This is the "continue here" doc.
+
+---
+
+## ⏯ CONTINUA DA QUI — sessione 2026-07-25 (IL BEAT DRONE, branch `feat/drone-beats` — 🔵 NON su main)
+
+Di nuovo sul PC con l'accesso al Drive: Alberto ha ripassato l'URL del folder "ALBE DRONE" (`https://drive.google.com/drive/folders/18YJGvKq2UPvbE2nw3shxRcZ1tZqnx_XJ`), **tutti i 12 master scaricati in `C:\Users\alber\Videos\ALBE-DRONE\`** (ID estratti dai `data-id` dell'HTML pubblico; download `drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t`). Scoperto un **batch nuovo set 2025**: riprese A PELO D'ACQUA (0345/0346 controluce col glitter), sorvolo della sommità (0342/0343) e **l'arco naturale col sole che ci passa attraverso** (0353, 76s). Round ③ scelto da Alberto (tutte le opzioni + carte blanche), spec in `docs/superpowers/specs/2026-07-25-drone-beats-design.md`.
+
+| Cosa | Commit |
+|---|---|
+| **IL PORTALE VIVO** (design POST-review: "si anima quando lo tocchi") — a riposo il portale è di still oneste (tramonto/progetto/notte), e l'unico micro-loop è **about**: l'orbita della facciata PORTO FLAVIA (0033 @24.2s) in play SOLO durante hover/focus della voce. Palindromo corretto 114 frame, fade-in su `playing`, un decoder alla volta, pausa a menu chiuso (guard openRef), zero byte mobile/reduced/Save-Data | `f816dbc` + `9552de8` |
+| **/WORK OUTRO** — "The runway ends. The sea doesn't.": FilmScrub in coda alla runway (0342 @11.5–29.5s: pianoro → valico → strapiombo → mare aperto), la pagina finisce DENTRO il film (`tearBottom=false`); header con scrim di carta (pattern WorkCaseStudy) + tap-target EN/IT allineato | `24a12e4` + `9552de8` |
+| **L'ARCO su /about** — "Through the arch, open water.": seconda banda tra timeline e tesi (0353 @40–56s: faraglioni gemelli, arco, mare d'argento, barchetta) — il passaggio dalla formazione al mestiere. Coesiste con LA ROCCIA | `24a12e4` |
+| **Review avversariale** (workflow 34 agenti: 4 lenti → 15 grezzi → 2 confutatori con repro empirica → **8 confermati, tutti fixati**) + anti doppio-download `claimWarm` | `9552de8` |
+
+**Lezioni NUOVE (hardening, da non regredire):**
+- ⚠ **WCAG 2.2.2 (Level A)**: loop video >5s in autoplay parallelo ad altro contenuto SENZA meccanismo di pausa in pagina = violazione (reduced-motion OS non è il "mechanism" richiesto). Pattern pulito by-construction: **motion solo durante hover/focus**, stop al leave.
+- ⚠ **Il footage deve confermare caption e still, mai smentirle**: un loop blu di mezzogiorno sotto "The golden hour" o mare generico sopra la still di un progetto = regressione di art-direction (2 loop su 3 eliminati per questo).
+- ⚠ **Palindromo ffmpeg CORRETTO**: `split[a][b];[b]reverse,trim=start_frame=1:end_frame=N-1,setpts=PTS-STARTPTS[r];[a][r]concat` — il reverse pieno duplica il frame allo specchio E al wrap (freeze di 2 frame a ogni giro, PSNR 50-58dB vs baseline 20-37).
+- ⚠ **warm vs `<video>`: il browser NON coalizza fetch() con le range request media** → stesso mp4 scaricato DUE volte (misurato via CDP). Fix: `claimWarm(url)` esportato da warm.ts (abort in-flight + skip coda) chiamato da FilmScrub all'attach IO + pre-check resource-timing in pump.
+- ⚠ **Chiusura overlay = finestra interattiva**: pointer-events resta `auto` per tutta la reverse (~1.1s) — ogni handler hover che avvia effetti (decoder!) va guardato su `openRef`, non solo il parallax.
+- ⚠ **context.revert() (rebuild useGSAP) desincronizza i ref**: le figure tornano agli inline JSX ma `activePreview` ricordava lo stato pre-flip → riallineare i ref di stato NEL body del useGSAP che rebuilda.
+- Encode glitter/mare scintillante: keyint 6 esplode (arch 41MB a crf 23) — **crf 31 + hqdn3d=1.5:1.5:4:4 è indistinguibile** (lo shimmer maschera la compressione, verificato sui frame): arch 13.1MB, runway 12.4MB a crf 25.
+
+**Asset nuovi (tracked):** `public/portal/about.mp4` (363KB) · `public/coast/runway-{1600,960}.mp4` + poster · `public/coast/arch-{1600,960}.mp4` + poster. Masters e LUT restano su questo PC (`C:\Users\alber\Videos\ALBE-DRONE\`, `_air3s.cube` in root untracked).
+
+**QA (probe untracked in root):** `_portalloop.mjs` 16/16 (hover-only contract, WCAG, close-window, mobile/reduced zero) · `_dronefilm.mjs` 19/19 (scrub monotono entrambe le bande, varianti, reduced, coesistenza ROCCIA+ARCO) · `_routesweep.mjs` 10/10 CLEAN · typecheck+build verdi · detector impeccable pulito. Screenshot verificati a occhio in `_shots/`.
+
+**Clip ancora INEDITI nel Drive** (per beat futuri): 0032 (orbita torre), 0034 (frontale Pan di Zucchero), 0036 (falesie dall'alto), 0038 (volo costa), 0041 (meditativo), 0343 (mare→cresta con barchetta), 0345 (inseguimento barca a pelo d'acqua).
+
+**Pendenze:** 🔵 **G3 merge su main** (chiesto ad Alberto a fine sessione) · 🔵 feel-review del portale hover-only + delle due bande · post-deploy: rimisura Lighthouse mobile (era 84; il round non tocca il primo paint).
 
 ---
 

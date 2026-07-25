@@ -30,17 +30,25 @@ import { gsap, SplitText, useGSAP } from "@/lib/gsap";
 import { MenuToggle } from "@/components/nav/MenuToggle";
 import { TornEdge } from "@/components/atmosphere/TornEdge";
 import { curtainPath } from "@/lib/curtain";
+import { warmingAllowed } from "@/lib/warm";
 
 type Lenis = { scrollTo: (t: HTMLElement) => void; stop: () => void; start: () => void };
 const lenis = () => (window as unknown as { __lenis?: Lenis }).__lenis;
 
 /** The portal previews: one photographic scrap per route the menu can reach.
- *  `home` doubles as the resting state (the site itself, before any hover). */
+ *  `home` doubles as the resting state (the site itself, before any hover).
+ *  `video` = a palindrome drone micro-loop (real DJI footage, LUT-graded)
+ *  that plays ONLY while its link is hovered/focused — the portal comes
+ *  alive when you reach for a route. At rest everything is still: nothing
+ *  auto-plays (WCAG 2.2.2 — motion is user-initiated and stops on leave).
+ *  Only `about` carries footage BY DESIGN: the Porto Flavia orbit IS
+ *  "Masua, Sulcis"; a sea loop under "Selected work" or a midday loop under
+ *  "The golden hour" would contradict caption and still (review finding). */
 const PREVIEWS = [
-  { id: "home", src: "/coast/sea-poster.webp" },
-  { id: "about", src: "/coast/masua-cliff.webp" },
-  { id: "works", src: "/works/badante24h.webp" },
-  { id: "contact", src: "/coast/night-sea.webp" },
+  { id: "home", src: "/coast/sea-poster.webp", video: undefined },
+  { id: "about", src: "/coast/masua-cliff.webp", video: "/portal/about.mp4" },
+  { id: "works", src: "/works/badante24h.webp", video: undefined },
+  { id: "contact", src: "/coast/night-sea.webp", video: undefined },
 ] as const;
 type PreviewId = (typeof PREVIEWS)[number]["id"];
 
@@ -65,6 +73,9 @@ export function MenuOverlay() {
   const [fontsReady, setFontsReady] = useState(false);
   // Preview images mount only once the menu has actually opened (no cost on load).
   const [warm, setWarm] = useState(false);
+  // Drone micro-loops mount only where they're welcome: desktop panel, no
+  // Save-Data / 2G (the stills alone already tell the story there).
+  const [loops, setLoops] = useState(false);
   const activePreview = useRef<PreviewId>("home");
   const openRef = useRef(false);
   // the programmatic focus on open must NOT swap the portal — the resting scrap
@@ -183,6 +194,11 @@ export function MenuOverlay() {
   const qyRef = useRef<((v: number) => void) | null>(null);
   const { contextSafe } = useGSAP(
     () => {
+      // a rebuild means the previous context REVERTED: every swapTo tween is
+      // undone and the figures are back at their inline JSX opacities (home
+      // visible, rest hidden). Re-align the ref or the same-id guard in
+      // swapTo would swallow the first hover on the previously-active route.
+      activePreview.current = "home";
       const scrap = scrapRef.current;
       if (!scrap) return;
       gsap.set(scrap, { rotation: -1.75 });
@@ -214,6 +230,22 @@ export function MenuOverlay() {
   const figures = () =>
     root.current ? Array.from(root.current.querySelectorAll<HTMLElement>(".menu-preview")) : [];
 
+  /** Play only the active scrap's micro-loop; every other one pauses (one
+   *  decoder at a time). `null` pauses the lot — a closed menu must not keep
+   *  video ticking behind an invisible overlay. The openRef guard makes that
+   *  invariant hold even for the hover window DURING the close reverse
+   *  (pointer-events stay auto until onReverseComplete — a pointerenter
+   *  there must never restart a decoder nobody will pause). */
+  const syncLoops = (id: PreviewId | null) => {
+    const target = openRef.current ? id : null;
+    for (const f of figures()) {
+      const v = f.querySelector("video");
+      if (!v) continue;
+      if (target !== null && f.dataset.preview === target) v.play()?.catch(() => {});
+      else v.pause();
+    }
+  };
+
   /** Crossfade to a preview. `fast` = keyboard-driven (no cinematic blur pull). */
   const swapTo = contextSafe((id: PreviewId, fast = false) => {
     if (activePreview.current === id) return;
@@ -236,6 +268,7 @@ export function MenuOverlay() {
     }
     gsap.to(incoming, { autoAlpha: 1, scale: 1, filter: "blur(0px)", duration: fast ? 0.18 : 0.42, ease: "power3.out", overwrite: "auto" });
     gsap.to(rest, { autoAlpha: 0, duration: fast ? 0.12 : 0.26, ease: "power2.out", overwrite: "auto" });
+    syncLoops(id);
   });
 
   /** Instant reset to the resting scrap (used while the overlay is hidden). */
@@ -249,6 +282,7 @@ export function MenuOverlay() {
     gsap.set(all, { autoAlpha: 0 });
     const home = all.find((f) => f.dataset.preview === "home");
     if (home) gsap.set(home, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
+    syncLoops("home");
   });
 
   const resetScrap = contextSafe(() => {
@@ -278,7 +312,11 @@ export function MenuOverlay() {
     if (open) {
       // warm the scraps only where the panel can render (lg+): phones would
       // download ~430KB of images into a display:none subtree.
-      if (window.matchMedia("(min-width: 64rem)").matches) setWarm(true);
+      if (window.matchMedia("(min-width: 64rem)").matches) {
+        setWarm(true);
+        // micro-loops respect Save-Data / 2G — the stills carry the panel there
+        setLoops(warmingAllowed());
+      }
       // instant reset only while truly hidden — on a quick reopen mid-reverse
       // the panel is still on screen: crossfade home instead of hard-cutting.
       if ((gsap.getProperty(el, "opacity") as number) < 0.05) resetPreview();
@@ -294,6 +332,7 @@ export function MenuOverlay() {
     } else {
       lenis()?.start();
       resetScrap(); // parallax back to rest while the curtain lifts
+      syncLoops(null); // no decoder ticking behind a closed overlay
       if (tl) tl.timeScale(1.35).reverse();
       else {
         gsap.set(el, { autoAlpha: 0 });
@@ -303,6 +342,15 @@ export function MenuOverlay() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // First open mounts the <video> loops one render AFTER the swap above ran
+  // (setWarm/setLoops land, THEN the figures exist) — sync the active loop as
+  // soon as they're really in the DOM. Also re-arms after a live reduced flip
+  // back to motion (videos remount paused).
+  useEffect(() => {
+    if (open && warm) syncLoops(activePreview.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, warm, loops, reduced]);
 
   // ── Esc to close + focus trap while open ──────────────────────────────────────
   useEffect(() => {
@@ -408,6 +456,25 @@ export function MenuOverlay() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.src} alt="" decoding="async" draggable={false} className="h-full w-full object-cover" />
+                {/* the drone micro-loop over the still. It starts INVISIBLE
+                    and fades in on `playing`: poster and frame 0 are different
+                    images (wide cliff vs tight facade), so an opacity ramp
+                    turns the cold-cache hard cut into a dissolve. Client-only
+                    subtree (warm gate) — the reduced read is safe. */}
+                {p.video && loops && !reduced && (
+                  <video
+                    src={p.video}
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    disablePictureInPicture
+                    onPlaying={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                    }}
+                    className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300"
+                  />
+                )}
                 <figcaption
                   className="absolute inset-x-0 bottom-0 px-5 pb-4 pt-12"
                   style={{ background: "linear-gradient(to top, rgb(16 9 12 / 0.62), transparent)" }}

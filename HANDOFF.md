@@ -1,6 +1,6 @@
 # HANDOFF — Alberto Tuveri Portfolio (Golden Hour)
 
-> Last updated: **2026-07-25** (IL BEAT DRONE — round ③ completo su branch `feat/drone-beats`, 🔵 G3 pending). This is the "continue here" doc.
+> Last updated: **2026-07-25** (IL BEAT DRONE — round ③ **MERGED su main `37ba4be` con ok G3 di Alberto ("pusha su main") e pushato** = deploy Vercel). This is the "continue here" doc.
 
 ---
 
@@ -30,7 +30,7 @@ Di nuovo sul PC con l'accesso al Drive: Alberto ha ripassato l'URL del folder "A
 
 **Clip ancora INEDITI nel Drive** (per beat futuri): 0032 (orbita torre), 0034 (frontale Pan di Zucchero), 0036 (falesie dall'alto), 0038 (volo costa), 0041 (meditativo), 0343 (mare→cresta con barchetta), 0345 (inseguimento barca a pelo d'acqua).
 
-**Pendenze:** 🔵 **G3 merge su main** (chiesto ad Alberto a fine sessione) · 🔵 feel-review del portale hover-only + delle due bande · post-deploy: rimisura Lighthouse mobile (era 84; il round non tocca il primo paint).
+**Pendenze:** ~~G3~~ **MERGED+pushato (`37ba4be`)** · 🔵 feel-review del portale hover-only + delle due bande a schermo · post-deploy: rimisura Lighthouse mobile (era 84; il round non tocca il primo paint).
 
 ---
 

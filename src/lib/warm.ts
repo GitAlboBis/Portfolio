@@ -22,7 +22,13 @@
   QA: dev-only `window.__warm` = { done, queued, running }.
 */
 
-type VideoItem = { kind: "video"; desktop: string; mobile: string };
+type VideoItem = {
+  kind: "video";
+  desktop: string;
+  mobile: string;
+  /** skip on viewports that can never show it (the lg+ menu-portal loops) */
+  desktopOnly?: boolean;
+};
 type ImageItem = { kind: "image"; url: string };
 type ChunkItem = { kind: "chunk"; id: string; load: () => Promise<unknown> };
 type WarmItem = VideoItem | ImageItem | ChunkItem;
@@ -43,6 +49,14 @@ const WORK_STILLS = [
 ];
 // the menu-portal scraps — reachable from every route
 const PORTAL = [img("/coast/sea-poster.webp"), img("/coast/masua-cliff.webp"), img("/coast/night-sea.webp")];
+// the portal's drone micro-loops (single variant — the panel is desktop-only)
+const loop = (name: string): VideoItem => ({
+  kind: "video",
+  desktop: `/portal/${name}.mp4`,
+  mobile: `/portal/${name}.mp4`,
+  desktopOnly: true,
+});
+const PORTAL_LOOPS = [loop("home"), loop("about"), loop("works")];
 
 const MANIFEST: Record<WarmRoute, WarmItem[]> = {
   home: [
@@ -53,6 +67,7 @@ const MANIFEST: Record<WarmRoute, WarmItem[]> = {
     vid("ascent"), // LA RISALITA loop
     ...WORK_STILLS,
     ...PORTAL,
+    ...PORTAL_LOOPS,
     // probable next hops (the portal routes)
     vid("rock"),
     img("/coast/sulcis-map.webp"),
@@ -60,9 +75,12 @@ const MANIFEST: Record<WarmRoute, WarmItem[]> = {
   about: [
     { kind: "chunk", id: "murmuration", load: () => import("@/components/atmosphere/MurmurationCanvas") },
     vid("rock"), // LA ROCCIA scrub
+    vid("arch"), // L'ARCO scrub (the passage band)
+    img("/coast/arch-poster.webp"),
     img("/coast/masua-cliff.webp"),
     img("/coast/sulcis-map.webp"),
     img("/coast/night-sea.webp"),
+    ...PORTAL_LOOPS,
     // hop back home
     vid("coast"),
     vid("ascent"),
@@ -70,7 +88,10 @@ const MANIFEST: Record<WarmRoute, WarmItem[]> = {
   work: [
     { kind: "chunk", id: "work-runway", load: () => import("@/components/work/WorkRunwayCanvas") },
     ...WORK_STILLS,
+    vid("runway"), // the outro film past the last slide
+    img("/coast/runway-poster.webp"),
     ...PORTAL,
+    ...PORTAL_LOOPS,
     vid("coast"),
   ],
 };
@@ -127,8 +148,10 @@ function publish() {
 /** Enqueue a route's manifest (dedup vs already-done and already-queued). */
 export function warmRoute(route: WarmRoute) {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const desktop = matchMedia("(min-width: 64rem)").matches;
   for (const it of MANIFEST[route] ?? []) {
     if (it.kind === "video" && reduced) continue; // posters only under reduced
+    if (it.kind === "video" && it.desktopOnly && !desktop) continue; // panel never shows there
     const k = keyOf(it);
     if (!done.has(k) && !queue.some((q) => keyOf(q) === k)) queue.push(it);
   }

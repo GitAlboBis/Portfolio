@@ -405,6 +405,22 @@ export function TechCloud({ className }: { className?: string }) {
     canvas.addEventListener("pointerup", onPointerUp);
     canvas.addEventListener("pointerleave", onPointerLeave);
 
+    // --- context loss ---
+    // The one raw THREE.WebGLRenderer left on the site (the gallery and the
+    // murmuration are R3F, which owns this for us). Without a handler a driver
+    // reset / GPU switch leaves the RAF loop calling render() on a dead context:
+    // per-frame console errors behind a frozen sphere, with no fallback. The
+    // component already renders the accessible skills list when `failed`, so the
+    // honest response is to stop the loop and show that instead.
+    let contextLost = false;
+    const onContextLost = (e: Event) => {
+      e.preventDefault(); // required, or the context can never be restored
+      contextLost = true;
+      cancelAnimationFrame(raf);
+      setFailed(true);
+    };
+    canvas.addEventListener("webglcontextlost", onContextLost as EventListener, false);
+
     // --- initial paint + loop start ---
     if (reduced) {
       rot.x = -0.4;
@@ -423,8 +439,15 @@ export function TechCloud({ className }: { className?: string }) {
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointerleave", onPointerLeave);
+      canvas.removeEventListener("webglcontextlost", onContextLost as EventListener);
       for (const d of disposables) d.dispose();
       renderer.dispose();
+      // dispose() frees three's own GPU objects but leaves the WebGL context
+      // itself alive until GC — and browsers cap live contexts (~16), so on a
+      // site that mounts/unmounts this across client navigations the oldest
+      // context gets killed out from under a live component. Release eagerly.
+      // Skipped if the context is already lost (calling it again throws).
+      if (!contextLost) renderer.forceContextLoss();
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
   }, []);

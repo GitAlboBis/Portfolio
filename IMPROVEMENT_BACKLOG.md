@@ -25,13 +25,15 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | A7 | **ImageBitmaps never `.close()`d** after `copyExternalImageToTexture` — 6 decoded bitmaps held until GC. | `WaterBallHero.tsx:231-253` | L | S | L | ✅ done (iter 1) |
 | A8 | 🔵 **Mouse velocity is DPR-dependent.** `camera.calcPlaneCoord` divides `event.clientX` (CSS px) by `canvas.width` (backing px). The constant term cancels in the velocity difference but the scale does not: the poke is **1/DPR weaker** on HiDPI. Same gesture ⇒ different physics per display. **Fixing changes the tuned feel on Alberto's screen ⇒ G4 territory — do not fix silently.** | `camera.ts:142-155` vs `WaterBallHero.tsx:218-222,429` | M | S | **G4** | ⏸ flagged, needs Alberto |
 | A9 | Dead code: `calcMouseVelocity` computes `velX`/`velY` and never uses them. | `camera.ts:135-136` | L | S | L | ✅ done (iter 1) |
+| A10 | **`tech-cloud` had no `webglcontextlost` handler** — the one raw `THREE.WebGLRenderer` left (gallery + murmuration are R3F, which owns this). A driver reset left the rAF loop rendering on a dead context. Also `renderer.dispose()` without `forceContextLoss()`: three's objects are freed but the GL context lives until GC, and browsers cap live contexts (~16), so repeated client navigations can kill an older context out from under a live component. | `tech-cloud.tsx:103-118,418-429` | M | S | L | ✅ done (iter 3) |
+| A11 | Audited the other canvases: `MurmurationCanvas`, `WorksGalleryCanvas` and the gallery are **R3F-managed** (`<Canvas>` owns resize/DPR/context), `NightSky` and `ShallowWater` already handle context loss. **No gap** — recorded so the audit isn't repeated. | — | — | — | — | ✅ verified clean |
 
 ## B. Reference effects → sections (brief §1/§2, mapping in `_refs/DOSSIERS.md`)
 
 | # | Effect | Target | I | E | R | Status |
 |---|---|---|---|---|---|---|
 | B1 | webgpu-water height-field + real caustics | `ShallowWater` → interactive, cursor-dropped ripples | H | L | M | ✅ done (iter 2) |
-| B2 | GreenSock perspective dolly (P=500 / z=350 / scale 2 = 6.667×, back plane 1.1) | `/work/[slug]` opening wide shot | H | M | L | pending |
+| B2 | GreenSock perspective dolly (P=500 / z=350 / scale 2 = 6.667×, back plane 1.1). ⚠ **Front plane must be the torn PAPER, not the photo** — our stills are 1280px and already upscaled ~1.13× at 1440, so 6.667× magnifies WebP blocking. `TornEdge` is SVG (no ceiling) and "paper tears to reveal photographs" is already the site's language. Constraint + reasoning in `DOSSIERS.md §1`. | `/work/[slug]` opening — fly through the tear | H | M | M | pending (retargeted) |
 | B3 | telescope-zoom layered convergence (`[1,.85,.6,.45,.3,.15]`, fly-past `from:"center"`, sharpen `from:"end"`) | `/work` arrival beat above the runway | H | L | M | pending |
 | B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | pending |
 | B5 | metaballs tear-apart (`radius/dist`, 121 pts, shuffled 0.5 windows) — **fix the disabled row stagger on port** | `WorksGallery` project cross-fade | M | M | M | pending |

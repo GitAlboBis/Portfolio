@@ -33,10 +33,34 @@ export class FluidRenderer {
     stretchStrengthBuffer: GPUBuffer
 
     device: GPUDevice
+
+    // ── LOCAL ADDITIONS ──────────────────────────────────────────────────────────
+    // Everything the resize path needs to rebuild the size-dependent half of this
+    // renderer. Upstream WaterBall is a fixed-size demo, so all of this was baked once
+    // in the constructor and there was no way to follow a window resize.
+    private sizedTextures: GPUTexture[] = []
+    private vertexModule!: GPUShaderModule
+    private depthFilterModule!: GPUShaderModule
+    private fluidModule!: GPUShaderModule
+    private thicknessFilterModule!: GPUShaderModule
+    private sampler!: GPUSampler
+    private presentationFormat!: GPUTextureFormat
+    private filterXUniformBuffer!: GPUBuffer
+    private filterYUniformBuffer!: GPUBuffer
+    private renderUniformBuffer!: GPUBuffer
+    private cubemapTextureView!: GPUTextureView
+    private radius!: number
+    private fov!: number
+    private diameter!: number
+    private maxFilterSize!: number
+    private blurdDepthScale!: number
+    private blurFilterSize!: number
+    private stretchScratch = new Float32Array(1)
+
     constructor(
         device: GPUDevice, canvas: HTMLCanvasElement, presentationFormat: GPUTextureFormat,
-        radius: number, fov: number, posvelBuffer: GPUBuffer, 
-        renderUniformBuffer: GPUBuffer, cubemapTextureView: GPUTextureView, depthMapTextureView: GPUTextureView, 
+        radius: number, fov: number, posvelBuffer: GPUBuffer,
+        renderUniformBuffer: GPUBuffer, cubemapTextureView: GPUTextureView, depthMapTextureView: GPUTextureView,
         restDensity: number
     ) {
         this.device = device
@@ -45,21 +69,12 @@ export class FluidRenderer {
         const diameter = 2 * radius
         const blurFilterSize = 12
 
-        const screenConstants = {
-            'screenHeight': canvas.height, 
-            'screenWidth': canvas.width, 
-        }
-        const filterConstants = {
-            'depth_threshold' : radius * blurdDepthScale, 
-            'max_filter_size' : maxFilterSize, 
-            'projected_particle_constant' : (blurFilterSize * diameter * 0.05 * (canvas.height / 2)) / Math.tan(fov / 2), 
-        }
         const renderEffectConstants = {
-            'restDensity' : restDensity, 
-            'densitySizeScale' : 4.0, 
+            'restDensity' : restDensity,
+            'densitySizeScale' : 4.0,
         }
         const sampler = device.createSampler({
-            magFilter: 'linear', 
+            magFilter: 'linear',
             minFilter: 'linear'
         });
 
@@ -70,6 +85,24 @@ export class FluidRenderer {
         const sphereModule = device.createShaderModule({ code: sphere })
         const thicknessMapModule = device.createShaderModule({ code: thicknessMap })
         const thicknessFilterModule = device.createShaderModule({ code: gaussian })
+
+        // persist everything buildSized() needs so a resize can rebuild the screen-sized
+        // half of the renderer without re-compiling shader modules or re-creating the
+        // size-independent pipelines / bind groups.
+        this.vertexModule = vertexModule
+        this.depthFilterModule = depthFilterModule
+        this.fluidModule = fluidModule
+        this.thicknessFilterModule = thicknessFilterModule
+        this.sampler = sampler
+        this.presentationFormat = presentationFormat
+        this.renderUniformBuffer = renderUniformBuffer
+        this.cubemapTextureView = cubemapTextureView
+        this.radius = radius
+        this.fov = fov
+        this.diameter = diameter
+        this.maxFilterSize = maxFilterSize
+        this.blurdDepthScale = blurdDepthScale
+        this.blurFilterSize = blurFilterSize
 
         // pipelines
         this.spherePipeline = device.createRenderPipeline({
@@ -117,26 +150,6 @@ export class FluidRenderer {
                 format: 'depth32float'
             }
         })
-        this.depthFilterPipeline = device.createRenderPipeline({
-            label: 'filter pipeline', 
-            layout: 'auto', 
-            vertex: { 
-                module: vertexModule,  
-                constants: screenConstants
-            },
-            fragment: {
-                module: depthFilterModule, 
-                constants: filterConstants, 
-                targets: [
-                    {
-                        format: 'r32float',
-                    },
-                ],
-            },
-            primitive: {
-                topology: 'triangle-list',
-            },
-        });
         this.thicknessMapPipeline = device.createRenderPipeline({
             label: 'thickness map pipeline', 
             layout: 'auto', 
@@ -162,75 +175,6 @@ export class FluidRenderer {
                 topology: 'triangle-list', 
             },
         });
-        this.thicknessFilterPipeline = device.createRenderPipeline({
-            label: 'thickness filter pipeline', 
-            layout: 'auto', 
-            vertex: { 
-                module: vertexModule,  
-                constants: screenConstants
-            },
-            fragment: {
-                module: thicknessFilterModule,
-                targets: [
-                    {
-                        format: 'rg16float',
-                    },
-                ],
-            },
-            primitive: {
-                topology: 'triangle-list', 
-            },
-        });
-        this.fluidPipeline = device.createRenderPipeline({
-            label: 'fluid rendering pipeline',
-            layout: 'auto',
-            vertex: {
-                module: vertexModule,
-                constants: screenConstants
-            },
-            fragment: {
-                module: fluidModule,
-                targets: [
-                    {
-                        format: presentationFormat
-                    }
-                ],
-            },
-            primitive: {
-                topology: 'triangle-list',
-            },
-        });
-
-        // textures
-        const tmpDepthMapTexture = device.createTexture({ 
-            label: 'temporary depth map texture', 
-            size: [canvas.width, canvas.height, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'r32float',
-        });
-        const thicknessTexture = device.createTexture({
-            label: 'thickness map texture',
-            size: [canvas.width, canvas.height, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'rg16float',
-        });
-        const tmpThicknessTexture = device.createTexture({
-            label: 'temporary thickness map texture',
-            size: [canvas.width, canvas.height, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'rg16float',
-        });
-        const depthTestTexture = device.createTexture({
-            size: [canvas.width, canvas.height, 1],
-            format: 'depth32float',
-            usage: GPUTextureUsage.RENDER_ATTACHMENT,
-        })
-        this.depthMapTextureView = depthMapTextureView
-        this.tmpDepthMapTextureView = tmpDepthMapTexture.createView()
-        this.thicknessTextureView = thicknessTexture.createView()
-        this.tmpThicknessTextureView = tmpThicknessTexture.createView()
-        this.depthTestTextureView = depthTestTexture.createView()
-
         // buffer
         const filterXUniformsValues = new ArrayBuffer(8)
         const filterYUniformsValues = new ArrayBuffer(8)
@@ -255,6 +199,8 @@ export class FluidRenderer {
         })
         device.queue.writeBuffer(filterXUniformBuffer, 0, filterXUniformsValues);
         device.queue.writeBuffer(filterYUniformBuffer, 0, filterYUniformsValues);
+        this.filterXUniformBuffer = filterXUniformBuffer
+        this.filterYUniformBuffer = filterYUniformBuffer
 
         // bindGroup
         this.depthMapBindGroup = device.createBindGroup({
@@ -266,27 +212,6 @@ export class FluidRenderer {
               { binding: 2, resource: { buffer: this.stretchStrengthBuffer }}
             ]
         })
-        this.depthFilterBindGroups = []
-        this.depthFilterBindGroups = [
-            device.createBindGroup({
-                label: 'filterX bind group', 
-                layout: this.depthFilterPipeline.getBindGroupLayout(0),
-                entries: [
-                    // { binding: 0, resource: sampler },
-                    { binding: 1, resource: this.depthMapTextureView }, // 元の領域から読み込む
-                    { binding: 2, resource: { buffer: filterXUniformBuffer } },
-                ],
-            }), 
-            device.createBindGroup({
-                label: 'filterY bind group', 
-                layout: this.depthFilterPipeline.getBindGroupLayout(0),
-                entries: [
-                    // { binding: 0, resource: sampler },
-                    { binding: 1, resource: this.tmpDepthMapTextureView }, // 一時領域から読み込む
-                    { binding: 2, resource: { buffer: filterYUniformBuffer }}
-                ],
-            })
-        ];
         this.thicknessMapBindGroup = device.createBindGroup({
             label: 'thickness map bind group', 
             layout: this.thicknessMapPipeline.getBindGroupLayout(0),
@@ -296,41 +221,6 @@ export class FluidRenderer {
                 { binding: 2, resource: { buffer: this.stretchStrengthBuffer }}
             ],
         })
-        this.thicknessFilterBindGroups = []
-        this.thicknessFilterBindGroups = [
-            device.createBindGroup({
-                label: 'thickness filterX bind group', 
-                layout: this.thicknessFilterPipeline.getBindGroupLayout(0),
-                entries: [
-                    // { binding: 0, resource: sampler },
-                    { binding: 1, resource: this.thicknessTextureView }, 
-                    { binding: 2, resource: { buffer: filterXUniformBuffer } }, 
-                ],
-            }), 
-            device.createBindGroup({
-                label: 'thickness filterY bind group', 
-                layout: this.thicknessFilterPipeline.getBindGroupLayout(0),
-                entries: [
-                // { binding: 0, resource: sampler },
-                { binding: 1, resource: this.tmpThicknessTextureView }, 
-                { binding: 2, resource: { buffer: filterYUniformBuffer } }, 
-                ],
-            }), 
-        ]
-
-        this.fluidBindGroup = device.createBindGroup({
-            label: 'fluid bind group',
-            layout: this.fluidPipeline.getBindGroupLayout(0),
-            entries: [
-              { binding: 0, resource: sampler },
-              { binding: 1, resource: this.depthMapTextureView },
-              { binding: 2, resource: { buffer: renderUniformBuffer } },
-              { binding: 3, resource: this.thicknessTextureView },
-              { binding: 4, resource: cubemapTextureView },
-            ],
-        })
-
-
         this.sphereBindGroup = device.createBindGroup({
             label: 'ball bind group', 
             layout: this.spherePipeline.getBindGroupLayout(0),  
@@ -340,16 +230,151 @@ export class FluidRenderer {
                 { binding: 2, resource: { buffer: this.stretchStrengthBuffer }}
             ]
         })
+
+        this.buildSized(canvas, depthMapTextureView)
     }
 
+    // ── LOCAL ADDITION ───────────────────────────────────────────────────────────
+    // Everything whose validity depends on the canvas backing-store size. Three of the
+    // six pipelines bake `screenWidth`/`screenHeight` (and the depth filter also bakes
+    // `projected_particle_constant`, which is derived from canvas.height) as
+    // pipeline-overridable constants — so a resize genuinely requires re-creating them,
+    // not just the textures. `layout: 'auto'` gives each pipeline its own bind group
+    // layout, so every bind group built against them must be re-created too.
+    private buildSized(canvas: HTMLCanvasElement, depthMapTextureView: GPUTextureView) {
+        const device = this.device
+        const width = Math.max(1, canvas.width)
+        const height = Math.max(1, canvas.height)
 
-    execute(context: GPUCanvasContext, commandEncoder: GPUCommandEncoder, 
-        numParticles: number, sphereRenderFl: boolean, stretchStrength: number) 
+        const screenConstants = {
+            'screenHeight': height,
+            'screenWidth': width,
+        }
+        const filterConstants = {
+            'depth_threshold' : this.radius * this.blurdDepthScale,
+            'max_filter_size' : this.maxFilterSize,
+            'projected_particle_constant' : (this.blurFilterSize * this.diameter * 0.05 * (height / 2)) / Math.tan(this.fov / 2),
+        }
+
+        this.depthFilterPipeline = device.createRenderPipeline({
+            label: 'filter pipeline',
+            layout: 'auto',
+            vertex: { module: this.vertexModule, constants: screenConstants },
+            fragment: {
+                module: this.depthFilterModule,
+                constants: filterConstants,
+                targets: [{ format: 'r32float' }],
+            },
+            primitive: { topology: 'triangle-list' },
+        })
+        this.thicknessFilterPipeline = device.createRenderPipeline({
+            label: 'thickness filter pipeline',
+            layout: 'auto',
+            vertex: { module: this.vertexModule, constants: screenConstants },
+            fragment: {
+                module: this.thicknessFilterModule,
+                targets: [{ format: 'rg16float' }],
+            },
+            primitive: { topology: 'triangle-list' },
+        })
+        this.fluidPipeline = device.createRenderPipeline({
+            label: 'fluid rendering pipeline',
+            layout: 'auto',
+            vertex: { module: this.vertexModule, constants: screenConstants },
+            fragment: {
+                module: this.fluidModule,
+                targets: [{ format: this.presentationFormat }],
+            },
+            primitive: { topology: 'triangle-list' },
+        })
+
+        // free the previous generation before allocating the new one
+        for (const t of this.sizedTextures) t.destroy()
+        this.sizedTextures = []
+
+        const mk = (label: string, format: GPUTextureFormat, usage: number) => {
+            const t = device.createTexture({ label, size: [width, height, 1], format, usage })
+            this.sizedTextures.push(t)
+            return t
+        }
+        const RT = GPUTextureUsage.RENDER_ATTACHMENT
+        const TB = GPUTextureUsage.TEXTURE_BINDING
+        const tmpDepthMapTexture = mk('temporary depth map texture', 'r32float', RT | TB)
+        const thicknessTexture = mk('thickness map texture', 'rg16float', RT | TB)
+        const tmpThicknessTexture = mk('temporary thickness map texture', 'rg16float', RT | TB)
+        const depthTestTexture = mk('depth test texture', 'depth32float', RT)
+
+        this.depthMapTextureView = depthMapTextureView
+        this.tmpDepthMapTextureView = tmpDepthMapTexture.createView()
+        this.thicknessTextureView = thicknessTexture.createView()
+        this.tmpThicknessTextureView = tmpThicknessTexture.createView()
+        this.depthTestTextureView = depthTestTexture.createView()
+
+        this.depthFilterBindGroups = [
+            device.createBindGroup({
+                label: 'filterX bind group',
+                layout: this.depthFilterPipeline.getBindGroupLayout(0),
+                entries: [
+                    { binding: 1, resource: this.depthMapTextureView }, // 元の領域から読み込む
+                    { binding: 2, resource: { buffer: this.filterXUniformBuffer } },
+                ],
+            }),
+            device.createBindGroup({
+                label: 'filterY bind group',
+                layout: this.depthFilterPipeline.getBindGroupLayout(0),
+                entries: [
+                    { binding: 1, resource: this.tmpDepthMapTextureView }, // 一時領域から読み込む
+                    { binding: 2, resource: { buffer: this.filterYUniformBuffer } },
+                ],
+            }),
+        ]
+        this.thicknessFilterBindGroups = [
+            device.createBindGroup({
+                label: 'thickness filterX bind group',
+                layout: this.thicknessFilterPipeline.getBindGroupLayout(0),
+                entries: [
+                    { binding: 1, resource: this.thicknessTextureView },
+                    { binding: 2, resource: { buffer: this.filterXUniformBuffer } },
+                ],
+            }),
+            device.createBindGroup({
+                label: 'thickness filterY bind group',
+                layout: this.thicknessFilterPipeline.getBindGroupLayout(0),
+                entries: [
+                    { binding: 1, resource: this.tmpThicknessTextureView },
+                    { binding: 2, resource: { buffer: this.filterYUniformBuffer } },
+                ],
+            }),
+        ]
+        this.fluidBindGroup = device.createBindGroup({
+            label: 'fluid bind group',
+            layout: this.fluidPipeline.getBindGroupLayout(0),
+            entries: [
+                { binding: 0, resource: this.sampler },
+                { binding: 1, resource: this.depthMapTextureView },
+                { binding: 2, resource: { buffer: this.renderUniformBuffer } },
+                { binding: 3, resource: this.thicknessTextureView },
+                { binding: 4, resource: this.cubemapTextureView },
+            ],
+        })
+    }
+
+    /** Re-derive every screen-sized resource after the canvas backing store changed. */
+    resize(canvas: HTMLCanvasElement, depthMapTextureView: GPUTextureView) {
+        this.buildSized(canvas, depthMapTextureView)
+    }
+
+    /** Release the screen-sized textures. Buffers/pipelines die with the device. */
+    destroy() {
+        for (const t of this.sizedTextures) t.destroy()
+        this.sizedTextures = []
+    }
+
+    execute(context: GPUCanvasContext, commandEncoder: GPUCommandEncoder,
+        numParticles: number, sphereRenderFl: boolean, stretchStrength: number)
     {
-        const stretchStrengthValues = new ArrayBuffer(4)
-        const stretchStrengthViews = new Float32Array(stretchStrengthValues)
-        stretchStrengthViews.set([stretchStrength])
-        this.device.queue.writeBuffer(this.stretchStrengthBuffer, 0, stretchStrengthViews)
+        this.stretchScratch[0] = stretchStrength
+        this.device.queue.writeBuffer(this.stretchStrengthBuffer, 0, this.stretchScratch)
 
         const depthMapPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
@@ -425,10 +450,15 @@ export class FluidRenderer {
             }
         ]
 
+        // ONE swap-chain view per frame. Both descriptors used to call
+        // getCurrentTexture().createView() unconditionally, allocating two views and
+        // using exactly one of them.
+        const swapChainView = context.getCurrentTexture().createView()
+
         const fluidPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
                 {
-                    view: context.getCurrentTexture().createView(),
+                    view: swapChainView,
                     clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, // transparent -> the REAL sea video (SeaBackdrop) shows through
                     loadOp: 'clear',
                     storeOp: 'store',
@@ -439,7 +469,7 @@ export class FluidRenderer {
         const spherePassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
                 {
-                    view: context.getCurrentTexture().createView(),
+                    view: swapChainView,
                     clearValue: { r: 0.7, g: 0.7, b: 0.75, a: 1.0 },
                     loadOp: 'clear',
                     storeOp: 'store',

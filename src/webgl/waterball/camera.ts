@@ -94,10 +94,22 @@ export class Camera {
         this.fov = fov
         this.zoomRate = zoomRate
 
+        this.recalculateProjection()
+        this.recalculateView()
+    }
+
+    // LOCAL ADDITION (not upstream): the projection was baked once in reset(), so any
+    // window resize / device rotation left the "A" rendering at the old aspect (stretched).
+    // Split out so resize() can re-derive it without re-running the whole reset.
+    recalculateProjection() {
         const aspect = this.canvas.clientWidth / this.canvas.clientHeight
-        const projection = mat4.perspective(fov, aspect, 0.1, 300) 
+        const projection = mat4.perspective(this.fov, aspect, 0.1, 300)
         renderUniformsViews.projection_matrix.set(projection)
         renderUniformsViews.inv_projection_matrix.set(mat4.inverse(projection))
+    }
+
+    resize() {
+        this.recalculateProjection()
         this.recalculateView()
     }
 
@@ -131,9 +143,6 @@ export class Camera {
         let mouseVelocityX = mousePlaneX - prevMousePlaneX
         let mouseVelocityY = mousePlaneY - prevMousePlaneY
         let mouseViewVelocity = [mouseVelocityX, mouseVelocityY, 0, 0]
-
-        let velX = (this.currentHoverX - this.prevHoverX) / this.canvas.width * (this.canvas.width / this.canvas.height);
-        let velY = -(this.currentHoverY - this.prevHoverY) / this.canvas.height;
 
         // ワールド座標に直すのはコンピュートシェーダーで
         return mouseViewVelocity

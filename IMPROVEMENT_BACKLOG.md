@@ -30,7 +30,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 
 | # | Effect | Target | I | E | R | Status |
 |---|---|---|---|---|---|---|
-| B1 | webgpu-water height-field + real caustics (+ Ksenia rotating-domain-warp surface) | `ShallowWater` → interactive, cursor-dropped ripples | H | L | M | ▶ next |
+| B1 | webgpu-water height-field + real caustics | `ShallowWater` → interactive, cursor-dropped ripples | H | L | M | ✅ done (iter 2) |
 | B2 | GreenSock perspective dolly (P=500 / z=350 / scale 2 = 6.667×, back plane 1.1) | `/work/[slug]` opening wide shot | H | M | L | pending |
 | B3 | telescope-zoom layered convergence (`[1,.85,.6,.45,.3,.15]`, fly-past `from:"center"`, sharpen `from:"end"`) | `/work` arrival beat above the runway | H | L | M | pending |
 | B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | pending |
@@ -60,7 +60,21 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 
 ## Iteration log
 
-### Iteration 1 — WebGPU correctness pass (A1–A7, A9)
+### Iteration 1 — WebGPU correctness pass (A1–A7, A9) · `444681b`
 Every item on the brief's §4 checklist that is present in this codebase and is **not** gated by G4.
 A8 is deliberately excluded and escalated: it is a genuine portability bug, but the only correct fix
 changes the hand-tuned poke strength on Alberto's own display, which `CLAUDE.md §9 G4` reserves.
+
+### Iteration 2 — B1: `ShallowWater` becomes a real height-field water surface
+Ported Evan Wallace's WebGL Water via `jeantimex/webgpu-water` (MIT) onto WebGL2: the ripple
+integrator, the cosine drop kernel, the normal reconstruction and the refraction/area-ratio caustics
+are reproduced verbatim (`2.0`, `0.995`, the `*0.25` 4-tap, radius `0.03`, strength `±0.01`,
+IOR `1/1.333`, 2 substeps → normals → caustics, upstream's `0.75` projection margin). Dropped: the
+pool box and the sphere shadow — scene-specific, meaningless here. Added: the pointer drops **real**
+ripples, plus ambient agitation at a coastal cadence (the reference's own kernel, retimed to the
+integrator's ~1.7 s decay so wavefronts always interfere — a "drip" cadence collapses the caustics
+into lonely rings) and a 210-step pre-roll so the first paint is already in steady state.
+The previous procedural field is kept intact as the fallback for WebGL1 / no renderable float, and
+is what reduced-motion still renders as one static frame.
+**Contrast is safe by construction**: the caustic term enters the unchanged composition through
+`clamp(...,0,1)` at `ca * 0.25` with shading capped at `0.55`, so the audited AA ratios cannot move.

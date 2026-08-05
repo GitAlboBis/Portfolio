@@ -7,6 +7,7 @@ import { works } from "@/content/works";
 import { gsap } from "@/lib/gsap";
 import { DUR, EASE, VELOCITY_GAIN } from "@/lib/motion";
 import { ARTWORK_GLSL, PATTERN_BY_SLUG } from "@/webgl/artwork";
+import { CNOISE_GLSL } from "@/webgl/noise";
 
 /*
   WorkRunwayCanvas — the GL artwork layer under the /work runway type (LA MAREA
@@ -21,8 +22,16 @@ import { ARTWORK_GLSL, PATTERN_BY_SLUG } from "@/webgl/artwork";
   choreography is untouched, and killing this file restores today's look.
   Mechanisms ported from the reference dossiers (CLAUDE.md §6 rules):
   smoothed |Δprogress| as the ONE distortion knob → vertex bend (webgl-carousel);
-  noise-front tide reveal per slide (r3f-image-reveal); artwork counter-drift
-  between title (0.2) and ghost numeral (0.09) depths (horizontal-parallax).
+  the radial domain-warped torn reveal per slide (r3f-image-reveal, MIT — see the
+  block at the end of FRAG); artwork counter-drift between title (0.2) and ghost
+  numeral (0.09) depths (horizontal-parallax).
+
+  ⚠ NOT ported from r3f-image-reveal: its vertex wave, `position.z += (1 - p) *
+  sin(distanceToCenter * 20.0 - p * 5.0)`. That reference renders under a
+  PERSPECTIVE camera, where a z displacement is visible as foreshortening. This
+  canvas is ORTHOGRAPHIC (`<Canvas orthographic>`), so displacing z produces
+  exactly zero pixels of change — porting it would be dead code wearing the
+  effect's name. The reveal itself carries the whole gesture here.
 
   House conventions: demand frameloop + rect-poll FrameGate (Lenis doesn't fire
   IO reliably), DPR ≤ 1.5, dispose on unmount, aria-hidden, transparent canvas —
@@ -64,6 +73,7 @@ const FRAG = /* glsl */ `
   uniform float uPlaneAspect;
 
   ${ARTWORK_GLSL}
+  ${CNOISE_GLSL}
 
   void main(){
     vec2 uv = vUv;
@@ -90,13 +100,53 @@ const FRAG = /* glsl */ `
     col *= mix(0.93, 1.0, smoothstep(1.05, 0.45, distance(uv, vec2(0.5))));
     col += (aw_hash(uv * vec2(760.0, 540.0) + fract(uTime)) - 0.5) * 0.035;
 
-    // Tide reveal: the artwork rises from below behind a noisy waterline,
-    // a golden edge riding the front (r3f-image-reveal, re-themed).
-    float n = aw_fbm(uv * 3.5 + uSeed * 3.0);
-    float coord = uv.y + (n - 0.5) * 0.3;
-    float edge = (1.0 - uReveal) * 1.4 - 0.2;
-    float alpha = smoothstep(edge, edge + 0.22, coord);
-    col = mix(uA * 1.1, col, smoothstep(0.0, 0.12, abs(coord - (edge + 0.11))));
+    // ── THE REVEAL — colindmg/r3f-image-reveal-effect (MIT), ported for real ──
+    // This block previously claimed that reference but implemented a vertical
+    // wipe with an fbm-jittered horizontal front: a Y coordinate, one un-warped
+    // fbm, a smoothstepped 0.22-wide band, and an edge that froze the moment
+    // uReveal hit 1. The actual technique is radial, domain-warped, linear-ramped
+    // and never stops moving. Reproduced from the source, verbatim:
+    //
+    //   displacedUv = vUv + cnoise(vec3(vUv * 5.0, uTime * 0.1));
+    //   strength    = cnoise(vec3(displacedUv * 5.0, uTime * 0.2));
+    //   strength   += distance(vUv, vec2(0.5)) * 12.5 - 7.0 * uProgress;
+    //   strength    = 1.0 - clamp(strength, 0.0, 1.0);
+    //   alpha       = strength * smoothstep(0.0, 0.7, uProgress);
+    //
+    // Why each number matters (dossier §5):
+    //  • the warp is applied BEFORE the x5, so it displaces the lookup by up to a
+    //    whole UV span — that total scramble is what makes the edge churn instead
+    //    of forming smooth blobs;
+    //  • 0.1 vs 0.2 time scales: the two fields drift at different rates so they
+    //    never lock into a repeating pattern;
+    //  • 12.5 sets the transition band to exactly 1/12.5 = 0.08 UV, and the noise
+    //    jitters the boundary radius by +-0.08 — jitter ~= band width is precisely
+    //    what reads as TORN rather than blurred. No smoothstep on this edge: the
+    //    linear ramp between the clamp bounds is the effect;
+    //  • at uReveal = 1 the open radius is d <= 0.56, so the CORNERS never open.
+    //    That permanent noisy vignette is deliberate upstream, and here it is also
+    //    the fix for the runway's hard-rectangle problem: the still dissolves into
+    //    the paper instead of ending on a clipped edge;
+    //  • uTime keeps advancing after the reveal completes, so the frontier goes on
+    //    churning forever. That ambient motion is most of why the frame feels
+    //    alive at rest, and it is exactly what the old wipe lost.
+    vec2 displacedUv = uv + rv_cnoise(vec3(uv * 5.0, uTime * 0.1));
+    float strength = rv_cnoise(vec3(displacedUv * 5.0, uTime * 0.2));
+    strength += distance(uv, vec2(0.5)) * 12.5 - 7.0 * uReveal;
+    strength = clamp(strength, 0.0, 1.0);
+    strength = 1.0 - strength;
+    float alpha = strength * smoothstep(0.0, 0.7, uReveal);
+
+    // Ours, not theirs: an ember lift riding the frontier. It is derived from the
+    // SAME strength field, so it tracks the real torn edge rather than being a
+    // second, invented front — Golden Hour theming of the reference's own
+    // boundary, not a different mechanism.
+    // Narrow + weak on purpose: at 0.5 weight over a half-unit band it read as a
+    // milky halo sitting ON the photograph rather than a rim lighting its torn
+    // edge. 0.26 over a 0.22-wide band keeps it a whisper — and the band is
+    // deliberately narrower than the reference's 0.08 UV transition so the lift
+    // stays inside the frontier instead of bleeding into the opaque interior.
+    col = mix(col, uA * 1.1, smoothstep(0.28, 0.06, abs(strength - 0.5)) * 0.26);
 
     gl_FragColor = vec4(clamp(col, 0.0, 1.0), alpha);
   }

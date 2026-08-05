@@ -35,7 +35,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | B1 | webgpu-water height-field + real caustics | `ShallowWater` → interactive, cursor-dropped ripples | H | L | M | ✅ done (iter 2) |
 | B2 | GreenSock perspective dolly (P=500 / z=350 / scale 2 = 6.667×, back plane 1.1). ⚠ **Front plane must be the torn PAPER, not the photo** — our stills are 1280px and already upscaled ~1.13× at 1440, so 6.667× magnifies WebP blocking. `TornEdge` is SVG (no ceiling) and "paper tears to reveal photographs" is already the site's language. Constraint + reasoning in `DOSSIERS.md §1`. | `/work/[slug]` opening — fly through the tear | H | M | M | pending (retargeted) |
 | B3 | telescope-zoom layered convergence (`[1,.85,.6,.45,.3,.15]`, fly-past `from:"center"`, sharpen `from:"end"`) | `/work` arrival beat above the runway | H | L | M | ✅ done (iter 4) |
-| B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | pending |
+| B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | ✅ done (iter 5) |
 | B5 | metaballs tear-apart (`radius/dist`, 121 pts, shuffled 0.5 windows) — **fix the disabled row stagger on port** | `WorksGallery` project cross-fade | M | M | M | pending |
 | B6 | three-skull morphological erosion reveal (`min` of 5 noise-warped taps, `+0.015`/frame recovery) | paper → sea pointer reveal on the `bg-paper` band | M | L | M | pending |
 | B7 | Liquid-Morphology bell envelope `sin(pπ)·0.2` + counter-scale `s1/s2` — **re-centre the unsigned y noise** | `MenuOverlay` route-preview crossfade | M | S | L | pending |
@@ -47,7 +47,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 
 | # | Finding | Evidence | I | E | R | Status |
 |---|---|---|---|---|---|---|
-| C1 | `/work` mid-runway composition is weak: still half-clipped at the left edge, next title clipped at the right, large empty paper void between. Every juror scrubbing the index sees this. | `_shots/before/work-1440-030.png` | H | M | M | partly addressed (iter 4 gives the route an arrival; the mid-runway frame itself is still open → B4) |
+| C1 | `/work` mid-runway composition is weak: still half-clipped at the left edge, next title clipped at the right, large empty paper void between. | `_shots/before/work-1440-030.png` | H | M | M | ✅ addressed (iter 4 arrival + iter 5 torn frontier — the still now dissolves into the paper instead of ending on a clipped rectangle) |
 | C2 | `WorksGallery` mood wash is very heavy at mid-scroll — the still is nearly drowned in ember; the duotone pull may be over-strength at that ramp position. Verify against intent before touching. | `_shots/before/home-1440-020.png` | M | S | M | pending |
 
 ## D. Housekeeping (pre-existing, from `PLAN.md`)
@@ -108,3 +108,32 @@ first client render but false in the server HTML. Fixed by removing the render-t
 the default lives in a class (`[--progress:0]`) and the effect owns the live value. Reduced-motion
 also collapses the wrapper to one screen via `motion-reduce:h-dvh` — pure CSS, zero hydration
 surface — so a reduced-motion visitor doesn't scroll two viewports of decoration to reach the list.
+
+### Iteration 5 — B4: the runway reveal was mislabelled; ported for real
+`WorkRunwayCanvas`'s header already claimed *"noise-front tide reveal per slide
+(r3f-image-reveal)"*. The shader underneath was **not** that technique — it was a vertical wipe:
+a Y coordinate, one un-warped `aw_fbm`, a smoothstepped 0.22-wide band, and an edge that froze the
+instant `uReveal` hit 1. Replaced with the actual algorithm, read from the source:
+
+```
+displacedUv = vUv + cnoise(vec3(vUv * 5.0, uTime * 0.1));
+strength    = cnoise(vec3(displacedUv * 5.0, uTime * 0.2));
+strength   += distance(vUv, vec2(0.5)) * 12.5 - 7.0 * uProgress;
+alpha       = (1.0 - clamp(strength, 0.0, 1.0)) * smoothstep(0.0, 0.7, uProgress);
+```
+
+Radial, not vertical. Domain-warped **before** the ×5 (that total scramble is what makes the edge
+churn). Two time scales (0.1 / 0.2) so the fields never lock. **No smoothstep on the edge** — the
+linear ramp between the clamp bounds is the effect, and `12.5` sets the band to `0.08` UV with
+`±0.08` noise jitter, i.e. jitter ≈ band width, which is what reads as *torn*. Corners never open
+(`d ≤ 0.56` at p=1) — upstream's deliberate permanent vignette, and here also the fix for C1.
+`uTime` keeps advancing after the reveal completes, so the frontier churns forever (measured: two
+settled frames 900 ms apart still differ).
+
+`cnoise` (Stefan Gustavson's classic Perlin 3D) vendored verbatim into `src/webgl/noise.ts` with
+`rv_` prefixes so it can never collide with `ARTWORK_GLSL` or a three.js chunk.
+
+**Not ported, recorded why:** the reference's vertex wave `position.z += (1-p)·sin(dc·20 − p·5)`.
+That demo uses a **perspective** camera where z displacement shows as foreshortening; this canvas is
+`<Canvas orthographic>`, so it would produce exactly zero pixels of change — dead code wearing the
+effect's name.

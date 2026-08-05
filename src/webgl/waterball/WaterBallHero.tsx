@@ -190,9 +190,15 @@ export function WaterBallHero() {
     let device: GPUDevice | null = null;
     let camera: Camera | null = null;
     let io: IntersectionObserver | null = null;
+    let ro: ResizeObserver | null = null;
+    let disposeGpu: (() => void) | null = null;
     // perf: only run the (expensive) MLS-MPM compute + SSF render while the hero
     // section is actually on screen. Off-screen -> idle the GPU entirely.
     let heroVisible = true;
+    // set when the GPUDevice is lost (driver reset, GPU switch, browser reclaim). The
+    // frame loop must stop encoding onto a dead device immediately — otherwise every
+    // subsequent tick throws and floods the console while the canvas sits frozen.
+    let deviceLost = false;
 
     const run = async () => {
       const adapter = await navigator.gpu!.requestAdapter();
@@ -206,6 +212,18 @@ export function WaterBallHero() {
         return;
       }
       device = dev;
+
+      // DEVICE LOSS. `device.lost` resolves on driver reset / GPU switch / browser
+      // reclaim — and also (reason "destroyed") on our own teardown, which is not a
+      // failure. On a real loss we stop the loop and fall back to the CSS sunset sky +
+      // the real sea video underneath (setUnsupported unmounts this canvas), which is
+      // exactly the no-WebGPU path the site already ships.
+      dev.lost.then((info) => {
+        if (cancelled || info.reason === "destroyed") return;
+        deviceLost = true;
+        console.warn("[waterball] GPU device lost:", info.reason, info.message);
+        setUnsupported(true);
+      });
 
       const context = canvas.getContext("webgpu") as GPUCanvasContext | null;
       if (!context) {
@@ -251,6 +269,9 @@ export function WaterBallHero() {
           [bm.width, bm.height],
         ),
       );
+      // the six decoded bitmaps are now resident on the GPU — release the CPU-side
+      // copies instead of leaving them for GC.
+      bitmaps.forEach((bm) => bm.close());
       const cubemapView = cubemapTexture.createView({ dimension: "cube" });
 
       renderUniformsViews.texel_size.set([1.0 / canvas.width, 1.0 / canvas.height]);
@@ -272,12 +293,12 @@ export function WaterBallHero() {
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       });
 
-      const depthMapTexture = dev.createTexture({
+      let depthMapTexture = dev.createTexture({
         size: [canvas.width, canvas.height, 1],
         usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         format: "r32float",
       });
-      const depthMapView = depthMapTexture.createView();
+      let depthMapView = depthMapTexture.createView();
 
       const sim = new MLSMPMSimulator(
         particleBuffer,
@@ -332,6 +353,61 @@ export function WaterBallHero() {
       // "A" is refilled cleanly once scrolled fully back to the top.
       let drained = false;
 
+      // ── RESIZE ───────────────────────────────────────────────────────────────
+      // Nothing in this component used to follow a window resize / device rotation:
+      // canvas.width/height were set once at init, so after any resize the CSS box no
+      // longer matched the backing store (the "A" stretched), the screen-space-fluid
+      // textures kept the old resolution, the `screenWidth`/`screenHeight` and
+      // `projected_particle_constant` pipeline constants went stale, `texel_size` and
+      // `waterline` pointed at the old geometry, and the camera kept the old aspect.
+      //
+      // The rebuild is deliberately partial: only screen-sized GPU resources are
+      // re-created. The particle buffer, the grid and every solver parameter are left
+      // untouched, so the letter survives a resize instead of re-birthing (and no G4
+      // surface is touched).
+      const applySize = () => {
+        if (cancelled || deviceLost) return;
+        const r = Math.min(window.devicePixelRatio || 1, 1.5);
+        const w = Math.max(1, Math.floor(r * (canvas.clientWidth || window.innerWidth)));
+        const h = Math.max(1, Math.floor(r * (canvas.clientHeight || window.innerHeight)));
+        if (w === canvas.width && h === canvas.height) return;
+        canvas.width = w;
+        canvas.height = h;
+
+        depthMapTexture.destroy();
+        depthMapTexture = dev.createTexture({
+          size: [w, h, 1],
+          usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+          format: "r32float",
+        });
+        depthMapView = depthMapTexture.createView();
+
+        renderer.resize(canvas, depthMapView);
+        sim.setDepthMapView(depthMapView);
+        sim.setScreenSize(w, h);
+
+        renderUniformsViews.texel_size.set([1.0 / w, 1.0 / h]);
+        renderUniformsViews.waterline.set([h * 0.86]);
+        camera?.resize();
+      };
+      // ResizeObserver fires for CSS-box changes (window resize, rotation, zoom);
+      // coalesce bursts onto one frame so a drag-resize rebuilds once per tick, not
+      // once per observer callback.
+      let resizePending = 0;
+      ro = new ResizeObserver(() => {
+        if (resizePending) return;
+        resizePending = requestAnimationFrame(() => {
+          resizePending = 0;
+          applySize();
+        });
+      });
+      ro.observe(canvas);
+      disposeGpu = () => {
+        if (resizePending) cancelAnimationFrame(resizePending);
+        renderer.destroy();
+        depthMapTexture.destroy();
+      };
+
       const heroEl = document.getElementById("hero");
       if (heroEl) {
         io = new IntersectionObserver(
@@ -348,8 +424,18 @@ export function WaterBallHero() {
         return;
       }
 
+      // last value written to canvas.style.opacity — the fade was assigned on EVERY
+      // frame (a style write inside the render loop, dirtying style ~60x/s even when
+      // the value never moved). Only write on an actual change.
+      let lastOpacity = "";
+      const setCanvasOpacity = (v: string) => {
+        if (v === lastOpacity) return;
+        lastOpacity = v;
+        canvas.style.opacity = v;
+      };
+
       const frame = () => {
-        if (cancelled || !device || !camera) return;
+        if (cancelled || deviceLost || !device || !camera) return;
         // hero scrolled out of view OR fully occluded by the opaque menu
         // overlay -> idle the GPU (no compute, no render). Render-only gate;
         // the solver/params stay untouched (G4).
@@ -384,12 +470,12 @@ export function WaterBallHero() {
           drained = false;
           sim.splashExplode = 0;
           sim.initFromHomes(INIT_BOX, NUM_PARTICLES); // reform the "A"
-          canvas.style.opacity = "1";
+          setCanvasOpacity("1");
         }
         // fade the fluid as the slow burst finishes dispersing into the sea (tied to
         // scroll) — start late so the slow-motion dispersal is fully seen first.
         const fade = explodeBeat <= 0.78 ? 1 : Math.max(0, 1 - (explodeBeat - 0.78) / 0.22);
-        canvas.style.opacity = String(fade);
+        setCanvasOpacity(String(fade));
         // fully drained + faded -> idle the GPU (skip the heavy sim+render) until scrolled back
         if (explodeBeat >= 0.999 && fade <= 0.002) {
           rafId = requestAnimationFrame(frame);
@@ -449,7 +535,9 @@ export function WaterBallHero() {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
       io?.disconnect();
+      ro?.disconnect();
       camera?.dispose();
+      disposeGpu?.();
       device?.destroy();
     };
   }, []);

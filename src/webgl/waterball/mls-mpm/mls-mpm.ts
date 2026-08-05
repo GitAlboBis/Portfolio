@@ -247,6 +247,26 @@ export class MLSMPMSimulator {
         mouseInfoViews.screenSize.set([canvas.width, canvas.height]);
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
+        // LOCAL ADDITION: keep the handles the resize path needs to rebuild the ONE bind
+        // group that references a size-dependent resource (updateGrid binds the depth map).
+        this.cellBuffer = cellBuffer
+        this.renderUniformBuffer = renderUniformBuffer
+        // LOCAL ADDITION: these views were rebuilt from scratch on EVERY frame inside
+        // execute() (5 fresh Float32Array objects per frame). Build them once — they are
+        // just typed views onto the same persistent ArrayBuffer.
+        this.mouseInfoWriteViews = {
+            screenSize: new Float32Array(this.mouseInfoValues, 0, 2),
+            mouseCoord: new Float32Array(this.mouseInfoValues, 8, 2),
+            mouseVel: new Float32Array(this.mouseInfoValues, 16, 2),
+            mouseRadius: new Float32Array(this.mouseInfoValues, 24, 1),
+            pokeForce: new Float32Array(this.mouseInfoValues, 28, 1),
+        }
+        // LOCAL ADDITION: changeBoxSize() is called every frame with a constant value and
+        // allocated a fresh ArrayBuffer each time. Persistent scratch + change detection.
+        this.realBoxSizeScratch = new Float32Array(3)
+        this.realBoxSizeDirty = true
+        this.numParticlesScratch = new Int32Array(1)
+
         // BindGroup
         this.clearGridBindGroup = device.createBindGroup({
             layout: this.clearGridPipeline.getBindGroupLayout(0), 
@@ -536,17 +556,15 @@ export class MLSMPMSimulator {
     execute(commandEncoder: GPUCommandEncoder, mouseCoord: number[], mouseVel: number[], targetNumParticles: number, mouseRadius: number) {
         const computePass = commandEncoder.beginComputePass();
 
-        const canvasInfoViews = {
-            screenSize: new Float32Array(this.mouseInfoValues, 0, 2),
-            mouseCoord: new Float32Array(this.mouseInfoValues, 8, 2),
-            mouseVel: new Float32Array(this.mouseInfoValues, 16, 2),
-            mouseRadius : new Float32Array(this.mouseInfoValues, 24, 1),
-            pokeForce : new Float32Array(this.mouseInfoValues, 28, 1),
-        };
-        canvasInfoViews.mouseCoord.set([mouseCoord[0], mouseCoord[1]])
-        canvasInfoViews.mouseVel.set([mouseVel[0], mouseVel[1]])
-        canvasInfoViews.mouseRadius.set([mouseRadius])
-        canvasInfoViews.pokeForce.set([this.pokeForce])
+        // views are built once in the constructor (see mouseInfoWriteViews) — writing
+        // through them mutates the same persistent ArrayBuffer, no per-frame allocation.
+        const v = this.mouseInfoWriteViews
+        v.mouseCoord[0] = mouseCoord[0]
+        v.mouseCoord[1] = mouseCoord[1]
+        v.mouseVel[0] = mouseVel[0]
+        v.mouseVel[1] = mouseVel[1]
+        v.mouseRadius[0] = mouseRadius
+        v.pokeForce[0] = this.pokeForce
         this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues);
 
         // live splash params (leva) -- MUST match SplashParams struct order in g2p.wgsl:
@@ -589,12 +607,15 @@ export class MLSMPMSimulator {
             computePass.setBindGroup(0, this.g2pBindGroup)
             computePass.setPipeline(this.g2pPipeline)
             computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64)) 
+            // copyPosition is IDEMPOTENT (it copies particle position/v + density into the
+            // posvel buffer read by the renderer). It used to be dispatched twice in a row
+            // with the identical bind group and pipeline — the second dispatch recomputed
+            // the exact same result, i.e. ceil(numParticles/64) wasted workgroups per
+            // substep. Removing it leaves the simulation bit-identical (this is a readback
+            // copy, not part of the MLS-MPM integration — no G4 surface is touched).
             computePass.setBindGroup(0, this.copyPositionBindGroup)
             computePass.setPipeline(this.copyPositionPipeline)
-            computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64))  
-            computePass.setBindGroup(0, this.copyPositionBindGroup)
-            computePass.setPipeline(this.copyPositionPipeline)
-            computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64))  
+            computePass.dispatchWorkgroups(Math.ceil(this.numParticles / 64))
         }
         computePass.end()
 
@@ -602,18 +623,48 @@ export class MLSMPMSimulator {
         this.frameCount++;
     }
 
+    // Called EVERY FRAME from the RAF loop with a constant array. It used to allocate a
+    // fresh ArrayBuffer + view and re-upload 12 unchanged bytes on every tick; now it
+    // writes through persistent scratch and only touches the GPU when the value moves.
     changeBoxSize(realBoxSize: number[]) {
-        const realBoxSizeValues = new ArrayBuffer(12);
-        const realBoxSizeViews = new Float32Array(realBoxSizeValues);
-        realBoxSizeViews.set(realBoxSize)
-        this.device.queue.writeBuffer(this.realBoxSizeBuffer, 0, realBoxSizeViews)
+        const s = this.realBoxSizeScratch
+        if (!this.realBoxSizeDirty && s[0] === realBoxSize[0] && s[1] === realBoxSize[1] && s[2] === realBoxSize[2]) {
+            return
+        }
+        s[0] = realBoxSize[0]; s[1] = realBoxSize[1]; s[2] = realBoxSize[2]
+        this.realBoxSizeDirty = false
+        this.device.queue.writeBuffer(this.realBoxSizeBuffer, 0, s)
     }
 
     changeNumParticles(numParticles: number) {
-        const numParticlesValues = new ArrayBuffer(4);
-        const numParticlesViews = new Int32Array(numParticlesValues)
-        numParticlesViews.set([numParticles])
-        this.device.queue.writeBuffer(this.numParticlesBuffer, 0, numParticlesViews)
+        this.numParticlesScratch[0] = numParticles
+        this.device.queue.writeBuffer(this.numParticlesBuffer, 0, this.numParticlesScratch)
         this.numParticles = numParticles
+    }
+
+    // ── LOCAL ADDITIONS: resize support ──────────────────────────────────────────
+    // The canvas backing store feeds two things on the simulator side: the screenSize
+    // uniform (updateGrid projects the mouse ray with it) and the depth-map texture view
+    // bound by updateGridBindGroup. Both went stale on every window resize because
+    // nothing ever recreated them. Solver state (particles, cells, params) is untouched,
+    // so the "A" survives a resize instead of re-birthing.
+    setScreenSize(width: number, height: number) {
+        this.mouseInfoWriteViews.screenSize[0] = width
+        this.mouseInfoWriteViews.screenSize[1] = height
+        this.device.queue.writeBuffer(this.mouseInfoUniformBuffer, 0, this.mouseInfoValues)
+    }
+
+    setDepthMapView(depthMapTextureView: GPUTextureView) {
+        this.updateGridBindGroup = this.device.createBindGroup({
+            layout: this.updateGridPipeline.getBindGroupLayout(0),
+            entries: [
+                { binding: 0, resource: { buffer: this.cellBuffer }},
+                { binding: 1, resource: { buffer: this.realBoxSizeBuffer }},
+                { binding: 2, resource: { buffer: this.initBoxSizeBuffer }},
+                { binding: 3, resource: { buffer: this.renderUniformBuffer }},
+                { binding: 4, resource: depthMapTextureView },
+                { binding: 5, resource: { buffer: this.mouseInfoUniformBuffer }},
+            ],
+        })
     }
 }

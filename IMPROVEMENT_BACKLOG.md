@@ -34,7 +34,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 |---|---|---|---|---|---|---|
 | B1 | webgpu-water height-field + real caustics | `ShallowWater` → interactive, cursor-dropped ripples | H | L | M | ✅ done (iter 2) |
 | B2 | GreenSock perspective dolly (P=500 / z=350 / scale 2 = 6.667×, back plane 1.1). ⚠ **Front plane must be the torn PAPER, not the photo** — our stills are 1280px and already upscaled ~1.13× at 1440, so 6.667× magnifies WebP blocking. `TornEdge` is SVG (no ceiling) and "paper tears to reveal photographs" is already the site's language. Constraint + reasoning in `DOSSIERS.md §1`. | `/work/[slug]` opening — fly through the tear | H | M | M | pending (retargeted) |
-| B3 | telescope-zoom layered convergence (`[1,.85,.6,.45,.3,.15]`, fly-past `from:"center"`, sharpen `from:"end"`) | `/work` arrival beat above the runway | H | L | M | pending |
+| B3 | telescope-zoom layered convergence (`[1,.85,.6,.45,.3,.15]`, fly-past `from:"center"`, sharpen `from:"end"`) | `/work` arrival beat above the runway | H | L | M | ✅ done (iter 4) |
 | B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | pending |
 | B5 | metaballs tear-apart (`radius/dist`, 121 pts, shuffled 0.5 windows) — **fix the disabled row stagger on port** | `WorksGallery` project cross-fade | M | M | M | pending |
 | B6 | three-skull morphological erosion reveal (`min` of 5 noise-warped taps, `+0.015`/frame recovery) | paper → sea pointer reveal on the `bg-paper` band | M | L | M | pending |
@@ -47,7 +47,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 
 | # | Finding | Evidence | I | E | R | Status |
 |---|---|---|---|---|---|---|
-| C1 | `/work` mid-runway composition is weak: still half-clipped at the left edge, next title clipped at the right, large empty paper void between. Every juror scrubbing the index sees this. | `_shots/before/work-1440-030.png` | H | M | M | pending (B3/B4 address it) |
+| C1 | `/work` mid-runway composition is weak: still half-clipped at the left edge, next title clipped at the right, large empty paper void between. Every juror scrubbing the index sees this. | `_shots/before/work-1440-030.png` | H | M | M | partly addressed (iter 4 gives the route an arrival; the mid-runway frame itself is still open → B4) |
 | C2 | `WorksGallery` mood wash is very heavy at mid-scroll — the still is nearly drowned in ember; the duotone pull may be over-strength at that ramp position. Verify against intent before touching. | `_shots/before/home-1440-020.png` | M | S | M | pending |
 
 ## D. Housekeeping (pre-existing, from `PLAN.md`)
@@ -80,3 +80,31 @@ The previous procedural field is kept intact as the fallback for WebGL1 / no ren
 is what reduced-motion still renders as one static frame.
 **Contrast is safe by construction**: the caustic term enters the unchanged composition through
 `clamp(...,0,1)` at `ca * 0.25` with shading capped at `0.55`, so the audited AA ratios cannot move.
+
+### Iteration 4 — B3: `/work` gets an arrival (`WorkApproach`)
+Port of `joffreysp/telescope-zoom`. Reading the reference's `mask.png` changed the plan: it is a
+**crab silhouette**, so the effect is not a zoom but ONE shape repeated at six depths, each showing
+the same photograph through it, all converging to scale 1 so the nested copies **register into a
+single shape**. Our equivalent shape was already sitting there — the letter **"A"** the whole site
+is built on (water hero, constellation, murmuration). So `/work` now assembles that "A" out of the
+project photography while the projects fly past the camera.
+
+Kept verbatim: the `[1,.85,.6,.45,.3,.15]` stack and its accelerating ratios; `--progress` set from
+a **JS-eased** `power1.inOut` of scroll progress (the timeline itself scrubs linearly — two
+different curves, both needed); `perspective:100vh` + `z:100vh` so the flyers' projection scale runs
+1 → ∞; stagger `amount .2 from "center"` on the fly-past and `from "end"` on the sharpen (deepest
+layer first); convergence at `0.6 + delay .1`, sharpen at `0.6 + delay .4`; headline throw ±66vw
+(±100vw ≤768px).
+
+Ours, not theirs: `background-clip: text` instead of a raster mask (a typeface has no resolution
+ceiling — the opposite of the B2 problem); **CSS `sticky` instead of ScrollTrigger `pin`**, because
+the runway below is itself a sticky ScrollTrigger surface and this repo already paid for mixing them
+(Nightfall). A 200vh wrapper + 100vh sticky child reproduces the reference's geometry exactly with
+no pin-spacer to disturb the runway's measurements.
+
+⚠ Caught in QA: putting `--progress` in an inline style **broke hydration** — the store resolves
+`reducedMotion` from matchMedia at module load, so it is already true on a reduced-motion visitor's
+first client render but false in the server HTML. Fixed by removing the render-time branch entirely:
+the default lives in a class (`[--progress:0]`) and the effect owns the live value. Reduced-motion
+also collapses the wrapper to one screen via `motion-reduce:h-dvh` — pure CSS, zero hydration
+surface — so a reduced-motion visitor doesn't scroll two viewports of decoration to reach the list.

@@ -4,6 +4,7 @@ import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { WorkHorizontal } from "@/components/work/WorkHorizontal";
+import { WorkApproach } from "@/components/work/WorkApproach";
 import { FilmScrub } from "@/components/home/FilmScrub";
 import { RollLink } from "@/components/motion/RollLink";
 
@@ -62,6 +63,13 @@ export function WorkIndex() {
           </div>
         </nav>
       </header>
+
+      {/* THE APPROACH — the index used to drop you straight into the runway with
+          no arrival. Now the work assembles itself into the site's own mark: six
+          nested "A"s at receding depths, each cut from the photography, all
+          converging into one as the projects fly past the camera. Decorative;
+          the real heading lives in the runway below. */}
+      <WorkApproach />
 
       <WorkHorizontal />
 

@@ -48,7 +48,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | # | Finding | Evidence | I | E | R | Status |
 |---|---|---|---|---|---|---|
 | C1 | `/work` mid-runway composition is weak: still half-clipped at the left edge, next title clipped at the right, large empty paper void between. | `_shots/before/work-1440-030.png` | H | M | M | ✅ addressed (iter 4 arrival + iter 5 torn frontier — the still now dissolves into the paper instead of ending on a clipped rectangle) |
-| C2 | `WorksGallery` mood wash is very heavy at mid-scroll — the still is nearly drowned in ember; the duotone pull may be over-strength at that ramp position. Verify against intent before touching. | `_shots/before/home-1440-020.png` | M | S | M | pending |
+| C2 | `WorksGallery` mood wash was very heavy at mid-scroll — the still nearly drowned in ember. Root cause was NOT the plane duotone (0.14, mild) but the background blobs at `0.55`/`0.50`: at those weights each blob nearly *replaces* the base at its centre, and both centres sit mid-field so they stacked. Halved to `0.28`/`0.24` on Alberto's call. | `_shots/seams/light-030.png` | M | S | M | ✅ done (iter 9) |
 
 ## D. Housekeeping (pre-existing, from `PLAN.md`)
 

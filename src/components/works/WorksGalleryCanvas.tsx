@@ -183,8 +183,15 @@ const FRAG_BG = /* glsl */ `
     float b2 = smoothstep(0.50, 0.0, distance(vUv, c2));
     vec3 col = uBase;
     col = mix(col, col * 1.05, smoothstep(0.0, 1.0, vUv.y));      // depth gradient
-    col = mix(col, uB1, b1 * 0.55);
-    col = mix(col, uB2, b2 * 0.50);
+    // Mood blobs. These were 0.55 / 0.50 — at those weights each blob nearly
+    // REPLACES the base at its centre, and since both centres sit near the
+    // middle of the field they stack: mid-scroll the whole viewport went
+    // saturated ember and the photograph drowned in it (measured at 30% scroll,
+    // _shots/seams/tear-030.png). Halved, so the mood tints the ground instead
+    // of becoming it — the still stays the brightest thing on screen, which is
+    // the point of a works gallery.
+    col = mix(col, uB1, b1 * 0.28);
+    col = mix(col, uB2, b2 * 0.24);
     float ca = sin((vUv.x + t * 2.0) * 16.0) * sin((vUv.y - t * 1.4) * 13.0);
     ca = smoothstep(0.6, 1.0, ca * 0.5 + 0.5) * smoothstep(0.1, 0.85, vUv.y);
     col += ca * (0.025 + uVel * 0.05) * vec3(1.0, 0.86, 0.62);     // caustic light, warm

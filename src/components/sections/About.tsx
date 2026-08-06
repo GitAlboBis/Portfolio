@@ -7,7 +7,6 @@ import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Parallax } from "@/components/motion/Parallax";
 import { RollLink } from "@/components/motion/RollLink";
 import { GoldenHaze } from "@/components/atmosphere/GoldenHaze";
-import { DriftBand } from "@/components/motion/DriftBand";
 
 /**
  * About — first content section (the descent below the hero).
@@ -73,17 +72,10 @@ export function About() {
         </div>
       </div>
 
-      {/* Kinetic seam into Selected Work: the works title + the hero tagline
-          (its echo, after the hero scrolled it away) counter-drift at display
-          scale, steered by scroll velocity. Decorative — the real works h2
-          lives (sr-only) in the gallery; the tagline is the hero h1's sibling. */}
-      <DriftBand
-        className="relative mt-[clamp(4.5rem,11vh,8.5rem)] pb-[clamp(3rem,7vh,5.5rem)]"
-        rows={[
-          { text: t.works.title, dir: 1, variant: "stroke" },
-          { text: t.hero.tagline, dir: -1, variant: "ink" },
-        ]}
-      />
+      {/* (A counter-drifting kinetic type seam used to close this section;
+          removed 2026-08-06 — Alberto: the scrolling strips read as a cut, not
+          as a transition. The seam into Selected Work is now the arch rise.) */}
+      <div className="h-[clamp(3rem,8vh,6rem)]" />
     </section>
   );
 }

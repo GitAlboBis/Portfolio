@@ -14,7 +14,6 @@ const TechCloud = dynamic(() => import("@/components/tech-cloud").then((m) => m.
 });
 import { Parallax } from "@/components/motion/Parallax";
 import { TideReveal } from "@/components/reveal/TideReveal";
-import { Marquee } from "@/components/motion/Marquee";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 
 /**
@@ -32,12 +31,9 @@ export function Tech() {
       aria-labelledby="tech-title"
       style={{ paddingBlock: "var(--section-y)" }}
     >
-      {/* Velocity-coupled keyword ticker — a warm-air ribbon leading into the stack. */}
-      <Marquee
-        items={t.tech.marquee}
-        label={t.tech.ariaMarquee}
-        className="bleed mb-[var(--section-y)] border-y border-[var(--color-rule)]"
-      />
+      {/* (A velocity-coupled keyword ticker sat here behind two full-bleed rules;
+          removed 2026-08-06 — Alberto: the scrolling strips read as a cut, and
+          the border-y rules were literally drawing the seam we want to erase.) */}
 
       <div className="container-edit grid-edit">
         <Parallax className="col-meta mb-6 lg:mb-0" from={66}>

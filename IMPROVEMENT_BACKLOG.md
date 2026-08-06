@@ -158,3 +158,34 @@ Cleaned up rather than left dangling:
 
 Kept on purpose: `GoldenHaze` (it paints the sky, not the flock) and `GoldenMotes` (golden pollen,
 not birds).
+
+### Iteration 7 — scrolling type strips out, the arch seam in
+**Removed** both kinetic scrolling-text strips: `DriftBand` (the counter-drifting "Things I've
+built" / hero-tagline seam closing the About band) and `Marquee` (the Tech keyword ticker, which
+additionally sat between two full-bleed `border-y` rules — literally drawing the seam we want to
+erase). Both component files deleted; nothing else imported them.
+
+**Added `ArchRise`** — the era-residence arch, ported from Alberto's own reverse engineering
+(`domus-tua-site/reverse-engineering/era-residence`). The incoming section is a dome that rises from
+the bottom and covers the outgoing one, so the two never meet on a line.
+
+From `css/arch-dome.css`: `border-top-{left,right}-radius: 50rem` with `html { font-size: 1vw }`,
+i.e. **50vw** — on a full-width layer the two radii sum to the width and the top edge becomes a true
+semicircle. Plus a negative `margin-top` pulling the dome up over what precedes it.
+
+Two things learned the hard way, both measured here:
+1. **The element must be at least as tall as the radius.** CSS shrinks border radii proportionally
+   when they don't fit, so a 50vw radius on a 24vh cap silently collapses to a 24vh radius — rounded
+   corners, not a dome. First attempt did exactly that.
+2. **The dome must BE the incoming surface, not a cap above it.** A separate cap in `--color-paper`
+   sitting over a band tinted by `GoldenHaze` re-introduced a visible horizontal join — the exact
+   cut it was meant to erase.
+3. `overflow: clip`, never `hidden` — clip doesn't create a scroll container, so the `sticky`
+   descendants (Nightfall, the coast film, the ascent) keep working.
+
+`overlap` is the dome's apex height above the outgoing section's bottom edge. 26vh buried the hero
+h1 before any scrolling; **6vh** leaves the hero clean at rest and lets the dome arrive as you move.
+
+**Still open on the "no cuts" brief:** the other seams (Works→Coast, Coast→Ascent, Ascent→Tech,
+Tech→night) still meet on straight edges or `TornEdge` tears. Same treatment to apply, plus the
+cloud-style dissolve between two light surfaces from the era reference.

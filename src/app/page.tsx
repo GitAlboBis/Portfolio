@@ -12,6 +12,7 @@ import { Footer } from "@/components/footer/Footer";
 import { NightSkyLazy as NightSky } from "@/components/atmosphere/NightSkyLazy";
 import { Nightfall } from "@/components/home/Nightfall";
 import { LazyOnView } from "@/components/motion/LazyOnView";
+import { ArchRise } from "@/components/motion/ArchRise";
 
 // Homepage owns the root identity: its canonical + og:url/title point at "/".
 // (Removed from the root layout so subpages no longer inherit the homepage's.)
@@ -46,8 +47,17 @@ export default function Home() {
         <HeroCopy />
       </section>
 
-      {/* Editorial content on paper. */}
-      <div className="relative z-10 bg-paper">
+      {/* Editorial content on paper.
+          THE ARCH — the hero used to end on a straight line where the paper
+          layer began. Now the paper is a dome that RISES over the water and
+          covers it (era-residence's arch, see ArchRise): the two surfaces never
+          meet on an edge, so there is nothing to read as a cut. */}
+      {/* overlap is the dome's APEX height above the hero's bottom edge (the
+          radius meets at centre, so the box top IS the apex). 26vh buried the
+          hero h1 before you had scrolled at all; 6vh leaves the copy clear and
+          lets the dome arrive as you move, which is what upstream does with its
+          sticky negative margin. */}
+      <ArchRise className="relative z-10 bg-paper" overlap="6vh">
         <About />
 
         {/* Selected Works — depth-fade gallery (home). The horizontal index lives at /work. */}
@@ -71,7 +81,7 @@ export default function Home() {
         <Nightfall>
           <Tech />
         </Nightfall>
-      </div>
+      </ArchRise>
 
       {/* Closing dark band — the one inversion + coda, over a living dusk atmosphere.
           The wrapper carries the solid `bg-night` failsafe (identical to the old flat

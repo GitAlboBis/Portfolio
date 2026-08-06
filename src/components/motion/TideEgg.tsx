@@ -7,8 +7,8 @@ import { useUI } from "@/store/ui";
   TideEgg — typed easter egg (the Lando Norris "disco" pattern, tuned to the
   identity): type  m·a·r·e·a  anywhere and the tide answers — a skewed curtain
   of the one sanctioned sunset gradient sweeps the viewport while anything
-  listening for the "marea" CustomEvent reacts (the About murmuration bursts
-  into a storm and slowly re-forms).
+  listening for the "marea" CustomEvent reacts (today: the nav's day-arc flares,
+  the same way it answers "tide-touch" and "surface-break").
 
   Zero assets, one tween. Buffer resets after 5s of silence; ignores typing in
   form fields (none on the site today, but guard anyway); no-op under
@@ -40,7 +40,7 @@ export function TideEgg() {
       buf = "";
       running = true;
 
-      // the world answers first (murmuration storm, anything else that listens)
+      // the world answers first (the day-arc flare, anything else that listens)
       window.dispatchEvent(new CustomEvent("marea"));
 
       const el = veil.current;

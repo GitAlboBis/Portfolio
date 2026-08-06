@@ -17,8 +17,8 @@ import { works } from "@/content/works";
 
   Their silhouette is a crab (public/mask.png). Ours is the letter the whole site
   is built on: the hero is a water "A", the constellation is an "A", the
-  murmuration forms an "A". So the work index now arrives by assembling that same
-  "A" out of the work itself, and hands off into the runway.
+  404 drifts on the same water. So the work index now arrives by assembling that
+  same "A" out of the work itself, and hands off into the runway.
 
   Kept exactly as upstream (these ARE the effect):
     • layer scale stack [1, .85, .6, .45, .3, .15] — the ratios are non-uniform

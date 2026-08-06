@@ -137,3 +137,24 @@ settled frames 900 ms apart still differ).
 That demo uses a **perspective** camera where z displacement shows as foreshortening; this canvas is
 `<Canvas orthographic>`, so it would produce exactly zero pixels of change — dead code wearing the
 effect's name.
+
+### Iteration 6 — both bird flocks removed (Alberto's request)
+Removed **LA SCIA** (`Escort` / `EscortLazy`, the gull glyphs that followed the whole home page on
+scroll velocity, plus the ambient horizon gulls) and the **MURMURATION** (`Murmuration` /
+`MurmurationCanvas`, the WebGL boid flock that idled into the letter "A" on the About band).
+4 files deleted, 2 mount points removed.
+
+Cleaned up rather than left dangling:
+- `warm.ts` no longer prefetches the (now nonexistent) murmuration chunk on `/about`.
+- `hero-splash` had **exactly one listener** (Escort). Both dispatches removed from
+  `WaterBallHero`, along with the per-frame `Math.hypot` + `performance.now()` throttle that
+  existed only to fire it — a small render-loop saving.
+- `marea` (the typed easter egg) also had **only** those two listeners. The egg keeps its own
+  sunset-curtain sweep, but rather than let it dispatch into nothing the nav's day-arc now answers
+  it, exactly as it already answers `tide-touch` and `surface-break`.
+- `submerge` / `surface-break` keep their dispatches — `ScrollProgress` still listens.
+- Eight stale comments across `GoldenHaze`, `AscentSurface`, `TideEgg`, `Tech`,
+  `WorksGalleryCanvas`, `tech-cloud`, `WorkApproach` and `About` that described the flocks as live.
+
+Kept on purpose: `GoldenHaze` (it paints the sky, not the flock) and `GoldenMotes` (golden pollen,
+not birds).

@@ -407,7 +407,7 @@ export function TechCloud({ className }: { className?: string }) {
 
     // --- context loss ---
     // The one raw THREE.WebGLRenderer left on the site (the gallery and the
-    // murmuration are R3F, which owns this for us). Without a handler a driver
+    // gallery is R3F, which owns this for us). Without a handler a driver
     // reset / GPU switch leaves the RAF loop calling render() on a dead context:
     // per-frame console errors behind a frozen sphere, with no fallback. The
     // component already renders the accessible skills list when `failed`, so the

@@ -53,11 +53,17 @@ export function ScrollProgress() {
     window.addEventListener("submerge", onSubmerge);
     window.addEventListener("surface-break", flare);
     window.addEventListener("tide-touch", flare);
+    // "marea" (the typed easter egg) had exactly two listeners — the home Escort
+    // flock and the About murmuration — and both were removed. Rather than leave
+    // the egg dispatching into nothing, the day-arc answers it the same way it
+    // answers the other tide beats.
+    window.addEventListener("marea", flare);
     return () => {
       window.clearTimeout(flareId);
       window.removeEventListener("submerge", onSubmerge);
       window.removeEventListener("surface-break", flare);
       window.removeEventListener("tide-touch", flare);
+      window.removeEventListener("marea", flare);
       // never leave a phase behind: detaching cancels the flare's own
       // restore-timeout, and under reduced no event will ever reset it
       setPhase("day");

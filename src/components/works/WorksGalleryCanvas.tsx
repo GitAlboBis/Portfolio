@@ -328,7 +328,7 @@ function Scene({
   );
 
   // Depth titles: one canvas-texture billboard per project, redrawn once the
-  // display font is really loaded (same pattern as the murmuration glyph).
+  // display font is really loaded (glyph textures must not bake a fallback face).
   // ShaderMaterial (not MeshBasic) so the DoF pass can defocus the type too.
   const [titleMats, setTitleMats] = useState<THREE.ShaderMaterial[] | null>(null);
   useEffect(() => {

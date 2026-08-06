@@ -74,7 +74,6 @@ const MANIFEST: Record<WarmRoute, WarmItem[]> = {
     img("/coast/sulcis-map.webp"),
   ],
   about: [
-    { kind: "chunk", id: "murmuration", load: () => import("@/components/atmosphere/MurmurationCanvas") },
     vid("rock"), // LA ROCCIA scrub
     vid("arch"), // L'ARCO scrub (the passage band)
     img("/coast/arch-poster.webp"),

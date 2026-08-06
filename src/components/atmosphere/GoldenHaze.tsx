@@ -12,8 +12,7 @@ import { GoldenMotes } from "@/components/atmosphere/GoldenMotes";
   dead warm-white gap. This paints the sky CONTINUING behind the paper:
 
   • top bleed — the hero's afterglow melts into the page instead of a hard cut;
-  • a faint warm haze where the murmuration gathers (the flock itself lives in
-    Murmuration.tsx — this layer just keeps the sky from being sterile);
+  • a faint warm haze across the upper band (keeps the sky from being sterile);
   • a horizon hairline that draws itself across the band;
   • film grain (static SVG turbulence tile — painted once, never re-rendered);
   • bottom bleed — paper pre-echoes the works gallery's amber/coral mood.
@@ -82,7 +81,7 @@ export function GoldenHaze() {
       />
 
       {/* Warm haze — a faint afterglow where the flock gathers (no disc: the
-          murmuration is the protagonist, this only warms the sky behind it). */}
+          type is the protagonist, this only warms the sky behind it). */}
       <div
         data-haze
         className="absolute right-[-24vw] top-[-14vh] aspect-square w-[clamp(30rem,66vw,64rem)] md:right-[-8vw]"

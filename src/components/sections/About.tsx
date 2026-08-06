@@ -7,7 +7,6 @@ import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Parallax } from "@/components/motion/Parallax";
 import { RollLink } from "@/components/motion/RollLink";
 import { GoldenHaze } from "@/components/atmosphere/GoldenHaze";
-import { Murmuration } from "@/components/atmosphere/Murmuration";
 import { DriftBand } from "@/components/motion/DriftBand";
 
 /**
@@ -19,24 +18,24 @@ import { DriftBand } from "@/components/motion/DriftBand";
  *
  * The band is no longer flat paper: GoldenHaze paints the sky continuing
  * behind it (afterglow bleed → warm haze → horizon → grain → works-mood
- * pre-echo), the MURMURATION — a WebGL flock of boids that idles into the
- * letter "A" and scatters with scroll velocity — flies through it, and
- * DriftBand closes the section with a kinetic type seam the flock crosses.
- * All three live inside this section so `overflow-clip` frames the sky.
+ * pre-echo), and DriftBand closes the section with a kinetic type seam.
+ * Both live inside this section so `overflow-clip` frames the sky.
  * Atmosphere first in DOM = painted under the positioned content after it.
+ *
+ * (A WebGL boid murmuration used to fly through this band; removed 2026-08-06
+ * at Alberto's request along with the home Escort flock.)
  */
 export function About() {
   const t = useDict();
   return (
     <section id="about" className="scroll-anchor relative overflow-clip pt-[var(--section-y)]">
       <GoldenHaze />
-      <Murmuration />
 
       <div className="container-edit grid-edit relative z-10">
         {/* Reading shield — a feathered paper veil UNDER the copy (own stacking
-            context via z-10, shield at -z-10): birds and haze crossing the text
-            zone get pushed into atmospheric depth, so ink/ink-mute/ember-ink
-            hold AA no matter where the flock flies. */}
+            context via z-10, shield at -z-10): the haze crossing the text zone
+            gets pushed into atmospheric depth, so ink/ink-mute/ember-ink hold AA
+            wherever the sky is brightest. */}
         <div
           aria-hidden
           className="pointer-events-none absolute -inset-x-10 -inset-y-12 -z-10 md:-inset-x-20 md:-inset-y-16"

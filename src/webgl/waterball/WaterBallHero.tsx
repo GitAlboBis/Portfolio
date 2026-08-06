@@ -331,8 +331,9 @@ export function WaterBallHero() {
       // opens their eyes on water becoming a name. Reforms after the drain use
       // the instant fill (initFromHomes) — the birth plays once per load.
       sim.initFountain(INIT_BOX, NUM_PARTICLES);
-      // the eruption startles the ambient gulls (Escort) — one ecosystem
-      window.setTimeout(() => window.dispatchEvent(new CustomEvent("hero-splash")), 600);
+      // (the eruption used to dispatch "hero-splash" to startle the Escort gulls;
+      // the flock was removed 2026-08-06 and that was its only listener, so the
+      // dispatch went with it rather than being left as a no-op)
       // face the "A" head-on (+Z) and frame its center. The letter lives in box XY
       // (apex y=52, feet y=9 -> center ~30.5); reset() defaults to a side-on angle that
       // suited the symmetric ball but would show the flat letter edge-on.
@@ -346,9 +347,6 @@ export function WaterBallHero() {
       camera.prevHoverY = camera.currentHoverY;
       const realBoxSize = [...INIT_BOX];
       const swayStart = performance.now();
-      // cross-system beat: a violent poke STARTLES the ambient gulls (Escort
-      // listens for "hero-splash"). Throttled; purely decorative JS-side hook.
-      let lastSplashEvt = 0;
       // DRAIN beat is scrub-driven (Direction A). Track whether we've drained so the
       // "A" is refilled cleanly once scrolled fully back to the top.
       let drained = false;
@@ -506,10 +504,6 @@ export function WaterBallHero() {
         dev.queue.writeBuffer(renderUniformBuffer, 0, renderUniformsValues);
         const enc = dev.createCommandEncoder();
         const mouseVel = camera.calcMouseVelocity();
-        if (Math.hypot(mouseVel[0], mouseVel[1]) > 1.6 && performance.now() - lastSplashEvt > 1200) {
-          lastSplashEvt = performance.now();
-          window.dispatchEvent(new CustomEvent("hero-splash"));
-        }
         sim.execute(
           enc,
           [camera.currentHoverX / canvas.clientWidth, camera.currentHoverY / canvas.clientHeight],

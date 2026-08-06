@@ -146,7 +146,7 @@ export function AscentSurface() {
       const setSubFlag = (flag: boolean) => {
         if (flag === lastSubFlag) return;
         lastSubFlag = flag;
-        // the escort can't follow you underwater — the sky empties (Escort listens)
+        // depth signal for the rest of the world (the nav day-arc goes under; MAREA muffles)
         window.dispatchEvent(new CustomEvent("submerge", { detail: flag }));
       };
 

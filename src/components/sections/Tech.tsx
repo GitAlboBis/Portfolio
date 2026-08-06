@@ -8,7 +8,7 @@ import { techIcons } from "@/data/skill-icons";
 // import here was the ONE path still pulling the whole three module into the
 // home route's initial client chunk (LazyOnView defers the MOUNT, not the
 // download). dynamic+ssr:false keeps the chunk off the wire until the section
-// nears the viewport, same split the works gallery and murmuration use.
+// nears the viewport, the same split the works gallery uses.
 const TechCloud = dynamic(() => import("@/components/tech-cloud").then((m) => m.TechCloud), {
   ssr: false,
 });

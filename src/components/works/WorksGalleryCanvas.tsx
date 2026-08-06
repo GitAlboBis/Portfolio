@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useRef, useMemo, useEffect, useState, type RefObject } from "react";
 import { works as WORKS, type Work } from "@/content/works";
 import { ARTWORK_GLSL, PATTERN_BY_SLUG } from "@/webgl/artwork";
+import { CNOISE_GLSL } from "@/webgl/noise";
 
 /*
   WorksGalleryCanvas — the R3F half of the home depth gallery (three + @react-three/fiber).
@@ -56,6 +57,7 @@ const FRAG = /* glsl */ `
   uniform float uTexAspect;
 
   ${ARTWORK_GLSL}
+  ${CNOISE_GLSL}
 
   void main(){
     vec3 c;
@@ -104,10 +106,28 @@ const FRAG = /* glsl */ `
     float v = smoothstep(1.15, 0.25, distance(vUv, vec2(0.5)));
     c *= mix(0.92, 1.0, v);
     c += (aw_hash(vUv * vec2(820.0, 600.0) + fract(uTime)) - 0.5) * 0.03 * (1.0 - 0.7 * uBlur);
-    // edge feather — defocused planes melt at their borders (0 at focus)
+    // ── TORN BORDER ─────────────────────────────────────────────────────────
+    // The feather used to be uBlur * 0.12, i.e. proportional to the defocus —
+    // so the plane IN FOCUS (uBlur = 0) ended on a razor-sharp rectangle. That
+    // is the hardest cut left on the home page: a photograph stops dead against
+    // the mood wash on four straight lines.
+    //
+    // Same frontier as the /work runway (colindmg/r3f-image-reveal-effect, MIT):
+    // a domain-warped Perlin field jitters the boundary by about as much as the
+    // transition band is wide, which is what reads as TORN rather than blurred.
+    // Applied here to the plane's border distance instead of a radial ramp, so
+    // the still dissolves into the paper on every side while staying a still.
+    float d = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
+    vec2 wuv = vUv + rv_cnoise(vec3(vUv * 5.0, uTime * 0.1));
+    float tear = rv_cnoise(vec3(wuv * 5.0, uTime * 0.2));
+    // 0.075 band, ±0.055 jitter — linear ramp, no smoothstep (the reference's
+    // point: a smoothstepped edge reads as a soft rectangle, not a torn one)
+    float edge = clamp((d + tear * 0.055) / 0.075, 0.0, 1.0);
+    // the defocus melt still applies on top: out-of-focus planes lose their
+    // borders entirely rather than merely tearing
     float fe = uBlur * 0.12 + 1e-4;
-    float edge = smoothstep(0.0, fe, vUv.x) * smoothstep(1.0, 1.0 - fe, vUv.x)
-               * smoothstep(0.0, fe, vUv.y) * smoothstep(1.0, 1.0 - fe, vUv.y);
+    edge *= smoothstep(0.0, fe, vUv.x) * smoothstep(1.0, 1.0 - fe, vUv.x)
+          * smoothstep(0.0, fe, vUv.y) * smoothstep(1.0, 1.0 - fe, vUv.y);
     gl_FragColor = vec4(clamp(c, 0.0, 1.0), uOpacity * edge);
   }
 `;

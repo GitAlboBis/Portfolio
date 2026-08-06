@@ -189,3 +189,32 @@ h1 before any scrolling; **6vh** leaves the hero clean at rest and lets the dome
 **Still open on the "no cuts" brief:** the other seams (Works→Coast, Coast→Ascent, Ascent→Tech,
 Tech→night) still meet on straight edges or `TornEdge` tears. Same treatment to apply, plus the
 cloud-style dissolve between two light surfaces from the era reference.
+
+### Iteration 8 — the home gallery stills stop being rectangles
+Alberto: the arch is for the cuts **inside** the page; the route curtain stays as it is.
+
+Hunted the remaining in-page cuts by measuring section offsets and sampling the seam frames rather
+than guessing. Most of this site's internal seams are already *designed* transitions — `TornEdge`
+tears into the film bands, the ascent's living waterline, Nightfall's sticky day-under-night stack.
+The one genuinely raw cut left was in `WorksGalleryCanvas`:
+
+```glsl
+float fe = uBlur * 0.12 + 1e-4;   // ← feather proportional to DEFOCUS
+```
+
+so the plane **in focus** (`uBlur = 0`) ended on a razor-sharp rectangle — a photograph stopping
+dead against the mood wash on four straight lines, right in the middle of the home scroll.
+
+Replaced with the same domain-warped Perlin frontier used on the `/work` runway
+(`colindmg/r3f-image-reveal-effect`, MIT), applied to the plane's **border distance** instead of a
+radial ramp so the still dissolves on every side while staying a still: 0.075 band, ±0.055 jitter,
+linear ramp (a smoothstepped edge reads as a soft rectangle, not a torn one). The defocus melt still
+multiplies on top, so out-of-focus planes lose their borders entirely rather than merely tearing.
+
+⚠ Gotcha: backticks inside a comment **within a JS template literal** terminate the string —
+`// the feather used to be \`uBlur * 0.12\`` broke the shader into a syntax error. Caught by tsc.
+
+**Still open on "no perceived cuts":** the cloud-style volumetric dissolve between two light
+surfaces (Alberto's third screenshot) — a different mechanism from the arch (a volume eating the
+boundary, not a shape rising) and needs its own band. And C2, the Works mood wash, remains a taste
+call: it is heavy enough at mid-scroll that the still is nearly drowned.

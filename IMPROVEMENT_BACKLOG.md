@@ -218,3 +218,33 @@ multiplies on top, so out-of-focus planes lose their borders entirely rather tha
 surfaces (Alberto's third screenshot) — a different mechanism from the arch (a volume eating the
 boundary, not a shape rising) and needs its own band. And C2, the Works mood wash, remains a taste
 call: it is heavy enough at mid-scroll that the still is nearly drowned.
+
+### Iteration 10 — the long version, travelled sideways
+Alberto: put the full long version straight into the home About, and give it the era-residence
+horizontal scroll.
+
+`AboutHorizontal` ports era-residence's scroller (README §11, `main.pretty.js:2596-2651`). Their
+"The concept" / "New Golden Mile" views are not vertical sections — they are panels of one
+horizontal scroller. Architecture and values kept verbatim:
+
+- `area.style.height = track.scrollWidth` → one viewport of vertical scroll buys one viewport of
+  horizontal travel; `screen` is `sticky top-0`, `track` is the flex row.
+- `gsap.to(track, { x: -(track.scrollWidth - area.offsetWidth), ease: "horScroll",
+  scrollTrigger: { start: "2.5% top", end: "97.5% bottom", scrub: .25 } })`
+- **`horScroll` = `cubic-bezier(.25,0,.75,1)`, registered in `lib/gsap.ts` alongside the site's own
+  eases.** This is the signature: every horizontal scroller maps wheel→x linearly, this one does
+  not — it starts slow, accelerates through the middle, brakes into the last panel. `scrub: .25`
+  adds the catch-up glide. Drop either and it is an ordinary sideways carousel.
+- Title counter-drift via `gsap.utils.wrap([-5,25,-15]) → ([5,-25,25])`, scrub .25 — what stops a
+  row of panels reading as one rigid sheet.
+- Desktop only (`min-width: 992px` matchMedia), exactly like upstream.
+
+The home About keeps its statement as the entry; the four panels (bio, education, experience,
+thesis) now carry what used to live behind the "THE LONG VERSION →" link. `/about` is untouched and
+still reachable.
+
+⚠ Caught in QA: **reduced motion left three of four panels unreachable.** The GSAP tween is skipped,
+but the CSS breakpoint still laid the panels out in a row — so the track sat there horizontal and
+never translated (measured dy=0, dx=893 at 1440). Fixed with `motion-reduce:` variants that fall
+back to the same stacked column mobile gets — pure CSS, so zero hydration surface. Verified in all
+three modes: mobile column, reduced column, desktop row.

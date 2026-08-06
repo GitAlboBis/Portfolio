@@ -1,12 +1,11 @@
 "use client";
 
-import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
 import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Parallax } from "@/components/motion/Parallax";
-import { RollLink } from "@/components/motion/RollLink";
 import { GoldenHaze } from "@/components/atmosphere/GoldenHaze";
+import { AboutHorizontal } from "@/components/about/AboutHorizontal";
 
 /**
  * About — first content section (the descent below the hero).
@@ -62,15 +61,14 @@ export function About() {
               {t.about.body}
             </ScrollWords>
           </Parallax>
-          <RollLink
-            as={Link}
-            href="/about"
-            label={t.journey.eyebrow}
-            suffix="→"
-            className="mt-8 inline-block t-meta text-ember-ink transition-opacity duration-300 hover:opacity-75"
-          />
         </div>
       </div>
+
+      {/* THE LONG VERSION, in full — it used to be a link out to /about. The
+          statement above stays as the entry, and the whole journey (bio,
+          education, experience, thesis) now travels SIDEWAYS from here
+          (era-residence's horizontal scroller — see AboutHorizontal). */}
+      <AboutHorizontal />
 
       {/* (A counter-drifting kinetic type seam used to close this section;
           removed 2026-08-06 — Alberto: the scrolling strips read as a cut, not

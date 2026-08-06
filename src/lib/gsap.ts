@@ -26,6 +26,11 @@ if (typeof window !== "undefined") {
   CustomEase.create("dive", "0.65,0,0.35,1"); // curtains, wipes, state transitions
   CustomEase.create("drift", "0.33,0,0.67,1"); // ambient, continuous drift
   CustomEase.create("crest", "0.34,1.56,0.64,1"); // wave-overshoot micro-emphasis
+  // era-residence's horizontal-scroller curve, verbatim (their `horScroll`).
+  // The signature of that effect is that the track does NOT track the wheel
+  // linearly: it starts slow, accelerates through the middle and brakes into the
+  // last panel. Paired with scrub 0.25 — see AboutHorizontal.
+  CustomEase.create("horScroll", "0.25,0,0.75,1");
 }
 
 export { gsap, ScrollTrigger, SplitText, Flip, Observer, CustomEase, useGSAP };

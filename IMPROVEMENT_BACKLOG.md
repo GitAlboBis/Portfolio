@@ -43,6 +43,13 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | B9 | aurelia plankton density law + inverted-fog bloom mask | `AscentSurface` underwater depth | L | M | L | pending |
 | — | liquid1 CDN bundle · dot-ring preloader · PP Neue Montreal | **no home — reasons recorded** in `DOSSIERS.md §9c/9d/9e` | — | — | — | ✅ recorded |
 
+## B-fix. Review findings on shipped B-items
+
+| # | Finding | Evidence | I | E | R | Status |
+|---|---|---|---|---|---|---|
+| BF1 | **LiquidSwap mid-flight interrupt pops.** `begin()` restarts from the dominant still only: at p≈0.5 the screen holds a ~50/50 blend at near-peak bell displacement and the next frame is one flat still (sweeping the three links at normal speed interrupts at p≈0.55 every hop). Fix: FBO-snapshot the live composite as the new `from` (ping-pong two snap textures — an interrupt during a snapshot morph must not read and write the same texture), `uFlip1` for the render-target y-orientation, ratio (1,1). | adversarial review of `2920003` | M | S | L | pending |
+| — | B5 metaball tear: **reverted on Alberto's call** (`e34a62d`) — he prefers the depth fade. Technique stays documented here + DOSSIERS §6 for reuse elsewhere. | — | — | — | — | ✅ closed |
+
 ## C. Composition / polish found in the visual audit
 
 | # | Finding | Evidence | I | E | R | Status |

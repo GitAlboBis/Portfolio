@@ -38,7 +38,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | ✅ done (iter 5) |
 | B5 | metaballs tear-apart (`radius/dist`, 121 pts, shuffled 0.5 windows) — **fix the disabled row stagger on port** | `WorksGallery` project cross-fade | M | M | M | ✅ done (iter 12) |
 | B6 | three-skull morphological erosion reveal (`min` of 5 noise-warped taps, `+0.015`/frame recovery) | paper → sea pointer reveal on the `bg-paper` band | M | L | M | ✅ done (iter 13) |
-| B7 | Liquid-Morphology bell envelope `sin(pπ)·0.2` + counter-scale `s1/s2` — **re-centre the unsigned y noise** | `MenuOverlay` route-preview crossfade | M | S | L | pending |
+| B7 | Liquid-Morphology bell envelope `sin(pπ)·0.2` + counter-scale `s1/s2` — **re-centre the unsigned y noise** | `MenuOverlay` route-preview crossfade | M | S | L | ✅ done (iter 14) |
 | B8 | Ripple snippet: 3 decaying wave trains (freq 1:1.3:1.8, decay 8:6:4, amp 0.08) | response to the live `tide-touch` / `surface-break` events | M | S | L | pending |
 | B9 | aurelia plankton density law + inverted-fog bloom mask | `AscentSurface` underwater depth | L | M | L | pending |
 | — | liquid1 CDN bundle · dot-ring preloader · PP Neue Montreal | **no home — reasons recorded** in `DOSSIERS.md §9c/9d/9e` | — | — | — | ✅ recorded |
@@ -218,6 +218,34 @@ multiplies on top, so out-of-focus planes lose their borders entirely rather tha
 surfaces (Alberto's third screenshot) — a different mechanism from the arch (a volume eating the
 boundary, not a shape rising) and needs its own band. And C2, the Works mood wash, remains a taste
 call: it is heavy enough at mid-scroll that the still is nearly drowned.
+
+### Iteration 14 — B7: the menu portal swaps as water (`LiquidSwap`)
+The route-preview crossfade in `MenuOverlay` — previously a 9px blur-mask fade, the one
+hand-authored transition on the site outside the water language, on the surface every juror
+opens first — is now the Liquid-Morphology morph: a WebGL2 still layer inside the scrap where
+hover/focus drives `sin(p·π)·0.2` bell-envelope displacement (distortion exists ONLY during
+the swap, exactly zero at both rest states) with the counter-scale pair (outgoing 1.00→0.90,
+incoming 1.10→1.00 — what gives the dissolve a direction), the 5×/10× noise-octave split, and
+the 10-cycle travelling wave with its 0.5 drift. IQ value-noise verbatim (y·57 lattice,
+43758.5453123 — its aliasing is part of the look). Composite is `mix(t1, t2, p)` — upstream
+computes a noisy mixFactor and never uses it (dead code, confirmed in source, not ported).
+
+Fixed on port (recorded in DOSSIERS §8): ① upstream adds `distortedPosition·0.5` where that
+variable is `uv + delta` — an ABSOLUTE coordinate, so every sample lands at 1.5·uv; it only
+survives on their abstract unsplash gradients. Ported as the authored intent: `delta·0.5`.
+② the unsigned y noise (the frame only ever sagged down) re-centred `·2−1`.
+
+Division of labor: the canvas carries ONLY the stills; the DOM figures keep captions and the
+Porto Flavia micro-loop exactly as before (their autoAlpha fade now reads as caption/video
+choreography over the morph). `onAlive` drives an img fallback — no WebGL2, a lost context, or
+reduced-motion (the canvas is simply not mounted) all land on the pre-existing DOM crossfade
+unchanged. No idle loop: the bell is zero at rest, so the canvas draws only while the GSAP
+progress tween ticks (and once per late still decode/resize).
+
+⚠ Caught in QA: the first draft's `img.onload` guard checked `api.current` — which a
+StrictMode remount re-points to the NEW live state — so the dead run's closures bound their
+own already-deleted textures ("attempt to use a deleted object" ×4). Guard is now
+effect-local. (Same family as UnderPaper's review defect ①: lifecycle vs the double-invoke.)
 
 ### Iteration 13 — B6: the water under the paper (`UnderPaper`)
 The About opening is now the site's one pointer-REVEAL: dragging across the band erodes the

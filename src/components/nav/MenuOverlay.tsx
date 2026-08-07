@@ -28,6 +28,7 @@ import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
 import { gsap, SplitText, useGSAP } from "@/lib/gsap";
 import { MenuToggle } from "@/components/nav/MenuToggle";
+import { LiquidSwap, type LiquidSwapHandle } from "@/components/nav/LiquidSwap";
 import { TornEdge } from "@/components/atmosphere/TornEdge";
 import { curtainPath } from "@/lib/curtain";
 import { warmingAllowed } from "@/lib/warm";
@@ -77,6 +78,12 @@ export function MenuOverlay() {
   // Save-Data / 2G (the stills alone already tell the story there).
   const [loops, setLoops] = useState(false);
   const activePreview = useRef<PreviewId>("home");
+  // the liquid-morph still layer (B7): when its GL is alive the figure <img>s
+  // hide and the canvas carries the stills; any failure flips it back to the
+  // DOM crossfade with nothing lost.
+  const liquidRef = useRef<LiquidSwapHandle>(null);
+  const liquidTween = useRef<gsap.core.Tween | null>(null);
+  const [liquidAlive, setLiquidAlive] = useState(false);
   const openRef = useRef(false);
   // the programmatic focus on open must NOT swap the portal — the resting scrap
   // should breathe until the user actually moves.
@@ -262,6 +269,21 @@ export function MenuOverlay() {
       gsap.set(incoming, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
       return;
     }
+    // THE LIQUID MORPH (B7 — Liquid-Morphology port, see LiquidSwap): the
+    // still layer swaps as water — bell-envelope displacement + counter-scale
+    // — while the DOM figures keep carrying caption + micro-loop fades.
+    const lq = liquidRef.current;
+    if (lq?.alive()) {
+      lq.begin(id);
+      const st = { p: 0 };
+      liquidTween.current?.kill();
+      liquidTween.current = gsap.to(st, {
+        p: 1,
+        duration: fast ? 0.18 : 0.42,
+        ease: "power3.out",
+        onUpdate: () => lq.setProgress(st.p),
+      });
+    }
     // blur bridges the two states so the crossfade reads as ONE transformation.
     if ((gsap.getProperty(incoming, "opacity") as number) < 0.05) {
       gsap.set(incoming, fast ? { scale: 1, filter: "blur(0px)" } : { scale: 1.05, filter: "blur(9px)" });
@@ -282,6 +304,8 @@ export function MenuOverlay() {
     gsap.set(all, { autoAlpha: 0 });
     const home = all.find((f) => f.dataset.preview === "home");
     if (home) gsap.set(home, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
+    liquidTween.current?.kill();
+    liquidRef.current?.settle("home");
     syncLoops("home");
   });
 
@@ -444,6 +468,12 @@ export function MenuOverlay() {
           ref={scrapRef}
           className="relative aspect-[3/2] w-[min(38vw,560px)] overflow-hidden bg-night shadow-[0_36px_90px_rgb(0_0_0/0.5)]"
         >
+          {/* the liquid still layer, under the figures (captions/loops stay DOM).
+              Not mounted under reduced-motion: the instant DOM set IS the
+              reduced behavior, and the morph must not exist to fight it. */}
+          {warm && !reduced && (
+            <LiquidSwap ref={liquidRef} previews={PREVIEWS} onAlive={setLiquidAlive} />
+          )}
           <TornEdge side="top" seed={7} color="var(--color-night)" />
           <TornEdge side="bottom" seed={11} color="var(--color-night)" />
           {warm &&
@@ -455,7 +485,13 @@ export function MenuOverlay() {
                 style={{ opacity: p.id === "home" ? 1 : 0 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.src} alt="" decoding="async" draggable={false} className="h-full w-full object-cover" />
+                <img
+                  src={p.src}
+                  alt=""
+                  decoding="async"
+                  draggable={false}
+                  className={`h-full w-full object-cover ${liquidAlive ? "opacity-0" : ""}`}
+                />
                 {/* the drone micro-loop over the still. It starts INVISIBLE
                     and fades in on `playing`: poster and frame 0 are different
                     images (wide cliff vs tight facade), so an opacity ramp

@@ -679,6 +679,51 @@ html.cc-on * {
   }
 }
 
+/* suspended matter (B9 — aurelia's plankton, DOSSIERS §7). The law worth
+   porting is the INVERTED-FOG reading: FAR motes glow (--pk-glow rises with
+   depth), NEAR ones are dim silhouettes — exactly how underwater light
+   reads. The ascent makes the suspension fall gently past a rising camera
+   (bubbles rise, plankton sinks — the two fields confirm each other). */
+.asc-plankton {
+  position: absolute;
+  top: -6%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 35%,
+    rgb(214 244 245 / var(--pk-core, 0.5)),
+    rgb(214 244 245 / 0.05) 70%
+  );
+  box-shadow: 0 0 var(--pk-halo, 4px) 1px rgb(196 238 240 / var(--pk-glow, 0.2));
+  opacity: 0;
+  animation: plankton-drift var(--pk-dur, 20s) linear infinite;
+  animation-delay: var(--pk-delay, 0s);
+}
+@keyframes plankton-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--pk-peak, 0.3);
+  }
+  55% {
+    transform: translate3d(var(--pk-sway, 0.8rem), 58vh, 0);
+  }
+  90% {
+    opacity: var(--pk-peak, 0.3);
+  }
+  100% {
+    transform: translate3d(calc(var(--pk-sway, 0.8rem) * -0.6), 112vh, 0);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .asc-plankton {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* the waterline strips: 200%-wide tracks drifting one full period (-50%) —
    seamless loop, transform-only. Two tracks counter-drift for parallax foam.
    Shared language: LA RISALITA's surface sheet AND the footer's TideEbb. */

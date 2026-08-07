@@ -82,8 +82,34 @@ const WAVE_H = 44;
 const WAVE_MAIN = wavePath(11, 22, 16, false);
 const WAVE_FOAM = wavePath(13, 20, 16, true);
 
+/* B9 — aurelia's plankton (MIT, `_refs/DOSSIERS.md §7`): suspended matter
+   with the INVERTED-FOG law, glow ∝ depth² — far motes catch the light,
+   near ones are dim silhouettes. Far also drifts slower (parallax). The
+   jellyfish and its verlet cloth stay unported ON PURPOSE: this band is
+   real footage of a real place, and a procedural creature would break the
+   realism direction (recorded in the dossier's honest-scope note). */
+function plankton(count: number) {
+  return Array.from({ length: count }, (_, i) => {
+    const fr = (n: number) => hashFr(i, 31, n);
+    const r = (x: number, d = 2) => Number(x.toFixed(d));
+    const z = r(fr(1)); // depth: 0 = near, 1 = far
+    return {
+      left: r(2 + fr(2) * 96),
+      size: r(3.4 - z * 2.2, 1), // near large → far small
+      core: r(0.26 + z * 0.36), // far cores read brighter…
+      glow: r(z * z * 0.5), // …and ONLY far ones glow (inverted fog)
+      halo: r(2 + z * 5, 1),
+      dur: (16 + z * 10 + fr(3) * 4).toFixed(1), // far = slower (parallax)
+      delay: (-fr(4) * 26).toFixed(1),
+      sway: ((fr(5) * 2 - 1) * 1.6).toFixed(2),
+      peak: (0.14 + z * 0.26).toFixed(2),
+    };
+  });
+}
+
 const BUBBLES = bubbles(22);
 const DROPLETS = droplets(16);
+const PLANKTON = plankton(34);
 
 export function AscentSurface() {
   const t = useDict();
@@ -295,6 +321,31 @@ export function AscentSurface() {
               "radial-gradient(58% 42% at 50% -6%, rgb(255 214 150 / 0.85), rgb(255 190 120 / 0.24) 45%, transparent 72%)",
           }}
         />
+
+        {/* suspended matter — the water gets body (B9: aurelia's plankton;
+            sinks past the rising camera, under the bubbles) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          {PLANKTON.map((p, i) => (
+            <span
+              key={i}
+              className={`asc-plankton${i % 2 ? " max-md:hidden" : ""}`}
+              style={
+                {
+                  left: `${p.left}%`,
+                  width: `${p.size}px`,
+                  height: `${p.size}px`,
+                  "--pk-core": p.core,
+                  "--pk-glow": p.glow,
+                  "--pk-halo": `${p.halo}px`,
+                  "--pk-dur": `${p.dur}s`,
+                  "--pk-delay": `${p.delay}s`,
+                  "--pk-sway": `${p.sway}rem`,
+                  "--pk-peak": p.peak,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+        </div>
 
         {/* rising breath — deterministic, pure CSS (GoldenMotes discipline) */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">

@@ -33,7 +33,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | # | Effect | Target | I | E | R | Status |
 |---|---|---|---|---|---|---|
 | B1 | webgpu-water height-field + real caustics | `ShallowWater` → interactive, cursor-dropped ripples | H | L | M | ✅ done (iter 2) |
-| B2 | GreenSock perspective dolly (P=500 / z=350 / scale 2 = 6.667×, back plane 1.1). ⚠ **Front plane must be the torn PAPER, not the photo** — our stills are 1280px and already upscaled ~1.13× at 1440, so 6.667× magnifies WebP blocking. `TornEdge` is SVG (no ceiling) and "paper tears to reveal photographs" is already the site's language. Constraint + reasoning in `DOSSIERS.md §1`. | `/work/[slug]` opening — fly through the tear | H | M | M | pending (retargeted) |
+| B2 | GreenSock perspective dolly (P=500 / z=350 / scale 2 = 6.667×, back plane 1.1). ⚠ **Front plane must be the torn PAPER, not the photo** — our stills are 1280px and already upscaled ~1.13× at 1440, so 6.667× magnifies WebP blocking. `TornEdge` is SVG (no ceiling) and "paper tears to reveal photographs" is already the site's language. Constraint + reasoning in `DOSSIERS.md §1`. | `/work/[slug]` opening — fly through the tear | H | M | M | ✅ done (iter 11) |
 | B3 | telescope-zoom layered convergence (`[1,.85,.6,.45,.3,.15]`, fly-past `from:"center"`, sharpen `from:"end"`) | `/work` arrival beat above the runway | H | L | M | ✅ done (iter 4) |
 | B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | ✅ done (iter 5) |
 | B5 | metaballs tear-apart (`radius/dist`, 121 pts, shuffled 0.5 windows) — **fix the disabled row stagger on port** | `WorksGallery` project cross-fade | M | M | M | pending |
@@ -218,6 +218,32 @@ multiplies on top, so out-of-focus planes lose their borders entirely rather tha
 surfaces (Alberto's third screenshot) — a different mechanism from the arch (a volume eating the
 boundary, not a shape rising) and needs its own band. And C2, the Works mood wash, remains a taste
 call: it is heavy enough at mid-scroll that the still is nearly drowned.
+
+### Iteration 11 — B2: the case study opens by flying THROUGH the tear (`TearDolly`)
+Port of the GreenSock dolly (CodePen `YzbPYMx`), landed on the constraint recorded in
+`DOSSIERS.md §1`: the front plane is the torn PAPER, not the photograph. The case study's static
+wide shot (`DetailCut` full, 48svh) is now a 250vh band: a paper sheet with a jagged aperture
+(one SVG evenodd path, TornEdge's own hash-fract jitter + lifted-fibre shadow, deterministic
+per-study seed) through which the still shows — and scroll flies you through the tear onto the
+full-bleed photograph.
+
+Kept verbatim (these ARE the effect): perspective **500px** on the clipping parent, front plane
+`scale: 2` + `z: 350` (total = 2 × 500/150 = **6.667×**), back plane `scale: 1.1` at the same
+timeline position (the ~6:1 front/back ratio is what reads as two planes), `power1.inOut` on a
+scrubbed timeline (non-linear scrub — the tunnel decelerates at both ends), 150vh of travel
+(`+=150%`). The split matters because the aperture's EDGES sweep outward faster than its centre —
+the parallax signature of physically approaching a plane, which a flat `scale: 6.667` cannot make.
+
+Ours: SVG paper front (no resolution ceiling — the 1280px stills cap at ~1.5×, see the zoom note),
+CSS sticky instead of pin (Nightfall lesson), the caption riding the paper and flying past with it,
+mood-tint + foot-scrim from DetailCut's grammar on the back plane, reduced-motion = static poster
+(52svh photo band) purely via `motion-reduce:` CSS + effect-time early return (WorkApproach
+pattern, zero hydration surface).
+
+⚠ Caught in QA: the band's bottom `TornEdge` floated as a fibre shadow on solid paper at rest
+(there is no photograph under it until the dolly exposes the bottom edge at ~0.53 of the scrub).
+Now it fades in on the timeline at 0.45; the reduced poster shows it always
+(`opacity-0 motion-reduce:opacity-100`).
 
 ### Iteration 10 — the long version, travelled sideways
 Alberto: put the full long version straight into the home About, and give it the era-residence

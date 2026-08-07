@@ -15,6 +15,7 @@ import { Parallax } from "@/components/motion/Parallax";
 import { LazyOnView } from "@/components/motion/LazyOnView";
 import { ShallowWater } from "@/components/atmosphere/ShallowWater";
 import { DetailCut } from "@/components/work/DetailCut";
+import { TearDolly } from "@/components/work/TearDolly";
 import { RollLink } from "@/components/motion/RollLink";
 
 /**
@@ -183,17 +184,15 @@ export function WorkCaseStudy({ slug }: { slug: string }) {
         </div>
       </section>
 
-      {/* The wide shot — the still opens the essay, torn into the paper. */}
+      {/* The wide shot — you enter the project by flying THROUGH the torn
+          paper into the photograph (GreenSock dolly, _refs/DOSSIERS.md §1). */}
       {work.textureSrc ? (
-        <DetailCut
+        <TearDolly
           src={work.textureSrc}
           focal="50% 42%"
-          zoom={1.08}
           tint={work.mood.blob1}
           caption={`${work.org} · ${work.year}`}
-          seeds={[4, 9]}
-          variant="full"
-          height="48svh"
+          seed={confirmedIdx + 1}
           className="mb-[var(--section-y)]"
         />
       ) : null}

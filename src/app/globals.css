@@ -809,18 +809,25 @@ html.cc-on * {
   }
 }
 
-/* ── Preloader (Preloader.tsx) — SSR'd sheet; CSS failsafe can't trap the page ─── */
+/* ── Preloader (Preloader.tsx) — SSR'd sheet; CSS failsafe can't trap the page ───
+   The root is the fixed box + (at exit) the PERSPECTIVE parent of the intro
+   dolly; the sheet is the plane that flies. Background and centering live on
+   the sheet so the burn-through fade releases the paper too. */
 .preloader {
   position: fixed;
   inset: 0;
   z-index: 200;
+  /* JS retires the sheet ~1.5s; this failsafe only fires if the JS never ran. */
+  animation: preloaderFailsafe 0.7s ease 3s forwards;
+}
+.preloader-sheet {
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
   align-content: center;
   gap: 1.4rem;
   background: var(--color-paper);
-  /* JS lifts the sheet ~1.5s; this failsafe only fires if the JS never ran. */
-  animation: preloaderFailsafe 0.7s ease 3s forwards;
 }
 .preloader-mark {
   font-family: var(--font-display);

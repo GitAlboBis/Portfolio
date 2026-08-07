@@ -7,6 +7,7 @@ import { useDict } from "@/content/dict";
 import { useHydrated } from "@/lib/use-hydrated";
 import { marea } from "@/lib/sound";
 import { wavePath, WAVE_W } from "@/lib/wave";
+import { RippleCrest } from "@/components/atmosphere/RippleCrest";
 
 /*
   AscentSurface — "LA RISALITA": the missing half of the dive.
@@ -362,6 +363,22 @@ export function AscentSurface() {
                 <path d={WAVE_MAIN} fill="none" stroke="rgb(255 244 230 / 0.9)" strokeWidth="2" opacity="0.85" />
                 <path d={WAVE_MAIN} fill="none" stroke="rgb(255 244 230 / 0.5)" strokeWidth="6" opacity="0.3" />
               </svg>
+            </div>
+            {/* B8 — the ring of foam: breaking the surface radiates the
+                snippet's three wave trains along this waterline (static
+                overlay, this waterline's own glint grammar). */}
+            <div className="absolute inset-x-0 top-0">
+              <RippleCrest
+                event="surface-break"
+                yBase={22}
+                height={WAVE_H}
+                // the base wave is amp 11 — the ring must overtop it to read
+                // (at 10 it camouflaged into the drifting crest, measured)
+                ampPx={16}
+                strokeMain="rgb(255 244 230 / 0.9)"
+                strokeHalo="rgb(255 244 230 / 0.35)"
+                className="h-[44px] w-full"
+              />
             </div>
           </div>
 

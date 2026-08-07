@@ -40,6 +40,8 @@ export function RippleCrest({
   yBase,
   height,
   ampPx = 12,
+  strokeMain = "rgb(244 237 229 / 0.55)",
+  strokeHalo = "rgb(242 163 60 / 0.20)",
   className = "",
 }: {
   /** window CustomEvent that fires the ring (e.g. "tide-touch") */
@@ -50,6 +52,9 @@ export function RippleCrest({
   height: number;
   /** peak crest displacement in viewBox units */
   ampPx?: number;
+  /** the host waterline's foam grammar (defaults = the night tide's) */
+  strokeMain?: string;
+  strokeHalo?: string;
   className?: string;
 }) {
   const pathARef = React.useRef<SVGPathElement>(null);
@@ -121,9 +126,9 @@ export function RippleCrest({
       preserveAspectRatio="none"
     >
       <g ref={gRef} opacity="0">
-        {/* the waterline's own foam grammar: warm halo under a moonlit line */}
-        <path ref={pathBRef} d="" fill="none" stroke="rgb(242 163 60 / 0.20)" strokeWidth="5" />
-        <path ref={pathARef} d="" fill="none" stroke="rgb(244 237 229 / 0.55)" strokeWidth="1.6" />
+        {/* the waterline's own foam grammar: halo under the crest line */}
+        <path ref={pathBRef} d="" fill="none" stroke={strokeHalo} strokeWidth="5" />
+        <path ref={pathARef} d="" fill="none" stroke={strokeMain} strokeWidth="1.6" />
       </g>
     </svg>
   );

@@ -1,8 +1,14 @@
-# Ocean — Design System (v1)
+# Ocean — Design System (v1) — ⚠ STORICO, NON AUTOREVOLE
 
-> **Alberto Tuveri · Portfolio · Awwwards SOTD target.**
-> Authoritative source of truth for the visual system. **Supersedes the dated `docs/02-DESIGN.md`.**
-> Code source of truth: `src/app/globals.css` (`@theme` tokens) + `src/content/tokens.ts` (JS mirror). Live contract: **`/styleguide`**.
+> **ARCHIVIATO 2026-08-07 (housekeeping D1).** Questo è lo snapshot della
+> direzione "Ocean" abbandonata (palette abyss/teal, Fraunces/Hanken) —
+> scavalcato dal sistema **Golden Hour**. Le fonti di verità reali sono:
+> **Claude Design** ("Alberto Tuveri — Golden Hour Portfolio", vedi
+> `CLAUDE.md §0`) → mirrorato in `src/app/globals.css` (`@theme`) +
+> `src/content/tokens.ts`, contratto vivo su **`/styleguide`**.
+> Non seguire nulla di ciò che segue.
+
+> ~~Authoritative source of truth for the visual system.~~ **Supersedes the dated `docs/02-DESIGN.md`.**
 
 ---
 

@@ -27,7 +27,7 @@ Il **codice** è la verità su design e architettura. In caso di conflitto doc-v
 
 Da lì il sistema è stato **tradotto nel codice** (`globals.css` @theme + `tokens.ts`) — quella è la copia operativa. Per cambiare il sistema: aggiorna Claude Design, poi rispecchialo nei token (e in `/styleguide`).
 
-⚠ **DRIFT noto da non seguire alla cieca:** `DESIGN-SYSTEM.md` su disco è ancora **"Ocean v1"** (palette abyss/teal, font Fraunces/Hanken) — è uno snapshot vecchio, **scavalcato** da Claude Design + dai token Golden Hour; va riscritto o archiviato (housekeeping in `PLAN.md`). Anche il commento "Fraunces/Hanken" in `layout.tsx` è residuo: i font realmente caricati sono **Bricolage Grotesque + DM Sans**. La chiave `localStorage` dello store è `"ocean-ui"`: nome legacy ma funzionante, **non rinominare** senza migrazione.
+⚠ **DRIFT noto:** il vecchio `DESIGN-SYSTEM.md` "Ocean v1" è stato **archiviato** in `docs/DESIGN-SYSTEM-ocean-v1.md` con banner storico (housekeeping D1, 2026-08-07) — non esiste più un design-system `.md` a root: la verità è Claude Design → token (§0). Il commento "Fraunces/Hanken" in `layout.tsx` è residuo: i font realmente caricati sono **Bricolage Grotesque + DM Sans**. La chiave `localStorage` dello store è `"ocean-ui"`: nome legacy ma funzionante, **non rinominare** senza migrazione.
 
 ---
 

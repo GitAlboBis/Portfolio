@@ -40,7 +40,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | B6 | three-skull morphological erosion reveal (`min` of 5 noise-warped taps, `+0.015`/frame recovery) | paper → sea pointer reveal on the `bg-paper` band | M | L | M | ✅ done (iter 13) |
 | B7 | Liquid-Morphology bell envelope `sin(pπ)·0.2` + counter-scale `s1/s2` — **re-centre the unsigned y noise** | `MenuOverlay` route-preview crossfade | M | S | L | ✅ done (iter 14) |
 | B8 | Ripple snippet: 3 decaying wave trains (freq 1:1.3:1.8, decay 8:6:4, amp 0.08) | response to the live `tide-touch` / `surface-break` events | M | S | L | ✅ **done** (`fce1142` tide-touch + `3a9da57` surface-break, amp 16 vs base 11 or it camouflages). Was: part 1 (`fce1142`): `RippleCrest` shipped + mounted in TideEbb (tide-touch verified at 350/750ms). **Part 2 pending**: mount the same component on AscentSurface's waterline for `surface-break` (read its waterline structure first — it dispatches at line ~185; find the `.asc-wave-track` strips' yBase/height and add a static overlay wrapper like TideEbb's, riding whatever lift layer its waterline lives in). Original plan notes — **plan (audited 2026-08-07):** both event sources ride the SHARED `wave.ts` waterline (`TideEbb` dispatches tide-touch, `AscentSurface` dispatches surface-break — verified grep). Port the three trains **collapsed to 1D along the waterline**: `h(x) += Σ sin((\|x−x0\|−R)·f_i)·exp(−\|\|x−x0\|−R\|·d_i)·A_i`, R growing from the event's x-anchor, ratios verbatim (freq 1:1.3:1.8, decay 8:6:4, amp series 1:0.6:0.3). **CORRECTED after reading `wave.ts`:** it generates STATIC SVG paths (deterministic strings, module-scope SSR-safe) — the waterlines live on a CSS-drifting 200% track, no per-frame heightfield exists. Do NOT rewrite the hand-tuned bands: implement as an OVERLAY CREST — a separate stroked SVG path (the foam/moonlight crest grammar) drawn by a one-shot rAF for ~2s after each event, sampling the three-train formula at fine resolution, expanding from center, fading out, then removed. Zero risk to the base geometry; the trains ARE the visible waveform. Mount points: `TideEbb` (tide-touch) + `AscentSurface`'s waterline (surface-break). Reduced-motion: skip entirely. |
-| B9 | aurelia plankton density law + inverted-fog bloom mask | `AscentSurface` underwater depth | L | M | L | pending |
+| B9 | aurelia plankton density law + inverted-fog bloom mask | `AscentSurface` underwater depth | L | M | L | ✅ done (`3ff4a20`) — CSS-idiom port (hash spans, glow ∝ z², far slower); jellyfish/verlet recorded no-home (realism direction). **§2 mandate complete: every reference shipped or recorded.** |
 | — | liquid1 CDN bundle · dot-ring preloader · PP Neue Montreal | **no home — reasons recorded** in `DOSSIERS.md §9c/9d/9e` | — | — | — | ✅ recorded |
 
 ## B-fix. Review findings on shipped B-items
@@ -61,8 +61,8 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 
 | # | Item | Status |
 |---|---|---|
-| D1 | `DESIGN-SYSTEM.md` still "Ocean v1" — archive or rewrite | pending |
-| D2 | `.gitignore` says "bun is canonical" but the project is npm-only (`CLAUDE.md §4`) — stale comment | pending |
+| D1 | `DESIGN-SYSTEM.md` still "Ocean v1" — archive or rewrite | ✅ archived → `docs/DESIGN-SYSTEM-ocean-v1.md` with a historical banner; CLAUDE.md §0 drift note updated |
+| D2 | `.gitignore` says "bun is canonical" but the project is npm-only (`CLAUDE.md §4`) — stale comment | ✅ done (`d3b72ca`) — grew teeth: package-lock.json was IGNORED and only the stale bun.lock was tracked (Vercel would auto-detect bun); npm lock now generated + tracked, bun.lock removed |
 | D3 | SerSan ×2 content · `NEXT_PUBLIC_SITE_URL` · feel-review | 🔵 blocked on Alberto |
 
 ---

@@ -15,9 +15,11 @@ import { CNOISE_GLSL } from "@/webgl/noise";
   page height and the sticky-scroll math are unaffected by whether this has mounted yet.
 
   Project planes stacked along -Z; the camera flies through as the sticky-pinned section
-  scrolls, cross-fading by depth. A MOOD BACKGROUND quad (sunset blobs + caustics + grain)
-  follows the camera and lerps its colours to the focused project. Pointer adds parallax;
-  scroll velocity lifts the caustics.
+  scrolls. Planes arrive on the depth cross-fade and LEAVE by tearing apart into liquid
+  metaball droplets that evacuate upward (B5 — antonbobrov's tear-apart, DOSSIERS.md §6).
+  A MOOD BACKGROUND quad (sunset blobs + caustics + grain) follows the camera and lerps
+  its colours to the focused project. Pointer adds parallax; scroll velocity lifts the
+  caustics.
 */
 
 const GAP = 4.2;
@@ -55,11 +57,43 @@ const FRAG = /* glsl */ `
   uniform sampler2D uTex;
   uniform float uHasTex;
   uniform float uTexAspect;
+  uniform float uTear;
+  uniform vec2 uPoints[121];
 
   ${ARTWORK_GLSL}
   ${CNOISE_GLSL}
 
   void main(){
+    // ── METABALL TEAR-APART (the outgoing plane) ────────────────────────────
+    // antonbobrov/threjs-metaballs-carousel, technique port (DOSSIERS.md §6).
+    // 121 kinematic points, an UNBOUNDED 1/d field (not 1/d², no cutoff — the
+    // shape is the aggregate sum, per the dossier's gotcha #1), thresholded at
+    // 0.95–1.0. Inside the mass lives the DYING slide: as the camera passes a
+    // project its photograph tears apart into liquid droplets that evacuate
+    // upward, and the deeper scene shows through the gaps. The frontier drags
+    // the image with it (the (1-field)*3 smear) — that smear is what reads as
+    // liquid rather than as a dissolve. uTear = 0 skips the loop entirely
+    // (uniform branch): the focused/incoming plane pays nothing.
+    float tearMask = 1.0;
+    float tearSmear = 0.0;
+    if (uTear > 0.0005) {
+      float trad = 0.007 * (1.0 - 0.2 * uTear);       // radius shrink, verbatim
+      // field wobble: same scalar on x AND y (a deliberate diagonal shimmer —
+      // dossier gotcha #6). Amplitude/frequency verbatim; cnoise stands in for
+      // their simplex (same class of gradient noise, already in this shader).
+      float wob = rv_cnoise(vec3(vUv * 50.0, uTime * 0.3)) * 0.002;
+      float field = 0.0;
+      for (int i = 0; i < 121; i++) {
+        // y-flip: points live in DOM space (0 = top) — gotcha #4. Only X is
+        // aspect-scaled so the blobs stay circular on the 5.2:3.3 plane.
+        vec2 p = vec2((uPoints[i].x + wob) * 1.5757576, 1.0 - (uPoints[i].y + wob));
+        field += trad / max(distance(p, vec2(vUv.x * 1.5757576, vUv.y)), 1e-5);
+      }
+      tearMask = smoothstep(0.95, 1.0, field);
+      tearSmear = field < 1.0 ? (1.0 - field) * 3.0 : 0.0;
+      tearSmear += uTear * rv_cnoise(vec3(vUv * 59.0, 0.0)) * 0.0215;
+    }
+
     vec3 c;
     if (uHasTex > 0.5) {
       // cover-fit: crop the overflowing axis (plane is 5.2 x 3.3)
@@ -67,6 +101,9 @@ const FRAG = /* glsl */ `
       float rx = 1.5757576 / max(uTexAspect, 1e-3);
       if (rx < 1.0) { tuv.x = 0.5 + (tuv.x - 0.5) * rx; }
       else { tuv.y = 0.5 + (tuv.y - 0.5) / rx; }
+      // the tear frontier smears the outgoing photograph diagonally (scalar
+      // added to both axes — the reference's own convention, gotcha #6)
+      tuv += tearSmear;
 
       // uniform early-out: the focused plane (the largest on screen) pays one
       // tap, not fifteen — at uBlur=0 the taps would all read the same texel
@@ -95,7 +132,9 @@ const FRAG = /* glsl */ `
       float lum = dot(c, vec3(0.299, 0.587, 0.114));
       c = mix(c, mix(uBase, uA, smoothstep(0.12, 0.88, lum)), 0.14);
     } else {
-      c = artwork(vUv, uPattern, uSeed, uTime, uBase, uA, uB);
+      // the frontier smear warps the generative artwork too (review finding:
+      // without it the WIP planes and load transients tore as a flat dissolve)
+      c = artwork(vUv + tearSmear, uPattern, uSeed, uTime, uBase, uA, uB);
       // defocus impression for the generative artwork: flatten toward the
       // mood field (no texture to tap-blur — contrast falls out of focus)
       c = mix(c, mix(uBase, (uA + uB) * 0.5, 0.35), uBlur * 0.45);
@@ -128,7 +167,7 @@ const FRAG = /* glsl */ `
     float fe = uBlur * 0.12 + 1e-4;
     edge *= smoothstep(0.0, fe, vUv.x) * smoothstep(1.0, 1.0 - fe, vUv.x)
           * smoothstep(0.0, fe, vUv.y) * smoothstep(1.0, 1.0 - fe, vUv.y);
-    gl_FragColor = vec4(clamp(c, 0.0, 1.0), uOpacity * edge);
+    gl_FragColor = vec4(clamp(c, 0.0, 1.0), uOpacity * edge * tearMask);
   }
 `;
 
@@ -206,6 +245,113 @@ function smooth(e0: number, e1: number, x: number) {
   return t * t * (3 - 2 * t);
 }
 
+/* ── Metaball tear field (CPU kinematics) ──────────────────────────────────
+   The point schedule of antonbobrov/threjs-metaballs-carousel, rebuilt from
+   the published formulas (DOSSIERS.md §6). Kept verbatim: the 11×11 lattice,
+   the 0.5-long per-point windows starting every 0.05, the 1.25-viewport
+   upward travel, the ±0.25 horizontal drift, cubic-bezier(.25,.1,.25,1).
+   FIXED ON PORT (per the dossier): rowShift 0.75 — the demo ships rowShift 1,
+   which silently collapses every row scope to [0,1] and disables the row
+   cascade; the intended effect is the staggered one (bottom rows first, so
+   the mass lifts off the way droplets actually leave a surface).
+   DETERMINISTIC: upstream shuffles with Math.random() per page load; here the
+   shuffle and the per-point randoms run on the TornEdge hash so each project
+   tears the same way every visit (the GoldenMotes lesson — QA screenshots and
+   scrub-reversal both need it). */
+
+const TEAR_N = 11;
+const TEAR_COUNT = TEAR_N * TEAR_N; // keep in sync with uPoints[121] in FRAG
+
+/** vevet's spreadScope, from the published formula. */
+function spreadScope(quantity: number, shift: number): [number, number][] {
+  const duration = 1 / (quantity - shift * (quantity - 1));
+  const out: [number, number][] = [];
+  for (let i = 0; i < quantity; i++) {
+    const start = duration * (1 - shift) * i;
+    out.push([start, start + duration]);
+  }
+  return out;
+}
+
+const clampScope = (v: number, s: [number, number]) =>
+  Math.min(1, Math.max(0, (v - s[0]) / (s[1] - s[0])));
+
+/** cubic-bezier(0.25, 0.1, 0.25, 1) — the CSS `ease` the reference's points
+ *  ride (vevet's Application default). Newton–Raphson on x, then y. */
+function bezierEase(p1x: number, p1y: number, p2x: number, p2y: number) {
+  const cx = 3 * p1x;
+  const bx = 3 * (p2x - p1x) - cx;
+  const ax = 1 - cx - bx;
+  const cy = 3 * p1y;
+  const by = 3 * (p2y - p1y) - cy;
+  const ay = 1 - cy - by;
+  return (t: number) => {
+    if (t <= 0) return 0;
+    if (t >= 1) return 1;
+    let u = t;
+    for (let i = 0; i < 5; i++) {
+      const x = ((ax * u + bx) * u + cx) * u - t;
+      const d = (3 * ax * u + 2 * bx) * u + cx;
+      if (Math.abs(x) < 1e-5 || d === 0) break;
+      u -= x / d;
+    }
+    u = Math.min(1, Math.max(0, u));
+    return ((ay * u + by) * u + cy) * u;
+  };
+}
+const tearEase = bezierEase(0.25, 0.1, 0.25, 1);
+
+type TearPoint = {
+  sx: number;
+  sy: number;
+  /** signed horizontal travel: magnitude ∈ [0, 0.25), direction baked in */
+  move: number;
+  rowScope: [number, number];
+  win: [number, number];
+};
+
+function buildTearField(seed: number): TearPoint[] {
+  const fr = (i: number, n: number) => {
+    const x = Math.sin((i + seed * 31.7) * 127.1 + n * 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  // rows in reverse (isReverse: true) with a REAL stagger: bottom row owns the
+  // earliest scope. rowShift .75 → eleven ~0.286-long scopes every ~0.0714.
+  const rowScopes = spreadScope(TEAR_N, 0.75);
+  const pts: TearPoint[] = [];
+  for (let iy = 0; iy < TEAR_N; iy++) {
+    const rowScope = rowScopes[TEAR_N - 1 - iy];
+    // eleven 0.5-long windows every 0.05, shuffled per row (Fisher–Yates on fr)
+    const wins = spreadScope(TEAR_N, 0.9);
+    for (let k = wins.length - 1; k > 0; k--) {
+      const j = Math.floor(fr(iy * 31 + k, 5) * (k + 1));
+      [wins[k], wins[j]] = [wins[j], wins[k]];
+    }
+    for (let ix = 0; ix < TEAR_N; ix++) {
+      const idx = iy * TEAR_N + ix;
+      pts.push({
+        sx: ix / (TEAR_N - 1),
+        sy: iy / (TEAR_N - 1),
+        move: fr(idx, 1) * 0.25 * (fr(idx, 2) > 0.5 ? 1 : -1),
+        rowScope,
+        win: wins[ix],
+      });
+    }
+  }
+  return pts;
+}
+
+/** progress → current positions, written in place (the uniform reads the same
+ *  Float32Array; three's array-uniform cache diffs it per draw). */
+function writeTearPoints(pts: TearPoint[], arr: Float32Array, progress: number) {
+  for (let k = 0; k < TEAR_COUNT; k++) {
+    const p = pts[k];
+    const ptP = tearEase(clampScope(clampScope(progress, p.rowScope), p.win));
+    arr[k * 2] = p.sx + ptP * p.move;
+    arr[k * 2 + 1] = p.sy - ptP * 1.25;
+  }
+}
+
 /* ── Type at scene depth (the Everswap sky-writing insight) ────────────────
    Each project's title lives BETWEEN the planes as a giant ghost billboard
    (Bricolage outline, ember) — the camera flies TOWARD it and the nearer
@@ -278,6 +424,19 @@ function Scene({
     return t;
   }, []);
 
+  // one deterministic tear schedule + uniform buffer per project (seed by
+  // index so each still tears its own way, identically on every visit)
+  const tearFields = useMemo(
+    () =>
+      works.map((_, i) => {
+        const pts = buildTearField(i * 7.3 + 1);
+        const arr = new Float32Array(TEAR_COUNT * 2);
+        writeTearPoints(pts, arr, 0);
+        return { pts, arr };
+      }),
+    [works],
+  );
+
   const materials = useMemo(
     () =>
       works.map(
@@ -299,10 +458,12 @@ function Scene({
               uTex: { value: placeholderTex },
               uHasTex: { value: 0 },
               uTexAspect: { value: 1.5 },
+              uTear: { value: 0 },
+              uPoints: { value: tearFields[i].arr },
             },
           }),
       ),
-    [works, placeholderTex],
+    [works, placeholderTex, tearFields],
   );
 
   // Real stills: load async, swap in when ready (artwork keeps the seat warm —
@@ -427,15 +588,31 @@ function Scene({
     let bestD = Infinity;
     works.forEach((_, i) => {
       const target = -i * GAP + VIEW;
-      const dz = Math.abs(camera.position.z - target);
-      materials[i].uniforms.uOpacity.value = 1 - smooth(0, GAP * 0.95, dz);
+      const dzS = camera.position.z - target; // >0 = plane still ahead (incoming)
+      const dz = Math.abs(dzS);
+      const mu = materials[i].uniforms;
+      // INCOMING (ahead of focus): the depth cross-fade, unchanged.
+      // OUTGOING (camera past focus): the metaball tear owns the exit — the
+      // plane holds full presence and the evacuating field carves its alpha
+      // (B5, DOSSIERS.md §6). Fully evacuated → plain zero-opacity with the
+      // field loop off (mask≈0 and opacity=0 agree, so the handover is
+      // invisible in both scroll directions).
+      const tear = dzS < 0 ? smooth(0, GAP * 0.9, dz) : 0;
+      if (tear >= 1) {
+        mu.uTear.value = 0;
+        mu.uOpacity.value = 0;
+      } else {
+        mu.uTear.value = tear;
+        mu.uOpacity.value = dzS >= 0 ? 1 - smooth(0, GAP * 0.95, dz) : 1;
+        if (tear > 0) writeTearPoints(tearFields[i].pts, tearFields[i].arr, tear);
+      }
       // rack focus: a small dead-zone keeps the focal plane pin-sharp, then
       // defocus climbs with distance from it (drives blur/fringe/feather)
       const blur = smooth(GAP * 0.15, GAP * 1.1, dz);
-      materials[i].uniforms.uBlur.value = blur;
+      mu.uBlur.value = blur;
       // defocused planes swell slightly (background bokeh breathes outward)
       meshRefs.current[i]?.scale.setScalar(1 + blur * 0.045);
-      materials[i].uniforms.uTime.value = state.clock.elapsedTime;
+      mu.uTime.value = state.clock.elapsedTime;
       if (dz < bestD) {
         bestD = dz;
         best = i;

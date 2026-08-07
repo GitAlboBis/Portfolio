@@ -36,7 +36,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | B2 | GreenSock perspective dolly (P=500 / z=350 / scale 2 = 6.667×, back plane 1.1). ⚠ **Front plane must be the torn PAPER, not the photo** — our stills are 1280px and already upscaled ~1.13× at 1440, so 6.667× magnifies WebP blocking. `TornEdge` is SVG (no ceiling) and "paper tears to reveal photographs" is already the site's language. Constraint + reasoning in `DOSSIERS.md §1`. | `/work/[slug]` opening — fly through the tear | H | M | M | ✅ done (iter 11) |
 | B3 | telescope-zoom layered convergence (`[1,.85,.6,.45,.3,.15]`, fly-past `from:"center"`, sharpen `from:"end"`) | `/work` arrival beat above the runway | H | L | M | ✅ done (iter 4) |
 | B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | ✅ done (iter 5) |
-| B5 | metaballs tear-apart (`radius/dist`, 121 pts, shuffled 0.5 windows) — **fix the disabled row stagger on port** | `WorksGallery` project cross-fade | M | M | M | pending |
+| B5 | metaballs tear-apart (`radius/dist`, 121 pts, shuffled 0.5 windows) — **fix the disabled row stagger on port** | `WorksGallery` project cross-fade | M | M | M | ✅ done (iter 12) |
 | B6 | three-skull morphological erosion reveal (`min` of 5 noise-warped taps, `+0.015`/frame recovery) | paper → sea pointer reveal on the `bg-paper` band | M | L | M | pending |
 | B7 | Liquid-Morphology bell envelope `sin(pπ)·0.2` + counter-scale `s1/s2` — **re-centre the unsigned y noise** | `MenuOverlay` route-preview crossfade | M | S | L | pending |
 | B8 | Ripple snippet: 3 decaying wave trains (freq 1:1.3:1.8, decay 8:6:4, amp 0.08) | response to the live `tide-touch` / `surface-break` events | M | S | L | pending |
@@ -218,6 +218,29 @@ multiplies on top, so out-of-focus planes lose their borders entirely rather tha
 surfaces (Alberto's third screenshot) — a different mechanism from the arch (a volume eating the
 boundary, not a shape rising) and needs its own band. And C2, the Works mood wash, remains a taste
 call: it is heavy enough at mid-scroll that the still is nearly drowned.
+
+### Iteration 12 — B5: the outgoing gallery still tears apart into droplets
+Technique port of antonbobrov's metaball tear-apart (`DOSSIERS.md §6`) into the home depth
+gallery's exit transition. Planes still ARRIVE on the depth cross-fade; they now LEAVE by
+tearing apart: once the camera passes a plane's focus, `uOpacity` holds at 1 and a 121-point
+inverse-distance field (`radius/dist`, UNBOUNDED — the aggregate sum IS the shape, dossier
+gotcha #1) carves the plane's alpha as the points evacuate upward. Inside the mass lives the
+dying photograph; the frontier drags it along (`(1−field)·3` smear + the `·59` grain warp),
+which is what reads as liquid instead of dissolve.
+
+Kept verbatim: 11×11 lattice, `0.007·(1−0.2p)` radius shrink, `smoothstep(0.95, 1.0)`
+threshold, 1.25-viewport upward travel, ±0.25 drift, 0.5-long windows every 0.05,
+`cubic-bezier(.25,.1,.25,1)`, y-flip + X-only aspect correction (gotchas #4/#5), scalar
+diagonal noise (#6). Fixed on port, as planned: `rowShift 0.75` — upstream ships 1, which
+silently collapses every row scope to [0,1]; with the real stagger the bottom rows leave
+first (`isReverse`), so the mass lifts off the way droplets leave a surface. Changed:
+deterministic TornEdge-hash shuffle instead of `Math.random()` (scrub reversal + QA
+reproducibility — the GoldenMotes lesson), `rv_cnoise` for their simplex at the same
+freq/amp, and a `uTear > 0.0005` uniform branch so only the one outgoing plane pays the
+121-iteration loop (their demo runs it full-screen at uncapped DPR, forever).
+
+At `tear ≥ 1` the plane hands back to plain `uOpacity 0` with the loop off — mask≈0 and
+opacity=0 agree at the crossover, so the swap is invisible in both scroll directions.
 
 ### Iteration 11 — B2: the case study opens by flying THROUGH the tear (`TearDolly`)
 Port of the GreenSock dolly (CodePen `YzbPYMx`), landed on the constraint recorded in

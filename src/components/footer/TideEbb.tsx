@@ -5,6 +5,7 @@ import { gsap } from "@/lib/gsap";
 import { useUI } from "@/store/ui";
 import { marea } from "@/lib/sound";
 import { wavePath, waveCrest, WAVE_W } from "@/lib/wave";
+import { RippleCrest } from "@/components/atmosphere/RippleCrest";
 
 /*
   TideEbb — "IL RIFLUSSO": the closing tide.
@@ -115,6 +116,13 @@ export function TideEbb() {
               <path d={CREST} fill="none" stroke="rgb(244 237 229 / 0.32)" strokeWidth="1.6" />
               <path d={CREST} fill="none" stroke="rgb(242 163 60 / 0.14)" strokeWidth="5" />
             </svg>
+          </div>
+          {/* B8 — the ring of foam: tide-touch radiates the snippet's three
+              decaying wave trains along this waterline. Static overlay (not
+              on a drifting track), same top as the main crest, rides the
+              lift/breath with the layer it lives in. */}
+          <div className="absolute inset-x-0" style={{ top: `${BLEED + 18}px` }}>
+            <RippleCrest event="tide-touch" yBase={20} height={H} className="h-[120px] w-full" />
           </div>
           {/* stars caught on the water */}
           {GLINTS.map((g, i) => (

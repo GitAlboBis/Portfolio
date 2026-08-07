@@ -37,7 +37,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 | B3 | telescope-zoom layered convergence (`[1,.85,.6,.45,.3,.15]`, fly-past `from:"center"`, sharpen `from:"end"`) | `/work` arrival beat above the runway | H | L | M | ✅ done (iter 4) |
 | B4 | r3f-image-reveal noise-torn frontier (`1 − clamp(cnoise(warp) + 12.5d − 7p, 0, 1)`) | `/work` runway stills | M | M | L | ✅ done (iter 5) |
 | B5 | metaballs tear-apart (`radius/dist`, 121 pts, shuffled 0.5 windows) — **fix the disabled row stagger on port** | `WorksGallery` project cross-fade | M | M | M | ✅ done (iter 12) |
-| B6 | three-skull morphological erosion reveal (`min` of 5 noise-warped taps, `+0.015`/frame recovery) | paper → sea pointer reveal on the `bg-paper` band | M | L | M | pending |
+| B6 | three-skull morphological erosion reveal (`min` of 5 noise-warped taps, `+0.015`/frame recovery) | paper → sea pointer reveal on the `bg-paper` band | M | L | M | ✅ done (iter 13) |
 | B7 | Liquid-Morphology bell envelope `sin(pπ)·0.2` + counter-scale `s1/s2` — **re-centre the unsigned y noise** | `MenuOverlay` route-preview crossfade | M | S | L | pending |
 | B8 | Ripple snippet: 3 decaying wave trains (freq 1:1.3:1.8, decay 8:6:4, amp 0.08) | response to the live `tide-touch` / `surface-break` events | M | S | L | pending |
 | B9 | aurelia plankton density law + inverted-fog bloom mask | `AscentSurface` underwater depth | L | M | L | pending |
@@ -218,6 +218,47 @@ multiplies on top, so out-of-focus planes lose their borders entirely rather tha
 surfaces (Alberto's third screenshot) — a different mechanism from the arch (a volume eating the
 boundary, not a shape rising) and needs its own band. And C2, the Works mood wash, remains a taste
 call: it is heavy enough at mid-scroll that the still is nearly drowned.
+
+### Iteration 13 — B6: the water under the paper (`UnderPaper`)
+The About opening is now the site's one pointer-REVEAL: dragging across the band erodes the
+page surface and the sea at golden hour shows through the fibres; rest, and the paper heals in
+~1.1 s. The thesis — "interfaces that move like water" — literalized: the water was under the
+page the whole time.
+
+Technique port of cullenwebber/three-skull (`DOSSIERS.md §4`), whose "fluid" is NOT a fluid
+(the dossier's headline correction): it is a grayscale morphological EROSION on a ping-ponged
+mask — `min()` of 5 fbm-jittered taps + a linear `+0.015` heal — fed by a round-capped canvas
+stroke 20% of the viewport wide. Kept verbatim: the erosion cross, the fbm (4 octaves, gain .5,
+lacunarity 2, rotation .5 rad, shift 100, hash `12.9898/4.1414`, value noise SQUARED — gotcha
+#8: drop the square and the wispy filament character dies), lerp `0.075`, brush
+`max(20%, 100px)`, the ±0.1 opacity gate, and the coarse-pointer Lissajous trail (the band
+lives on touch without a cursor).
+
+Fixed on port (every one a recorded dossier gotcha): fixed 60 Hz accumulator (upstream is
+per-frame — 2.4× faster decay at 144 Hz, #2); sim at 512px instead of viewport×DPR (#12 — the
+huge brush + linear filtering make the downscale invisible) with the trail canvas at sim size
+(#13, kills the full-res per-frame upload); `aspectVec` as a uniform recomputed on resize (#4);
+mask SEEDED WHITE so the paper starts intact (their black start plays an unwanted full-screen
+dissolve, #10); the CRT grade dropped entirely (their art direction, not ours).
+
+AA by construction, twice over: the revealed sea is veiled 50% toward paper in the composite
+(you see the water THROUGH the fibres — never a pierced hole), and the About copy additionally
+sits on its pre-existing 85% reading shield. Reduced-motion: the effect never starts, the band
+stays paper (render never branches — zero hydration surface). No WebGL2 / context-lost →
+transparent canvas, plain paper. IO + visibility gate the loop.
+
+⚠ Adversarial review caught five lifecycle defects in the first draft, all fixed:
+① `loseContext()` in cleanup killed every subsequent effect run on the same canvas —
+`getContext()` returns the SAME (permanently lost) context on re-run, so StrictMode's dev
+double-invoke and any live reduced-motion flip left the band dead. Cleanup now deletes the
+resources and clears the buffer but keeps the context alive. ② The sea texture was bound
+while incomplete → Chrome RENDER-WARNING spam per draw until the poster decoded; now a 1×1
+placeholder is allocated at creation (+ `onerror`). ③ Context-lost dormancy wasn't sticky
+(the IO callback resurrected `running`); a `lost` flag now gates the loop. ④ A null-RT path
+could paint the erosion pass INTO the visible canvas if the first alloc missed; the loop now
+guards `!texA` and the IO retries the alloc. ⑤ IO re-entry lerped the frozen brush toward
+wherever the pointer had moved meanwhile — a full-width erosion streak nobody drew; re-entry
+now snaps (`curX = null`, opacity 0).
 
 ### Iteration 12 — B5: the outgoing gallery still tears apart into droplets
 Technique port of antonbobrov's metaball tear-apart (`DOSSIERS.md §6`) into the home depth

@@ -5,6 +5,7 @@ import { WordGenerate } from "@/components/reveal/WordGenerate";
 import { ScrollWords } from "@/components/reveal/ScrollWords";
 import { Parallax } from "@/components/motion/Parallax";
 import { GoldenHaze } from "@/components/atmosphere/GoldenHaze";
+import { UnderPaper } from "@/components/atmosphere/UnderPaper";
 import { AboutHorizontal } from "@/components/about/AboutHorizontal";
 
 /**
@@ -28,6 +29,12 @@ export function About() {
   return (
     <section id="about" className="scroll-anchor relative overflow-clip pt-[var(--section-y)]">
       <GoldenHaze />
+
+      {/* THE WATER UNDER THE PAPER — dragging across the opening erodes the
+          page surface and the sea shows through the fibres; it heals when the
+          pointer rests (three-skull erosion port, B6). Under the content grid,
+          whose reading shield keeps the copy on paper regardless. */}
+      <UnderPaper className="absolute inset-x-0 top-0 h-[110vh]" />
 
       <div className="container-edit grid-edit relative z-10">
         {/* Reading shield — a feathered paper veil UNDER the copy (own stacking

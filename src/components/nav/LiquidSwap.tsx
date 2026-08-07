@@ -56,6 +56,8 @@ uniform float uProgress;
 uniform float uTime;
 uniform vec2 uRatio1; /* cover-fit ratio per texture (reference getCoverUv) */
 uniform vec2 uRatio2;
+uniform float uFlip1; /* 1 when uTex1 is an FBO snapshot (render targets are
+                         y-inverted relative to uploaded images) */
 in vec2 vUv;
 out vec4 outColor;
 #define PI 3.14159265359
@@ -79,7 +81,9 @@ void main(){
   float s2 = 1.0 + (1.0 - uProgress) * 0.1;
   vec2 c1 = (vUv - 0.5) * s1 + 0.5 + delta * 0.5;
   vec2 c2 = (vUv - 0.5) * s2 + 0.5 + delta * 0.5;
-  vec4 t1 = texture(uTex1, ls_cover(c1, uRatio1));
+  vec2 cc1 = ls_cover(c1, uRatio1);
+  cc1.y = mix(cc1.y, 1.0 - cc1.y, uFlip1);
+  vec4 t1 = texture(uTex1, cc1);
   vec4 t2 = texture(uTex2, ls_cover(c2, uRatio2));
   outColor = mix(t1, t2, uProgress);
 }`;
@@ -106,8 +110,11 @@ export const LiquidSwap = React.forwardRef<
     gl: WebGL2RenderingContext;
     entries: Map<string, Entry>;
     draw: () => void;
+    /** bake the live composite into the idle snapshot and morph from it */
+    bake: () => void;
     from: string;
     to: string;
+    snap: null | number;
     p: number;
     t0: number;
     alive: boolean;
@@ -154,7 +161,31 @@ export const LiquidSwap = React.forwardRef<
       time: gl.getUniformLocation(prog, "uTime"),
       r1: gl.getUniformLocation(prog, "uRatio1"),
       r2: gl.getUniformLocation(prog, "uRatio2"),
+      flip1: gl.getUniformLocation(prog, "uFlip1"),
     };
+
+    /* snapshot pair (BF1): a swap arriving MID-FLIGHT bakes the live
+       composite into one of these and morphs from the snapshot — the
+       handoff frame is pixel-identical, so rapid hovers never pop. Two
+       textures ping-pong because an interrupt during a snapshot-based morph
+       must not read and write the same texture. */
+    const snapTex: WebGLTexture[] = [];
+    const snapFbo: WebGLFramebuffer[] = [];
+    for (let i = 0; i < 2; i++) {
+      const t = gl.createTexture()!;
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      const f = gl.createFramebuffer()!;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+      snapTex.push(t);
+      snapFbo.push(f);
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     const entries = new Map<string, Entry>();
     const makeEntry = (id: string, src: string) => {
@@ -200,6 +231,8 @@ export const LiquidSwap = React.forwardRef<
       entries,
       from: previews[0]?.id ?? "home",
       to: previews[0]?.id ?? "home",
+      /** which snapshot texture is the live `from` (null = a real still) */
+      snap: null as null | number,
       p: 0,
       t0: performance.now(),
       alive: true,
@@ -210,19 +243,31 @@ export const LiquidSwap = React.forwardRef<
         if (!f || !t) return;
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, f.tex);
+        gl.bindTexture(gl.TEXTURE_2D, state.snap !== null ? snapTex[state.snap] : f.tex);
         gl.uniform1i(loc.t1, 0);
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, t.tex);
         gl.uniform1i(loc.t2, 1);
         gl.uniform1f(loc.p, state.p);
+        gl.uniform1f(loc.flip1, state.snap !== null ? 1 : 0);
         // the wave keeps drifting across swaps (one shared clock)
         gl.uniform1f(loc.time, (performance.now() - state.t0) / 1000);
-        const [r1x, r1y] = ratio(f);
+        if (state.snap !== null) gl.uniform2f(loc.r1, 1, 1); // canvas-sized
+        else {
+          const [r1x, r1y] = ratio(f);
+          gl.uniform2f(loc.r1, r1x, r1y);
+        }
         const [r2x, r2y] = ratio(t);
-        gl.uniform2f(loc.r1, r1x, r1y);
         gl.uniform2f(loc.r2, r2x, r2y);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
+      },
+      bake() {
+        // ping-pong: never read and write the same snapshot
+        const idx = state.snap === 0 ? 1 : 0;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, snapFbo[idx]);
+        state.draw(); // current from/to/p/time → into the FBO
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        state.snap = idx;
       },
     };
     api.current = state;
@@ -233,6 +278,20 @@ export const LiquidSwap = React.forwardRef<
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.round(rect.width * dpr);
       canvas.height = Math.round(rect.height * dpr);
+      // snapshot storage tracks the canvas; a resize orphans any live
+      // snapshot content, so a mid-swap resize settles on the dominant still
+      // (one soft step, and only on the rare open-menu resize)
+      for (const t of snapTex) {
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texImage2D(
+          gl.TEXTURE_2D, 0, gl.RGBA8, canvas.width, canvas.height, 0,
+          gl.RGBA, gl.UNSIGNED_BYTE, null,
+        );
+      }
+      if (state.snap !== null) {
+        state.snap = null;
+        if (state.p >= 0.5) state.from = state.to;
+      }
       state.draw();
     };
     const ro = new ResizeObserver(size);
@@ -254,6 +313,8 @@ export const LiquidSwap = React.forwardRef<
       ro.disconnect();
       canvas.removeEventListener("webglcontextlost", onLost);
       entries.forEach((e) => gl.deleteTexture(e.tex));
+      snapTex.forEach((t) => gl.deleteTexture(t));
+      snapFbo.forEach((f) => gl.deleteFramebuffer(f));
       gl.deleteProgram(prog);
       // NO loseContext (the UnderPaper review lesson): getContext() returns
       // this same context on a future effect run, and a context lost via the
@@ -270,9 +331,15 @@ export const LiquidSwap = React.forwardRef<
     begin: (to) => {
       const s = api.current;
       if (!s?.alive || !s.entries.has(to)) return;
-      // start from whichever still dominates right now: at rest (p 0 or 1)
-      // and past mid-flight that is s.to; before mid-flight s.from still is
-      if (s.p <= 0 || s.p >= 0.5) s.from = s.to;
+      if (s.p > 0 && s.p < 1) {
+        // MID-FLIGHT (BF1): bake the live composite — blend AND bell
+        // distortion — into the idle snapshot and morph from that. The
+        // handoff frame is pixel-identical to what was on screen.
+        s.bake();
+      } else {
+        s.from = s.to; // at rest the settled still is the from side
+        s.snap = null;
+      }
       s.to = to;
       s.p = 0;
       s.draw();
@@ -288,6 +355,7 @@ export const LiquidSwap = React.forwardRef<
       if (!s?.alive) return;
       s.from = id;
       s.to = id;
+      s.snap = null;
       s.p = 0;
       s.draw();
     },

@@ -49,6 +49,7 @@ Legend — **I** = impact, **E** = effort, **R** = risk. Gates per `CLAUDE.md §
 |---|---|---|---|---|---|---|
 | BF1 | **LiquidSwap mid-flight interrupt pops.** `begin()` restarts from the dominant still only: at p≈0.5 the screen holds a ~50/50 blend at near-peak bell displacement and the next frame is one flat still (sweeping the three links at normal speed interrupts at p≈0.55 every hop). Fix: FBO-snapshot the live composite as the new `from` (ping-pong two snap textures — an interrupt during a snapshot morph must not read and write the same texture), `uFlip1` for the render-target y-orientation, ratio (1,1). | adversarial review of `2920003` | M | S | L | ✅ done (`e79401c`) — snapshot bake in `state.bake()` (the imperative handle can't see the effect closure — measured `snapFbo is not defined`); handoff verified continuous at p≈0.55 |
 | — | B5 metaball tear: **reverted on Alberto's call** (`e34a62d`) — he prefers the depth fade. Technique stays documented here + DOSSIERS §6 for reuse elsewhere. | — | — | — | — | ✅ closed |
+| — | **Intro = the YzbPYMx dolly** (`f6a3728`, Alberto's call: the pen was meant for the intro, animated, no slide-up). The preloader exit is now the plunge THROUGH the sheet (scale 2 + z 350 / P 500, burn-through release — recorded adaptation); sunset hem removed. The pen now serves BOTH its original intent (intro) and the case-study opening (B2 TearDolly). | — | — | — | — | ✅ done |
 
 ## C. Composition / polish found in the visual audit
 

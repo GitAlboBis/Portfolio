@@ -3,9 +3,12 @@
 /.pnp
 .pnp.*
 
-# package manager: bun is canonical (bun.lock). Keep stray npm/yarn lockfiles out.
-/package-lock.json
+# package manager: npm is canonical (CLAUDE.md §4) — package-lock.json is
+# TRACKED. Keep stray yarn/bun lockfiles out (a leftover bun.lock would make
+# Vercel auto-detect bun and install from stale resolutions).
 /yarn.lock
+/bun.lock
+/bun.lockb
 
 # next.js
 /.next/

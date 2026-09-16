@@ -37,13 +37,16 @@ export class FluidRenderer {
         device: GPUDevice, canvas: HTMLCanvasElement, presentationFormat: GPUTextureFormat,
         radius: number, fov: number, posvelBuffer: GPUBuffer, 
         renderUniformBuffer: GPUBuffer, cubemapTextureView: GPUTextureView, depthMapTextureView: GPUTextureView, 
-        restDensity: number
+        restDensity: number, thicknessGain: number = 1.0
     ) {
         this.device = device
         const maxFilterSize = 100
         const blurdDepthScale = 10
         const diameter = 2 * radius
-        const blurFilterSize = 12
+        // WP-3b: 12 -> 15. The narrow-range depth filter is what turns the particle
+        // imposters into ONE surface; at 12 the residual crinkle was amplified by the
+        // wet-coat specular into a mottled crust, past 20 the letter went airbrushed.
+        const blurFilterSize = 21
 
         const screenConstants = {
             'screenHeight': canvas.height, 
@@ -190,6 +193,10 @@ export class FluidRenderer {
             },
             fragment: {
                 module: fluidModule,
+                // WP-3b: the optical-thickness gain of the tier (see fluid.wgsl.ts
+                // 'override thickness_gain'). Specialized at pipeline creation —
+                // the tier cannot change without a remount.
+                constants: { 'thickness_gain': thicknessGain },
                 targets: [
                     {
                         format: presentationFormat

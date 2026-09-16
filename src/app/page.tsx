@@ -1,118 +1,97 @@
 import type { Metadata } from "next";
-import { Nav } from "@/components/nav/Nav";
-import { HeroScrollSettle } from "@/components/hero/HeroScrollSettle";
-import { HeroCopy } from "@/components/hero/HeroCopy";
-import { About } from "@/components/sections/About";
-import { WorksGallery } from "@/components/works/WorksGallery";
-import { CoastInterlude } from "@/components/home/CoastInterlude";
-import { AscentSurface } from "@/components/home/AscentSurface";
-import { Tech } from "@/components/sections/Tech";
-import { Contact } from "@/components/sections/Contact";
+import { PhaseBand } from "@/components/sheet/PhaseBand";
+import { JobOrderHeader } from "@/components/sections/JobOrderHeader";
+import { TestBench } from "@/components/bench/TestBench";
+import { WorkTable } from "@/components/work/WorkTable";
+import { Intake } from "@/components/sections/Intake";
+import { Diagnosis } from "@/components/sections/Diagnosis";
+import { Estimate } from "@/components/sections/Estimate";
+import { Measured } from "@/components/sections/Measured";
+import { Release } from "@/components/sections/Release";
 import { Footer } from "@/components/footer/Footer";
-import { NightSky } from "@/components/atmosphere/NightSky";
-import { Escort } from "@/components/atmosphere/Escort";
-import { Nightfall } from "@/components/home/Nightfall";
-import { LazyOnView } from "@/components/motion/LazyOnView";
+import { works } from "@/content/works";
+import { phaseAnchor } from "@/lib/phases";
+import { defaultLocale, siteMeta } from "@/lib/site";
 
-// Homepage owns the root identity: its canonical + og:url/title point at "/".
-// (Removed from the root layout so subpages no longer inherit the homepage's.)
+/* The home page owns the root identity: its canonical and og:url point at "/".
+   Title and description come from src/lib/site.ts (the server mirror of the
+   dictionary's `meta` block) — never typed twice. */
+const META = siteMeta[defaultLocale];
+
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
-  openGraph: { url: "/", title: "Alberto Tuveri — Software Engineer" },
-  twitter: { title: "Alberto Tuveri — Software Engineer" },
+  openGraph: { url: "/", title: META.title },
+  twitter: { card: "summary_large_image", title: META.title },
 };
 
 /*
-  HOME (Golden Hour)
-  ──────────────────
-  • #hero — full viewport band; the fixed WebGPU water "A" (CanvasHost) + the
-    sunset sky gradient read through it.
-  • Content below sits on an opaque `bg-paper` layer so it covers the fixed
-    sunset gradient once you scroll past the hero (the gradient is hero-only).
-    Order: About → Works (depth gallery) → Nightfall(Tech) → night: Contact → Footer.
+  ════════════════════════════════════════════════════════════════════════════
+  THE JOB ORDER — the sheet itself (REDESIGN-SPEC §A FIRST VIEWPORT, §D, §E)
+  ════════════════════════════════════════════════════════════════════════════
+  The header strip and the skip link are mounted by the root layout; the band
+  is mounted HERE, after the job-order header, because on "/" the identity of
+  the order is printed ABOVE it (§A rows A–C; the layout instance self-hides).
+
+  Rows of the first viewport, at 1440×900:
+    A   48px   header strip (layout)            — provenance of the sheet
+    B   48–200 job-order header                 — name 88px + role + degree
+    C   200–256 phase band (sticky)             — six phases, counter, Email
+    D   256–900 the cover: the test bench running on the left, the summary of
+                the work performed and the signature cell on the right.
+
+  Below the fold the six phases stamp themselves in order as their regions
+  cross `top 60%`: Intake · Diagnosis · Estimate · Work · Test (the Measured
+  ledger — the bench runs in the first viewport but TEST is stamped by the
+  measurements, §D) · Release. Only the cover sits outside the phases: it is
+  the front of the form, not one of its stages.
+
+  One heavy renderer on the whole site, and it is in the first viewport
+  (TestBench → CanvasHost). Everything else here is DOM, CSS and SVG.
 */
 export default function Home() {
+  // The sheet prints the first five line items; the other four live on /work.
+  const sheetRows = works.slice(0, 5);
+
   return (
-    <main id="main" className="relative">
-      <Nav />
+    <main id="main">
+      <JobOrderHeader />
+      <PhaseBand />
 
-      {/* LA SCIA — the companion flock: gull glyphs that appear when you dive
-          (scroll velocity), escort the descent in loose V, plane away at rest,
-          and turn ember as the night band rises. 2D canvas, decorative. */}
-      <Escort />
+      {/* ── Row D — the cover, and the Intake region ──────────────────────
+          `#phase-intake` starts HERE, not at the Owner fields below: the order
+          is taken in the moment the sheet opens, so the band prints INTAKE
+          stamped and 1 / 6 in the first viewport (§A) and still accumulates
+          one phase at a time on the way down (§E.3). */}
+      <section
+        id={phaseAnchor("intake")}
+        className="sheet scroll-mt-[var(--band-h)] pb-[var(--section-gap-after)] pt-4"
+      >
+        <div className="flex flex-col gap-8 xl:flex-row xl:items-stretch xl:gap-8">
+          <TestBench className="min-w-0 xl:flex-1" />
 
-      {/* Scroll WRITER for the hero "A" dive (writes heroStore.explode; read by
-          WaterBallHero). Renders null; no-op under reduced-motion / no-WebGPU. */}
-      <HeroScrollSettle />
-
-      {/* Hero viewport — the fixed fluid "A" + sunset sky show through this band.
-          HeroCopy carries the page's real h1 (name/role/tagline + scroll cue), so
-          the section is NOT aria-hidden — only the canvas layers are decorative. */}
-      <section id="hero" className="relative h-dvh">
-        <HeroCopy />
+          <div className="flex min-w-0 flex-col gap-6 xl:w-[420px] xl:shrink-0">
+            <WorkTable items={sheetRows} variant="summary" />
+            <Release variant="box" className="xl:flex-1" />
+          </div>
+        </div>
       </section>
 
-      {/* Editorial content on paper. */}
-      <div className="relative z-10 bg-paper">
-        <About />
+      <Intake />
+      <Diagnosis />
+      <Estimate />
 
-        {/* Selected Works — depth-fade gallery (home). The horizontal index lives at /work. */}
-        <WorksGallery />
-
-        {/* LA COSTA — scroll-scrubbed drone film of Pan di Zucchero at golden
-            hour: the real place behind the site's water + sunset language.
-            The film ends UNDERWATER — LA RISALITA below completes the dive. */}
-        <CoastInterlude />
-
-        {/* LA RISALITA — you hang in the real underwater light (loop cut from
-            the same footage), bubbles rise, and scroll performs the ascent:
-            the page descends as a living waterline and you break the surface
-            back onto paper (surface-break → the escort scatters, MAREA
-            un-muffles). */}
-        <AscentSurface />
-
-        {/* Tech-stack — editorial heading + signature 3D icon cloud. Nightfall pins
-            it in its final reading position while the night band slides over it:
-            the day literally sinks under the night (the one stacking moment). */}
-        <Nightfall>
-          <Tech />
-        </Nightfall>
-      </div>
-
-      {/* Closing dark band — the one inversion + coda, over a living dusk atmosphere.
-          The wrapper carries the solid `bg-night` failsafe (identical to the old flat
-          band): a no-WebGL / SSR / lost-context render looks exactly as before, and
-          NightSky's shader paints the afterglow + stars + embers on top when able.
-          `nightfall-cover` + z-20 ride it over the pinned Tech card (see Nightfall).
-          min-h-screen (= the 100vh cover travel, exactly): the band must be at least
-          as tall as the overlap or the runway's tail would poke out past the footer —
-          and the closing beat earns a full viewport of night anyway. */}
-      <div
-        id="nightfall"
-        className="nightfall-cover relative isolate z-20 flex min-h-screen flex-col bg-night"
+      {/* ── Work performed — the line items (§E.8) ───────────────────────── */}
+      <section
+        id={phaseAnchor("work")}
+        aria-labelledby="work-caption"
+        className="sheet scroll-mt-[var(--band-h)] pt-[var(--section-gap)]"
       >
-        {/* Deferred: the night-sky WebGL context is created only as the band nears,
-            not at page load. Absolute-fill scene → wrapper stays a zero-box (no CLS);
-            the solid bg-night failsafe shows until it ignites. */}
-        <LazyOnView>
-          <NightSky />
-        </LazyOnView>
-        {/* The REAL night — Pan di Zucchero under the Milky Way, screen-blended
-            OVER the NightSky shader: its stars/embers/constellation keep living,
-            the photograph adds the rock's silhouette and the galaxy's dust.
-            Non-destructive: kill this div and the shader scene is intact. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/coast/night-sea.webp"
-            alt=""
-            className="h-full w-full object-cover"
-            style={{ mixBlendMode: "screen", opacity: 0.55 }}
-          />
-        </div>
-        <Contact />
-        <Footer />
-      </div>
+        <WorkTable items={sheetRows} moreHref="/work" captionId="work-caption" />
+      </section>
+
+      <Measured />
+      <Release />
+      <Footer />
     </main>
   );
 }

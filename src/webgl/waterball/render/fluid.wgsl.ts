@@ -23,15 +23,38 @@ struct FragmentInput {
     @location(1) iuv: vec2f,
 }
 
-// Key light of the WORKSHOP cubemap (scripts/gen_workshop_cubemap.py): grey walls,
-// a lit ceiling with two fluorescent tube strips, dark floor. The specular below is
-// the "tube highlight" of the bench (REDESIGN-SPEC §F Phase A). The key direction is
-// kept from the original stage (behind the letter, slightly +X, grazing) so the
-// highlights still ride the rim and every tilted droplet; only its COLOUR changed —
-// a cool fluorescent white instead of ember gold.
+// Key light of the WORKSHOP cubemap (scripts/gen_workshop_cubemap.py): a value-ranged
+// room — dark floor, ramped walls, a lit ceiling with two soft tube fixtures, and one
+// bright light bank on the +Z wall BEHIND the camera. The specular below is the "tube
+// highlight" of the bench (REDESIGN-SPEC §F Phase A). The key direction is kept from
+// the original stage (behind the letter, slightly +X, grazing) so the highlights still
+// ride the rim and every tilted droplet; the light bank sits on the opposite side
+// (screen left) so the two do not stack into one flat sheen.
 const SUN_DIR_WORLD: vec3f = vec3f(0.32152, 0.11052, -0.94042);
 const SUN_COLOR: vec3f = vec3f(0.94, 0.96, 1.0);   // fluorescent tube highlight
-const FOAM_COLOR: vec3f = vec3f(0.96, 0.95, 0.90); // aerated oil — off-white, not sunset
+const FOAM_COLOR: vec3f = vec3f(0.95, 0.90, 0.80); // aerated oil — cream, not steam
+
+// ── The oil, as a DEPTH RAMP (WP-3b) ────────────────────────────────────────────
+// The first pass mixed the body toward ONE flat colour (diffuseColor * 1.12) with
+// depth, so the core had no value range and the letter read as a mustard blob. Real
+// hydraulic oil is a ramp: a film you see the room through, a honey mid, and a dark
+// burnt core. These three stops are the whole tonal range of the figure.
+const OIL_FILM: vec3f = vec3f(0.93, 0.74, 0.42);   // thin film — the workshop, warmed
+const OIL_MID: vec3f  = vec3f(0.79, 0.54, 0.16);   // token 'oil' #c98a2a — the anchor
+const OIL_DEEP: vec3f = vec3f(0.42, 0.215, 0.055); // burnt amber core — never black
+// The thinnest rim: a translucent warm edge (NOT the near-black of the first pass).
+// Those pixels also carry a low alpha, so the paper-field reads straight through them
+// — the contrast between a see-through rim and a dense core is what sells oil.
+const EDGE_TINT: vec3f = vec3f(0.70, 0.45, 0.18);
+
+// TIER COMPENSATION (WP-3b). Optical thickness is accumulated PER PARTICLE, so the
+// mobile budget (60,000 particles in the same sim box, §E.5) yields roughly half the
+// thickness of the desktop budget and the small 350x230 figure washed out to a pale
+// beige. The solver is frozen (G4), so the compensation is render-side: the pipeline
+// is specialized with PARTICLES_DESKTOP / particleCountForTier() (1.0 desktop,
+// 2.0 mobile) — a function of the BUDGET, not of the backing resolution, so a DPR
+// change never alters the image. See render/fluidRender.ts + WaterBallHero.tsx.
+override thickness_gain: f32 = 1.0;
 
 fn computeViewPosFromUVDepth(tex_coord: vec2f, depth: f32) -> vec3f {
     var ndc: vec4f = vec4f(tex_coord.x * 2.0 - 1.0, 1.0 - 2.0 * tex_coord.y, 0.0, 1.0);
@@ -93,38 +116,38 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
     // Their ratio is the mean normalized SPEED of the fluid at this pixel — the
     // foam signal: fast, churned-up water is aerated and reads white.
     let thickData: vec2f = textureLoad(thickness_texture, vec2u(iuvf), 0).rg;
-    var thickness: f32 = thickData.r;
-    let speedAvg: f32 = thickData.g / max(thickness, 1e-4);
+    let thickRaw: f32 = thickData.r;
+    let speedAvg: f32 = thickData.g / max(thickRaw, 1e-4);
+
+    var thickness: f32 = thickRaw * thickness_gain;
 
     // world position for the animated ripple field (view -> world, rotation+translation)
     let worldPos: vec3f = (uniforms.inv_view_matrix * vec4f(viewPos, 1.0)).xyz;
-    let rippleAmp: f32 = 0.035 * smoothstep(0.12, 0.85, thickness);
+    let rippleAmp: f32 = 0.011 * smoothstep(0.12, 0.85, thickness);
     let perWorld: vec3f = ripplePerturb(worldPos, uniforms.time) * rippleAmp;
     let perView: vec3f = (uniforms.view_matrix * vec4f(perWorld, 0.0)).xyz;
     normal = normalize(normal + perView);
 
     var rayDir = normalize(viewPos);
     let sunView: vec3f = normalize((uniforms.view_matrix * vec4f(SUN_DIR_WORLD, 0.0)).xyz);
+    // world up in view space — the "which way is the ceiling" axis of the volume shading
+    let upView: vec3f = normalize((uniforms.view_matrix * vec4f(0.0, 1.0, 0.0, 0.0)).xyz);
+    let facing: f32 = clamp(dot(normal, -rayDir), 0.0, 1.0);
 
     // absorption: hydraulic oil, not sea water — denser than the old teal so the body
     // reads AMBER on the light paper-field backdrop instead of a pale tint; thin edges
     // still let the grey workshop transmit (§F.1: 0.30 -> 0.55).
     var density = 0.55;
 
-    // token 'oil' #c98a2a as linear RGB (src/content/tokens.ts 'oilLinear')
-    var diffuseColor = vec3f(0.79, 0.54, 0.16);
     // Depth of absorption, 0 (a film) -> 1 (a body). Pure Beer-Lambert was tuned
-    // against a SUNSET cubemap: with the neutral workshop environment (grey walls,
-    // nothing bright behind the tank) it drives the thick core to a near-black
-    // brown and the letter reads as mud. Dense oil does not go black -- multiple
-    // scattering converges on the liquid's OWN colour -- so the body is mixed
-    // toward the token amber with depth instead (verified on screen, WP-3).
+    // against a SUNSET cubemap; with a room environment it drives the thick core to
+    // near-black. Dense oil does not go black — multiple scattering converges on the
+    // liquid's OWN colour — so the body walks the OIL_FILM -> OIL_MID -> OIL_DEEP ramp.
     let absorb: f32 = clamp(1.0 - exp(-density * thickness), 0.0, 1.0);
 
-    // Refraction looks THROUGH the water at the real environment (cubemap) with a
+    // Refraction looks THROUGH the fluid at the real environment (cubemap) with a
     // touch of CHROMATIC DISPERSION: each channel refracts with a slightly different
-    // IOR, so the sunset splits into faint spectral fringes on curved, thin water —
-    // the "liquid jewel" cue. The body tint is applied to the result below.
+    // IOR, so the room splits into faint spectral fringes on curved, thin oil.
     let refrDirR: vec3f = refract(rayDir, normal, 1.0 / 1.327);
     let refrDirG: vec3f = refract(rayDir, normal, 1.0 / 1.333);
     let refrDirB: vec3f = refract(rayDir, normal, 1.0 / 1.340);
@@ -136,11 +159,22 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
         textureSampleLevel(envmap_texture, texture_sampler, refrWorldG, 0.).g,
         textureSampleLevel(envmap_texture, texture_sampler, refrWorldB, 0.).b
     );
-    // thin film -> you look through it at the workshop; body -> the token amber 'oil'
-    let deepOil: vec3f = diffuseColor * 1.12;
-    var refractionColor: vec3f = mix(refractedEnv, deepOil, absorb);
 
-    let F0 = 0.02;
+    // VOLUME SHADING: a dense translucent medium is not flat — multiple scattering is
+    // brighter where the surface turns toward the ceiling and toward the key. Without
+    // this the core has no form at all (the rejected blob). Range ~0.58 .. 1.30.
+    let sky: f32 = 0.5 + 0.5 * dot(normal, upView);
+    let keyLambert: f32 = max(dot(normal, sunView), 0.0);
+    let volumeLit: f32 = 0.66 + 0.44 * sky + 0.20 * keyLambert;
+
+    // thin film -> the workshop, warmed by a film of oil; body -> the amber ramp
+    let transmit: vec3f = refractedEnv * mix(vec3f(1.0), OIL_FILM, smoothstep(0.0, 0.30, absorb));
+    let bodyCol: vec3f = mix(OIL_MID, OIL_DEEP, smoothstep(0.62, 0.96, absorb)) * volumeLit;
+    var refractionColor: vec3f = mix(transmit, bodyCol, smoothstep(0.05, 0.40, absorb));
+
+    // oil IOR ~1.47 -> F0 ~0.035 (water is 0.02): the rim mirrors the room a little
+    // harder, which is what separates a translucent edge from a dense core.
+    let F0 = 0.035;
     var fresnel: f32 = clamp(F0 + (1.0 - F0) * pow(1.0 - dot(normal, -rayDir), 5.0), 0., 1.);
 
     var reflectionDir: vec3f = reflect(rayDir, normal);
@@ -148,31 +182,40 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
     var reflectionColor: vec3f = textureSampleLevel(envmap_texture, texture_sampler, reflectionDirWorld, 0.).rgb;
     var finalColor = mix(refractionColor, reflectionColor, fresnel);
 
-    // Darken the EXTREME grazing rim (fresnel mirrors the pale ceiling there as a
-    // thin bright line). Pull only the thinnest edge toward a dark oil tone — those
-    // pixels are also low-alpha (see THICK_FADE below), so the contour dissolves into
-    // the paper-field instead of ringing the letter with a white halo.
-    let edgeDark: vec3f = vec3f(0.28, 0.16, 0.05);
-    finalColor = mix(edgeDark, finalColor, smoothstep(0.0, 0.42, thickness));
+    // The thinnest rim keeps a WARM translucent tint instead of the old near-black
+    // edge: those pixels are low-alpha (see THICK_FADE below), so they dissolve into
+    // the paper-field rather than ringing the letter with a dark or white halo.
+    finalColor = mix(EDGE_TINT, finalColor, smoothstep(0.0, 0.22, thickness));
 
-    // FOAM / SPRAY: churned, fast fluid is aerated -> scatters off-white. speedAvg is
-    // the blurred per-pixel mean speed. Foam is lit by the key (soft lambert) so the
-    // spray catches the tube light like real whitewater. "facing" fades it out on
-    // edge-on sheets: any world-space texture aliases into per-pixel checkering
+    // FOAM / SPRAY: churned, fast fluid is aerated -> scatters cream. speedAvg is the
+    // blurred per-pixel mean speed. WP-3b: the first pass fired from speedAvg 0.22 at
+    // 0.8 strength, so an ordinary churn buried the whole body in grey-white smoke.
+    // The gate now opens late and the mix tops out well under 1, so fast motion reads
+    // as AERATED OIL (cream lifting off amber), never as steam. "facing" fades it out
+    // on edge-on sheets: any world-space texture aliases into per-pixel checkering
     // there (QA-proven), and real foam reads on faces, not silhouettes.
-    let facing: f32 = clamp(dot(normal, -rayDir), 0.0, 1.0);
-    var foamAmt: f32 = smoothstep(0.22, 0.62, speedAvg) * (0.25 + 0.75 * facing);
-    let sunLambert: f32 = max(dot(normal, sunView), 0.0);
-    let foamLit: vec3f = FOAM_COLOR * (0.62 + 0.38 * sunLambert);
-    finalColor = mix(finalColor, foamLit, foamAmt * 0.8);
+    var foamAmt: f32 = smoothstep(0.38, 0.86, speedAvg) * (0.25 + 0.75 * facing);
+    let foamLit: vec3f = FOAM_COLOR * (0.62 + 0.38 * keyLambert);
+    finalColor = mix(finalColor, foamLit, foamAmt * 0.45);
 
-    // TUBE HIGHLIGHT: tight fluorescent specular from the key direction + a broad
-    // low sheen. Grazing setup -> the highlights ride the rim and every tilted
-    // splash droplet. Foam scatters, so the mirror glint fades where foam wins.
+    // WET COAT: the clear specular layer that makes oil look WET. The fresnel mirror
+    // above only shows at grazing angles, so on its own the front of the form stays
+    // matte. This term takes the BRIGHT sources of the room — the two ceiling tubes
+    // and the light bank — out of the mirror direction and lays them on the surface
+    // with a weight that does not vanish head-on: the fixtures leave elongated
+    // streaks along the shoulders of the letter. Foam scatters, so the coat fades
+    // where the spray wins.
+    let envLum: f32 = dot(reflectionColor, vec3f(0.2126, 0.7152, 0.0722));
+    let hot: f32 = smoothstep(0.80, 0.97, envLum);
+    let coat: f32 = 0.52 * (0.30 + 0.70 * facing) * smoothstep(0.04, 0.30, thickness);
+    finalColor += SUN_COLOR * hot * coat * (1.0 - foamAmt * 0.6);
+
+    // TUBE GLINT: the tight fluorescent specular from the key direction + a broad low
+    // sheen. Grazing setup -> the glints ride the rim and every tilted splash droplet.
     var H: vec3f = normalize(sunView - rayDir);
     let ndh: f32 = max(dot(H, normal), 0.0);
-    let glint: f32 = pow(ndh, 420.0) * 1.5;
-    let sheen: f32 = pow(ndh, 22.0) * 0.085;
+    let glint: f32 = pow(ndh, 260.0) * 0.6;
+    let sheen: f32 = pow(ndh, 12.0) * 0.09; // broad fill on the shoulder away from the light bank
     finalColor += SUN_COLOR * (glint * (1.0 - foamAmt * 0.6) + sheen);
     // premultiplied-alpha invariant: the canvas is alphaMode:'premultiplied' and
     // color > alpha is UNDEFINED compositing per the WebGPU spec — the additive
@@ -185,9 +228,9 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
     // the same factor. THICK_FADE is the thickness at which the surface is fully
     // opaque; below it the sheet softens into the background (tightens the "A"
     // silhouette — Alberto: "bordi trasparenti"). FOAM is the one exception: fast
-    // white spray must stay VISIBLE while thin (that's what a splash IS), so foam
+    // cream spray must stay VISIBLE while thin (that's what a splash IS), so foam
     // lifts the fade floor for moving droplets — at rest nothing changes.
-    let THICK_FADE: f32 = 0.9; // rescaled with particle_alpha 0.05 -> 0.038 (same fade coverage)
+    let THICK_FADE: f32 = 1.4; // WP-3b: a translucent shoulder (0.9 went opaque at once; 2.2 was a mist)
     let edgeFade: f32 = smoothstep(0.0, THICK_FADE, thickness);
     let sprayAlpha: f32 = foamAmt * smoothstep(0.02, 0.30, thickness) * 0.9;
     let alpha: f32 = clamp(max(edgeFade, sprayAlpha), 0.0, 1.0);

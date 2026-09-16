@@ -1,143 +1,40 @@
 "use client";
 
-import * as React from "react";
 import { useDict } from "@/content/dict";
-import { useUI } from "@/store/ui";
-import { useHydrated } from "@/lib/use-hydrated";
-import { gsap, useGSAP } from "@/lib/gsap";
-import { Appear } from "@/components/motion/Appear";
-import { RollLink } from "@/components/motion/RollLink";
-import { FlipText } from "@/components/reveal/FlipText";
-import { TideEbb } from "@/components/footer/TideEbb";
-
-type Lenis = { scrollTo: (t: number, o?: { offset?: number }) => void };
-
-function toTop() {
-  const lenis = (window as unknown as { __lenis?: Lenis }).__lenis;
-  if (lenis?.scrollTo) lenis.scrollTo(0);
-  else window.scrollTo({ top: 0, behavior: "smooth" });
-}
+import { links } from "@/content/career";
+import { Perforation } from "@/components/sheet/Perforation";
+import { RuleIn } from "@/components/sheet/RuleIn";
 
 /**
- * Footer — coda, continues the night band. The closing frame is a full-width
- * "Alberto Tuveri" wordmark that hinges out of the dark plank by plank
- * (FlipText — resurrected from dead code; its .flip-word CSS is load-bearing
- * again), with a single ember full-stop as the page's final jewel. It lives
- * OUTSIDE the Appear wrapper: nesting the hinge inside the stagger would
- * double-animate it into mush. Meta row (place, contact nav, rights) keeps the
- * quiet Appear entrance. Text auto-themed by the `.night` scope.
+ * Footer — the foot of the sheet (REDESIGN-SPEC §E.11): the copyright line and
+ * the four public links, above a perforation and a 64px strip. Nothing else:
+ * no coordinates, no "Ambient", no wordmark, no sound — the order is signed in
+ * the Release panel, this is the tear-off edge of the form.
+ *
+ * Motion: RULE-IN once, like every other field.
  */
 export function Footer() {
   const t = useDict();
-  const soundEnabled = useUI((s) => s.soundEnabled);
-  const setSoundEnabled = useUI((s) => s.setSoundEnabled);
-  const reduced = useUI((s) => s.reducedMotion);
-  // Persisted flag: render the OFF state until hydration so SSR HTML matches.
-  const soundOn = useHydrated() && soundEnabled;
 
-  // ECOSYSTEM — the tide reaches the page and the wave exits through the
-  // period: the wordmark ripple (FlipText rippleOn) crosses "Alberto Tuveri"
-  // in ~0.4s, then the ember full-stop takes the same dip-lift-settle, a beat
-  // later and a touch higher (it's the jewel — it gets the crest). Listener-
-  // born tween → killed manually in cleanup (the async-tween lesson).
-  const dotRef = React.useRef<HTMLSpanElement>(null);
-  useGSAP(
-    () => {
-      const dot = dotRef.current;
-      if (!dot || reduced) return;
-      let hop: gsap.core.Tween | null = null;
-      const onTide = () => {
-        hop?.kill();
-        hop = gsap.to(dot, {
-          keyframes: [
-            { y: 5, duration: 0.16, ease: "power2.in" },
-            { y: -13, duration: 0.24, ease: "power2.out" },
-            { y: 0, duration: 0.9, ease: "elastic.out(1, 0.4)" },
-          ],
-          delay: 0.42,
-        });
-      };
-      window.addEventListener("tide-touch", onTide);
-      return () => {
-        window.removeEventListener("tide-touch", onTide);
-        // kill freezes the current inline transform — clearProps puts the
-        // period back on the baseline (a reduced flip mid-hop would otherwise
-        // strand it displaced forever; TideEbb's cleanup pattern)
-        hop?.kill();
-        gsap.set(dot, { clearProps: "y" });
-      };
-    },
-    { scope: dotRef, dependencies: [reduced], revertOnUpdate: true },
-  );
+  const row = [links.linkedin, links.github, links.sersan, links.spherenode];
 
   return (
-    <footer className="night bleed relative z-10">
-      <div className="container-edit py-16">
-        <div className="rule-node mb-12" style={{ background: "rgb(244 237 229 / 0.16)" }} />
-
-        {/* Closing wordmark — the last thing the page says. aria-hidden ember
-            period sits OUTSIDE the split target (a non-split sibling), so the
-            accessible name stays the clean "Alberto Tuveri". */}
-        <p className="font-display font-bold leading-[0.95] tracking-[-0.03em] text-paper [font-size:clamp(3.25rem,10.5vw,8.5rem)]">
-          <FlipText as="span" className="inline-block" rippleOn="tide-touch">
-            Alberto Tuveri
-          </FlipText>
-          <span aria-hidden ref={dotRef} className="inline-block text-ember">
-            .
-          </span>
-        </p>
-
-        <Appear as="div" className="mt-12" stagger={0.12} y={24}>
-          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-            <p className="t-meta">{t.footer.place}</p>
-
-            <nav className="flex items-center gap-7">
-              {/* MAREA ambient toggle — the switch the engine in lib/sound.ts
-                  answers to. The click IS the WebAudio user gesture. */}
-              <button
-                type="button"
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                aria-pressed={soundOn}
-                className="t-meta flex items-center gap-2 transition-colors duration-300 hover:text-amber"
-              >
-                <span
-                  aria-hidden
-                  className={`inline-block size-1.5 rounded-full transition-colors duration-300 ${
-                    soundOn ? "animate-pulse bg-amber" : "bg-paper/35"
-                  }`}
-                />
-                {t.footer.sound}
-                {/* state suffix is VISUAL only: the accessible name stays the
-                    stable "Ambient" (state lives in aria-pressed — double-
-                    announcing it also breaks voice-control targeting) */}
-                <span aria-hidden> · {soundOn ? t.footer.soundOn : t.footer.soundOff}</span>
-              </button>
-              <RollLink
-                as="a"
-                href={`mailto:${t.contact.email}`}
-                label={t.footer.email}
-                className="t-meta transition-colors duration-300 hover:text-amber"
-              />
-              <RollLink
-                as="button"
-                onClick={toTop}
-                prefix="↑"
-                label={t.footer.top}
-                className="t-meta transition-colors duration-300 hover:text-amber"
-              />
-            </nav>
-          </div>
-
-          {/* suppressHydrationWarning: SSG bakes the build-time year; a visit in a
-              later year re-renders client-side without a hydration error. */}
-          <p className="t-meta mt-14 opacity-70" suppressHydrationWarning>
-            © {new Date().getFullYear()} Alberto Tuveri · {t.footer.rights}
-          </p>
-        </Appear>
-      </div>
-
-      {/* IL RIFLUSSO — the page ends the way it began: in the sea. */}
-      <TideEbb />
+    <footer className="sheet pt-[var(--section-gap)]">
+      <Perforation />
+      <RuleIn>
+        <div className="flex h-16 flex-wrap items-center justify-between gap-x-8 gap-y-2 py-2">
+          <span className="f-meta tabular-nums text-graphite">{t.footer.copyright}</span>
+          <ul className="flex flex-wrap items-center gap-x-6 gap-y-1">
+            {row.map((l) => (
+              <li key={l.href}>
+                <a href={l.href} className="link f-meta" rel="noopener">
+                  {l.display}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </RuleIn>
     </footer>
   );
 }

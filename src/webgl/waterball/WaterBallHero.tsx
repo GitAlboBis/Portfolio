@@ -60,6 +60,16 @@ export function particleCountForTier(tier: BenchTier = benchTier()): number {
 export function dprCapForTier(tier: BenchTier = benchTier()): number {
   return DPR_CAP[tier];
 }
+/**
+ * WP-3b — optical-thickness gain of the tier, specialized into the fluid pipeline
+ * (render/fluid.wgsl.ts `override thickness_gain`). Thickness is accumulated per
+ * particle, so half the budget is half the body: at 60,000 particles the 350x230
+ * figure washed out to a pale beige. Derived from the BUDGET, never from the
+ * backing resolution, so a DPR change never alters the image.
+ */
+export function thicknessGainForTier(tier: BenchTier = benchTier()): number {
+  return PARTICLES_DESKTOP / particleCountForTier(tier);
+}
 
 // BIG box (the splash BOUND; the "A" confinement inside is the rest shape, in
 // g2p.wgsl — G4). Wide XY = room for the spray to fly out around the letter; thin Z
@@ -291,6 +301,7 @@ export function WaterBallHero() {
         cubemapView,
         depthMapView,
         sim.restDensity,
+        thicknessGainForTier(tier),
       );
 
       // hover is driven by our own window listener (box-relative, backing px), so

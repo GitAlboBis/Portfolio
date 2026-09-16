@@ -5,45 +5,44 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 /**
- * Button — Golden Hour design-system primitive (CVA).
+ * Button — THE JOB ORDER primitive (CVA). REDESIGN-SPEC §A / §C.
  *
- * Variants: primary (ember fill, ink text -> ember-ink + paper on hover), secondary
- * (warm outline -> ember), ghost (text-only), night (paper outline for the dark
- * band -> amber). The hover sheen fires on hover only (a state change), never a
- * perpetual decorative loop, and is removed under prefers-reduced-motion.
+ * Two real variants:
+ *   primary — ink fill, paper text (16.73:1); hover = graphite-deep fill.
+ *   ruled   — 1px ink border on paper; hover = paper-field fill (§C.7 micro).
+ * Radius 0 (≤ 2px allowed, none used), no pill, no sheen, no shadow, no
+ * gradient, no night. Hover feedback is a 120ms linear colour swap.
+ * Focus: the global `:focus-visible` ring (2px safety outer + 1px ink inner).
  *
- * For links, apply `buttonVariants(...)` to an <a>; for actions use <Button>.
+ * DEPRECATED aliases kept so the old sections still typecheck until WP-9
+ * deletes them: `secondary` → ruled, `ghost` → ruled (text-only look is not a
+ * thing on the sheet), `night` → primary. The `sheen` prop is accepted and
+ * ignored. For links, apply `buttonVariants(...)` to an <a>.
  */
 export const buttonVariants = cva(
   [
-    "group relative inline-flex items-center justify-center gap-2 overflow-hidden",
-    "font-sans uppercase tracking-[0.06em] whitespace-nowrap select-none font-semibold",
-    "rounded-full transition-[transform,background-color,border-color,color]",
-    "duration-300 ease-[var(--ease-tide)]",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember",
-    "focus-visible:ring-offset-2 focus-visible:ring-offset-paper",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap select-none",
+    "rounded-none border font-semibold uppercase tracking-[0.06em]",
+    "[font-variation-settings:'wdth'_87] leading-none",
+    "transition-[background-color,color,border-color] duration-[var(--dur-hover)] ease-linear",
     "disabled:pointer-events-none disabled:opacity-50",
   ].join(" "),
   {
     variants: {
       variant: {
-        // CTA: ember fill with INK text (AA — white on ember is only large-AA),
-        // darkens to ember-ink + paper text on hover.
-        primary:
-          "bg-ember text-ink border border-ember-ink/20 hover:bg-ember-ink hover:text-paper",
-        // Secondary: warm outline that lights to ember.
-        secondary:
-          "bg-transparent text-ink border border-rule-strong hover:border-ember hover:text-ember-ink",
-        // Ghost: text-only, tertiary/inline.
-        ghost: "bg-transparent text-ink-mute hover:text-ink px-2",
-        // Night-band CTA (footer / dark section): paper outline on night.
-        night:
-          "bg-transparent text-paper border border-paper/30 hover:border-amber hover:text-amber focus-visible:ring-amber focus-visible:ring-offset-night",
+        primary: "border-ink bg-ink text-paper hover:bg-graphite-deep hover:border-graphite-deep",
+        ruled: "border-ink bg-paper text-ink hover:bg-paper-field",
+        /** @deprecated use `ruled` */
+        secondary: "border-ink bg-paper text-ink hover:bg-paper-field",
+        /** @deprecated use `ruled` */
+        ghost: "border-ink bg-paper text-ink hover:bg-paper-field",
+        /** @deprecated use `primary` */
+        night: "border-ink bg-ink text-paper hover:bg-graphite-deep hover:border-graphite-deep",
       },
       size: {
-        sm: "h-9 px-5 text-xs",
-        md: "h-11 px-6 text-sm",
-        lg: "h-14 px-8 text-base",
+        sm: "h-9 px-4 text-xs",
+        md: "h-11 px-5 text-[0.8125rem]",
+        lg: "h-[var(--cell-h)] px-6 text-sm",
       },
     },
     defaultVariants: { variant: "primary", size: "md" },
@@ -53,45 +52,15 @@ export const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  /** Renders the hover sheen (a single warm light sweep). Default true on primary. */
+  /** @deprecated no sheen on the sheet — accepted and ignored until WP-9. */
   sheen?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, sheen, children, ...props }, ref) => {
-    const showSheen = sheen ?? variant !== "ghost";
-    return (
-      <button
-        ref={ref}
-        className={cn(buttonVariants({ variant, size }), className)}
-        {...props}
-      >
-        {showSheen ? <Sheen /> : null}
-        <span className="relative z-10 inline-flex items-center gap-2">
-          {children}
-        </span>
-      </button>
-    );
-  },
+  ({ className, variant, size, sheen: _sheen, children, type = "button", ...props }, ref) => (
+    <button ref={ref} type={type} className={cn(buttonVariants({ variant, size }), className)} {...props}>
+      {children}
+    </button>
+  ),
 );
 Button.displayName = "Button";
-
-/**
- * Sheen — a single oblique light sweep that crosses the button on hover.
- * Off-canvas at rest; translates across once per hover. Hidden under
- * reduced motion (motion-reduce:hidden).
- */
-function Sheen() {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "pointer-events-none absolute inset-0 z-0 -translate-x-[120%] skew-x-[-18deg]",
-        "bg-gradient-to-r from-transparent via-white/45 to-transparent",
-        "transition-transform duration-700 ease-[var(--ease-tide)]",
-        "group-hover:translate-x-[120%]",
-        "motion-reduce:hidden",
-      )}
-    />
-  );
-}

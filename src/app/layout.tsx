@@ -3,6 +3,8 @@ import { Archivo } from "next/font/google";
 import { Smooth } from "@/app/_providers/Smooth";
 import { Preloader } from "@/components/Preloader";
 import { CoverOverlay } from "@/components/transition/CoverOverlay";
+import { HeaderStrip, SkipLink } from "@/components/sheet/HeaderStrip";
+import { PhaseBand } from "@/components/sheet/PhaseBand";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -19,7 +21,10 @@ import "./globals.css";
       <html data-motion>.
     - CoverOverlay: la metà EXIT della copertura di route — deve vivere QUI,
       non in template.tsx, per sopravvivere allo swap di rotta che copre.
-    - la banda fasi (PhaseBand, WP-2) verrà montata qui sotto il Preloader.
+    - SkipLink → #phase-work, HeaderStrip (provenienza, tutte le route) e la
+      banda fasi PhaseBand (WP-2). Contratto: l'istanza di layout della banda
+      si nasconde su "/" (la home monta <PhaseBand/> DOPO il job-order-header,
+      §A FIRST VIEWPORT righe A–C); ogni altra route la riceve da qui.
   Niente cursore, suono, uova, warm-up o canvas fissa nel layout: il banco
   prova (CanvasHost) vive dentro TestBench sulla home (WP-3).
 */
@@ -109,6 +114,9 @@ export default function RootLayout({
         <Smooth />
         {/* EXIT cover (route transition) — lives here to survive the route swap. */}
         <CoverOverlay />
+        <SkipLink />
+        <HeaderStrip />
+        <PhaseBand layoutMount />
         {children}
         <script
           type="application/ld+json"

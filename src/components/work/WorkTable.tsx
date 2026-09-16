@@ -58,7 +58,7 @@ export interface WorkTableProps {
 function figureOf(m: WorkMetric, locale: Locale): string {
   const unit = m.unit ? m.unit[locale] : "";
   if (m.before && m.after) return `${m.before}${unit} → ${m.after}${unit}`;
-  return m.value;
+  return m.value ?? "";
 }
 
 /**

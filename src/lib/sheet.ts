@@ -4,9 +4,9 @@
  * THE JOB ORDER — the route cover artwork (REDESIGN-SPEC §G, §C.6–C.7).
  *
  * One shape for both halves of a navigation: a FLAT sheet of `paper` and a 1px
- * ink rule that prints downward across the viewport. No wave, no gradient, no
- * sunset — the old `curtainPath` language is gone; this is a form being laid on
- * the bench and a rule being drawn on it.
+ * ink rule that prints downward across the viewport. No wave and no gradient —
+ * the old `curtainPath` language is gone; this is a form being laid on the
+ * bench and a rule being drawn on it.
  *
  *   EXIT  (CoverOverlay, 420ms `sheet`) — the sheet descends from above while the
  *         rule travels top → bottom at its leading edge: the sheet is printed

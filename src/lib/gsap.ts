@@ -25,14 +25,6 @@ if (typeof window !== "undefined") {
   CustomEase.create("rule", "0.16,1,0.3,1"); // RULE-IN — rules drawing themselves
   CustomEase.create("stamp", "0.2,0.9,0.25,1.03"); // STAMP — impact, hair of overshoot
   CustomEase.create("sheet", "0.65,0,0.35,1"); // route cover — the paper sheet rising
-
-  // DEPRECATED — Golden Hour curves, kept registered ONLY so the old components
-  // (reveal/**, atmosphere/**, Preloader, RouteTransition…) don't throw on an
-  // unknown ease name until WP-9 deletes them. Do not use in new code.
-  CustomEase.create("tide", "0.16,1,0.3,1");
-  CustomEase.create("dive", "0.65,0,0.35,1");
-  CustomEase.create("drift", "0.33,0,0.67,1");
-  CustomEase.create("crest", "0.34,1.56,0.64,1");
 }
 
 export { gsap, ScrollTrigger, SplitText, Flip, Observer, CustomEase, useGSAP };

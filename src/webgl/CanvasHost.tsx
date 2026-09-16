@@ -21,15 +21,14 @@ import { useHeroStore } from "@/webgl/store/heroStore";
   The readouts print the matching bench.reason* line — nothing live is faked.
 
   Route gate: the bench is the ONE heavy renderer of the site and lives on "/"
-  (plus the temporary /dev/bench gate route until WP-4 mounts TestBench on the
-  home page). Unmounting on route change disposes the device (WaterBallHero
-  cleanup) and resets the store (`resetBench`).
+  only, inside the cover of the sheet. Unmounting on route change disposes the
+  device (WaterBallHero cleanup) and resets the store (`resetBench`).
 
   Accessibility: the canvas is aria-hidden + pointer-events:none (set inside
   WaterBallHero). Decorative only — the readouts carry the information.
 */
 
-const BENCH_ROUTES = new Set(["/", "/dev/bench"]);
+const BENCH_ROUTES = new Set(["/"]);
 
 export function CanvasHost() {
   const pathname = usePathname();

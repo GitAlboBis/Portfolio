@@ -3,9 +3,11 @@
 /.pnp
 .pnp.*
 
-# package manager: bun is canonical (bun.lock). Keep stray npm/yarn lockfiles out.
+# package manager: npm (see package.json scripts). Keep stray lockfiles of other
+# managers out; the npm lockfile stays out of the tree until WP-10 decides.
 /package-lock.json
 /yarn.lock
+/bun.lock
 
 # next.js
 /.next/
@@ -29,6 +31,10 @@ yarn-error.log*
 
 # claude code — personal overrides (contains secrets, e.g. API_KEY_21ST)
 .claude/settings.local.json
+
+# visual-gate screenshots and probe output (run artefacts, not sources)
+.shots/
+scripts/probes/*.out.json
 
 # vercel
 .vercel

@@ -26,8 +26,8 @@ import { create } from "zustand";
   explode:   0..1 progress of the old "logo explodes / drain" scroll beat.
              WaterBallHero still feeds it straight to the solver; with no writer
              (HeroScrollSettle is no longer mounted) it stays 0.
-  reveal / video: the old liquid-text and frame-scrub progress values. Dead
-             readers; removed with src/components/hero/** in WP-4/WP-9.
+  reveal / video: the old liquid-text and frame-scrub progress values. No
+             readers and no writers left; the solver ignores them.
 */
 export type BenchStatus = "compiling" | "live" | "still" | "lost";
 export type BenchTier = "desktop" | "mobile";

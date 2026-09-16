@@ -25,19 +25,6 @@ export const DUR = {
   sheet: 0.42,
   /** preloader: "the form printing itself" */
   print: 0.5,
-
-  // ── DEPRECATED aliases (Golden Hour names) — old components compile until
-  //    WP-9 deletes them. Mapped onto the new vocabulary; do not use in new code.
-  /** @deprecated use DUR.swap */
-  ripple: 0.15,
-  /** @deprecated use DUR.rule */
-  wave: 0.32,
-  /** @deprecated use DUR.sheet */
-  swell: 0.42,
-  /** @deprecated use DUR.print */
-  tide: 0.5,
-  /** @deprecated use DUR.print */
-  breaker: 0.5,
 } as const;
 
 /** Signature eases — CustomEases in src/lib/gsap.ts (CSS: --ease-*). */
@@ -48,35 +35,10 @@ export const EASE = {
   stamp: "stamp",
   /** route cover (the sheet) */
   sheet: "sheet",
-
-  // ── DEPRECATED aliases — old components compile until WP-9.
-  /** @deprecated use EASE.rule */
-  tide: "rule",
-  /** @deprecated use EASE.sheet */
-  dive: "sheet",
-  /** @deprecated use EASE.sheet */
-  drift: "sheet",
-  /** @deprecated use EASE.stamp */
-  crest: "stamp",
 } as const;
 
 /** Canonical staggers (seconds). */
 export const STAGGER = {
   /** table rows under RULE-IN */
   rows: 0.04,
-
-  // ── DEPRECATED aliases — old components compile until WP-9.
-  /** @deprecated no per-character reveals in this world; maps to rows */
-  chars: 0.04,
-  /** @deprecated no per-word reveals in this world; maps to rows */
-  words: 0.04,
-  /** @deprecated use STAGGER.rows */
-  blocks: 0.04,
 } as const;
-
-/**
- * @deprecated Golden Hour velocity coupling (GL bend, marquee tempo). Nothing in
- * the job order reacts to scroll speed. Kept at 0 so the old consumers stay
- * inert until WP-9 deletes them.
- */
-export const VELOCITY_GAIN = 0;

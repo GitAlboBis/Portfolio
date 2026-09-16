@@ -4,10 +4,7 @@ import type { Localized } from "@/content/works";
  * skills.ts — the CV's SKILLS block (September 2026, transcribed in PRODUCT.md §9),
  * eight groups with every item verbatim, plus the Languages line. Nothing is
  * added or dropped: this is the full, screen-reader-honest list the UI renders as
- * text. `iconable` maps the items that have a real brand mark in simple-icons to
- * the export name used in src/data/skill-icons.ts; items with no mark (or whose
- * mark simple-icons removed, e.g. C#, Azure, Playwright, After Effects) are
- * deliberately absent, never faked with a stand-in logo.
+ * text. No logos: the sheet prints skills as words, in the CV's own wording.
  */
 export type SkillGroup = { id: string; label: Localized; items: string[] };
 
@@ -76,46 +73,4 @@ export const languages: { label: Localized; items: Localized[] } = {
     { en: "Italian (native)", it: "Italiano (madrelingua)" },
     { en: "English B1 · C1 in progress", it: "Inglese B1 · C1 in corso" },
   ],
-};
-
-/**
- * Skill item → simple-icons export name (verified against the installed package).
- * Where an item bundles several names, the mark is the one that stands for the
- * whole item ("C / C++" → the C++ mark, "GLSL / WebGL2" → WebGL, "Claude Code / MCP"
- * → Claude Code). Multi-vendor items with no single mark ("OpenAI / Anthropic /
- * Gemini") are left out.
- */
-export const iconable: Record<string, string> = {
-  TypeScript: "siTypescript",
-  "JavaScript (ES2024)": "siJavascript",
-  Python: "siPython",
-  Java: "siOpenjdk",
-  "C / C++": "siCplusplus",
-  "React 19": "siReact",
-  "Next.js 16 (App Router)": "siNextdotjs",
-  Angular: "siAngular",
-  "Tailwind CSS v4": "siTailwindcss",
-  GSAP: "siGreensock",
-  "Framer Motion": "siFramer",
-  WebGPU: "siWebgpu",
-  "three.js": "siThreedotjs",
-  "GLSL / WebGL2": "siWebgl",
-  Blender: "siBlender",
-  "Node.js": "siNodedotjs",
-  Deno: "siDeno",
-  Spring: "siSpring",
-  Supabase: "siSupabase",
-  PostgreSQL: "siPostgresql",
-  MySQL: "siMysql",
-  "Claude Code / MCP": "siClaudecode",
-  Vercel: "siVercel",
-  "Cloudflare (Stream / R2)": "siCloudflare",
-  "GitHub Actions": "siGithubactions",
-  Sentry: "siSentry",
-  Docker: "siDocker",
-  Vitest: "siVitest",
-  "Lighthouse CI": "siLighthouse",
-  ESLint: "siEslint",
-  Prettier: "siPrettier",
-  Git: "siGit",
 };

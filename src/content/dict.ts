@@ -11,13 +11,10 @@ import { useUI } from "@/store/ui";
  * names and technical terms stay in English in both locales (project rule).
  *
  * LAYOUT OF THIS FILE
- *   1. "The job order" sections (REDESIGN-SPEC §H): strip · header · phases ·
- *      band · intake · bench · diagnosis · estimate · work · measured · subform ·
- *      release · about (captions) · footer.copyright · notFound · a11y · meta.
- *   2. LEGACY sections kept so the old components still typecheck until WP-9
- *      deletes them: nav · hero · about.{eyebrow,lead,body} · works · coast ·
- *      ascent · tech · contact · journey · footer.{place,sound,…}.
- *      Marked "// LEGACY — removed in WP-9". Do not build on them.
+ *   "The job order" sections (REDESIGN-SPEC §H): strip · header · phases ·
+ *   band · intake · bench · diagnosis · estimate · work · measured · subform ·
+ *   release · about (captions) · footer.copyright · notFound · a11y · meta ·
+ *   styleguide.
  */
 
 const localizedPhase = z.object({
@@ -156,7 +153,7 @@ const sectionSchema = z.object({
     stamp: z.string(),
   }),
 
-  /** E.13 /about — Owner. `captions` is the new sheet; `eyebrow/lead/body` are LEGACY. */
+  /** E.13 /about — Owner: the field captions of the sheet. */
   about: z.object({
     captions: z.object({
       owner: z.string(),
@@ -168,10 +165,6 @@ const sectionSchema = z.object({
       photograph: z.string(),
     }),
     noPhoto: z.string(),
-    // LEGACY — removed in WP-9
-    eyebrow: z.string(),
-    lead: z.string(),
-    body: z.string(),
   }),
 
   /** E.14 404. */
@@ -197,7 +190,6 @@ const sectionSchema = z.object({
   styleguide: z.object({
     title: z.string(),
     lead: z.string(),
-    locale: z.object({ en: z.string(), it: z.string() }),
     palette: z.object({
       caption: z.string(),
       cols: z.object({ token: z.string(), hex: z.string(), role: z.string(), chip: z.string() }),
@@ -259,100 +251,9 @@ const sectionSchema = z.object({
     note: z.string(),
   }),
 
-  /** E.11 footer. `copyright` is the new sheet; the rest is LEGACY. */
+  /** E.11 footer. */
   footer: z.object({
     copyright: z.string(),
-    // LEGACY — removed in WP-9
-    place: z.string(),
-    sound: z.string(),
-    soundOn: z.string(),
-    soundOff: z.string(),
-    rights: z.string(),
-    email: z.string(),
-    top: z.string(),
-  }),
-
-  /* ───────────────────────────── LEGACY — removed in WP-9 ─────────────────────────────
-   * Old Golden Hour / ocean sections still read by components scheduled for deletion
-   * (Nav, MenuOverlay, HeroCopy, About, Tech, Contact, WorksGallery, WorkHorizontal,
-   * WorkCaseStudy, AboutJourney, Footer). Nothing new reads them. */
-  nav: z.object({
-    work: z.string(),
-    about: z.string(),
-    contact: z.string(),
-    menu: z.string(),
-    close: z.string(),
-    langToggle: z.string(),
-    preview: z.object({
-      home: z.string(),
-      about: z.string(),
-      works: z.string(),
-      contact: z.string(),
-    }),
-  }),
-  hero: z.object({
-    eyebrow: z.string(),
-    name: z.string(),
-    role: z.string(),
-    tagline: z.string(),
-    taglineAccent: z.string(),
-    scroll: z.string(),
-  }),
-  works: z.object({
-    eyebrow: z.string(),
-    title: z.string(),
-    open: z.string(),
-    problem: z.string(),
-    action: z.string(),
-    result: z.string(),
-    stackLabel: z.string(),
-    roleLabel: z.string(),
-    wip: z.string(),
-    back: z.string(),
-    next: z.string(),
-    detail: z.string(),
-  }),
-  coast: z.object({
-    eyebrow: z.string(),
-    title: z.string(),
-    meta: z.string(),
-  }),
-  ascent: z.object({
-    eyebrow: z.string(),
-    deep: z.string(),
-    breathe: z.string(),
-    meta: z.string(),
-  }),
-  tech: z.object({
-    eyebrow: z.string(),
-    title: z.string(),
-    marquee: z.array(z.string()),
-    ariaMarquee: z.string(),
-  }),
-  contact: z.object({
-    eyebrow: z.string(),
-    headline: z.string(),
-    cta: z.string(),
-    email: z.string(),
-  }),
-  journey: z.object({
-    eyebrow: z.string(),
-    title: z.string(),
-    lead: z.string(),
-    bio: z.array(z.string()),
-    educationTitle: z.string(),
-    education: z.array(z.object({ period: z.string(), title: z.string(), org: z.string() })),
-    experienceTitle: z.string(),
-    experience: z.array(z.object({ period: z.string(), org: z.string(), role: z.string() })),
-    thesisTitle: z.string(),
-    thesis: z.string(),
-    more: z.string(),
-    back: z.string(),
-    film: z.object({
-      eyebrow: z.string(),
-      title: z.string(),
-      meta: z.string(),
-    }),
   }),
 });
 
@@ -465,10 +366,6 @@ const en: Dict = {
       photograph: "Photograph",
     },
     noPhoto: "none on file",
-    // LEGACY — removed in WP-9
-    eyebrow: "01 — About",
-    lead: "Calm on the surface. Alive underneath.",
-    body: "Five years turning hard problems into things that feel inevitable — full-stack systems, AI pipelines, and the occasional shader. I care about the moment an interface stops feeling like software and starts feeling like a place.",
   },
   notFound: {
     title: "No job order at this address.",
@@ -486,7 +383,6 @@ const en: Dict = {
   styleguide: {
     title: "Styleguide",
     lead: "The sheet's materials as built: eleven colours, one face at three widths, the yellow region, two motion verbs. Every contrast ratio below is computed when this page renders.",
-    locale: { en: "EN", it: "IT" },
     palette: {
       caption: "Palette",
       cols: { token: "Token", hex: "Hex", role: "Role", chip: "Chip" },
@@ -557,110 +453,6 @@ const en: Dict = {
   },
   footer: {
     copyright: "© 2026 Alberto Tuveri",
-    // LEGACY — removed in WP-9
-    place: "Masua · 39°09′N 8°25′E",
-    sound: "Ambient",
-    soundOn: "On",
-    soundOff: "Off",
-    rights: "All rights reserved",
-    email: "Email",
-    top: "Top",
-  },
-
-  // ───────────────────────────── LEGACY — removed in WP-9 ─────────────────────────────
-  nav: {
-    work: "Work",
-    about: "About",
-    contact: "Contact",
-    menu: "Menu",
-    close: "Close",
-    langToggle: "switch language",
-    preview: { home: "The golden hour", about: "Masua, Sulcis", works: "Selected work", contact: "After sunset" },
-  },
-  hero: {
-    eyebrow: "Software Engineer · Full-stack & AI",
-    name: "Alberto Tuveri",
-    role: "Full-stack engineer · AI at the edge",
-    tagline: "I build interfaces that move like water.",
-    taglineAccent: "water",
-    scroll: "Scroll to dive",
-  },
-  works: {
-    eyebrow: "Selected Work · 2021—2026",
-    title: "Things I've built",
-    open: "Open case",
-    problem: "The problem",
-    action: "What I built",
-    result: "The result",
-    stackLabel: "Stack",
-    roleLabel: "Role",
-    wip: "Work in progress",
-    back: "All work",
-    next: "Next project",
-    detail: "Detail",
-  },
-  coast: {
-    eyebrow: "The coast",
-    title: "Where the water learned to move.",
-    meta: "Pan di Zucchero · Sardinia · 39.96° N, 8.42° E",
-  },
-  ascent: {
-    eyebrow: "The ascent",
-    deep: "Hold your breath",
-    breathe: "— and breathe.",
-    meta: "Below the surface · Pan di Zucchero",
-  },
-  tech: {
-    eyebrow: "02 — Stack",
-    title: "The current I work in.",
-    marquee: [
-      "Full-stack engineering",
-      "AI integration",
-      "Real-time systems",
-      "WebGL & shaders",
-      "Design engineering",
-      "Interaction",
-      "Performance",
-    ],
-    ariaMarquee: "Fields I work in",
-  },
-  contact: {
-    eyebrow: "03 — Contact",
-    headline: "Let's make something that moves.",
-    cta: "Write to me",
-    email: EMAIL,
-  },
-  journey: {
-    eyebrow: "The long version",
-    title: "From the Sulcis coast to systems that move.",
-    lead: "Software engineer — full-stack & AI integration.",
-    bio: [
-      "I'm Alberto, a software engineer who works across the whole stack — from GPU shaders and React front-ends down to PostGIS queries and CI pipelines — with a particular focus on integrating AI into real products.",
-      "I grew up in Iglesias, on the Sulcis-Iglesiente coast of Sardinia, where the sea around Pan di Zucchero shaped how I see things: clean lines, deep structure, and a respect for what's underneath the surface.",
-      "Recently I've shipped a production PWA that matches families with caregivers across Italy, built a hands-free voice AI agent for Microsoft Teams, and joined SerSan — AI Studio as a software engineer. I care about systems that are fast, secure, and genuinely useful.",
-    ],
-    educationTitle: "Education",
-    education: [
-      { period: "2022 — 2026", title: "B.Sc. Computer Science", org: "University of Camerino" },
-      { period: "", title: "Technical IT Diploma", org: "Ist. Boccaccio, Iglesias" },
-    ],
-    experienceTitle: "Experience",
-    experience: [
-      { period: "May 2026 — present", org: "SerSan · AI Studio", role: "Software Engineer" },
-      { period: "Jan 2026", org: "ALS MCL Civitanova", role: "Full-Stack Developer · Freelance" },
-      { period: "Nov 2025 — Feb 2026", org: "DOIT · Lodestar Group", role: "AI & Software Developer · Internship" },
-      { period: "2019 — 2020", org: "Ist. Boccaccio, Iglesias", role: "Network Technician · Intern" },
-    ],
-    thesisTitle: "B.Sc. thesis",
-    thesis:
-      "“From Autocomplete to Agentic Orchestration: Architectural Analysis and Security of OS-Level Agents” — maps the evolution from code completion to autonomous agentic systems (MCP, RAG, multi-agent orchestration) and proposes Zero-Trust defensive strategies against OS-level attack vectors.",
-    more: "Selected work",
-    back: "Back to home",
-    film: {
-      eyebrow: "The rock",
-      title: "Engineering, carved into the coast.",
-      meta: "Porto Flavia · Masua, Sardinia · est. 1924",
-    },
   },
 };
 
@@ -767,10 +559,6 @@ const it: Dict = {
       photograph: "Fotografia",
     },
     noPhoto: "nessuna agli atti",
-    // LEGACY — removed in WP-9
-    eyebrow: "01 — Chi sono",
-    lead: "Calmo in superficie. Vivo sotto.",
-    body: "Cinque anni a trasformare problemi difficili in cose che sembrano inevitabili — sistemi full-stack, pipeline AI e qualche shader. Mi interessa il momento in cui un'interfaccia smette di sembrare software e inizia a sembrare un luogo.",
   },
   notFound: {
     title: "Nessun ordine di lavoro a questo indirizzo.",
@@ -788,7 +576,6 @@ const it: Dict = {
   styleguide: {
     title: "Styleguide",
     lead: "I materiali del foglio così come sono costruiti: undici colori, una sola famiglia a tre larghezze, la regione gialla, due verbi di movimento. Ogni rapporto di contrasto qui sotto viene calcolato quando la pagina si disegna.",
-    locale: { en: "EN", it: "IT" },
     palette: {
       caption: "Tavolozza",
       cols: { token: "Token", hex: "Hex", role: "Ruolo", chip: "Campione" },
@@ -859,110 +646,6 @@ const it: Dict = {
   },
   footer: {
     copyright: "© 2026 Alberto Tuveri",
-    // LEGACY — removed in WP-9
-    place: "Masua · 39°09′N 8°25′E",
-    sound: "Ambiente",
-    soundOn: "On",
-    soundOff: "Off",
-    rights: "Tutti i diritti riservati",
-    email: "Email",
-    top: "Su",
-  },
-
-  // ───────────────────────────── LEGACY — removed in WP-9 ─────────────────────────────
-  nav: {
-    work: "Lavori",
-    about: "Chi sono",
-    contact: "Contatti",
-    menu: "Menu",
-    close: "Chiudi",
-    langToggle: "cambia lingua",
-    preview: { home: "L'ora d'oro", about: "Masua, Sulcis", works: "Lavori scelti", contact: "Dopo il tramonto" },
-  },
-  hero: {
-    eyebrow: "Software Engineer · Full-stack & AI",
-    name: "Alberto Tuveri",
-    role: "Full-stack engineer · AI sul bordo",
-    tagline: "Costruisco interfacce che si muovono come l'acqua.",
-    taglineAccent: "acqua",
-    scroll: "Scorri per immergerti",
-  },
-  works: {
-    eyebrow: "Lavori scelti · 2021—2026",
-    title: "Cose che ho costruito",
-    open: "Apri caso",
-    problem: "Il problema",
-    action: "Cosa ho costruito",
-    result: "Il risultato",
-    stackLabel: "Stack",
-    roleLabel: "Ruolo",
-    wip: "In lavorazione",
-    back: "Tutti i lavori",
-    next: "Prossimo progetto",
-    detail: "Dettaglio",
-  },
-  coast: {
-    eyebrow: "La costa",
-    title: "Dove l'acqua ha imparato a muoversi.",
-    meta: "Pan di Zucchero · Sardegna · 39,96° N, 8,42° E",
-  },
-  ascent: {
-    eyebrow: "La risalita",
-    deep: "Trattieni il fiato",
-    breathe: "— e respira.",
-    meta: "Sotto la superficie · Pan di Zucchero",
-  },
-  tech: {
-    eyebrow: "02 — Stack",
-    title: "La corrente in cui lavoro.",
-    marquee: [
-      "Ingegneria full-stack",
-      "Integrazione AI",
-      "Sistemi real-time",
-      "WebGL & shader",
-      "Design engineering",
-      "Interazione",
-      "Performance",
-    ],
-    ariaMarquee: "Gli ambiti in cui lavoro",
-  },
-  contact: {
-    eyebrow: "03 — Contatti",
-    headline: "Facciamo qualcosa che si muove.",
-    cta: "Scrivimi",
-    email: EMAIL,
-  },
-  journey: {
-    eyebrow: "La versione lunga",
-    title: "Dalla costa del Sulcis a sistemi che si muovono.",
-    lead: "Software engineer — full-stack & integrazione AI.",
-    bio: [
-      "Sono Alberto, un software engineer che lavora su tutto lo stack — dagli shader GPU e i front-end React fino alle query PostGIS e alle pipeline CI — con un focus particolare sull'integrazione dell'AI in prodotti reali.",
-      "Sono cresciuto a Iglesias, sulla costa del Sulcis-Iglesiente in Sardegna, dove il mare attorno a Pan di Zucchero ha plasmato il mio modo di vedere le cose: linee pulite, struttura profonda, e rispetto per ciò che sta sotto la superficie.",
-      "Di recente ho rilasciato una PWA in produzione che mette in contatto famiglie e caregiver in tutta Italia, ho costruito un agente vocale AI hands-free per Microsoft Teams, e sono entrato in SerSan — AI Studio come software engineer. Mi interessano i sistemi veloci, sicuri e davvero utili.",
-    ],
-    educationTitle: "Formazione",
-    education: [
-      { period: "2022 — 2026", title: "Laurea triennale in Informatica", org: "Università di Camerino" },
-      { period: "", title: "Diploma tecnico informatico", org: "Ist. Boccaccio, Iglesias" },
-    ],
-    experienceTitle: "Esperienza",
-    experience: [
-      { period: "Mag 2026 — oggi", org: "SerSan · AI Studio", role: "Software Engineer" },
-      { period: "Gen 2026", org: "ALS MCL Civitanova", role: "Full-Stack Developer · Freelance" },
-      { period: "Nov 2025 — Feb 2026", org: "DOIT · Lodestar Group", role: "AI & Software Developer · Tirocinio" },
-      { period: "2019 — 2020", org: "Ist. Boccaccio, Iglesias", role: "Tecnico di rete · Tirocinio" },
-    ],
-    thesisTitle: "Tesi triennale",
-    thesis:
-      "“From Autocomplete to Agentic Orchestration: Architectural Analysis and Security of OS-Level Agents” — mappa l'evoluzione dal completamento del codice ai sistemi agentici autonomi (MCP, RAG, orchestrazione multi-agente) e propone strategie difensive Zero-Trust contro i vettori di attacco a livello OS.",
-    more: "Lavori scelti",
-    back: "Torna alla home",
-    film: {
-      eyebrow: "La roccia",
-      title: "Ingegneria scavata nella costa.",
-      meta: "Porto Flavia · Masua, Sardegna · 1924",
-    },
   },
 };
 

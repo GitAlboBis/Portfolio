@@ -1,5 +1,3 @@
-import { palette, type Mood } from "@/content/tokens";
-
 /**
  * Works — Selected Work entries. Drives the galleries (top-level card fields) and
  * the /work/[slug] case-study pages (the `study` block, EN/IT).
@@ -8,12 +6,11 @@ import { palette, type Mood } from "@/content/tokens";
  * number in `metrics`, `highlights` and the study prose appears verbatim in the
  * CV; nothing is invented or rounded. Where the CV gives no date, no URL or no
  * figure, the field is left out rather than guessed. Roles and technical terms
- * stay in English in both locales (project rule). `mood` uses palette tokens
- * only; `textureSrc` is set only where a still exists in public/works/.
+ * stay in English in both locales (project rule).
  */
 export type Localized = { en: string; it: string };
-/** Kept as a union for the consumers that compare against both literals; no data entry is provisional. */
-export type WorkStatus = "confirmed" | "provisional";
+/** Every entry on file is confirmed against the CV (PRODUCT.md §9). */
+export type WorkStatus = "confirmed";
 /** Who can open the delivered thing: a public URL, a client's product, studio-internal, or academic. */
 export type WorkAccess = "public" | "client" | "internal" | "academic";
 /**
@@ -29,11 +26,9 @@ export interface WorkMetric {
   /**
    * Display figure. For pairs it equals the "after" string with its unit
    * ("68%", "1.74 s"); for single figures it is the verbatim CV figure.
-   * LEGACY ALIAS (removed in WP-9): required only because the old `CountUp`
-   * consumer in `WorkCaseStudy.tsx` reads `m.value`; the new `MeasuredRow`
-   * reads `before`/`after`/`unit` and falls back to `value` for single figures.
+   * Set on single figures; a pair carries `before`/`after`/`unit` instead.
    */
-  value: string;
+  value?: string;
   /** "Before" numeral of a CV pair, without unit. */
   before?: string;
   /** "After" numeral of a CV pair, without unit. */
@@ -72,10 +67,6 @@ export interface Work {
   phaseRole: PhaseRole;
   stack: string[];
   status: WorkStatus;
-  /** Atmospheric mood (tokens only) — drives this slide's background blobs. LEGACY (old galleries; removed in WP-9). */
-  mood: Mood;
-  /** Optional project still (WebP). LEGACY (old galleries until WP-5); the new surfaces read `capture`. */
-  textureSrc?: string;
   /** Real capture of the public site, only where one exists (sersan-io, spherenode). */
   capture?: WorkCapture;
   /** Ruled SVG schematic drawn in the sub-form (REDESIGN-SPEC §B napkin raise): RAG pipeline or the six-phase job order. */
@@ -146,7 +137,6 @@ export const works: Work[] = [
       "Capacitor",
     ],
     status: "confirmed",
-    mood: { base: palette.paperDeep, blob1: palette.ember, blob2: palette.dusk },
     hook: {
       en: "Vertical SaaS that replaced eight tools for the Italian retail-trading market, live at spherenode.com.",
       it: "SaaS verticale che ha sostituito otto strumenti per il mercato italiano del retail trading, online su spherenode.com.",
@@ -252,7 +242,6 @@ export const works: Work[] = [
     access: "public",
     stack: ["RAG", "pgvector", "Embeddings", "Semantic chunking", "LLM relevance grader", "LLM evaluation", "Guardrails", "Supabase"],
     status: "confirmed",
-    mood: { base: palette.paper, blob1: palette.dusk, blob2: palette.ember },
     hook: {
       en: "SphereNode's bilingual RAG mentor, grounded only in the proprietary curriculum and measured on a 161-question evaluation set.",
       it: "Il mentor RAG bilingue di SphereNode, ancorato solo al curriculum proprietario e misurato su un set di valutazione da 161 domande.",
@@ -363,7 +352,6 @@ export const works: Work[] = [
     access: "client",
     stack: ["Vite", "React 18", "TypeScript", "Supabase", "Postgres 17", "RLS", "Edge Functions", "TanStack Query"],
     status: "confirmed",
-    mood: { base: palette.paperDeep, blob1: palette.amber, blob2: palette.ember },
     hook: {
       en: "Custom ERP for a heavy-vehicle workshop of about 50 staff, founded from the application scaffold to the first database schema.",
       it: "ERP su misura per un'officina di veicoli pesanti da circa 50 persone, fondato dallo scaffold applicativo al primo schema del database.",
@@ -445,7 +433,6 @@ export const works: Work[] = [
     capture: { src: "/captures/sersan-io-1600.webp", label: CAPTURE_LABEL, width: 1600, height: 1000 },
     stack: ["Next.js 16", "React 19", "three.js (WebGPU/TSL)", "React Three Fiber", "GSAP", "Lenis", "Tailwind v4", "Vercel"],
     status: "confirmed",
-    mood: { base: palette.paper, blob1: palette.dusk, blob2: palette.rose },
     hook: {
       en: "The studio's WebGPU-first site: one continuous 3D canvas carrying seventeen scroll-locked scenes, built alone between June and September 2026.",
       it: "Il sito WebGPU-first dello studio: un'unica canvas 3D continua che attraversa diciassette scene bloccate allo scroll, costruito da solo tra giugno e settembre 2026.",
@@ -536,7 +523,6 @@ export const works: Work[] = [
     access: "client",
     stack: ["Next.js 16", "GSAP", "Lenis", "Supabase"],
     status: "confirmed",
-    mood: { base: palette.paperDeep, blob1: palette.rose, blob2: palette.amber },
     hook: {
       en: "Real-estate brand platform: a cinematic scroll experience with complete reduced-motion and no-JavaScript alternatives, and mobile LCP cut from 4.75 s to 1.74 s.",
       it: "Piattaforma brand immobiliare: un'esperienza scroll cinematografica con alternative complete reduced-motion e senza JavaScript, e LCP mobile da 4,75 s a 1,74 s.",
@@ -612,7 +598,6 @@ export const works: Work[] = [
     access: "public",
     stack: ["Art direction", "Brand identity", "Typography", "Motion graphics", "VFX", "3D", "After Effects", "Compositing", "Colour grading", "Sound design"],
     status: "confirmed",
-    mood: { base: palette.paper, blob1: palette.ember, blob2: palette.dusk },
     hook: {
       en: "The SerSan visual identity (hexagonal mark, custom display typeface, colour system) and a 64-second 4K brand film in fourteen scenes, directed and produced from concept to final cut.",
       it: "L'identità visiva SerSan (marchio esagonale, font display su misura, sistema colore) e un brand film 4K da 64 secondi in quattordici scene, diretto e prodotto dal concept al final cut.",
@@ -686,8 +671,6 @@ export const works: Work[] = [
     access: "client",
     stack: ["Next.js 15", "React 19", "TypeScript", "Supabase", "PostGIS", "Serwist (PWA)", "Web Push (VAPID)", "Leaflet", "Sentry", "GitHub Actions"],
     status: "confirmed",
-    mood: { base: palette.paper, blob1: palette.amber, blob2: palette.coral },
-    textureSrc: "/works/badante24h.webp",
     hook: {
       en: "Production PWA matching families with caregivers in the Italian home-care market.",
       it: "PWA in produzione che mette in contatto famiglie e caregiver nel mercato italiano dell'assistenza domiciliare.",
@@ -758,8 +741,6 @@ export const works: Work[] = [
     access: "client",
     stack: ["Azure Speech", "Copilot Studio", "Power Automate", "Dynamics 365", "Angular", "TypeScript"],
     status: "confirmed",
-    mood: { base: palette.paperDeep, blob1: palette.coral, blob2: palette.ember },
-    textureSrc: "/works/doit-voice-ai-agent.webp",
     hook: {
       en: "Hands-free appointment management in Teams from audio notes: create and update meetings, search colleagues and Dynamics 365 contacts, send invitations.",
       it: "Gestione degli appuntamenti in Teams a mani libere da note audio: crea e aggiorna riunioni, cerca colleghi e contatti Dynamics 365, invia inviti.",
@@ -814,8 +795,6 @@ export const works: Work[] = [
     access: "academic",
     stack: ["Java", "Spring Boot", "Spring Security", "PostgreSQL", "JWT", "REST", "Unified Process", "UML"],
     status: "confirmed",
-    mood: { base: palette.paper, blob1: palette.ember, blob2: palette.rose },
-    textureSrc: "/works/agricultural-supply-chain.webp",
     hook: {
       en: "Multi-actor supply-chain platform with 10 roles, built by a team of 3 as the Software Engineering exam project at the University of Camerino.",
       it: "Piattaforma di filiera multi-attore con 10 ruoli, costruita da un team di 3 come progetto d'esame di Ingegneria del Software all'Università di Camerino.",

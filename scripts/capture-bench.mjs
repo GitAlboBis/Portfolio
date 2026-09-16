@@ -7,7 +7,8 @@
 //        public/bench/PROVENANCE.md
 //
 // Metodo: Playwright su Chrome (channel "chrome", --enable-unsafe-webgpu) sul DEV SERVER,
-// route /dev/bench, viewport 1440×1200 con deviceScaleFactor 2,05 (così il ritaglio del
+// sulla HOME "/" (il banco vive nella copertina del foglio; la rotta gate /dev/bench è
+// stata eliminata in WP-9), viewport 1440×1200 con deviceScaleFactor 2,05 (così il ritaglio del
 // riquadro esce a ~1554px e viene RIDOTTO a 1520 — mai ingrandito). Si attende lo stato
 // `live` dallo store del banco (`window.__heroStore`, dev-only) e poi si lascia SEDIMENTARE
 // il fluido per SETTLE_MS senza toccarlo: la lettera a riposo è la lettura migliore.
@@ -25,7 +26,7 @@ import { resolve } from "node:path";
 const argv = process.argv.slice(2);
 const baseArg = argv.find((a) => a.startsWith("--base="));
 const BASE = baseArg ? baseArg.slice("--base=".length) : process.env.BASE_URL || "http://localhost:3000";
-const ROUTE = "/dev/bench";
+const ROUTE = "/";
 
 const ROOT = process.cwd();
 const OUT = resolve(ROOT, "public/bench");

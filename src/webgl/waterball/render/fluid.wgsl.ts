@@ -140,7 +140,7 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
     var density = 0.55;
 
     // Depth of absorption, 0 (a film) -> 1 (a body). Pure Beer-Lambert was tuned
-    // against a SUNSET cubemap; with a room environment it drives the thick core to
+    // against the OLD outdoor cubemap; with a room environment it drives the thick core to
     // near-black. Dense oil does not go black — multiple scattering converges on the
     // liquid's OWN colour — so the body walks the OIL_FILM -> OIL_MID -> OIL_DEEP ramp.
     let absorb: f32 = clamp(1.0 - exp(-density * thickness), 0.0, 1.0);

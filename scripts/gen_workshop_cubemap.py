@@ -1,6 +1,6 @@
 """
 Generate a SEAMLESS workshop cubemap (6 x 512x512 RGBA PNG faces) for the test-bench
-fluid to reflect/refract (REDESIGN-SPEC §F.4). Fork of gen_sunset_cubemap.py: colour
+fluid to reflect/refract (REDESIGN-SPEC §F.4). Fork of the old outdoor generator (deleted in WP-9): colour
 is a pure function of the 3D view direction, so adjacent face edges map to identical
 directions -> no seams. The scene: a steel bench under fluorescent tubes at 10 a.m.
 

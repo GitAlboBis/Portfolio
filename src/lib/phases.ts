@@ -35,10 +35,10 @@ export const phaseIndex = (id: PhaseId): number => PHASES.indexOf(id);
 
 /**
  * Routes whose content IS the sheet: the band is driven by the `#phase-*`
- * regions in the page. `/dev/phases` is the WP-2 gate route — DELETE IN WP-9.
+ * regions in the page. Only the home sheet qualifies; every sub-route is
+ * pre-stamped by `routePhase` instead.
  */
-export const isSheetRoute = (pathname: string): boolean =>
-  pathname === "/" || pathname === "/dev/phases";
+export const isSheetRoute = (pathname: string): boolean => pathname === "/";
 
 /**
  * The phase a sub-route is pre-stamped with (§E.3: WORK on /work*, INTAKE on

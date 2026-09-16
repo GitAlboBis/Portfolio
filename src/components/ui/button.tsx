@@ -14,10 +14,7 @@ import { cn } from "@/lib/cn";
  * gradient, no night. Hover feedback is a 120ms linear colour swap.
  * Focus: the global `:focus-visible` ring (2px safety outer + 1px ink inner).
  *
- * DEPRECATED aliases kept so the old sections still typecheck until WP-9
- * deletes them: `secondary` → ruled, `ghost` → ruled (text-only look is not a
- * thing on the sheet), `night` → primary. The `sheen` prop is accepted and
- * ignored. For links, apply `buttonVariants(...)` to an <a>.
+ * For links, apply `buttonVariants(...)` to an <a>.
  */
 export const buttonVariants = cva(
   [
@@ -32,12 +29,6 @@ export const buttonVariants = cva(
       variant: {
         primary: "border-ink bg-ink text-paper hover:bg-graphite-deep hover:border-graphite-deep",
         ruled: "border-ink bg-paper text-ink hover:bg-paper-field",
-        /** @deprecated use `ruled` */
-        secondary: "border-ink bg-paper text-ink hover:bg-paper-field",
-        /** @deprecated use `ruled` */
-        ghost: "border-ink bg-paper text-ink hover:bg-paper-field",
-        /** @deprecated use `primary` */
-        night: "border-ink bg-ink text-paper hover:bg-graphite-deep hover:border-graphite-deep",
       },
       size: {
         sm: "h-9 px-4 text-xs",
@@ -49,15 +40,11 @@ export const buttonVariants = cva(
   },
 );
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  /** @deprecated no sheen on the sheet — accepted and ignored until WP-9. */
-  sheen?: boolean;
-}
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof buttonVariants>;
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, sheen: _sheen, children, type = "button", ...props }, ref) => (
+  ({ className, variant, size, children, type = "button", ...props }, ref) => (
     <button ref={ref} type={type} className={cn(buttonVariants({ variant, size }), className)} {...props}>
       {children}
     </button>

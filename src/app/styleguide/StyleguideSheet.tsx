@@ -3,16 +3,20 @@
 import { dict } from "@/content/dict";
 import { palette, type PaletteToken } from "@/content/tokens";
 import { useHydratedLocale } from "@/lib/use-hydrated";
-import { useUI, type Locale } from "@/store/ui";
+import type { Locale } from "@/store/ui";
 import { AA_LARGE, AA_NORMAL, aaVerdict, contrastRatio, formatRatio } from "@/lib/contrast";
+import { Field } from "@/components/sheet/Field";
+import { Perforation } from "@/components/sheet/Perforation";
+import { Stamp } from "@/components/sheet/Stamp";
 
 /*
   /styleguide — the living sheet (WP-8, REDESIGN-SPEC §B "from The standards
   manual", §C.1–C.3, §C.7). Bilingual via dict.ts; every hex is read from
   tokens.ts and every AA ratio is COMPUTED at render time (src/lib/contrast.ts),
   including the two forbidden pairs, printed as FAIL for honesty. Colour comes
-  from context, never from the .f-* classes. Plain markup: the sheet primitives
-  (src/components/sheet/*, WP-2) did not exist when this page was written.
+  from context, never from the .f-* classes. The page is built out of the REAL
+  sheet primitives (Field, Perforation, Stamp) — a specimen that lies about its
+  own materials is not a contract. The EN/IT toggle is the one in HeaderStrip.
 */
 
 type RoleKey = keyof typeof dict.en.styleguide.palette.roles;
@@ -105,37 +109,17 @@ function SheetCaption({ children }: { children: React.ReactNode }) {
 
 export function StyleguideSheet() {
   const locale = useHydratedLocale();
-  const setLocale = useUI((s) => s.setLocale);
   const t = dict[locale];
   const sg = t.styleguide;
 
   return (
     <main id="main" className="sheet pb-24 pt-[var(--section-gap)]">
-      {/* ── Header: caption + lead, local EN | IT toggle ───────────────────── */}
+      {/* ── Header: caption + lead (the EN | IT toggle lives in HeaderStrip) ── */}
       <section className="grid-12 fields">
-        <div className="field col-span-12 md:col-span-9">
+        <Field className="col-span-12">
           <h1 className="f-caption field-caption">{sg.title}</h1>
           <p className="f-lead mt-2">{sg.lead}</p>
-        </div>
-        <div className="field col-span-12 md:col-span-3">
-          <span className="f-caption field-caption">{t.a11y.langToggle}</span>
-          <div className="mt-2 inline-grid grid-cols-2 border border-ink" role="group" aria-label={t.a11y.langToggle}>
-            {(["en", "it"] as const).map((l) => (
-              <button
-                key={l}
-                type="button"
-                lang={l}
-                aria-pressed={locale === l}
-                onClick={() => setLocale(l)}
-                className={`f-caption min-h-11 min-w-14 px-4 transition-colors duration-[var(--dur-swap)] ease-linear ${
-                  locale === l ? "bg-ink text-paper" : "bg-paper text-ink hover:bg-paper-field"
-                } ${l === "it" ? "border-l border-ink" : ""}`}
-              >
-                {sg.locale[l]}
-              </button>
-            ))}
-          </div>
-        </div>
+        </Field>
       </section>
 
       {/* ── Palette: token · hex · role · chip (chip prints its hex) ──────── */}
@@ -249,7 +233,7 @@ export function StyleguideSheet() {
         <SheetCaption>{sg.band.caption}</SheetCaption>
         <div className="on-safety mt-2 flex flex-wrap items-stretch border border-ink bg-safety band-h">
           <div className="flex items-center gap-4 px-5 py-3">
-            <span className="stamp stamp--filled f-stamp">{t.phases.intake.name}</span>
+            <Stamp label={t.phases.intake.name} variant="band" />
             <span className="f-caption">{t.phases.intake.roleTag}</span>
           </div>
           <div className="hidden items-center border-l border-ink px-5 md:flex">
@@ -274,26 +258,24 @@ export function StyleguideSheet() {
       <section className="mt-[var(--section-gap)]">
         <SheetCaption>{sg.motion.caption}</SheetCaption>
         <div className="grid-12 fields mt-2">
-          <div className="field col-span-12 md:col-span-6">
-            <span className="f-caption field-caption">{sg.motion.rule.label}</span>
+          <Field className="col-span-12 md:col-span-6" captionId="sg-motion-rule" caption={sg.motion.rule.label}>
             <div className="rule-top mt-4" />
             <p className="f-body mt-3">{sg.motion.rule.body}</p>
             <div className="rule-soft mt-3" />
             <p className="f-meta mt-3 text-graphite">--ease-rule cubic-bezier(.16, 1, .3, 1) · --dur-rule 320 ms</p>
-          </div>
-          <div className="field col-span-12 md:col-span-6">
-            <span className="f-caption field-caption">{sg.motion.stamp.label}</span>
+          </Field>
+          <Field className="col-span-12 md:col-span-6" captionId="sg-motion-stamp" caption={sg.motion.stamp.label}>
             <div className="mt-4 flex flex-wrap items-center gap-6">
-              <span className="stamp f-stamp">{t.phases.intake.name}</span>
-              <span className="stamp stamp--filled f-stamp">{t.release.stamp}</span>
+              <Stamp label={t.phases.intake.name} variant="band" />
+              <Stamp label={t.release.stamp} variant="released" />
             </div>
             <p className="f-body mt-4">{sg.motion.stamp.body}</p>
             <p className="f-meta mt-3 text-graphite">--ease-stamp cubic-bezier(.2, .9, .25, 1.03) · --dur-stamp 220 ms</p>
-          </div>
+          </Field>
         </div>
       </section>
 
-      <div className="perforation mt-[var(--section-gap)]" />
+      <Perforation className="mt-[var(--section-gap)]" />
       <p className="f-strip text-graphite">
         {t.footer.copyright} · {sg.note}
       </p>

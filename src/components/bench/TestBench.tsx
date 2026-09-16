@@ -32,8 +32,8 @@ import { useHeroStore } from "@/webgl/store/heroStore";
  *               ink over the `paper-field` ground with the printed reason
  *               (`bench.reasonNoGpu` / `bench.reasonReduced` / `bench.reasonLost`).
  *
- * Standalone by design: WP-4 mounts this inside the first viewport of the home
- * sheet; /dev/bench is only the temporary gate route.
+ * Standalone by design: the home sheet mounts it inside its first viewport
+ * (the cover of the order), and nothing else on the site carries an engine.
  */
 export type TestBenchProps = React.HTMLAttributes<HTMLElement>;
 
@@ -80,13 +80,11 @@ export function TestBench({ className, ...rest }: TestBenchProps) {
       <div className="flex items-stretch">
         {/* box + (mobile) strip share the box width; the column sits beside them */}
         <div className="w-[var(--bench-w)] min-w-0 max-w-full">
-          {/* `.bench-box` (globals.css, frozen for WP-3) declares
-              `aspect-ratio: var(--bench-w) / var(--bench-h)`, which resolves to
-              `760px / 540px` — an INVALID aspect-ratio (the property takes
-              unitless numbers), so the box collapses to 0 height and the four
-              rules stack into one line. Fixed locally with the same two ratios
-              as the tokens; reported to the director for globals.css. */}
-          <div className="bench-box relative aspect-[350/230] overflow-hidden md:aspect-[760/540]">
+          {/* `.bench-box` (globals.css) carries the width and the ratio:
+              `aspect-ratio: var(--bench-ratio)` — 760/540 desktop, 350/230
+              under 768px, both UNITLESS (a `760px / 540px` ratio is invalid and
+              collapses the box). Nothing local overrides it. */}
+          <div className="bench-box relative overflow-hidden">
             {/* the engine fills the box absolutely (WaterBallHero: `absolute inset-0`) */}
             <CanvasHost />
 
@@ -99,7 +97,7 @@ export function TestBench({ className, ...rest }: TestBenchProps) {
             {isStill ? (
               <>
                 {/* The captured frame of THIS engine (WP-7b): shot from the live
-                    bench on /dev/bench with Chrome WebGPU, cropped to the inside
+                    bench on the home sheet with Chrome WebGPU, cropped to the inside
                     of the ruled frame (the frame is drawn by `.bench-box`, so the
                     raster must not carry a second one), provenance embedded in
                     EXIF + public/bench/PROVENANCE.md. Plain <img>: a decorative,

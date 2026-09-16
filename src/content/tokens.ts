@@ -6,7 +6,7 @@
  * together — nothing else defines a colour.
  */
 
-/** The ten colours of the sheet (§C.1). */
+/** The eleven colours of the sheet (§C.1). */
 const sheet = {
   // ── Paper (three sheets) ──────────────────────────────────────────────────
   paper: "#f5f4ef", // ground of the whole site (top sheet)
@@ -29,27 +29,9 @@ const sheet = {
   oil: "#c98a2a",
 } as const;
 
-/**
- * DEPRECATED Golden Hour keys — still read by src/content/works.ts (`mood`, until
- * WP-1/WP-5 restructure it) and src/components/atmosphere/MurmurationCanvas.tsx
- * (WP-9 deletes). Every alias resolves to a JOB-ORDER tone so nothing sunset can
- * leak into a render. WP-9 removes this object and the spread below.
- */
-const legacy = {
-  /** @deprecated → paperField */ paperDeep: sheet.paperField,
-  /** @deprecated → graphite */ inkMute: sheet.graphite,
-  /** @deprecated → paperCarbon */ amber: sheet.paperCarbon,
-  /** @deprecated → paperCarbon */ coral: sheet.paperCarbon,
-  /** @deprecated → stamp */ ember: sheet.stamp,
-  /** @deprecated → stampDeep */ emberInk: sheet.stampDeep,
-  /** @deprecated → stamp */ rose: sheet.stamp,
-  /** @deprecated → graphiteDeep */ dusk: sheet.graphiteDeep,
-  /** @deprecated → ink */ night: sheet.ink,
-} as const;
+export const palette = sheet;
 
-export const palette = { ...sheet, ...legacy } as const;
-
-/** Token names of the sheet — the legacy keys are deliberately NOT part of this type. */
+/** Token names of the sheet. */
 export type PaletteToken = keyof typeof sheet;
 
 /**
@@ -58,16 +40,3 @@ export type PaletteToken = keyof typeof sheet;
  */
 export const oilLinear: readonly [number, number, number] = [0.79, 0.54, 0.16];
 
-/** @deprecated per-project atmosphere of the removed depth gallery — WP-9 deletes. */
-export interface Mood {
-  base: string;
-  blob1: string;
-  blob2: string;
-}
-
-/** @deprecated see `Mood`. Paper tones only, so nothing sunset can leak. */
-export const defaultMood: Mood = {
-  base: sheet.paper,
-  blob1: sheet.paperField,
-  blob2: sheet.paperCarbon,
-};

@@ -8,6 +8,8 @@
 //
 // Whitelist: years and month/period tokens, hex, spec-only figures (phase count
 // "6", "4 more line items", capture dimensions) and metadata that is not a claim.
+// The Golden Hour entries (eyebrow numbering, Sardinia coordinates) went out with
+// the legacy dictionary sections in WP-9.
 // Run: node scripts/check-claims.mjs   (exit 1 on an unexplained miss)
 
 import { readFileSync } from "node:fs";
@@ -65,12 +67,11 @@ const WHITELIST = new Set([
   // phase count / band counter / spec-only UI figures
   "6", // "{n} / 6" — also a CV figure (six-phase), kept explicit
   "4", // "4 more line items" (9 works − 5 rows)
-  "01", "02", "03", // legacy eyebrow numbering (removed in WP-9)
   "1600", "1000", // capture dimensions (WP-7)
-  "3.5", // stamp rotation, if it ever reaches copy
-  // legacy Sardinia coordinates (removed in WP-9)
-  "39.96", "8.42", "39", "09", "8", "25", "1924",
-  // "Five years" legacy about.body (removed in WP-9) is the word "Five" → not a token
+  // /styleguide — figures of the design contract, not claims about the work
+  "4.5", // AA threshold for normal text
+  "1.18", // STAMP impact scale
+  "3.5", // stamp rotation
 ]);
 const YEAR = /^(19|20)\d{2}$/;
 

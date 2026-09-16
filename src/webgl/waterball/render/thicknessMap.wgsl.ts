@@ -102,7 +102,7 @@ fn fs(input: FragmentInput) -> @location(0) vec4f {
     }
     var thickness: f32 = sqrt(1.0 - r2);
     // 0.05 -> 0.038: the freshly-seeded "A" is optically overstuffed and reads as
-    // dark olive mud; thinner accumulation lets the backlit sunset glow through
+    // dark olive mud; thinner accumulation lets the backlight glow through
     // (QA: the post-splash, redistributed letter looked RIGHT — this matches it).
     let particle_alpha = 0.038;
 

@@ -1,0 +1,13 @@
+import { chromium } from "playwright";
+const dsf = Number(process.argv[2]||1);
+const b = await chromium.launch({ channel:"chrome", headless:true, args:["--enable-unsafe-webgpu"] });
+const c = await b.newContext({ viewport:{width:1440,height:900}, deviceScaleFactor: dsf });
+const p = await c.newPage();
+await p.addInitScript(()=>sessionStorage.setItem("at-preloader-seen","1"));
+await p.goto("http://localhost:3000/dev/bench", { waitUntil:"networkidle" });
+await p.waitForTimeout(7000);
+const s = await p.evaluate(()=>new Promise((res)=>{ const v=[]; const id=setInterval(()=>v.push(window.__heroStore.getState().frameMs),250);
+  setTimeout(()=>{clearInterval(id);res({v, st:window.__heroStore.getState(), cw:document.querySelector('figure canvas').width, ch:document.querySelector('figure canvas').height});},3000); }));
+const u=[...new Set(s.v.filter(x=>x>0))];
+console.log(`dsf=${dsf} backing=${s.cw}x${s.ch} dpr=${s.st.dpr} particles=${s.st.particles} frameMs avg=${(u.reduce((a,x)=>a+x,0)/u.length).toFixed(2)}`);
+await b.close();

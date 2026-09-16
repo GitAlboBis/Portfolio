@@ -23,13 +23,15 @@ struct FragmentInput {
     @location(1) iuv: vec2f,
 }
 
-// Sun of the sunset cubemap (scripts/gen_sunset_cubemap.py): low on the horizon,
-// azimuth toward -Z, slightly +X. The camera faces the "A" head-on from +Z, so the
-// sun BACKLIGHTS the letter — glints live on the grazing rim + on tilted splash
-// droplets, which is exactly the golden-hour read.
+// Key light of the WORKSHOP cubemap (scripts/gen_workshop_cubemap.py): grey walls,
+// a lit ceiling with two fluorescent tube strips, dark floor. The specular below is
+// the "tube highlight" of the bench (REDESIGN-SPEC §F Phase A). The key direction is
+// kept from the original stage (behind the letter, slightly +X, grazing) so the
+// highlights still ride the rim and every tilted droplet; only its COLOUR changed —
+// a cool fluorescent white instead of ember gold.
 const SUN_DIR_WORLD: vec3f = vec3f(0.32152, 0.11052, -0.94042);
-const SUN_COLOR: vec3f = vec3f(1.0, 0.80, 0.52);   // warm ember-gold glint
-const FOAM_COLOR: vec3f = vec3f(1.0, 0.955, 0.885); // sunset-warm white spray
+const SUN_COLOR: vec3f = vec3f(0.94, 0.96, 1.0);   // fluorescent tube highlight
+const FOAM_COLOR: vec3f = vec3f(0.96, 0.95, 0.90); // aerated oil — off-white, not sunset
 
 fn computeViewPosFromUVDepth(tex_coord: vec2f, depth: f32) -> vec3f {
     var ndc: vec4f = vec4f(tex_coord.x * 2.0 - 1.0, 1.0 - 2.0 * tex_coord.y, 0.0, 1.0);
@@ -65,8 +67,8 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
     var depth: f32 = abs(textureLoad(texture, vec2u(iuvf), 0).r);
 
     if (depth >= 1e4) {
-        // no fluid here -> TRANSPARENT so the sunset backdrop shows through. The "A"
-        // pixels below still refract + reflect the environment (sunset cubemap).
+        // no fluid here -> TRANSPARENT so the bench backdrop (paper-field, DOM) shows
+        // through. The fluid pixels below refract + reflect the workshop cubemap.
         return vec4f(0.0, 0.0, 0.0, 0.0);
     }
 
@@ -104,18 +106,25 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
     var rayDir = normalize(viewPos);
     let sunView: vec3f = normalize((uniforms.view_matrix * vec4f(SUN_DIR_WORLD, 0.0)).xyz);
 
-    // absorption: LOW enough that the backlit sunset actually GLOWS through the
-    // letter (the sun sits behind the "A" — see SUN_DIR_WORLD). 0.7 read as murky
-    // mud in QA; 0.42 keeps the teal body but lets the golden light transmit.
-    var density = 0.30; // re-lit for the shader sky+sea backdrop (darker than the old CSS gradient)
+    // absorption: hydraulic oil, not sea water — denser than the old teal so the body
+    // reads AMBER on the light paper-field backdrop instead of a pale tint; thin edges
+    // still let the grey workshop transmit (§F.1: 0.30 -> 0.55).
+    var density = 0.55;
 
-    var diffuseColor = vec3f(0.0, 0.7375, 0.95);
-    var transmittance: vec3f = exp(-density * thickness * (1.0 - diffuseColor));
+    // token 'oil' #c98a2a as linear RGB (src/content/tokens.ts 'oilLinear')
+    var diffuseColor = vec3f(0.79, 0.54, 0.16);
+    // Depth of absorption, 0 (a film) -> 1 (a body). Pure Beer-Lambert was tuned
+    // against a SUNSET cubemap: with the neutral workshop environment (grey walls,
+    // nothing bright behind the tank) it drives the thick core to a near-black
+    // brown and the letter reads as mud. Dense oil does not go black -- multiple
+    // scattering converges on the liquid's OWN colour -- so the body is mixed
+    // toward the token amber with depth instead (verified on screen, WP-3).
+    let absorb: f32 = clamp(1.0 - exp(-density * thickness), 0.0, 1.0);
 
     // Refraction looks THROUGH the water at the real environment (cubemap) with a
     // touch of CHROMATIC DISPERSION: each channel refracts with a slightly different
     // IOR, so the sunset splits into faint spectral fringes on curved, thin water —
-    // the "liquid jewel" cue. Beer-Lambert transmittance still tints the body.
+    // the "liquid jewel" cue. The body tint is applied to the result below.
     let refrDirR: vec3f = refract(rayDir, normal, 1.0 / 1.327);
     let refrDirG: vec3f = refract(rayDir, normal, 1.0 / 1.333);
     let refrDirB: vec3f = refract(rayDir, normal, 1.0 / 1.340);
@@ -127,7 +136,9 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
         textureSampleLevel(envmap_texture, texture_sampler, refrWorldG, 0.).g,
         textureSampleLevel(envmap_texture, texture_sampler, refrWorldB, 0.).b
     );
-    var refractionColor: vec3f = refractedEnv * transmittance;
+    // thin film -> you look through it at the workshop; body -> the token amber 'oil'
+    let deepOil: vec3f = diffuseColor * 1.12;
+    var refractionColor: vec3f = mix(refractedEnv, deepOil, absorb);
 
     let F0 = 0.02;
     var fresnel: f32 = clamp(F0 + (1.0 - F0) * pow(1.0 - dot(normal, -rayDir), 5.0), 0., 1.);
@@ -137,16 +148,16 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
     var reflectionColor: vec3f = textureSampleLevel(envmap_texture, texture_sampler, reflectionDirWorld, 0.).rgb;
     var finalColor = mix(refractionColor, reflectionColor, fresnel);
 
-    // Neutralise the residual warm at the EXTREME grazing rim (fresnel reflects the
-    // orange sky there as a thin line). Pull only the thinnest edge toward the deep
-    // water tint — those pixels are also low-alpha (see THICK_FADE below), so they
-    // dissolve rather than forming a teal halo: the contour just stops being orange.
-    let edgeCool: vec3f = vec3f(0.04, 0.30, 0.40);
-    finalColor = mix(edgeCool, finalColor, smoothstep(0.0, 0.42, thickness));
+    // Darken the EXTREME grazing rim (fresnel mirrors the pale ceiling there as a
+    // thin bright line). Pull only the thinnest edge toward a dark oil tone — those
+    // pixels are also low-alpha (see THICK_FADE below), so the contour dissolves into
+    // the paper-field instead of ringing the letter with a white halo.
+    let edgeDark: vec3f = vec3f(0.28, 0.16, 0.05);
+    finalColor = mix(edgeDark, finalColor, smoothstep(0.0, 0.42, thickness));
 
-    // FOAM / SPRAY: churned, fast water is aerated -> scatters white. speedAvg is the
-    // blurred per-pixel mean speed. Foam is lit by the sun (soft lambert) so the
-    // spray catches the golden hour like real whitewater. "facing" fades it out on
+    // FOAM / SPRAY: churned, fast fluid is aerated -> scatters off-white. speedAvg is
+    // the blurred per-pixel mean speed. Foam is lit by the key (soft lambert) so the
+    // spray catches the tube light like real whitewater. "facing" fades it out on
     // edge-on sheets: any world-space texture aliases into per-pixel checkering
     // there (QA-proven), and real foam reads on faces, not silhouettes.
     let facing: f32 = clamp(dot(normal, -rayDir), 0.0, 1.0);
@@ -155,8 +166,8 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
     let foamLit: vec3f = FOAM_COLOR * (0.62 + 0.38 * sunLambert);
     finalColor = mix(finalColor, foamLit, foamAmt * 0.8);
 
-    // SUN GLINT: tight golden specular from the actual cubemap sun + a broad low
-    // sheen. Backlit setup -> the glints ride the grazing rim and every tilted
+    // TUBE HIGHLIGHT: tight fluorescent specular from the key direction + a broad
+    // low sheen. Grazing setup -> the highlights ride the rim and every tilted
     // splash droplet. Foam scatters, so the mirror glint fades where foam wins.
     var H: vec3f = normalize(sunView - rayDir);
     let ndh: f32 = max(dot(H, normal), 0.0);
@@ -185,12 +196,9 @@ fn waterColor(uvf: vec2f, iuvf: vec2f) -> vec4f {
 
 @fragment
 fn fs(input: FragmentInput) -> @location(0) vec4f {
-    // THE CONTACT: the letter doesn't float in front of the sea video — it
-    // STANDS IN it. Below the contact line (uniforms.waterline, set from JS at
-    // ~7/8 of the viewport) the letter is progressively (1) REFRACTED — the
-    // sampling wobbles harder with depth, as if seen through the real water —
-    // (2) DISSOLVED into the sea, and (3) a sparkling FOAM BELT rides the
-    // contact line itself where the letter's body crosses it.
+    // LEGACY "sea reflection" branch (the old hero stood IN a sea video below
+    // uniforms.waterline). Kept compiled but INACTIVE on the bench: WaterBallHero
+    // sets refl_strength = 0, so 'sub' stays 0 and this is a straight passthrough.
     let cl = uniforms.waterline;
     let screenH = 1.0 / uniforms.texel_size.y;
     var uvf = input.uv;

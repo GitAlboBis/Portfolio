@@ -1,53 +1,95 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
-import { curtainPath } from "@/lib/curtain";
-import { DUR, EASE } from "@/lib/motion";
+import {
+  clearSheet,
+  liftTimeline,
+  playFlip,
+  prefersReduced,
+  RULE_CLASS,
+  SHEET_CLASS,
+  SHEET_HOST_CLASS,
+  SHEET_REST_STYLE,
+  RULE_REST_STYLE,
+  setCovered,
+  type SheetEls,
+} from "@/lib/sheet";
 
 // Module-level: the Preloader owns the very first intro, so the route transition
 // only plays on genuine client-side navigations (not the initial hard load).
 let firstMount = true;
 
 /**
- * RouteTransition — the per-route enter transition (Next App Router template.tsx
- * remounts this on every navigation). The SAME sunset curtain as the mobile menu
- * (shared `curtainPath`, CLAUDE.md §6): the new route mounts fully covered, then a
- * deep `night` panel lifts UPWARD with a wavy edge while a golden --gradient-sunset
- * wave rides just beneath it — one "tramonto → notte" language across nav + pages.
- * The page fades in under the lifting curtain.
+ * RouteTransition — the per-route ENTER (Next App Router `template.tsx` remounts
+ * this on every navigation). THE JOB ORDER artwork: the new route mounts fully
+ * covered by the same flat `paper` sheet the exit printed down (src/lib/sheet.ts),
+ * then the sheet lifts off the top in 420ms `sheet` while a 1px ink rule prints
+ * downward over the page being revealed. The page fades in beneath it and its
+ * own sections RULE-IN from their ScrollTriggers.
  *
- * Only the path `d` morphs (GSAP-driven proxies, one short one-shot — never looped);
- * the <svg> is a fixed pointer-events-none sibling, so it never becomes a containing
- * block for the page's fixed Nav. reduced-motion → no curtain; the first hard load
- * is skipped (the Preloader owns it). Enter-only — no click interception.
+ * Kept from the Continuous Curtain (mechanics, not costume):
+ *   • pre-paint snap to covered in the layout effect → no uncovered frame at the
+ *     hand-off from CoverOverlay;
+ *   • the first hard load is skipped (the Preloader owns it);
+ *   • cross-page HASH navs snap onto the target section under the cover, and
+ *     re-snap on fonts.ready and once more at the end (late fonts grow the
+ *     layout above the target — measured ~1300px drift in prod);
+ *   • ScrollTrigger.refresh(true) after the lift (a bare refresh() is FORCED and
+ *     would reflow mid-Lenis-glide);
+ *   • `data-page-root` so CoverOverlay can mark the covered page inert.
+ *
+ * KEYED ON THE PATHNAME, not on the mount. The ROOT template only remounts when
+ * the TOP-LEVEL segment changes (Next gives it `key="/work"` for both `/work`
+ * and `/work/<slug>`), so a mount-only enter never played on a sub-route hop —
+ * /work → /work/spherenode was a hard cut from the exit cover. Running on
+ * `usePathname()` covers every navigation; the layout effect still lands
+ * pre-paint of the new route, ahead of CoverOverlay's passive hand-off.
+ *
+ * With a dependency array, useGSAP defers its context cleanup to UNMOUNT
+ * (`deferCleanup`), so each run explicitly retires its predecessor's timeline,
+ * hash re-snap and late-snap call before starting its own.
+ *
+ * Reduced motion: the same sheet, a 150ms opacity swap, no travel and no Flip.
+ * Enter-only — the click interception lives in TransitionLink.
  */
+interface Run {
+  tl: gsap.core.Timeline;
+  lateSnap: gsap.core.Tween | null;
+  alive: { v: boolean };
+}
+
 export function RouteTransition({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const ref = React.useRef<HTMLDivElement>(null);
-  const leadRef = React.useRef<SVGPathElement>(null);
-  const nightRef = React.useRef<SVGPathElement>(null);
+  const sheetRef = React.useRef<HTMLDivElement>(null);
+  const ruleRef = React.useRef<HTMLDivElement>(null);
+  const runRef = React.useRef<Run | null>(null);
 
   useGSAP(
     () => {
+      // Retire the previous navigation's run (see deferCleanup above).
+      const prev = runRef.current;
+      if (prev) {
+        prev.alive.v = false;
+        prev.lateSnap?.kill();
+        prev.tl.kill();
+        runRef.current = null;
+      }
       const el = ref.current;
-      const lead = leadRef.current;
-      const night = nightRef.current;
-      if (!el || !lead || !night) return;
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const sheet = sheetRef.current;
+      const rule = ruleRef.current;
+      if (!el || !sheet || !rule) return;
+      const els: SheetEls = { sheet, rule };
       if (firstMount) {
         firstMount = false;
+        clearSheet(els);
         return;
       }
       const lenis = (window as unknown as {
         __lenis?: { scrollTo: (t: number | HTMLElement, o?: object) => void };
       }).__lenis;
-      // Cross-page HASH navs (/#works, /#contact) must land ON the section:
-      // a blind scrollTo(0) clobbered Next's hash handling under the cover.
-      // One snap is NOT enough in prod: late web fonts + the code-split R3F
-      // gallery chunk grow the layout ABOVE the target after the first snap
-      // (measured ~1300px drift on Vercel; invisible in dev's warm cache), so
-      // re-snap on fonts.ready and once more when the lift completes — all
-      // while the curtain still covers or is lifting.
       const snapToHash = () => {
         const target = window.location.hash
           ? document.querySelector<HTMLElement>(window.location.hash)
@@ -55,70 +97,61 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
         lenis?.scrollTo(target ?? 0, { immediate: true });
       };
       snapToHash();
-      let fontsAlive = true;
+      const alive = { v: true };
       if (window.location.hash) {
-        document.fonts?.ready?.then(() => fontsAlive && snapToHash());
+        document.fonts?.ready?.then(() => alive.v && snapToHash());
       }
       const lateSnap = window.location.hash ? gsap.delayedCall(1.4, snapToHash) : null;
 
-      // Start fully covered — night over the sunset wave — with the page hidden
-      // beneath. useGSAP runs in a layout effect (pre-paint), so no flash.
-      night.setAttribute("d", curtainPath(1, 4.2));
-      lead.setAttribute("d", curtainPath(1, 1.7));
+      // Start fully covered with the page hidden beneath. useGSAP runs in a
+      // layout effect (pre-paint), so no flash.
+      setCovered(els);
       gsap.set(el, { autoAlpha: 0 });
 
-      const nightP = { v: 1 };
-      const leadP = { v: 1 };
+      const reduced = prefersReduced();
+      const tl = gsap.timeline({
+        onComplete: () => {
+          clearSheet(els);
+          gsap.set(el, { clearProps: "opacity,visibility" });
+          if (window.location.hash) snapToHash();
+          ScrollTrigger.refresh(true);
+        },
+      });
+      // The page appears beneath the lifting sheet…
+      tl.to(el, { autoAlpha: 1, duration: reduced ? 0.15 : 0.18, ease: "none" }, 0)
+        // …the sheet lifts and the rule prints down over it…
+        .add(liftTimeline(els), 0)
+        // …and one tick in, the row title that was clicked lands in the entering
+        // heading (§E.8). Deferred by a beat so a heading that mounts a frame
+        // late is still caught; a silent no-op when nothing carries the id.
+        .call(() => playFlip(), [], 0.02);
 
-      gsap
-        .timeline({
-          onComplete: () => {
-            lead.setAttribute("d", "M0 0H0Z");
-            night.setAttribute("d", "M0 0H0Z");
-            gsap.set(el, { clearProps: "opacity,visibility" });
-            if (window.location.hash) snapToHash();
-            // refresh(true) — a bare refresh() is FORCED (bypasses the
-            // live-scroll guard → sync whole-doc reflow mid-Lenis-glide).
-            ScrollTrigger.refresh(true);
-          },
-        })
-        // page fades in beneath the lifting curtain
-        .to(el, { autoAlpha: 1, duration: DUR.swell, ease: EASE.tide }, 0.2)
-        // night lifts first; the sunset wave trails a beat, so a golden edge rides
-        // up just beneath the retreating night — the last light before it clears.
-        .to(nightP, { v: 0, duration: DUR.swell, ease: EASE.dive, onUpdate: () => night.setAttribute("d", curtainPath(nightP.v, 4.2)) }, 0)
-        .to(leadP, { v: 0, duration: DUR.swell, ease: EASE.dive, onUpdate: () => lead.setAttribute("d", curtainPath(leadP.v, 1.7)) }, 0.1);
+      runRef.current = { tl, lateSnap, alive };
 
+      // Unmount only (deferCleanup): a run superseded by a NEW pathname is
+      // retired at the top of the next run instead.
       return () => {
-        fontsAlive = false; // a late fonts.ready must not scroll a NEWER route
+        alive.v = false; // a late fonts.ready must not scroll a NEWER route
         lateSnap?.kill();
+        tl.kill();
+        runRef.current = null;
       };
     },
-    { scope: ref },
+    { dependencies: [pathname], scope: ref },
   );
 
   return (
     <>
-      <svg
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-[80] h-full w-full"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="route-sunset" x1="0" y1="0" x2="0.35" y2="1">
-            <stop offset="0%" stopColor="var(--color-amber)" />
-            <stop offset="42%" stopColor="var(--color-coral)" />
-            <stop offset="72%" stopColor="var(--color-ember)" />
-            <stop offset="100%" stopColor="var(--color-rose)" />
-          </linearGradient>
-        </defs>
-        <path ref={leadRef} d="M0 0H0Z" fill="url(#route-sunset)" />
-        <path ref={nightRef} d="M0 0H0Z" fill="var(--color-night)" />
-      </svg>
-      {/* data-page-root: CoverOverlay toggles `inert` here while the exit
-          curtain is up, so the covered (invisible) page can't be operated
-          by keyboard/AT during the pending window. */}
+      {/* The entering cover: same two elements as CoverOverlay, same `--z-cover`.
+          DOM order puts this above the exit cover during the hand-off frame —
+          harmless, they are the identical flat paper sheet. */}
+      <div aria-hidden className={SHEET_HOST_CLASS}>
+        <div ref={sheetRef} className={SHEET_CLASS} style={SHEET_REST_STYLE} />
+        <div ref={ruleRef} className={RULE_CLASS} style={RULE_REST_STYLE} />
+      </div>
+      {/* data-page-root: CoverOverlay toggles `inert` here while the exit cover
+          is up, so the covered (invisible) page can't be operated by
+          keyboard/AT during the pending window. */}
       <div ref={ref} data-page-root>
         {children}
       </div>

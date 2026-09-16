@@ -5,7 +5,7 @@ import { Preloader } from "@/components/Preloader";
 import { CoverOverlay } from "@/components/transition/CoverOverlay";
 import { HeaderStrip, SkipLink } from "@/components/sheet/HeaderStrip";
 import { PhaseBand } from "@/components/sheet/PhaseBand";
-import { SITE } from "@/lib/site";
+import { SITE, defaultLocale, siteMeta, siteName, titleTemplate } from "@/lib/site";
 import "./globals.css";
 
 /*
@@ -16,7 +16,8 @@ import "./globals.css";
       esposto come --font-archivo e mappato in globals.css (@theme inline
       --font-sans). Una sola famiglia: intestazioni larghe, etichette
       condensate e corpo sono lo stesso materiale.
-    - Preloader: "il modulo che si stampa" (WP-6 lo ridisegna; il guscio resta).
+    - Preloader: "il modulo che si stampa" — strip + banda che si rigano
+      dall'alto, poi il foglio si solleva (WP-6).
     - Smooth: Lenis sul gsap.ticker condiviso + sync di <html lang> e
       <html data-motion>.
     - CoverOverlay: la metà EXIT della copertura di route — deve vivere QUI,
@@ -37,31 +38,39 @@ const archivo = Archivo({
   display: "swap",
 });
 
-const DESCRIPTION =
-  "Full-stack engineer building systems with AI at the edge — interfaces that move like water. Shaped by the sea of Sardinia.";
+/* ── Metadata (REDESIGN-SPEC §G, §H `meta.*`) ────────────────────────────────
+   Title e description vengono da `src/lib/site.ts` (`siteMeta`), il mirror
+   server-side del dizionario: il layout è un componente server e non può
+   importare `src/content/dict.ts` ("use client"). Locale di default EN; la
+   pagina cambia `<html lang>` a runtime (Smooth.tsx), non i metadati. */
+const META = siteMeta[defaultLocale];
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "Alberto Tuveri — Software Engineer",
-    template: "%s — Alberto Tuveri",
+    default: META.title,
+    template: titleTemplate,
   },
-  description: DESCRIPTION,
-  applicationName: "Alberto Tuveri",
+  description: META.description,
+  applicationName: siteName,
   authors: [{ name: "Alberto Tuveri", url: SITE }],
   creator: "Alberto Tuveri",
   keywords: [
     "Alberto Tuveri",
     "software engineer",
+    "AI engineer",
+    "creative lead",
     "full-stack developer",
-    "AI integration",
+    "WebGPU",
+    "three.js",
+    "GSAP",
     "Next.js",
     "React",
     "TypeScript",
-    "WebGL",
+    "RAG evaluation",
+    "motion design",
+    "SerSan",
     "portfolio",
-    "Sardinia",
-    "Camerino",
   ],
   // NB: no root-level `alternates.canonical` or `openGraph.url`/`title` here —
   // those inherit into every child route and would make /about, /work and every
@@ -69,30 +78,46 @@ export const metadata: Metadata = {
   // canonical + og:url/title (see app/page.tsx, about, work, work/[slug]).
   openGraph: {
     type: "website",
-    locale: "en_US",
-    siteName: "Alberto Tuveri",
-    description: DESCRIPTION,
+    locale: META.ogLocale,
+    alternateLocale: siteMeta.it.ogLocale,
+    siteName,
+    description: META.description,
   },
   twitter: {
     card: "summary_large_image",
-    description: DESCRIPTION,
+    description: META.description,
   },
   robots: { index: true, follow: true },
 };
 
-// Person structured data — confirmed facts only; no email. (WP-6 updates strings.)
+/* Person structured data — solo fatti confermati dal CV (PRODUCT.md §3):
+   nessun indirizzo, nessun telefono, nessuna email. */
 const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "Alberto Tuveri",
-  jobTitle: "Software Engineer",
+  jobTitle: "Software & AI Engineer · Creative Lead",
   url: SITE,
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "Camerino",
-    addressRegion: "Marche",
-    addressCountry: "IT",
+  worksFor: {
+    "@type": "Organization",
+    name: "Sersan Limited",
+    url: "https://sersan.io",
   },
+  alumniOf: {
+    "@type": "CollegeOrUniversity",
+    name: "University of Camerino",
+  },
+  affiliation: {
+    "@type": "CollegeOrUniversity",
+    name: "University of Trento",
+  },
+  knowsAbout: [
+    "WebGPU",
+    "Real-time 3D",
+    "Front-end engineering",
+    "Retrieval-augmented generation",
+    "Full-stack development",
+  ],
   sameAs: ["https://www.linkedin.com/in/albertotuveri", "https://github.com/GitAlboBis"],
 };
 

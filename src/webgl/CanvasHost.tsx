@@ -2,71 +2,64 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { WaterBallHero } from "@/webgl/waterball/WaterBallHero";
-import { SeaBackdrop } from "@/components/atmosphere/SeaBackdrop";
+import { WaterBallHero, benchTier } from "@/webgl/waterball/WaterBallHero";
+import { useHeroStore } from "@/webgl/store/heroStore";
 
 /*
-  Hero canvas host (clean-slate, minimal).
+  Bench canvas host (REDESIGN-SPEC §F.3).
 
-  Mounts ONLY the vendored matsuoka-601/WaterBall raw-WebGPU MLS-MPM fluid "A"
-  (src/webgl/waterball). It runs on its own WebGPU canvas + RAF loop — NOT R3F —
-  and self-guards WebGPU support (renders null when absent). We mount it only when
-  WebGPU is present AND motion is allowed; otherwise the CSS sea gradient stands
-  alone as the ultimate fallback.
+  Mounts the vendored matsuoka-601/WaterBall raw-WebGPU MLS-MPM fluid INSIDE the
+  bench box it is rendered in (TestBench gives it a `position: relative` box on
+  paper-field with a 1px ink frame — the backdrop and the frame are DOM, nothing
+  is drawn behind the fluid by the GPU). No fixed layers, no gradient, no video.
 
-  The old hero composition (Pan di Zucchero frame-scrub VideoBackdrop, static
-  fallback mark, scroll-driven explode/drain) was removed in the reset. heroStore
-  still exists and WaterBallHero reads heroStore.explode each frame — with no
-  scroll writer it stays 0, so the "A" simply churns/breathes in place. The
-  scroll-driven beats get rewired when the new hero is designed.
+  The gate is resolved AFTER mount (navigator.gpu is unknown during SSR, so the
+  canvas is never server-rendered):
+    - no WebGPU            -> no engine; heroStore.status "still", reason "nogpu"
+    - prefers-reduced-motion -> no engine; status "still", reason "reduced"
+    - otherwise            -> <WaterBallHero/> (status "compiling" -> "live")
+  The readouts print the matching bench.reason* line — nothing live is faked.
+
+  Route gate: the bench is the ONE heavy renderer of the site and lives on "/"
+  (plus the temporary /dev/bench gate route until WP-4 mounts TestBench on the
+  home page). Unmounting on route change disposes the device (WaterBallHero
+  cleanup) and resets the store (`resetBench`).
 
   Accessibility: the canvas is aria-hidden + pointer-events:none (set inside
-  WaterBallHero). Decorative only.
+  WaterBallHero). Decorative only — the readouts carry the information.
 */
 
-// Golden-hour sky — the ultimate fallback (no canvas). Mirrors --gradient-sunset.
-// The water "A" stays TEAL by choice (CLAUDE.md §1): the Golden Hour warmth comes
-// from the sunset REFLECTION on the surface, not a body tint. The orange refraction
-// fringe that used to ring the thin edges is dissolved to transparent in
-// render/fluid.wgsl, so the letter reads as a clean teal "A".
-const SEA_GRADIENT =
-  "linear-gradient(180deg,#ffe7bd 0%,#f2a33c 26%,#ff8a4c 46%,#ee5b23 64%,#e15d6b 82%,#5e4b7e 100%)";
+const BENCH_ROUTES = new Set(["/", "/dev/bench"]);
 
 export function CanvasHost() {
-  // false during SSR + under prefers-reduced-motion; resolved client-side after
-  // mount (navigator.gpu is unknown during SSR, so we never SSR the canvas).
-  const [showFluid, setShowFluid] = useState(false);
   const pathname = usePathname();
+  // null until resolved client-side; then "engine" | "nogpu" | "reduced"
+  const [gate, setGate] = useState<"engine" | "nogpu" | "reduced" | null>(null);
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setShowFluid(!reduce && typeof navigator !== "undefined" && !!navigator.gpu);
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const resolve = () => {
+      const hasGpu = typeof navigator !== "undefined" && !!navigator.gpu;
+      const next = !hasGpu ? "nogpu" : mq.matches ? "reduced" : "engine";
+      setGate(next);
+      // A still has no engine to read from, so every measured value stays 0 (the
+      // readouts print an em dash). `tier` is the exception: it is a real device
+      // measurement, taken with the SAME function the engine tiers with — so a
+      // phone that cannot run the bench still prints "Mobile", never a fiction.
+      if (next !== "engine")
+        useHeroStore
+          .getState()
+          .set({ status: "still", reason: next, frameMs: 0, particles: 0, dpr: 0, tier: benchTier() });
+    };
+    resolve();
+    mq.addEventListener("change", resolve);
+    return () => {
+      mq.removeEventListener("change", resolve);
+      useHeroStore.getState().resetBench();
+    };
   }, []);
 
-  // The hero water + sea backdrop belong to the landing experience only. Other
-  // routes (e.g. /styleguide, /work/[slug]) render on the clean abyss ground so
-  // their own content reads without the fluid bleeding behind it.
-  if (pathname !== "/") return null;
-
-  return (
-    <>
-      {/* CSS sea backdrop — ultimate fallback (no canvas at all). z-0 like the
-          fluid canvas, NOT negative: body paints its opaque paper background
-          OVER negative-z children (CSS painting order), which buried this
-          gradient and left the no-WebGPU / reduced-motion hero on blank paper.
-          The content layers above it are z-10/z-20, so nothing else changes. */}
-      <div
-        id="sea-backdrop"
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{ background: SEA_GRADIENT }}
-      />
-      {/* THE REAL SEA — photoreal golden-hour ocean loop (poster-first, video
-          fades in; reduced-motion = the still). The gradient above stays as the
-          ultimate no-asset failsafe. The water "A" composites transparently on
-          top: the letter stands over actual shimmering water. */}
-      <SeaBackdrop />
-      {showFluid && <WaterBallHero />}
-    </>
-  );
+  if (!BENCH_ROUTES.has(pathname)) return null;
+  if (gate !== "engine") return null;
+  return <WaterBallHero />;
 }

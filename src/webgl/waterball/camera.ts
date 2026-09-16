@@ -77,6 +77,18 @@ export class Camera {
         this.ac.abort();
     }
 
+    // BENCH FIT (WP-3, the only edit to this file): the distance at which a box of
+    // `boxSize` [w, h, d] world units, seen head-on through a vertical `fov`, fits a
+    // viewport of the given `aspect` (w/h) on BOTH axes. For the 4:3-ish bench
+    // (760×540 / 350×230) around INIT_BOX [80,60,18] this is height-bound at ~72.4,
+    // the same framing the full-viewport hero used, so the letter keeps its size.
+    static fitDistance(boxSize: number[], fov: number, aspect: number): number {
+        const t = Math.tan(fov / 2)
+        const byHeight = (boxSize[1] / 2) / t
+        const byWidth = (boxSize[0] / 2) / (t * Math.max(aspect, 1e-3))
+        return Math.max(byHeight, byWidth)
+    }
+
     reset(initDistance: number, target: number[], fov: number, zoomRate: number) {
         this.isDragging = false
         this.prevX = 0

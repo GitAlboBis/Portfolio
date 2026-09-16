@@ -56,6 +56,7 @@
   --measure: 68ch;
   --bench-w: 760px;
   --bench-h: 540px;
+  --bench-ratio: 760 / 540;
 
   /* C.5 — l'unica scala z del sito */
   --z-sheet: 0;
@@ -84,6 +85,7 @@
     --band-h: 48px;
     --bench-w: 350px;
     --bench-h: 230px;
+    --bench-ratio: 350 / 230;
   }
 }
 
@@ -341,7 +343,9 @@ body {
   .bench-box {
     width: var(--bench-w);
     max-width: 100%;
-    aspect-ratio: var(--bench-w) / var(--bench-h);
+    /* aspect-ratio vuole numeri SENZA unità: `760px / 540px` è invalido e viene
+       scartato (il riquadro collassava a zero). Rapporto in variabile dedicata. */
+    aspect-ratio: var(--bench-ratio);
     background: var(--color-paper-field);
     border: 1px solid var(--color-ink);
   }

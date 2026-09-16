@@ -3,35 +3,53 @@
 import * as React from "react";
 import { usePathname } from "next/navigation";
 import { gsap } from "@/lib/gsap";
-import { curtainPath } from "@/lib/curtain";
+import {
+  clearSheet,
+  coverTimeline,
+  dropFlip,
+  retractTimeline,
+  RULE_CLASS,
+  SHEET_CLASS,
+  SHEET_HOST_CLASS,
+  SHEET_REST_STYLE,
+  RULE_REST_STYLE,
+  type SheetEls,
+} from "@/lib/sheet";
 
 /*
-  CoverOverlay — the EXIT half of the sunset curtain (Continuous Curtain).
+  CoverOverlay — the EXIT half of the route cover (THE JOB ORDER).
+
+  The mechanics here are hard-won and UNCHANGED from the Continuous Curtain
+  (only the artwork is new: a flat paper sheet + a 1px ink rule that prints
+  downward — see src/lib/sheet.ts).
 
   RouteTransition (template.tsx) owns the ENTER: every new route mounts fully
-  covered and lifts. This overlay closes the loop documented at
-  RouteTransition:22 ("Enter-only — no click interception"): TransitionLink
-  covers the OLD page with the same two curtainPath layers (sunset lead seed
-  1.7, night seed 4.2 — identical to menu + enter), then router.push()es.
+  covered and lifts. TransitionLink covers the OLD page with the same two
+  elements, then router.push()es.
 
   OWNERSHIP HANDSHAKE — the overlay must survive the route swap, so it mounts
-  ONCE in layout.tsx (template remounts would wipe it mid-cover):
-    1. cover() drives v 0→1 (0.42s power2.in — the descending direction the
-       curtainPath amplitude damping was tuned for), then navigates.
-    2. The new route's RouteTransition snaps ITS paths to v=1 in a layout
+  ONCE in layout.tsx (a template remount would wipe it mid-cover):
+    1. cover() prints the sheet down (0.42s `sheet`), then navigates.
+    2. The new route's RouteTransition snaps ITS sheet to covered in a layout
        effect (pre-paint), underneath us.
     3. Our usePathname effect (passive → runs after that paint) sees the route
-       change and clears our paths INSTANTLY — the enter's identical night
-       cover is already beneath; an animated retract here would double-lift.
-  TIMEOUT RELEASE — if the push never lands (hung/rejected RSC fetch), a 1.8s
-  delayedCall retracts the curtain (animated this time — the same page is
-  beneath) and unlatches, so a failed nav can never strand a full-night
-  overlay. Any pathname change mid-cover (e.g. back button) also releases.
+       change and clears our sheet INSTANTLY — the enter's identical cover is
+       already beneath; an animated retract here would double-lift.
+  TIMEOUT RELEASE — if the push never lands (hung/rejected RSC fetch), a 2.5s
+  delayedCall retracts the sheet (animated this time — the same page is
+  beneath) and unlatches, so a failed nav can never strand a covered page. Any
+  pathname change mid-cover (e.g. back button) also releases.
 
-  The svg is aria-hidden + pointer-events-none (never blocks the route
-  announcer or AT) and sits at z-[90]: above the enter svg (z-[80]), below the
-  Preloader (z-200). Reduced-motion: TransitionLink never calls us; cover()
-  also self-guards by navigating immediately with no paint.
+  The host is aria-hidden + pointer-events-none (never blocks the route
+  announcer or AT); the SHEET itself takes pointer-events while it covers, so
+  the painted region swallows input during the pending window and the
+  not-yet-covered area keeps its semantics. Keyboard/focus can't be stopped
+  that way, so the old page goes `inert` (RouteTransition marks its content
+  div with data-page-root).
+
+  Reduced motion: the cover is a 150ms opacity swap of the same sheet (§C.7) —
+  TransitionLink still routes through us, so the latch, the inert window and
+  the bail all behave identically.
 */
 
 type Controller = {
@@ -58,113 +76,77 @@ export function coverAndNavigate(navigate: () => void): boolean {
 
 export function CoverOverlay() {
   const pathname = usePathname();
-  const leadRef = React.useRef<SVGPathElement>(null);
-  const nightRef = React.useRef<SVGPathElement>(null);
+  const sheetRef = React.useRef<HTMLDivElement>(null);
+  const ruleRef = React.useRef<HTMLDivElement>(null);
   const firstPath = React.useRef(true);
 
   React.useEffect(() => {
-    const lead = leadRef.current;
-    const night = nightRef.current;
-    if (!lead || !night) return;
+    const sheet = sheetRef.current;
+    const rule = ruleRef.current;
+    if (!sheet || !rule) return;
+    const els: SheetEls = { sheet, rule };
 
-    const proxy = { v: 0 };
-    let tween: gsap.core.Tween | null = null;
+    let tl: gsap.core.Timeline | null = null;
     let timeout: gsap.core.Tween | null = null;
 
-    const paint = () => {
-      lead.setAttribute("d", curtainPath(proxy.v, 1.7));
-      night.setAttribute("d", curtainPath(Math.max(proxy.v * 1.12 - 0.12, 0), 4.2));
-      // The painted region SWALLOWS input (paths only — the svg root stays
-      // pointer-events-none, so the not-yet-covered area keeps its semantics
-      // during the descend). Without this, the fully-opaque pending window
-      // left the invisible old page click-operable (hamburger, locale…).
-      const swallow = proxy.v > 0.002 ? "auto" : "none";
-      lead.style.pointerEvents = swallow;
-      night.style.pointerEvents = swallow;
-    };
-    // Keyboard/focus can't be stopped by pointer-events: the old page goes
-    // `inert` for the covered window (RouteTransition marks its content div
-    // with data-page-root). The new route mounts a FRESH root without the
-    // attribute, and handoff/bail/unmount all lift it — belt and suspenders.
+    // The old page goes inert for the covered window. The new route mounts a
+    // FRESH root without the attribute, and handoff/bail/unmount all lift it —
+    // belt and suspenders.
     const setInert = (on: boolean) =>
       document.querySelector("[data-page-root]")?.toggleAttribute("inert", on);
-    const clear = () => {
-      proxy.v = 0;
-      lead.setAttribute("d", "M0 0H0Z");
-      night.setAttribute("d", "M0 0H0Z");
-      lead.style.pointerEvents = "none";
-      night.style.pointerEvents = "none";
-    };
     const stop = () => {
-      tween?.kill();
+      tl?.kill();
       timeout?.kill();
-      tween = timeout = null;
+      tl = timeout = null;
     };
+
+    clearSheet(els);
 
     controller = {
       cover(onCovered) {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          onCovered(); // defense in depth — TransitionLink already skips us
-          return;
-        }
         stop();
         setInert(true);
-        tween = gsap.to(proxy, {
-          v: 1,
-          duration: 0.42,
-          ease: "power2.in",
-          overwrite: "auto",
-          onUpdate: paint,
-          onComplete: () => {
-            onCovered();
-            // Released by the pathname handoff. 2.5s covers real-world slow
-            // RSC fetches (prod prefetch makes most pushes instant); a push
-            // that outlives it is treated as hung. If it STILL commits later,
-            // the enter plays as a hard cut — exactly the pre-curtain enter
-            // behavior, acceptable for so rare a straggler.
-            timeout = gsap.delayedCall(2.5, () => controller?.bail());
-          },
+        tl = coverTimeline(els, () => {
+          onCovered();
+          // Released by the pathname handoff. 2.5s covers real-world slow RSC
+          // fetches (prod prefetch makes most pushes instant); a push that
+          // outlives it is treated as hung. If it STILL commits later, the
+          // enter plays as a hard cut — acceptable for so rare a straggler.
+          timeout = gsap.delayedCall(2.5, () => controller?.bail());
         });
       },
       handoff() {
-        // A LIVE descend here means the user already covered for ANOTHER nav
-        // and this commit is a stale straggler: let the new cover finish (it
-        // will push and hand off on its own) instead of killing it and
-        // silently dropping that navigation.
-        if (tween && tween.isActive()) return;
+        // A LIVE cover here means the user already covered for ANOTHER nav and
+        // this commit is a stale straggler: let the new cover finish (it will
+        // push and hand off on its own) instead of killing it and silently
+        // dropping that navigation.
+        if (tl && tl.isActive()) return;
         stop();
         navigating = false;
         setInert(false);
-        clear();
+        clearSheet(els);
       },
       bail() {
         stop();
         navigating = false;
         setInert(false);
-        if (proxy.v <= 0.002) return clear();
-        tween = gsap.to(proxy, {
-          v: 0,
-          duration: 0.45,
-          ease: "power3.out",
-          overwrite: "auto",
-          onUpdate: paint,
-          onComplete: clear,
-        });
+        dropFlip(); // the title hand-off lost its beat with the navigation
+        tl = retractTimeline(els).eventCallback("onComplete", () => clearSheet(els));
       },
     };
 
     return () => {
       stop();
-      clear();
+      clearSheet(els);
       setInert(false);
       controller = null;
       navigating = false;
     };
   }, []);
 
-  // Route committed (push landed, or back/forward mid-cover): hand the cover
-  // to the new route's enter. Passive effect = runs AFTER the enter's
-  // pre-paint snap-to-covered, so there is no uncovered frame in between.
+  // Route committed (push landed, or back/forward mid-cover): hand the cover to
+  // the new route's enter. Passive effect = runs AFTER the enter's pre-paint
+  // snap-to-covered, so there is no uncovered frame in between.
   React.useEffect(() => {
     if (firstPath.current) {
       firstPath.current = false;
@@ -174,25 +156,11 @@ export function CoverOverlay() {
   }, [pathname]);
 
   return (
-    <svg
-      id="exit-cover"
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-[90] h-full w-full"
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-    >
-      <defs>
-        <linearGradient id="cover-sunset" x1="0" y1="0" x2="0.35" y2="1">
-          <stop offset="0%" stopColor="var(--color-amber)" />
-          <stop offset="42%" stopColor="var(--color-coral)" />
-          <stop offset="72%" stopColor="var(--color-ember)" />
-          <stop offset="100%" stopColor="var(--color-rose)" />
-        </linearGradient>
-      </defs>
-      {/* sunset leads the descent; night trails it and lands last — the same
-          "the light passes, then night settles" beat as the menu open */}
-      <path ref={leadRef} d="M0 0H0Z" fill="url(#cover-sunset)" />
-      <path ref={nightRef} d="M0 0H0Z" fill="var(--color-night)" />
-    </svg>
+    <div id="exit-cover" aria-hidden className={SHEET_HOST_CLASS}>
+      {/* the sheet is printed down over the page being left… */}
+      <div ref={sheetRef} className={SHEET_CLASS} style={SHEET_REST_STYLE} />
+      {/* …with a 1px ink rule travelling at its leading edge */}
+      <div ref={ruleRef} className={RULE_CLASS} style={RULE_REST_STYLE} />
+    </div>
   );
 }

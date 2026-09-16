@@ -2,49 +2,47 @@
 
 import * as React from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { DUR, EASE } from "@/lib/motion";
-import { curtainPath } from "@/lib/curtain";
+import { DUR, EASE, STAGGER } from "@/lib/motion";
 import { useUI } from "@/store/ui";
 
 /**
- * Preloader — "the surface before the dive". A warm paper sheet present at first
- * paint (SSR'd, so there's no FOUC) while the fonts + WebGPU hero spin up: the "A"
- * focuses in over a thin ember progress line and a percentage counter, then the
- * whole sheet wipes upward — trailing a sunset hem (the same curtainPath language
- * as the menu/route curtains) — to reveal the hero water "A" beneath.
+ * Preloader — "THE FORM PRINTING ITSELF" (REDESIGN-SPEC §G).
  *
- * The counter is honest about what we actually await: it rides the line to 99
- * while fonts load, holds, and only says 100 the instant the exit is unlocked.
+ * A sheet of `paper` present at first paint (SSR'd, no FOUC) while the fonts
+ * load. On it the job order prints itself from the top in ~500ms: the header
+ * strip rules in (its bottom rule draws from the left, then its cell dividers),
+ * the safety band fills downward, its rule draws and its six phase cells are
+ * divided. Nothing else — no counter, no letter mark, no wave: the skeleton
+ * lands exactly where the real HeaderStrip and PhaseBand are, so when the sheet
+ * lifts the same rules are already there, now carrying their type.
  *
- * Robustness: the exit is gated on document.fonts.ready RACED against a hard 1.1s
- * timeout, and globals.css gives `.preloader` a CSS failsafe animation that lifts
- * the sheet at 2.4s — so even if the JS never runs the page can NEVER stay trapped
- * (the hem SVG lives inside the sheet, so it rides the failsafe too).
- * prefers-reduced-motion -> a short plain fade (no wipe). Sets ui.loaded on exit.
+ * Robustness (unchanged mechanics):
+ *   • the exit is gated on document.fonts.ready RACED against a hard 1.1s
+ *     timeout, and globals.css gives `.preloader` a CSS failsafe animation that
+ *     lifts the sheet at 3s — the page can NEVER stay trapped if the JS dies;
+ *   • split exit: `unlock` flips ui.loaded the INSTANT the lift starts (the page
+ *     beneath rides the same shot), `finish` just retires the DOM;
+ *   • repeat visits skip PRE-PAINT via the inline script below (sessionStorage,
+ *     `?nopre` forces it) — no flash, no hydration error (suppressHydrationWarning);
+ *   • prefers-reduced-motion → the rules are already drawn and the sheet fades.
+ *
  * Decorative (aria-hidden); the real content is underneath the whole time.
- *
- * REPEAT VISITS SKIP: the intro is a first-impression beat, not a toll booth —
- * once seen in this tab session (sessionStorage) the sheet is hidden PRE-PAINT
- * by the inline script below (no flash: it runs during HTML parse) and `loaded`
- * flips immediately. `?nopre` forces the skip (QA / Lighthouse A-B hook).
  */
 const SEEN_KEY = "at-preloader-seen";
 const SKIP_SCRIPT = `try{if(sessionStorage.getItem("${SEEN_KEY}")||location.search.indexOf("nopre")>-1){document.getElementById("preloader").style.display="none"}}catch(e){}`;
 
+/** Cell edges of the printed skeleton, as fractions of the width. */
+const STRIP_DIVIDERS = [0.42, 0.56, 0.78];
+const BAND_DIVIDERS = [1, 2, 3, 4, 5, 6, 7].map((i) => (i * 100) / 8 / 100);
+
 export function Preloader() {
   const rootRef = React.useRef<HTMLDivElement>(null);
-  const markRef = React.useRef<HTMLDivElement>(null);
-  const lineRef = React.useRef<HTMLDivElement>(null);
-  const countRef = React.useRef<HTMLParagraphElement>(null);
   const setLoaded = useUI((s) => s.setLoaded);
 
   useGSAP(
     () => {
       const root = rootRef.current;
       if (!root) return;
-      // Split exit: `unlock` flips ui.loaded the INSTANT the reveal starts (the
-      // hero copy entrance rides the same shot as the lifting sheet — one
-      // continuous take, not curtain-then-scene); `finish` just retires the DOM.
       const unlock = () => {
         setLoaded(true);
         try {
@@ -65,7 +63,19 @@ export function Preloader() {
         return;
       }
 
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // Queried off the root — never a bare selector string (it would reach
+      // outside this component's scope).
+      const q = (sel: string) => Array.from(root.querySelectorAll<HTMLElement>(sel));
+      const hRules = q("[data-print='rule']");
+      const vRules = q("[data-print='divider']");
+      const band = root.querySelector<HTMLElement>("[data-print='band']");
+
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (reduced) {
+        // Everything already printed; the sheet just fades off the page.
+        gsap.set([...hRules, ...vRules], { scaleX: 1, scaleY: 1, autoAlpha: 1 });
+        if (band) gsap.set(band, { scaleY: 1, autoAlpha: 1 });
         gsap.to(root, {
           autoAlpha: 0,
           duration: 0.3,
@@ -78,47 +88,45 @@ export function Preloader() {
         return;
       }
 
-      // Counter: sweeps with the line to 99, then waits for the real gate.
-      const count = { v: 0 };
-      const renderCount = () => {
-        if (countRef.current) countRef.current.textContent = `${Math.round(count.v)}%`;
-      };
+      // ── The print, ~500ms (DUR.print): rules draw, then the band fills. ──
+      gsap
+        .timeline()
+        .fromTo(
+          hRules,
+          { scaleX: 0 },
+          { scaleX: 1, duration: DUR.rule, ease: EASE.rule, stagger: 0.09 },
+          0,
+        )
+        .fromTo(
+          band,
+          { scaleY: 0 },
+          { scaleY: 1, duration: DUR.rule, ease: EASE.rule },
+          0.1,
+        )
+        .fromTo(
+          vRules,
+          { scaleY: 0 },
+          { scaleY: 1, duration: DUR.text, ease: EASE.rule, stagger: STAGGER.rows },
+          0.16,
+        );
 
-      gsap.timeline()
-        .from(markRef.current, { autoAlpha: 0, yPercent: 22, filter: "blur(10px)", duration: DUR.swell, ease: EASE.tide }, 0.1)
-        .fromTo(lineRef.current, { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: EASE.dive }, 0.15)
-        .to(count, { v: 99, duration: 0.9, ease: EASE.dive, onUpdate: renderCount }, 0.15);
-
-      const ready = Promise.race([
-        document.fonts?.ready ?? Promise.resolve(),
-        new Promise((r) => setTimeout(r, 1100)),
+      // What we actually await: the fonts (hard 1.1s cap) AND the print itself
+      // — a warm cache must not cut the form in half.
+      const ready = Promise.all([
+        Promise.race([
+          document.fonts?.ready ?? Promise.resolve(),
+          new Promise((r) => setTimeout(r, 1100)),
+        ]),
+        new Promise((r) => setTimeout(r, 620)),
       ]);
 
       ready.then(() => {
-        count.v = 100;
-        renderCount();
-        // THE CONTINUOUS SHOT (the Everswap loader→hero insight, cheap version):
-        // chrome fades, then — in the same take — the sheet lifts while the
-        // typographic "A" stays PINNED to the viewport (counter-translated
-        // against the sheet, same ease) and inflates/dissolves into the water
-        // "A" forming behind it: the letter melts into the fluid. `unlock`
-        // fires at reveal start, so the hero copy rises as the hem passes it.
-        gsap.timeline({ onComplete: finish })
-          .to([lineRef.current, countRef.current], { autoAlpha: 0, yPercent: -14, duration: 0.35, ease: EASE.dive })
-          .add("reveal", "-=0.05")
-          .call(unlock, [], "reveal")
-          .to(root, { yPercent: -100, duration: DUR.tide, ease: EASE.dive }, "reveal")
-          // THE MELT: the ink letter doesn't inflate away — it POURS. Stretched
-          // from its top edge, narrowing, accelerating down past the viewport
-          // into the sea... where the fountain (WaterBallHero initFountain) is
-          // already rising to give it back as water. Ink falls; the sea answers.
-          .set(markRef.current, { transformOrigin: "50% 0%" }, "reveal")
-          .to(markRef.current, { y: () => window.innerHeight * 1.1, duration: DUR.tide, ease: "power2.in" }, "reveal")
-          .to(
-            markRef.current,
-            { scaleY: 3.1, scaleX: 0.78, autoAlpha: 0, filter: "blur(14px)", duration: 0.8, ease: "power2.in" },
-            "reveal",
-          );
+        // The sheet is pulled off the top — the same 420ms `sheet` as a route
+        // cover — and the real form is underneath, already ruled.
+        gsap
+          .timeline({ onComplete: finish })
+          .call(unlock)
+          .to(root, { yPercent: -100, duration: DUR.sheet, ease: EASE.sheet });
       });
     },
     { scope: rootRef },
@@ -128,35 +136,44 @@ export function Preloader() {
     <>
       {/* suppressHydrationWarning: the inline SKIP_SCRIPT below hides this node
           pre-paint on repeat visits by writing style.display BEFORE React
-          hydrates — a deliberate, single-element attribute mismatch (this was
-          the one recurring console error on every returning visit). */}
+          hydrates — a deliberate, single-element attribute mismatch. */}
       <div ref={rootRef} id="preloader" className="preloader" aria-hidden suppressHydrationWarning>
-      <div ref={markRef} className="preloader-mark">
-        A
-      </div>
-      <div className="preloader-track">
-        <div ref={lineRef} className="preloader-line" />
-      </div>
-      <p ref={countRef} className="t-index">
-        0%
-      </p>
-      {/* Sunset hem — hangs below the sheet and sweeps the viewport as it lifts
-          (one static curtainPath wave; the sheet's transform carries it). */}
-      <svg
-        aria-hidden
-        className="pointer-events-none absolute left-0 top-full h-[10vh] w-full"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="preloader-sunset" x1="0" y1="0" x2="0.35" y2="1">
-            <stop offset="0%" stopColor="var(--color-amber)" />
-            <stop offset="55%" stopColor="var(--color-coral)" />
-            <stop offset="100%" stopColor="var(--color-ember)" />
-          </linearGradient>
-        </defs>
-        <path d={curtainPath(0.85, 2.6)} fill="url(#preloader-sunset)" />
-      </svg>
+        <div className="absolute inset-x-0 top-0">
+          {/* header strip skeleton — the same 40/48px cell row as HeaderStrip */}
+          <div className="relative h-10 md:h-12">
+            <div
+              data-print="rule"
+              className="absolute inset-x-0 bottom-0 h-px origin-left bg-ink"
+            />
+            {STRIP_DIVIDERS.map((x) => (
+              <div
+                key={x}
+                data-print="divider"
+                className="absolute top-0 h-full w-px origin-top bg-ink"
+                style={{ left: `${x * 100}%` }}
+              />
+            ))}
+          </div>
+          {/* safety band skeleton — six phase cells, counter, email */}
+          <div className="relative">
+            <div
+              data-print="band"
+              className="band-h w-full origin-top bg-safety"
+            />
+            <div
+              data-print="rule"
+              className="absolute inset-x-0 bottom-0 h-px origin-left bg-ink"
+            />
+            {BAND_DIVIDERS.map((x) => (
+              <div
+                key={x}
+                data-print="divider"
+                className="absolute top-0 h-full w-px origin-top bg-ink"
+                style={{ left: `${x * 100}%` }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
       {/* Runs during HTML parse (pre-paint): repeat visits never see the sheet,
           not even for a frame. Must stay AFTER the #preloader div. */}

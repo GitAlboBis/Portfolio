@@ -3,13 +3,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import gsap from "gsap";
 import { Camera } from "./camera";
 import { MLSMPMSimulator, mlsmpmParticleStructSize } from "./mls-mpm/mls-mpm";
 import { FluidRenderer } from "./render/fluidRender";
 import { renderUniformsViews, renderUniformsValues, numParticlesMax } from "./common";
-import { useHeroStore } from "@/webgl/store/heroStore";
-import { useUI } from "@/store/ui";
+import { useHeroStore, type BenchTier } from "@/webgl/store/heroStore";
 // leva (the debug GUI) is a DEV-ONLY authoring tool. Its bindings are referenced ONLY
 // inside `if (IS_DEV) { ... }` branches below; because IS_DEV resolves from
 // process.env.NODE_ENV — a build-time literal in Next.js — Terser drops the dead dev
@@ -18,45 +16,79 @@ import { useUI } from "@/store/ui";
 import { Leva, useControls } from "leva";
 
 /*
-  WaterBall hero — a faithful embed of matsuoka-601/WaterBall's raw-WebGPU MLS-MPM
-  fluid (their exact .ts + .wgsl, vendored under ./). This is the standalone demo's
-  main() re-implemented as a React client component: a canvas ref instead of
-  document.querySelector, a cancelable RAF loop, abortable async init (StrictMode-
-  safe), and full GPU teardown on unmount. Controls are fixed to the "medium" tier
-  (paramsIdx=1); drag-orbit and wheel-zoom are disabled so the page still scrolls —
-  only the cursor poke + a slow auto-rotate remain. The "A" morph comes later by
-  editing mls-mpm/g2p.wgsl.
+  WaterBall on the TEST BENCH (REDESIGN-SPEC §E.5 / §F Phase A, G4 respected).
+
+  A faithful embed of matsuoka-601/WaterBall's raw-WebGPU MLS-MPM fluid (their exact
+  .ts + .wgsl, vendored under ./ — the solver in mls-mpm/** and common.ts are READ-ONLY).
+  This component is the demo's main() as a React client component, re-staged as an
+  INSTRUMENT instead of a full-viewport hero:
+
+    - it fills the bench box it is mounted in (`absolute inset-0`; the box is the
+      DOM: paper-field backdrop + 1px ink frame, see components/bench/TestBench.tsx);
+    - the canvas is sized by a ResizeObserver on the box, backing = box × DPR cap
+      (1.5 desktop / 1.0 mobile), NO CSS transform ever touches it;
+    - the particle count is picked by tier: 120,000 desktop / 60,000 mobile
+      (`matchMedia("(max-width: 767px)")` or `hardwareConcurrency <= 4`);
+    - every readout of the bench is READ FROM HERE and published to heroStore:
+      sim.numParticles, the measured frame time (500ms moving average of the loop's
+      deltas), the applied DPR, the tier; status "live" only after the first frame
+      has actually completed on the GPU, "lost" on device.lost;
+    - the sea-reflection pass is compiled but inactive (refl_strength = 0);
+    - the cursor poke is kept (hover tracked on window, mapped into the box);
+    - the old scroll "drain" beat (heroStore.explode → solver, camera dolly, fade)
+      is kept INTACT but has no writer any more (HeroScrollSettle is unmounted),
+      so it stays 0 and the fluid just churns in its confinement.
+
+  Drag-orbit and wheel-zoom are disabled so the page still scrolls.
 */
 
-// Step 1a: the fill no longer comes from a timed jet but from sampling the "A" volume
-// directly (initFromHomes). This is now the MAX cap for that home-fill; the actual
-// count is derived from the sampling spacing (and auto-widened to never exceed this cap
-// with a uniform fill). Lower if the "A" looks dense/heavy; the spacing in initFromHomes
-// controls per-volume density (overpressure/balloon).
-// Denser fill = smoother screen-space fluid: sparse particles render as spikes, so a
-// higher count keeps the "A" (and its dispersal) cohesive and clean. Raised 40k->120k
-// (cap is numParticlesMax = 200k). Pair with a tighter initFromHomes baseSpacing.
-const NUM_PARTICLES = 120000;
-// BIG box (Alberto's "two boxes": this is the splash BOUND; the "A" confinement inside is
-// the rest shape). Wide XY = room for the spray to fly out around the letter; thin Z keeps
-// the slab. Grid caps at 80/axis, so 80 wide is the max splash reach.
+// Tiering (§E.5 budget): the ONE function that picks both the particle count and
+// the readout "Tier" — the bench prints what the engine actually used.
+export const PARTICLES_DESKTOP = 120000;
+export const PARTICLES_MOBILE = 60000;
+export const DPR_CAP: Record<BenchTier, number> = { desktop: 1.5, mobile: 1.0 };
+
+export function benchTier(): BenchTier {
+  if (typeof window === "undefined") return "desktop";
+  const narrow = window.matchMedia("(max-width: 767px)").matches;
+  const weak = (navigator.hardwareConcurrency ?? 8) <= 4;
+  return narrow || weak ? "mobile" : "desktop";
+}
+export function particleCountForTier(tier: BenchTier = benchTier()): number {
+  return tier === "mobile" ? PARTICLES_MOBILE : PARTICLES_DESKTOP;
+}
+export function dprCapForTier(tier: BenchTier = benchTier()): number {
+  return DPR_CAP[tier];
+}
+
+// BIG box (the splash BOUND; the "A" confinement inside is the rest shape, in
+// g2p.wgsl — G4). Wide XY = room for the spray to fly out around the letter; thin Z
+// keeps the slab. Grid caps at 80/axis. [80,60] is 4:3 — the bench box (760×540 /
+// 350×230) is framed by Camera.fitDistance on the same box.
 const INIT_BOX = [80, 60, 18];
-const INIT_DISTANCE = 72; // frame the box (~screen) so the spray is visible around the "A"
 const SPHERE_RADIUS = 20; // fluid cohesion sphere radius (grid units)
-const MOUSE_RADIUS = 7; // grid-cell radius of the mouse poke (9 smeared the WHOLE letter into a blob on a cross-sweep; 7 tears a crisp local jet — WaterBall medium = 6)
+const MOUSE_RADIUS = 7; // grid-cell radius of the mouse poke (WaterBall medium = 6)
 const STRETCH = 2.0;
 const FOV = (45 * Math.PI) / 180;
 const MLS_RADIUS = 0.7;
 const MLS_DIAMETER = 2 * MLS_RADIUS;
 const ZOOM_RATE = 0.7;
+// The letter is a FIGURE IN A BOX, not a full-bleed hero: pull the camera back
+// from the exact fit so the "A" sits inside the ruled frame with a printed margin
+// instead of touching the top and bottom rules (verified on screen, WP-3).
+const FRAME_MARGIN = 1.2;
 const AUTO_ROTATE = false; // the "A" should read head-on, not spin out of legibility
+// readout cadence: the frame-time moving average is published every 500ms (§E.5)
+const FRAME_WINDOW_MS = 500;
+// a box resize rebuilds the render targets; debounced so a live drag doesn't thrash
+const RESIZE_DEBOUNCE_MS = 200;
 
 // Build-time literal (Next.js inlines process.env.NODE_ENV). Lets Terser
 // dead-code-eliminate every IS_DEV branch — and the leva import — in production.
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Tuned defaults — the single source of truth for the fluid feel.
+// Tuned defaults — the single source of truth for the fluid feel (G4: FROZEN).
 // These are the EXACT values that the leva panel used to seed; production reads them
 // directly (no GUI), and in dev the leva panel is initialized FROM them so Alberto's
 // panel shows + tunes the identical numbers. DO NOT change any value here without an
@@ -68,16 +100,15 @@ const SPLASH_DEFAULTS = {
   restoreK: 0.1,
   speedGate: 1.5,
   leashRadius: 60,
-  pokeForce: 0.85, // raised 0.5 -> 0.85: with the ballistic arc the splash needs the extra energy to read
+  pokeForce: 0.85,
   // world gravity on ESCAPED droplets only (hold≈0) — the splash arcs + rains back
   // down like real water; the resting "A" never feels it (see g2p.wgsl).
   ballistic: 0.35,
-  // EXPLODE-burst feel (the slow-mo water splash). Dial these live in the leva
-  // "splash" panel, then tell me the numbers to bake in.
-  explodeOut: 4.0, // radial burst force (0 = no burst)
-  explodeGrav: 2.5, // gravity pulling the burst down afterwards
-  explodeDamp: 0.08, // per-frame damping — higher = slower/more syrupy (slow-mo)
-  explodeCap: 16.0, // max particle speed at full explode (the slow-motion ceiling)
+  // EXPLODE-burst feel (legacy drain beat; unused on the bench, kept intact).
+  explodeOut: 4.0,
+  explodeGrav: 2.5,
+  explodeDamp: 0.08,
+  explodeCap: 16.0,
 } as const;
 
 const CAM_DEFAULTS = {
@@ -120,57 +151,28 @@ function useProdHeroControls(): { splash: SplashValues; cam: CamValues } {
 
 const useHeroControls = IS_DEV ? useDevHeroControls : useProdHeroControls;
 
+/** Everything that depends on the canvas backing size — rebuilt on resize. */
+type Scene = {
+  sim: MLSMPMSimulator;
+  renderer: FluidRenderer;
+  camera: Camera;
+  context: GPUCanvasContext;
+  renderUniformBuffer: GPUBuffer;
+  ratio: number;
+  dispose: () => void;
+};
+
 export function WaterBallHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fxWrapRef = useRef<HTMLDivElement>(null);
-  const lensRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const [unsupported, setUnsupported] = useState(false);
-  // The leva panel renders inside CanvasHost's `fixed inset-0 z-0` wrapper, which traps
-  // its z-index BELOW the site header (z-50) -> the header eats its clicks. Portal it to
-  // <body> (dev only) so its z-index actually wins and the panel is clickable. The
-  // mounted gate avoids an SSR/hydration mismatch from the portal.
+  // The leva panel is portaled to <body> (dev only) so its z-index is not trapped
+  // inside the bench box. The mounted gate avoids an SSR/hydration mismatch.
   const [levaReady, setLevaReady] = useState(false);
   useEffect(() => setLevaReady(true), []);
 
-  // Entry animation (point 1): a brief lens "focus pull" — the water "A" zooms in
-  // from slightly large + blurred while a lens vignette clears. Plays once on
-  // mount; honored only when the sim is mounted (reduced-motion never mounts us).
-  useEffect(() => {
-    const wrap = fxWrapRef.current;
-    if (!wrap) return;
-    gsap.set(wrap, { opacity: 0, scale: 1.14, filter: "blur(16px)" });
-    gsap.set(lensRef.current, { opacity: 0.95 });
-    const tl = gsap.timeline({
-      delay: 0.15,
-      onComplete: () => {
-        // CRITICAL for sharpness: drop the filter/transform once the focus-pull
-        // finishes. A lingering CSS filter/transform forces the canvas onto a
-        // composited layer that gets rasterized + scaled -> the "A" looks soft.
-        gsap.set(wrap, { clearProps: "filter,transform" });
-      },
-    });
-    tl.to(wrap, { opacity: 1, duration: 0.5, ease: "power1.out" }, 0);
-    tl.to(wrap, { scale: 1, filter: "blur(0px)", duration: 1.9, ease: "power3.out" }, 0);
-    tl.to(lensRef.current, { opacity: 0, duration: 1.5, ease: "power2.out" }, 0.1);
-    return () => {
-      tl.kill();
-    };
-  }, []);
-
-  // live water + camera tuning. In DEV this is the leva panel (top-right), seeded from
-  // SPLASH_DEFAULTS/CAM_DEFAULTS so the GUI shows + edits the exact tuned numbers; in
-  // PROD it is those frozen consts directly (no GUI, leva tree-shaken out). Either way
-  // the RAF loop reads the latest values through refs so dev edits take effect instantly,
-  // without rebuilding the sim — and prod renders the identical calibrated feel.
-  //   inflate/gravity = the CHURN ENGINE (the water moves on its own, like the original
-  //     WaterBall): inflate fills + stirs the "A" tube, gravity gently pulls to its centerline.
-  //   restoreK/speedGate/leashRadius = confinement + splash recall (speedGate high so the
-  //     gentle inner churn is NOT recalled; only fast mouse pokes escape, then get reeled home).
-  //   sway/swaySpeed = the gentle 3D camera "sway" — the only safe way to give the resting
-  //     "A" life. Moving the FLUID at rest disperses it (motion lifts speed past the gate so
-  //     the restore switches off and the water scatters — proven/reverted twice; see HANDOFF
-  //     gotcha). Orbiting the CAMERA never touches the sim. Yaw+pitch trace a small ellipse so
-  //     the flat letter "floats" in 3D yet stays legible. sway=0 -> static head-on.
+  // live fluid + camera tuning (dev: leva panel seeded from the frozen defaults;
+  // prod: the frozen consts). The loop reads the latest values through refs.
   const { splash, cam: camCtl } = useHeroControls();
   const splashRef = useRef(splash);
   splashRef.current = splash;
@@ -179,109 +181,99 @@ export function WaterBallHero() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const wrap = wrapRef.current;
+    if (!canvas || !wrap) return;
+    const store = useHeroStore.getState();
     if (typeof navigator === "undefined" || !navigator.gpu) {
       setUnsupported(true);
+      store.set({ status: "still", reason: "nogpu" });
       return;
     }
+
+    // tier + budget — decided ONCE per mount, printed as-is by the readouts
+    const tier = benchTier();
+    const particleTarget = particleCountForTier(tier);
+    const dprCap = dprCapForTier(tier);
+    store.set({ tier, status: "compiling", reason: null, particles: 0, frameMs: 0, dpr: 0 });
 
     let cancelled = false;
     let rafId = 0;
     let device: GPUDevice | null = null;
-    let camera: Camera | null = null;
+    let cubemapTexture: GPUTexture | null = null;
+    let particleBuffer: GPUBuffer | null = null;
+    let posvelBuffer: GPUBuffer | null = null;
+    let scene: Scene | null = null;
     let io: IntersectionObserver | null = null;
-    // perf: only run the (expensive) MLS-MPM compute + SSF render while the hero
-    // section is actually on screen. Off-screen -> idle the GPU entirely.
-    let heroVisible = true;
+    let ro: ResizeObserver | null = null;
+    let resizeTimer = 0;
+    // perf: only run the (expensive) MLS-MPM compute + SSF render while the bench
+    // box is actually on screen. Off-screen -> idle the GPU entirely (§E.5).
+    let benchVisible = true;
+    // pointer hover in canvas BACKING px (the poke); tracked on window so a sweep
+    // entering the box pokes naturally, mapped through the box rect.
+    let hoverX = 0;
+    let hoverY = 0;
+    const onPointerMove = (e: PointerEvent) => {
+      if (!scene) return;
+      const r = canvas.getBoundingClientRect();
+      hoverX = (e.clientX - r.left) * scene.ratio;
+      hoverY = (e.clientY - r.top) * scene.ratio;
+    };
+    // frame-time instrument: sum of frame deltas over the last window
+    let lastFrameT = 0;
+    let winStart = 0;
+    let winSum = 0;
+    let winN = 0;
+    let firstFrameReported = false;
+    // LEGACY drain beat (no writer on the bench; kept intact)
+    let drained = false;
+    let lastOpacity = "";
+    const swayStart = performance.now();
 
-    const run = async () => {
-      const adapter = await navigator.gpu!.requestAdapter();
-      if (!adapter) {
-        setUnsupported(true);
-        return;
-      }
-      const dev = await adapter.requestDevice();
-      if (cancelled) {
-        dev.destroy();
-        return;
-      }
-      device = dev;
+    const backingSize = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, dprCap);
+      const cw = wrap.clientWidth || 1;
+      const ch = wrap.clientHeight || 1;
+      return { ratio, cw, ch, w: Math.max(1, Math.floor(ratio * cw)), h: Math.max(1, Math.floor(ratio * ch)) };
+    };
+
+    // Build (or rebuild) everything that depends on the canvas backing size:
+    // canvas config, render targets, sim (its bind groups hold the depth map),
+    // renderer, camera. The particle buffers persist across rebuilds, so a resize
+    // continues the SAME fluid (numParticles is restored) — only the first build
+    // seeds it (initFountain).
+    const build = (dev: GPUDevice, cubemapView: GPUTextureView, seed: boolean) => {
+      const { ratio, cw, ch, w, h } = backingSize();
+      canvas.width = w;
+      canvas.height = h;
 
       const context = canvas.getContext("webgpu") as GPUCanvasContext | null;
-      if (!context) {
-        setUnsupported(true);
-        return;
-      }
-
-      // backing resolution: bounded DPR. canvas.width/height MUST be set before the
-      // simulator/renderer read them (they size textures + the mouse round-trip).
-      const ratio = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 1.5);
-      const cw = canvas.clientWidth || window.innerWidth;
-      const ch = canvas.clientHeight || window.innerHeight;
-      canvas.width = Math.max(1, Math.floor(ratio * cw));
-      canvas.height = Math.max(1, Math.floor(ratio * ch));
-
+      if (!context) throw new Error("webgpu canvas context unavailable");
       const presentationFormat = navigator.gpu!.getPreferredCanvasFormat();
-      // premultiplied alpha so the fluid renders OVER the video backdrop (the
-      // non-fluid pixels are transparent — see render/fluid.wgsl).
+      // premultiplied alpha: non-fluid pixels are transparent -> the DOM bench
+      // backdrop (paper-field) shows through (see render/fluid.wgsl).
       context.configure({ device: dev, format: presentationFormat, alphaMode: "premultiplied" });
 
-      // sky cubemap [+X,-X,+Y,-Y,+Z,-Z] from /public/cubemap
-      const imgSrcs = ["posx", "negx", "posy", "negy", "posz", "negz"].map((n) => `/cubemap/${n}.png`);
-      const bitmaps = await Promise.all(
-        imgSrcs.map(async (s) => createImageBitmap(await (await fetch(s)).blob())),
-      );
-      if (cancelled) {
-        dev.destroy();
-        return;
-      }
-      const cubemapTexture = dev.createTexture({
-        dimension: "2d",
-        size: [bitmaps[0].width, bitmaps[0].height, 6],
-        format: "rgba8unorm",
-        usage:
-          GPUTextureUsage.TEXTURE_BINDING |
-          GPUTextureUsage.COPY_DST |
-          GPUTextureUsage.RENDER_ATTACHMENT,
-      });
-      bitmaps.forEach((bm, i) =>
-        dev.queue.copyExternalImageToTexture(
-          { source: bm },
-          { texture: cubemapTexture, origin: [0, 0, i] },
-          [bm.width, bm.height],
-        ),
-      );
-      const cubemapView = cubemapTexture.createView({ dimension: "cube" });
+      renderUniformsViews.texel_size.set([1.0 / w, 1.0 / h]);
+      // sea-reflection pass OFF on the bench (§F.2): compiled, inactive
+      renderUniformsViews.waterline.set([0]);
+      renderUniformsViews.refl_strength.set([0]);
 
-      renderUniformsViews.texel_size.set([1.0 / canvas.width, 1.0 / canvas.height]);
-      // THE CONTACT: the letter STANDS IN the sea — below this line (backing px)
-      // fluid.wgsl refracts, melts and foam-belts the letter into the water.
-      renderUniformsViews.waterline.set([canvas.height * 0.86]);
-      renderUniformsViews.refl_strength.set([0.85]);
-
-      const particleBuffer = dev.createBuffer({
-        size: mlsmpmParticleStructSize * numParticlesMax,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-      });
-      const posvelBuffer = dev.createBuffer({
-        size: 32 * numParticlesMax,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-      });
       const renderUniformBuffer = dev.createBuffer({
         size: renderUniformsValues.byteLength,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       });
-
       const depthMapTexture = dev.createTexture({
-        size: [canvas.width, canvas.height, 1],
+        size: [w, h, 1],
         usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         format: "r32float",
       });
       const depthMapView = depthMapTexture.createView();
 
+      const prevCount = scene?.sim.numParticles ?? 0;
       const sim = new MLSMPMSimulator(
-        particleBuffer,
-        posvelBuffer,
+        particleBuffer!,
+        posvelBuffer!,
         MLS_DIAMETER,
         dev,
         renderUniformBuffer,
@@ -294,185 +286,300 @@ export function WaterBallHero() {
         presentationFormat,
         MLS_RADIUS,
         FOV,
-        posvelBuffer,
+        posvelBuffer!,
         renderUniformBuffer,
         cubemapView,
         depthMapView,
         sim.restDensity,
       );
 
-      camera = new Camera(canvas, { orbit: false, zoom: false, hoverTarget: window });
+      // hover is driven by our own window listener (box-relative, backing px), so
+      // the camera gets an inert target and never sees raw clientX/clientY.
+      const camera = new Camera(canvas, { orbit: false, zoom: false, hoverTarget: new EventTarget() });
       sim.reset(INIT_BOX, SPHERE_RADIUS);
-      // THE BIRTH: on arrival the "A" doesn't exist yet — a coordinated fountain
-      // erupts from the sea line of the real backdrop and ASSEMBLES into the
-      // letter (initFountain aims every droplet at its home; the confinement
-      // closes the shape). The preloader covers the first ~2s, so the visitor
-      // opens their eyes on water becoming a name. Reforms after the drain use
-      // the instant fill (initFromHomes) — the birth plays once per load.
-      sim.initFountain(INIT_BOX, NUM_PARTICLES);
-      // the eruption startles the ambient gulls (Escort) — one ecosystem
-      window.setTimeout(() => window.dispatchEvent(new CustomEvent("hero-splash")), 600);
-      // face the "A" head-on (+Z) and frame its center. The letter lives in box XY
-      // (apex y=52, feet y=9 -> center ~30.5); reset() defaults to a side-on angle that
-      // suited the symmetric ball but would show the flat letter edge-on.
-      camera.reset(INIT_DISTANCE, [INIT_BOX[0] / 2, INIT_BOX[1] / 2, INIT_BOX[2] / 2], FOV, ZOOM_RATE);
+      if (seed) {
+        // THE BIRTH: a coordinated fountain assembles the letter (initFountain aims
+        // every droplet at its home; the confinement closes the shape).
+        sim.initFountain(INIT_BOX, particleTarget);
+      } else {
+        // resize: same particles, same positions — just tell the new sim how many
+        sim.changeNumParticles(prevCount);
+      }
+      // face the letter head-on (+Z) and frame the sim box in the bench aspect
+      const distance = Camera.fitDistance(INIT_BOX, FOV, cw / ch) * FRAME_MARGIN;
+      camera.reset(distance, [INIT_BOX[0] / 2, INIT_BOX[1] / 2, INIT_BOX[2] / 2], FOV, ZOOM_RATE);
       camera.currentXtheta = 0;
       camera.recalculateView();
       // seed hover coords so the first frames don't poke with NaN
-      camera.currentHoverX = cw / 2;
-      camera.currentHoverY = ch / 2;
-      camera.prevHoverX = camera.currentHoverX;
-      camera.prevHoverY = camera.currentHoverY;
-      const realBoxSize = [...INIT_BOX];
-      const swayStart = performance.now();
-      // cross-system beat: a violent poke STARTLES the ambient gulls (Escort
-      // listens for "hero-splash"). Throttled; purely decorative JS-side hook.
-      let lastSplashEvt = 0;
-      // DRAIN beat is scrub-driven (Direction A). Track whether we've drained so the
-      // "A" is refilled cleanly once scrolled fully back to the top.
-      let drained = false;
+      hoverX = w / 2;
+      hoverY = h / 2;
+      camera.currentHoverX = hoverX;
+      camera.currentHoverY = hoverY;
+      camera.prevHoverX = hoverX;
+      camera.prevHoverY = hoverY;
 
-      const heroEl = document.getElementById("hero");
-      if (heroEl) {
-        io = new IntersectionObserver(
-          (entries) => {
-            heroVisible = entries[0]?.isIntersecting ?? true;
-          },
-          { threshold: 0 },
-        );
-        io.observe(heroEl);
+      store.set({ particles: sim.numParticles, dpr: ratio });
+
+      scene = {
+        sim,
+        renderer,
+        camera,
+        context,
+        renderUniformBuffer,
+        ratio,
+        dispose: () => {
+          camera.dispose();
+          depthMapTexture.destroy();
+          renderUniformBuffer.destroy();
+          // the renderer's own targets die with the device (no destroy API in the
+          // vendored class); on a plain resize they are garbage for the GC.
+        },
+      };
+      return scene;
+    };
+
+    const frame = () => {
+      if (cancelled || !device || !scene) return;
+      const dev = device;
+      const { sim, renderer, camera, context, renderUniformBuffer } = scene;
+      // bench scrolled out of view -> idle the GPU (no compute, no render).
+      // Render-only gate; the solver/params stay untouched (G4). The frame-time
+      // window is dropped so the idle gap never pollutes the readout.
+      if (!benchVisible) {
+        lastFrameT = 0;
+        rafId = requestAnimationFrame(frame);
+        return;
       }
 
+      // ── frame-time instrument: moving average over FRAME_WINDOW_MS ──
+      const now = performance.now();
+      if (lastFrameT > 0) {
+        winSum += now - lastFrameT;
+        winN += 1;
+        if (winStart === 0) winStart = now;
+        if (now - winStart >= FRAME_WINDOW_MS && winN > 0) {
+          useHeroStore.getState().set({ frameMs: winSum / winN });
+          winSum = 0;
+          winN = 0;
+          winStart = now;
+        }
+      }
+      lastFrameT = now;
+
+      // push the latest tuning values into the sim before stepping (dev: leva)
+      const sp = splashRef.current;
+      sim.splashInflate = sp.inflate;
+      sim.splashGravity = sp.gravity;
+      sim.splashDrag = sp.drag;
+      sim.splashRestoreK = sp.restoreK;
+      sim.splashSpeedGate = sp.speedGate;
+      sim.splashLeashRadius = sp.leashRadius;
+      sim.pokeForce = sp.pokeForce;
+      sim.splashBallistic = sp.ballistic;
+      sim.splashExplodeOut = sp.explodeOut;
+      sim.splashExplodeGrav = sp.explodeGrav;
+      sim.splashExplodeDamp = sp.explodeDamp;
+      sim.splashExplodeCap = sp.explodeCap;
+
+      // LEGACY drain beat — intact, unused on the bench (heroStore.explode has no
+      // writer any more, so this stays 0: no burst, no dolly, opacity 1).
+      const explodeBeat = useHeroStore.getState().explode;
+      sim.splashExplode = explodeBeat;
+      if (explodeBeat > 0.05) drained = true;
+      if (explodeBeat <= 0.02 && drained) {
+        drained = false;
+        sim.splashExplode = 0;
+        sim.initFromHomes(INIT_BOX, particleTarget); // reform the "A"
+        useHeroStore.getState().set({ particles: sim.numParticles });
+      }
+      const fade = explodeBeat <= 0.78 ? 1 : Math.max(0, 1 - (explodeBeat - 0.78) / 0.22);
+      const fadeStr = String(fade);
+      if (fadeStr !== lastOpacity) {
+        lastOpacity = fadeStr;
+        canvas.style.opacity = fadeStr;
+      }
+      if (explodeBeat >= 0.999 && fade <= 0.002) {
+        rafId = requestAnimationFrame(frame);
+        return;
+      }
+
+      // camera sway (yaw via sin, pitch via cos): camera-only life for the resting
+      // letter — the solver never feels it. Eased in over ~2.5s from head-on.
+      const cc = camCtlRef.current;
+      const elapsed = (now - swayStart) * 0.001;
+      const ramp = Math.min(1, elapsed / 2.5);
+      const phase = elapsed * cc.swaySpeed;
+      camera.currentXtheta = ramp * cc.sway * Math.sin(phase);
+      camera.currentYtheta = ramp * cc.sway * 0.55 * Math.cos(phase);
+      camera.currentDistance =
+        Camera.fitDistance(INIT_BOX, FOV, canvas.width / canvas.height) * FRAME_MARGIN - explodeBeat * 16;
+      camera.recalculateView();
+      sim.changeBoxSize(INIT_BOX);
+      // animation clock for the render shaders (micro-ripples + foam breakup)
+      renderUniformsViews.time.set([elapsed]);
+      dev.queue.writeBuffer(renderUniformBuffer, 0, renderUniformsValues);
+
+      const enc = dev.createCommandEncoder();
+      camera.currentHoverX = hoverX;
+      camera.currentHoverY = hoverY;
+      const mouseVel = camera.calcMouseVelocity();
+      sim.execute(
+        enc,
+        [hoverX / canvas.width, hoverY / canvas.height],
+        mouseVel,
+        sim.numParticles, // home-fill already seeded all particles -> keep the jet off
+        MOUSE_RADIUS,
+      );
+      renderer.execute(context, enc, sim.numParticles, false, STRETCH);
+      dev.queue.submit([enc.finish()]);
+      camera.setNewPrevMouseCoord();
+      if (AUTO_ROTATE) camera.stepAngle();
+
+      // LIVE only when the first frame has actually completed on the GPU
+      if (!firstFrameReported) {
+        firstFrameReported = true;
+        dev.queue.onSubmittedWorkDone().then(() => {
+          if (cancelled) return;
+          const s = useHeroStore.getState();
+          if (s.status === "compiling") s.set({ status: "live", reason: null });
+        });
+      }
+      rafId = requestAnimationFrame(frame);
+    };
+
+    const run = async () => {
+      const adapter = await navigator.gpu!.requestAdapter();
+      if (!adapter) {
+        setUnsupported(true);
+        store.set({ status: "still", reason: "nogpu" });
+        return;
+      }
+      const dev = await adapter.requestDevice();
       if (cancelled) {
         dev.destroy();
         return;
       }
+      device = dev;
+      // device.lost → the bench freezes on its last frame and says so (§E.5).
+      // `destroy()` on unmount also resolves this promise — guarded by `cancelled`.
+      dev.lost.then(() => {
+        if (cancelled) return;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = 0;
+        useHeroStore.getState().set({ status: "lost", reason: "lost" });
+      });
 
-      const frame = () => {
-        if (cancelled || !device || !camera) return;
-        // hero scrolled out of view OR fully occluded by the opaque menu
-        // overlay -> idle the GPU (no compute, no render). Render-only gate;
-        // the solver/params stay untouched (G4).
-        if (!heroVisible || useUI.getState().menuOpen) {
-          rafId = requestAnimationFrame(frame);
-          return;
-        }
-        // push the latest leva values into the sim before stepping (live tuning)
-        const sp = splashRef.current;
-        sim.splashInflate = sp.inflate;
-        sim.splashGravity = sp.gravity;
-        sim.splashDrag = sp.drag;
-        sim.splashRestoreK = sp.restoreK;
-        sim.splashSpeedGate = sp.speedGate;
-        sim.splashLeashRadius = sp.leashRadius;
-        sim.pokeForce = sp.pokeForce;
-        sim.splashBallistic = sp.ballistic;
-        sim.splashExplodeOut = sp.explodeOut;
-        sim.splashExplodeGrav = sp.explodeGrav;
-        sim.splashExplodeDamp = sp.explodeDamp;
-        sim.splashExplodeCap = sp.explodeCap;
+      // workshop cubemap [+X,-X,+Y,-Y,+Z,-Z] from /public/cubemap
+      const imgSrcs = ["posx", "negx", "posy", "negy", "posz", "negz"].map((n) => `/cubemap/${n}.png`);
+      const bitmaps = await Promise.all(
+        imgSrcs.map(async (s) => createImageBitmap(await (await fetch(s)).blob())),
+      );
+      if (cancelled) {
+        dev.destroy();
+        return;
+      }
+      cubemapTexture = dev.createTexture({
+        dimension: "2d",
+        size: [bitmaps[0].width, bitmaps[0].height, 6],
+        format: "rgba8unorm",
+        usage:
+          GPUTextureUsage.TEXTURE_BINDING |
+          GPUTextureUsage.COPY_DST |
+          GPUTextureUsage.RENDER_ATTACHMENT,
+      });
+      bitmaps.forEach((bm, i) =>
+        dev.queue.copyExternalImageToTexture(
+          { source: bm },
+          { texture: cubemapTexture!, origin: [0, 0, i] },
+          [bm.width, bm.height],
+        ),
+      );
+      const cubemapView = cubemapTexture.createView({ dimension: "cube" });
 
-        // DRAIN beat (Direction A) — scrub-driven + reversible. hero.tsx writes
-        // heroStore.explode 0->1 as you scroll in; we feed it STRAIGHT to the sim so
-        // the "A" loses surface tension and POURS DOWNWARD into the dive (g2p), instead
-        // of a wall-clock starburst. The canvas fades as the drain completes (the water
-        // merges into the sea); scrolling back up reverses it and reforms the "A".
-        const explodeBeat = useHeroStore.getState().explode;
-        sim.splashExplode = explodeBeat;
-        if (explodeBeat > 0.05) drained = true;
-        if (explodeBeat <= 0.02 && drained) {
-          drained = false;
-          sim.splashExplode = 0;
-          sim.initFromHomes(INIT_BOX, NUM_PARTICLES); // reform the "A"
-          canvas.style.opacity = "1";
-        }
-        // fade the fluid as the slow burst finishes dispersing into the sea (tied to
-        // scroll) — start late so the slow-motion dispersal is fully seen first.
-        const fade = explodeBeat <= 0.78 ? 1 : Math.max(0, 1 - (explodeBeat - 0.78) / 0.22);
-        canvas.style.opacity = String(fade);
-        // fully drained + faded -> idle the GPU (skip the heavy sim+render) until scrolled back
-        if (explodeBeat >= 0.999 && fade <= 0.002) {
-          rafId = requestAnimationFrame(frame);
-          return;
-        }
+      // particle storage persists across resizes (the fluid continues)
+      particleBuffer = dev.createBuffer({
+        size: mlsmpmParticleStructSize * numParticlesMax,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
+      posvelBuffer = dev.createBuffer({
+        size: 32 * numParticlesMax,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      });
 
-        // step 1c: drive the camera-sway ellipse (yaw via sin, pitch via cos) and rebuild
-        // the view BEFORE the uniform upload below, so THIS frame renders from the swayed
-        // camera. Eased in over ~2.5s so the "A" starts exactly head-on (yaw=pitch=0) and
-        // drifts into the float. Pitch amplitude is shallower (0.55x) so the flat letter
-        // stays legible. Auto-rotate stays off (sway sets the angles absolutely).
-        const cc = camCtlRef.current;
-        const elapsed = (performance.now() - swayStart) * 0.001;
-        const ramp = Math.min(1, elapsed / 2.5);
-        const phase = elapsed * cc.swaySpeed;
-        camera.currentXtheta = ramp * cc.sway * Math.sin(phase);
-        camera.currentYtheta = ramp * cc.sway * 0.55 * Math.cos(phase);
-        // CINEMATIC DOLLY (WP-6): as the drain beat rises the camera pushes IN
-        // toward the pouring letter — you dive INTO the water, not past it.
-        // Camera-only (the solver never feels it); scrub-eased by Lenis already,
-        // and fully reversible with the scroll. 72 -> ~56 at full drain.
-        camera.currentDistance = INIT_DISTANCE - explodeBeat * 16;
-        camera.recalculateView();
-        sim.changeBoxSize(realBoxSize);
-        // animation clock for the render shaders (fluid.wgsl micro-ripples + foam
-        // breakup) — lives in the padding hole of RenderUniforms, see common.ts
-        renderUniformsViews.time.set([elapsed]);
-        dev.queue.writeBuffer(renderUniformBuffer, 0, renderUniformsValues);
-        const enc = dev.createCommandEncoder();
-        const mouseVel = camera.calcMouseVelocity();
-        if (Math.hypot(mouseVel[0], mouseVel[1]) > 1.6 && performance.now() - lastSplashEvt > 1200) {
-          lastSplashEvt = performance.now();
-          window.dispatchEvent(new CustomEvent("hero-splash"));
-        }
-        sim.execute(
-          enc,
-          [camera.currentHoverX / canvas.clientWidth, camera.currentHoverY / canvas.clientHeight],
-          mouseVel,
-          sim.numParticles, // home-fill already seeded all particles -> keep the jet off
-          MOUSE_RADIUS,
-        );
-        renderer.execute(context, enc, sim.numParticles, false, STRETCH);
-        dev.queue.submit([enc.finish()]);
-        camera.setNewPrevMouseCoord();
-        if (AUTO_ROTATE) camera.stepAngle();
-        rafId = requestAnimationFrame(frame);
-      };
+      build(dev, cubemapView, true);
+
+      io = new IntersectionObserver(
+        (entries) => {
+          benchVisible = entries[0]?.isIntersecting ?? true;
+        },
+        { threshold: 0 },
+      );
+      io.observe(wrap);
+
+      // the bench box drives the backing size; a real size change rebuilds the
+      // targets (debounced) and the SAME fluid continues in the new frame
+      ro = new ResizeObserver(() => {
+        if (cancelled) return;
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(() => {
+          if (cancelled || !device || !scene) return;
+          const { w, h } = backingSize();
+          if (w === canvas.width && h === canvas.height) return;
+          scene.dispose();
+          build(device, cubemapView, false);
+          lastFrameT = 0;
+        }, RESIZE_DEBOUNCE_MS);
+      });
+      ro.observe(wrap);
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+
+      if (cancelled) return;
       rafId = requestAnimationFrame(frame);
     };
 
     run().catch((e) => {
-      console.error("[waterball] init failed:", e);
+      if (cancelled) return;
+      console.error("[bench] engine init failed:", e);
       setUnsupported(true);
+      useHeroStore.getState().set({ status: "still", reason: "nogpu" });
     });
 
     return () => {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
+      window.clearTimeout(resizeTimer);
+      window.removeEventListener("pointermove", onPointerMove);
       io?.disconnect();
-      camera?.dispose();
+      ro?.disconnect();
+      scene?.dispose();
+      scene = null;
+      particleBuffer?.destroy();
+      posvelBuffer?.destroy();
+      cubemapTexture?.destroy();
+      // destroys every remaining GPU object of this device (textures, pipelines)
       device?.destroy();
+      device = null;
+      useHeroStore.getState().resetBench();
     };
   }, []);
 
   if (unsupported) return null;
   return (
     <>
-      {/* Dev-only debug GUI. Rendered ONLY when IS_DEV; the whole subtree (and the
-          leva import) is dead-code-eliminated in production. Explicit mount keeps the
-          panel deterministic and lets us collapse it by default. */}
-      {IS_DEV && levaReady ? createPortal(<Leva collapsed={false} />, document.body) : null}
-      <div ref={fxWrapRef} aria-hidden className="pointer-events-none fixed inset-0 z-0">
+      {/* Dev-only debug GUI (collapsed pill). Rendered ONLY when IS_DEV; the whole
+          subtree (and the leva import) is dead-code-eliminated in production. */}
+      {IS_DEV && levaReady ? createPortal(<Leva collapsed />, document.body) : null}
+      {/* fills the bench box: the DOM box provides the paper-field backdrop and the
+          1px ink frame; the canvas is transparent where there is no fluid.
+          NO transform on this element or the canvas — ever (§E.5). */}
+      <div
+        ref={wrapRef}
+        aria-hidden
+        data-bench-canvas
+        className="pointer-events-none absolute inset-0"
+        style={{ zIndex: "var(--z-bench)" }}
+      >
         <canvas ref={canvasRef} className="block h-full w-full" />
-        {/* lens vignette — clears during the entry "focus pull" (point 1) */}
-        <div
-          ref={lensRef}
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(120% 92% at 50% 48%, transparent 46%, rgba(4,16,24,.5) 86%, rgba(3,12,20,.78) 100%)",
-          }}
-        />
       </div>
     </>
   );

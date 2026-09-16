@@ -1,41 +1,34 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
-import { CanvasHost } from "@/webgl/CanvasHost";
+import { Archivo } from "next/font/google";
 import { Smooth } from "@/app/_providers/Smooth";
-import { ScrollProgress } from "@/components/nav/ScrollProgress";
 import { Preloader } from "@/components/Preloader";
 import { CoverOverlay } from "@/components/transition/CoverOverlay";
-import { Cursor } from "@/components/cursor/Cursor";
-import { SoundScape } from "@/components/sound/SoundScape";
-import { TideEgg } from "@/components/motion/TideEgg";
-import { Warmup } from "@/components/Warmup";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
 /*
-  ROOT SHELL (Golden Hour)
-  ────────────────────────
-  Global chrome mounted once for the whole app:
-    - fonts: Bricolage Grotesque (display) + DM Sans (text) via next/font, exposed
-      as --font-bricolage / --font-dmsans and wired into globals.css @theme.
-    - Smooth:     the Lenis <-> GSAP scroll backbone.
-    - CanvasHost: the fixed WebGPU water "A" (home route only).
-  The page chrome (nav, sections, footer) composes in src/app/page.tsx.
+  ROOT SHELL — THE JOB ORDER (redesign 2026-09)
+  ─────────────────────────────────────────────
+  Il guscio globale montato una volta per tutta l'app:
+    - font: Archivo variabile (wght 100–900 + asse wdth 62–125) via next/font,
+      esposto come --font-archivo e mappato in globals.css (@theme inline
+      --font-sans). Una sola famiglia: intestazioni larghe, etichette
+      condensate e corpo sono lo stesso materiale.
+    - Preloader: "il modulo che si stampa" (WP-6 lo ridisegna; il guscio resta).
+    - Smooth: Lenis sul gsap.ticker condiviso + sync di <html lang> e
+      <html data-motion>.
+    - CoverOverlay: la metà EXIT della copertura di route — deve vivere QUI,
+      non in template.tsx, per sopravvivere allo swap di rotta che copre.
+    - la banda fasi (PhaseBand, WP-2) verrà montata qui sotto il Preloader.
+  Niente cursore, suono, uova, warm-up o canvas fissa nel layout: il banco
+  prova (CanvasHost) vive dentro TestBench sulla home (WP-3).
 */
 
-// Golden Hour type: Bricolage Grotesque (display, characterful) + DM Sans
-// (body/labels). Both variable; weight driven by font-weight in globals.css.
-const bricolage = Bricolage_Grotesque({
+const archivo = Archivo({
   subsets: ["latin"],
   weight: "variable",
-  variable: "--font-bricolage",
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: "variable",
-  variable: "--font-dmsans",
+  axes: ["wdth"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
@@ -68,8 +61,7 @@ export const metadata: Metadata = {
   // NB: no root-level `alternates.canonical` or `openGraph.url`/`title` here —
   // those inherit into every child route and would make /about, /work and every
   // case study canonicalize + share AS the homepage. Each route sets its own
-  // canonical + og:url/title (see app/page.tsx, about, work, work/[slug]). The
-  // homepage's own canonical/OG live in app/page.tsx.
+  // canonical + og:url/title (see app/page.tsx, about, work, work/[slug]).
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -83,7 +75,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// Person structured data — confirmed facts only (docs/07-PROJECTS.md); no email.
+// Person structured data — confirmed facts only; no email. (WP-6 updates strings.)
 const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -100,7 +92,7 @@ const personJsonLd = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbf6ef",
+  themeColor: "#f5f4ef",
   colorScheme: "light",
   width: "device-width",
   initialScale: 1,
@@ -111,24 +103,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${dmSans.variable}`}>
+    <html lang="en" className={archivo.variable}>
       <body>
         <Preloader />
         <Smooth />
-        <ScrollProgress />
-        <CanvasHost />
-        {/* EXIT curtain (Continuous Curtain) — must live HERE, not in
-            template.tsx: it has to survive the route swap it covers. */}
+        {/* EXIT cover (route transition) — lives here to survive the route swap. */}
         <CoverOverlay />
-        {/* Interaction identity: the drop-of-light cursor + the MAREA ambient
-            engine (bodies for WP-9 and the footer's sound toggle). */}
-        <Cursor />
-        <SoundScape />
-        <TideEgg />
-        {/* progressive asset warm-up: film scrubs, stills and R3F chunks are
-            fetched into cache right after the preloader unlocks — every band
-            is already local when the scroll reaches it. */}
-        <Warmup />
         {children}
         <script
           type="application/ld+json"

@@ -2,824 +2,404 @@
 
 /*
   ════════════════════════════════════════════════════════════════════════════
-  GOLDEN HOUR — Design System  ·  Alberto Tuveri  ·  Awwwards SOTD target
-  Light-first, warm. A sunset over warm white: ember-led orange, coral/amber/rose
-  warmth, one cool dusk note, one deep "night" band. Type at full volume
-  (Bricolage Grotesque) on clean DM Sans. Motion eases like the tide.
+  THE JOB ORDER — foundation stylesheet  ·  Alberto Tuveri  ·  redesign 2026-09
+  Un foglio d'officina: carta `paper`, inchiostro `ink`, grafite per le
+  provenienze, giallo di sicurezza come REGIONE (banda fasi, colonna letture,
+  pannello Release), rosso timbro solo per timbri e link. Una sola famiglia,
+  Archivo variabile: l'asse di larghezza (wdth 62–125) separa intestazioni
+  larghe, etichette condensate e corpo. Niente ombre, gradienti, vetro, mono,
+  sezioni scure. Contratto: REDESIGN-SPEC.md §C (token) e §C.7 (motion).
 
-  Token source of truth (mirrored in src/content/tokens.ts and on claude.ai/design).
-  AA pairs verified — see DESIGN-SYSTEM.md / /styleguide.
+  Mirror JS: src/content/tokens.ts (palette) · src/lib/motion.ts (durate/ease)
+  · src/lib/gsap.ts (CustomEase rule/stamp/sheet). Cambiarli insieme.
   ════════════════════════════════════════════════════════════════════════════
 */
 
-/* Light is the default. `.night` scopes the single dark band (footer). */
-@custom-variant night (&:where(.night, .night *));
-
+/* ── C.1 Palette — l'unico @theme: Tailwind emette bg-/text-/border-/ring-* ──
+   `--color-*: initial` azzera la tavolozza di default: sul foglio esistono solo
+   questi undici colori (niente gray-500 di scorta). */
 @theme {
-  /* ── Ground / neutrals ────────────────────────────────────────────────── */
-  --color-paper: #fbf6ef; /* page ground (warm white) */
-  --color-paper-deep: #f1e4d3; /* surfaces, cards, hairlines */
-  --color-ink: #2a1a14; /* primary text (warm espresso) */
-  --color-ink-mute: #6e5447; /* muted text — AA on paper (6.5:1) */
-
-  /* ── Sunset ramp: golden → dusk ───────────────────────────────────────── */
-  --color-amber: #f2a33c; /* golden hour — fills, large accents */
-  --color-coral: #ff8a4c; /* peach-coral — fills, gradient mid */
-  --color-ember: #ee5b23; /* PRIMARY accent — CTAs (ink text), display */
-  --color-ember-ink: #bc410f; /* darker orange for orange TEXT (AA on paper, 5:1) */
-  --color-rose: #e15d6b; /* sunset rose-red — accent, gradient */
-  --color-dusk: #5e4b7e; /* cool twilight violet — counterpoint */
-
-  /* ── Drama band ───────────────────────────────────────────────────────── */
-  --color-night: #2a1820; /* the one dark section / footer (text = paper) */
-
-  /* ── Hairlines ────────────────────────────────────────────────────────── */
-  --color-rule: rgb(42 26 20 / 0.14);
-  --color-rule-strong: rgb(42 26 20 / 0.28);
-
-  /* ── Motion: LA MAREA signature easings (JS mirror: CustomEases in lib/gsap.ts,
-        tokens in lib/motion.ts — change CSS + JS together) ─────────────────── */
-  --ease-tide: cubic-bezier(0.16, 1, 0.3, 1); /* entrances & settles — the default */
-  --ease-dive: cubic-bezier(0.65, 0, 0.35, 1); /* curtains, wipes, transitions */
-  --ease-drift: cubic-bezier(0.33, 0, 0.67, 1); /* ambient, continuous drift */
-  --ease-crest: cubic-bezier(0.34, 1.56, 0.64, 1); /* wave-overshoot micro-emphasis */
-
-  --animate-rise: rise var(--dur-tide, 1.1s) var(--ease-tide) both;
-  --animate-marquee: marquee var(--marquee-duration, 32s) linear infinite;
+  --color-*: initial;
+  --color-paper: #f5f4ef; /* fondo di tutto il sito (foglio superiore) */
+  --color-paper-field: #ebe9e1; /* riempimento campi, righe alterne, backdrop del banco */
+  --color-paper-carbon: #dcd9cf; /* fondo dei sotto-moduli /work/[slug] (copia carbone) */
+  --color-ink: #141414; /* testo primario, tutte le righe 1px, testo su giallo */
+  --color-graphite: #5a5a57; /* meta su carta/campi: provenienza, didascalie, unità */
+  --color-graphite-deep: #4a4a47; /* meta su copia carbone */
+  --color-stamp: #b40f29; /* timbri su carta, link, frecce → */
+  --color-stamp-deep: #8a0a1f; /* lettering dei timbri sulla banda gialla */
+  --color-safety: #ffc400; /* SOLO regioni: banda fasi, letture, Release, anello di focus */
+  --color-oil: #c98a2a; /* riferimento diffuseColor del fluido — costante WGSL, mai testo */
+  --color-rule-soft: rgb(20 20 20 / 0.22); /* hairline tra righe di tabella */
 }
 
-/* Fonts resolve to the next/font CSS vars set on <html> in layout.tsx. */
+/* Una sola famiglia. La variabile la scrive next/font su <html> (layout.tsx). */
 @theme inline {
-  --font-display: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, sans-serif;
-  --font-sans: var(--font-dmsans), "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-*: initial;
+  --font-sans: var(--font-archivo), "Arial Narrow", Arial, sans-serif;
 }
 
+/* ── C.4 spaziatura · C.5 livelli z · C.6 easing e durate ──────────────────── */
 :root {
   color-scheme: light;
-  /* ── LA MAREA duration scale (JS mirror: DUR in src/lib/motion.ts) ───────── */
-  --dur-ripple: 0.15s; /* micro-feedback: hover, focus, toggles */
-  --dur-wave: 0.3s; /* UI state: nav, badges, underlines */
-  --dur-swell: 0.6s; /* text & element reveals */
-  --dur-tide: 1.1s; /* large settles: sections, images, curtains */
-  --dur-breaker: 1.8s; /* cinematic set pieces */
-  --container-max: 1440px;
-  --gutter: clamp(1.25rem, 5vw, 6rem);
-  --section-y: clamp(6rem, 14vh, 14rem);
-  --block-y: clamp(2rem, 5vh, 4.5rem);
-  --nav-h: 4rem;
-  /* The one sanctioned gradient — a real sunset, golden → dusk. */
-  --gradient-sunset: linear-gradient(
-    118deg,
-    #ffe7bd 0%,
-    var(--color-amber) 20%,
-    var(--color-coral) 40%,
-    var(--color-ember) 58%,
-    var(--color-rose) 76%,
-    var(--color-dusk) 100%
-  );
+
+  /* C.4 — griglia e misure del foglio */
+  --gutter: clamp(1.25rem, 3.3vw, 3rem); /* 20 → 48px */
+  --col: 12; /* colonne a gap 0: i campi condividono le righe */
+  --row: 8px;
+  --cell-h: 56px; /* riga di tabella */
+  --band-h: 56px; /* banda fasi (48px sotto 768) */
+  --field-pad: 16px 20px;
+  --caption-h: 24px;
+  --section-gap: clamp(2rem, 8vh, 6rem); /* sopra un'intestazione di fase */
+  --section-gap-after: 2rem; /* sotto */
+  --measure: 68ch;
+  --bench-w: 760px;
+  --bench-h: 540px;
+
+  /* C.5 — l'unica scala z del sito */
+  --z-sheet: 0;
+  --z-bench: 1;
+  --z-band: 20;
+  --z-loupe: 30;
+  --z-cover: 40;
+  --z-preloader: 50;
+  --z-skip: 60;
+
+  /* C.6 — due verbi (RULE-IN, STAMP) + la copertura di route */
+  --ease-rule: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-stamp: cubic-bezier(0.2, 0.9, 0.25, 1.03);
+  --ease-sheet: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-hover: linear;
+  --dur-hover: 120ms;
+  --dur-swap: 150ms;
+  --dur-text: 180ms;
+  --dur-stamp: 220ms;
+  --dur-rule: 320ms;
+  --dur-sheet: 420ms;
+  --dur-print: 500ms;
 }
-@media (min-width: 768px) {
+@media (max-width: 767.98px) {
   :root {
-    --nav-h: 5rem;
+    --band-h: 48px;
+    --bench-w: 350px;
+    --bench-h: 230px;
   }
 }
 
-/* ── Base ────────────────────────────────────────────────────────────────── */
+/* ── Reduced motion, due binari ─────────────────────────────────────────────
+   1. `[data-motion="reduced"]` su <html>: lo scrive Smooth.tsx da matchMedia;
+      componenti e CSS possono agganciarsi allo stesso attributo (niente
+      branch a render-time: l'attributo arriva dopo l'idratazione).
+   2. il guard @media puro per la motion solo-CSS.
+   In entrambi i casi i verbi coreografici (rule/stamp/sheet/print) vanno a
+   zero — le righe nascono già disegnate, i timbri già impressi — mentre gli
+   swap locali (hover/swap/text) restano: sono feedback, non spettacolo. */
+:root[data-motion="reduced"] {
+  --dur-stamp: 0ms;
+  --dur-rule: 0ms;
+  --dur-sheet: 0ms;
+  --dur-print: 0ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-stamp: 0ms;
+    --dur-rule: 0ms;
+    --dur-sheet: 0ms;
+    --dur-print: 0ms;
+  }
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 html,
 body {
   background-color: var(--color-paper);
   color: var(--color-ink);
-  /* guard against any element forcing horizontal scroll (kept off-axis content,
-     full-bleed sections); `clip` kills the overflow without creating a scroll
-     container, so sticky / fixed / Lenis are unaffected. */
+  /* `clip` uccide l'overflow orizzontale senza creare uno scroll container:
+     sticky / Lenis restano intatti. MAI `hidden` qui. */
   overflow-x: clip;
 }
 body {
   font-family: var(--font-sans);
-  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+  font-weight: 400;
+  line-height: 1.55;
+  /* numerali tabellari ovunque compaia un dato (§A OWN-WORLD) */
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
-  /* NB: no `overflow-x: hidden` here — it would compute overflow-y to `auto`,
-     making <body> a scroll container and breaking the Works gallery's
-     `position: sticky`. The `overflow-x: clip` on html,body above already
-     guards horizontal overflow without creating a scroll container. */
+  caret-color: var(--color-stamp);
 }
 
-/* Reduced-motion: DrawLine rails must render statically DRAWN, not undrawn.
-   Their initial hidden dash is an inline style gated on the store's
-   `reducedMotion`, which is false at SSR/first paint — so for reduced-motion
-   users force the stroke fully visible regardless of that inline style. */
-@media (prefers-reduced-motion: reduce) {
-  [data-draw] {
-    stroke-dashoffset: 0 !important;
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
   }
-}
-
-::selection {
-  background: var(--color-ember);
-  color: var(--color-paper);
-}
-
-:where(a, button, [tabindex], input, textarea, select):focus-visible {
-  outline: 2px solid var(--color-ember);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-
-@supports (scrollbar-color: auto) {
-  html {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-ember) transparent;
+  p,
+  li,
+  dd,
+  figcaption,
+  blockquote {
+    text-wrap: pretty;
   }
-}
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: color-mix(in oklab, var(--color-ember) 75%, transparent);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ember-ink);
+  /* il timbro, non un evidenziatore: selezione ink su carta */
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+  /* Focus: anello 2px `safety` esterno + 1px `ink` interno. Angoli vivi. */
+  :where(a, button, [tabindex], input, textarea, select, summary):focus-visible {
+    outline: 2px solid var(--color-safety);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 1px var(--color-ink);
+    border-radius: 0;
+  }
+  /* Sulle regioni gialle l'anello è ink (l'anello giallo sparirebbe). */
+  :where(.bg-safety, .on-safety) :where(a, button, [tabindex], input, textarea, select, summary):focus-visible,
+  :where(.bg-safety, .on-safety):focus-visible {
+    outline-color: var(--color-ink);
+    box-shadow: 0 0 0 1px var(--color-paper);
+  }
+  /* Barre di scorrimento: righello, non pillola. */
+  @supports (scrollbar-color: auto) {
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-ink) var(--color-paper-field);
+    }
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-paper-field);
+    border-left: 1px solid var(--color-rule-soft);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink);
+    border-radius: 0;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   TYPOGRAPHY — Bricolage Grotesque (display) + DM Sans (text/labels).
-   Both variable; we drive weight with font-weight + font-optical-sizing:auto
-   (no axis micro-management — that was the old Fraunces system).
+   C.3 TIPOGRAFIA — Archivo, un solo materiale a tre larghezze.
+   Nessun colore incorporato: il colore lo dà il contesto (carta, campo,
+   copia carbone, giallo). Peso da font-weight, larghezza da "wdth".
    ════════════════════════════════════════════════════════════════════════ */
 @layer components {
-  .t-hero {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(3.5rem, 12vw, 12rem);
-    line-height: 0.86;
-    letter-spacing: -0.035em;
-    text-wrap: balance;
-    color: var(--color-ink);
-  }
-  .t-display {
-    font-family: var(--font-display);
-    font-weight: 640;
-    font-size: clamp(2.5rem, 6.5vw, 6rem);
-    line-height: 0.94;
-    letter-spacing: -0.03em;
-    text-wrap: balance;
-    color: var(--color-ink);
-  }
-  .t-title {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(2rem, 4.5vw, 4rem);
-    line-height: 1;
+  .f-name {
+    font-size: clamp(3.25rem, 1rem + 5.6vw, 5.5rem);
+    font-variation-settings: "wdth" 125;
+    font-weight: 800;
+    line-height: 0.95;
     letter-spacing: -0.02em;
-    color: var(--color-ink);
+    text-wrap: balance;
   }
-  .t-lead {
-    font-family: var(--font-sans);
+  .f-headline {
+    font-size: clamp(1.75rem, 1rem + 1.8vw, 2.5rem);
+    font-variation-settings: "wdth" 112;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+  .f-lead {
+    font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
+    font-variation-settings: "wdth" 100;
     font-weight: 400;
-    font-size: clamp(1.3rem, 2.2vw, 2rem);
-    line-height: 1.4;
-    letter-spacing: -0.005em;
-    color: var(--color-ink-mute);
+    line-height: 1.35;
+    max-width: 58ch;
   }
-  .t-body {
-    font-family: var(--font-sans);
-    font-weight: 400;
-    font-size: clamp(1rem, 1.05vw, 1.0625rem);
-    line-height: 1.65;
-    max-width: 62ch;
-    color: var(--color-ink);
-  }
-  .t-body--mute {
-    color: var(--color-ink-mute);
-  }
-  .t-eyebrow {
-    font-family: var(--font-sans);
-    font-size: clamp(0.6875rem, 0.8vw, 0.8125rem);
-    line-height: 1;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--color-ember-ink);
-  }
-  .t-meta {
-    font-family: var(--font-sans);
-    font-size: clamp(0.75rem, 0.9vw, 0.875rem);
-    letter-spacing: 0.04em;
+  .f-role {
+    font-size: clamp(0.9375rem, 0.8rem + 0.35vw, 1.125rem);
+    font-variation-settings: "wdth" 100;
     font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    text-transform: uppercase;
-    color: var(--color-ink-mute);
+    line-height: 1.3;
   }
-  .t-index {
-    font-family: var(--font-display);
-    font-weight: 600;
+  .f-body {
+    font-size: 1rem;
+    font-variation-settings: "wdth" 100;
+    font-weight: 400;
+    line-height: 1.55;
+    max-width: var(--measure);
+  }
+  .f-cell {
+    font-size: 0.9375rem;
+    font-variation-settings: "wdth" 100;
+    font-weight: 400;
+    line-height: 1.4;
     font-variant-numeric: tabular-nums lining-nums;
-    font-size: clamp(0.875rem, 1.1vw, 1.125rem);
-    letter-spacing: 0.02em;
-    color: var(--color-ink-mute);
+    max-width: 44ch;
+  }
+  .f-caption {
+    font-size: 0.8125rem;
+    font-variation-settings: "wdth" 75;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .f-meta {
+    font-size: 0.8125rem;
+    font-variation-settings: "wdth" 87;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  .f-stamp {
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+    font-variation-settings: "wdth" 75;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .f-strip {
+    font-size: 0.75rem;
+    font-variation-settings: "wdth" 87;
+    font-weight: 500;
+    line-height: 1.2;
   }
 
-  /* ── Layout helpers ──────────────────────────────────────────────────── */
-  .container-edit {
-    max-width: var(--container-max);
-    margin-inline: auto;
+  /* ── Layout del foglio ──────────────────────────────────────────────── */
+  .sheet {
     padding-inline: var(--gutter);
   }
-  .grid-edit {
+  /* 12 colonne a gap 0: i campi si toccano su righe condivise. */
+  .grid-12 {
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2.2vw, 2rem);
+    grid-template-columns: repeat(var(--col), minmax(0, 1fr));
+    gap: 0;
   }
-  .col-meta {
-    grid-column: 1 / 4;
+  /* Campo rigato: disegna SOLO top+left; la griglia `.fields` chiude right+bottom
+     → mai una doppia linea dove due campi si toccano. */
+  .field {
+    padding: var(--field-pad);
+    border-top: 1px solid var(--color-ink);
+    border-left: 1px solid var(--color-ink);
+    min-width: 0;
   }
-  .col-read {
-    grid-column: 4 / 11;
+  .fields {
+    border-right: 1px solid var(--color-ink);
+    border-bottom: 1px solid var(--color-ink);
   }
-  .col-wide {
-    grid-column: 1 / 13;
+  .field-caption {
+    display: block;
+    min-height: var(--caption-h);
+    color: var(--color-graphite);
   }
-  .col-half-r {
-    grid-column: 7 / 13;
+  .rule-top {
+    border-top: 1px solid var(--color-ink);
   }
-  @media (max-width: 48rem) {
-    .col-meta,
-    .col-read,
-    .col-half-r {
-      grid-column: 1 / 13;
-    }
+  .rule-bottom {
+    border-bottom: 1px solid var(--color-ink);
   }
-  .bleed {
-    width: 100vw;
-    margin-inline: calc(50% - 50vw);
+  .rule-soft {
+    border-top: 1px solid var(--color-rule-soft);
   }
-  .scroll-anchor {
-    scroll-margin-top: var(--nav-h);
-  }
-
-  /* ── Nightfall stack (home day→night handoff) ─────────────────────────────
-     The runway extends 100vh past the day's last section; the card pins inside
-     it (top set by JS so its BOTTOM docks at the viewport bottom) while the
-     night band — pulled up by the same 100vh on .nightfall-cover — slides OVER
-     it. +100vh − 100vh = the document length and every other offset stay
-     exactly as before; only the handoff moment overlaps. The card's radius is
-     invisible at rest (paper on paper) and surfaces as it recedes.
-     Reduced-motion flattens the whole geometry in CSS (no render-time branch —
-     the server can't know the preference, and a JSX branch would break
-     hydration). */
-  /* The extra travel must be REAL CONTENT (a spacer), not padding: a sticky
-     element is confined to its parent's CONTENT box, so padding gives it zero
-     room to stay pinned. */
-  .nightfall-spacer {
-    height: 100vh;
-  }
-  .nightfall-card {
-    border-radius: 1.75rem;
-    overflow: clip;
-    background: var(--color-paper);
-  }
-  /* Sticky arms only post-hydration ([data-nf-ready] set by dock()): with no
-     JS the --nf-top fallback of 0px would pin the card by its TOP and invert
-     the dock — the tail of a tall section would slide under the night band
-     unread. No-JS/pre-hydration = plain flow, exactly like reduced-motion. */
-  .nightfall-card[data-nf-ready] {
-    position: sticky;
-    top: var(--nf-top, 0px);
-  }
-  .nightfall-veil {
-    position: absolute;
-    inset: 0;
-    /* Dark rises from the night edge (bottom); the top — where the section's
-       text sits — stays clean until the band itself covers it, so eyebrow and
-       meta contrast hold AA even parked mid-handoff. */
-    background: linear-gradient(
-      to top,
-      color-mix(in oklab, var(--color-night) 72%, var(--color-dusk)),
-      transparent 62%
-    );
-    opacity: 0;
-    pointer-events: none;
-  }
-  .nightfall-cover {
-    margin-top: -100vh;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nightfall-spacer {
-      height: 0;
-    }
-    /* Both selectors so the armed sticky rule (same specificity, earlier in
-       the file) loses the cascade: reduced stays flat even after dock() runs. */
-    .nightfall-card,
-    .nightfall-card[data-nf-ready] {
-      position: static;
-      border-radius: 0;
-      overflow: visible;
-    }
-    .nightfall-veil {
-      display: none;
-    }
-    .nightfall-cover {
-      margin-top: 0;
-    }
-  }
-
-  /* ── Surfaces & marks ────────────────────────────────────────────────── */
-  .glass {
-    background: color-mix(in oklab, #ffffff 70%, var(--color-paper-deep));
-    border: 1px solid var(--color-rule);
-    border-radius: 14px;
-  }
-  .eyebrow-tick::before {
-    content: "";
-    display: inline-block;
-    width: 1.5rem;
-    height: 1px;
-    margin-right: 0.75rem;
-    vertical-align: middle;
-    background: var(--color-ember);
-  }
-  .hairline {
-    height: 1px;
-    border: 0;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in oklab, var(--color-coral) 70%, transparent),
-      transparent
-    );
-  }
-  .rule-node {
+  /* Riga di perforazione tra le sezioni: tratteggio + due fori 6px ai margini. */
+  .perforation {
     position: relative;
-    height: 1px;
-    background: var(--color-rule);
+    height: var(--row);
+    margin-block: var(--row);
+    border-top: 1px dotted var(--color-ink);
   }
-  .rule-node::before {
+  .perforation::before,
+  .perforation::after {
     content: "";
     position: absolute;
-    left: 50%;
-    top: 50%;
+    top: -4px;
     width: 6px;
     height: 6px;
-    border-radius: 9999px;
-    transform: translate(-50%, -50%);
-    background: var(--color-ember);
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at center,
+      var(--color-paper-carbon) 0 1.6px,
+      var(--color-ink) 1.8px 3px,
+      transparent 3.2px
+    );
+  }
+  .perforation::before {
+    left: 0;
+  }
+  .perforation::after {
+    right: 0;
+  }
+  .band-h {
+    min-height: var(--band-h);
+  }
+  .cell-h {
+    min-height: var(--cell-h);
+  }
+  .bench-box {
+    width: var(--bench-w);
+    max-width: 100%;
+    aspect-ratio: var(--bench-w) / var(--bench-h);
+    background: var(--color-paper-field);
+    border: 1px solid var(--color-ink);
   }
 
-  /* ── .link — directional underline-draw for in-flow text links ──────────
-     The line ENTERS from the left and EXITS to the right (anchor swap at the
-     invisible extremes: position jumps while size is 0% or 100%). Uses
-     currentColor so it re-themes free (amber links on night, ember-ink on
-     paper). Paint-layer exception, sanctioned: a 1px strip on inline text,
-     hover-only, never scrubbed. Partition vs RollLink: see RollLink.tsx. */
+  /* ── Timbro di gomma (primitiva; Stamp.tsx la anima con il verbo STAMP) ── */
+  .stamp {
+    display: inline-block;
+    padding: 0.35em 0.6em;
+    border: 2px solid var(--color-stamp);
+    color: var(--color-stamp);
+    transform: rotate(-3.5deg);
+    transform-origin: 50% 50%;
+    white-space: nowrap;
+  }
+  .stamp--filled {
+    background: var(--color-stamp);
+    border-color: var(--color-stamp);
+    color: var(--color-paper);
+  }
+
+  /* ── Link: sottolineatura 1px offset 3px → 2px in 120ms (§C.7 micro) ── */
   .link {
-    background-image: linear-gradient(currentColor, currentColor);
-    background-repeat: no-repeat;
-    background-size: 0% 1px;
-    background-position: 100% 100%;
-    padding-bottom: 0.15em;
-    transition: background-size 0.3s var(--ease-tide);
+    color: var(--color-stamp);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: text-decoration-thickness var(--dur-hover) var(--ease-hover);
   }
   .link:hover,
   .link:focus-visible {
-    background-size: 100% 1px;
-    background-position: 0% 100%;
+    text-decoration-thickness: 2px;
   }
-  @media (prefers-reduced-motion: reduce) {
-    /* Base rule too: the retract (leaving :hover) reads the BASE transition,
-       so guarding only the hover state would still animate the exit. */
-    .link,
-    .link:hover,
-    .link:focus-visible {
-      transition: none;
-    }
+  /* hover riga → riempimento campo in 120ms */
+  .row-hover {
+    transition: background-color var(--dur-hover) var(--ease-hover);
   }
-
-  /* ── .drift-line — DriftBand's display-scale kinetic type (decorative) ───
-     Ghost fill + ember stroke: texture, not reading matter — both voices stay
-     far under the section's real ink so the About copy keeps the floor. */
-  .drift-line {
-    font-family: var(--font-display);
-    font-weight: 640;
-    font-size: clamp(3rem, 8.5vw, 8.5rem);
-    line-height: 1.06;
-    letter-spacing: -0.03em;
-    white-space: nowrap;
-  }
-  .drift-line--ink {
-    color: color-mix(in oklab, var(--color-ink) 13%, transparent);
-  }
-  .drift-line--stroke {
-    color: transparent;
-    -webkit-text-stroke: 1.5px color-mix(in srgb, var(--color-ember) 55%, transparent);
-  }
-
-  /* Night band (Contact / Footer): re-theme text on the one dark section. */
-  .night {
-    color: var(--color-paper);
-  }
-  .night .t-hero,
-  .night .t-display,
-  .night .t-title,
-  .night .t-body {
-    color: var(--color-paper);
-  }
-  .night .t-body--mute,
-  .night .t-meta,
-  .night .t-index {
-    color: #cdbbb0; /* warm muted on night */
-  }
-  .night .t-eyebrow {
-    color: var(--color-amber);
-  }
-  .night .eyebrow-tick::before {
-    background: var(--color-amber);
+  .row-hover:hover {
+    background-color: var(--color-paper-field);
   }
 }
 
-/* ── Custom cursor (Cursor.tsx) — "a drop of light" ────────────────────────
-   JS writes transforms on the OUTER .cc-layer boxes (position + velocity
-   stretch); the mode morphs live on the INNER elements via [data-mode] — the
-   two transform owners never fight. Zero-box grid trick centers children on
-   the exact pointer point. Native cursor hidden only while .cc-on is set
-   (pointer:fine + motion allowed — Cursor.tsx guards). */
-html.cc-on,
-html.cc-on * {
-  cursor: none !important;
-}
-.cc {
-  transition: opacity 0.25s ease;
-}
-.cc-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-/* children center on the exact pointer point via the independent `translate`
-   property — it composes with the `transform: scale()` morphs instead of
-   fighting them (the grid zero-box trick mis-aligned across browsers) */
-.cc-layer > * {
-  position: absolute;
-  left: 0;
-  top: 0;
-  translate: -50% -50%;
-}
-.cc-dot-inner {
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-  background: var(--color-ember);
-  /* hairline paper rim: the drop reads on warm paper AND on the night band */
-  box-shadow: 0 0 0 1.5px rgb(251 246 239 / 0.6);
-  transition: transform 0.3s var(--ease-tide), opacity 0.25s ease;
-}
-.cc-halo-inner {
-  width: 38px;
-  height: 38px;
-  border-radius: 9999px;
-  border: 1px solid var(--color-rule-strong);
-  box-shadow: 0 0 0 1px rgb(251 246 239 / 0.22);
-  transition:
-    transform 0.35s var(--ease-tide),
-    background-color 0.3s ease,
-    border-color 0.3s ease,
-    opacity 0.3s ease;
-}
-.cc-label {
-  font-family: var(--font-sans);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-paper);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0.25s ease 0.08s;
-}
-.cc[data-mode="hover"] .cc-halo-inner {
-  transform: scale(1.55);
-  border-color: var(--color-ember);
-}
-.cc[data-mode="hover"] .cc-dot-inner {
-  transform: scale(0.45);
-}
-.cc[data-mode="view"] .cc-halo-inner {
-  transform: scale(2.5);
-  background: color-mix(in srgb, var(--color-ember) 94%, transparent);
-  border-color: transparent;
-}
-.cc[data-mode="view"] .cc-dot-inner {
-  opacity: 0;
-}
-.cc[data-mode="view"] .cc-label {
-  opacity: 1;
-}
-
-/* ── Hero scroll cue (HeroCopy) — a drop of light running down a hairline ── */
-.hero-cue-track {
-  display: block;
-  width: 1px;
-  height: 2rem;
-  overflow: hidden;
-  background: color-mix(in oklab, var(--color-paper) 25%, transparent);
-}
-.hero-cue-line {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: var(--color-amber);
-  animation: cue-run 2.1s var(--ease-drift) infinite;
-}
-@keyframes cue-run {
-  from {
-    transform: translateY(-105%);
-  }
-  to {
-    transform: translateY(105%);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-cue-line {
-    animation: none;
-  }
-}
-
-/* ── Golden motes ─────────────────────────────────────────────────────────────
-   Sunset pollen drifting up through the About band (GoldenHaze). Pure CSS:
-   transform+opacity only, per-mote variety via custom properties, negative
-   delays start each one mid-cycle so nothing is "born" together. Reduced
-   motion: parked as faint static dust. */
-.golden-mote {
-  position: absolute;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-amber) 85%, white);
-  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--color-amber) 45%, transparent);
-  opacity: 0;
-  animation: mote-drift var(--mote-dur, 22s) linear infinite;
-  animation-delay: var(--mote-delay, 0s);
-}
-@keyframes mote-drift {
-  0% {
-    transform: translate3d(0, 3.5vh, 0);
-    opacity: 0;
-  }
-  12% {
-    opacity: var(--mote-peak, 0.5);
-  }
-  50% {
-    transform: translate3d(var(--mote-sway, 1.4rem), -4.5vh, 0);
-  }
-  88% {
-    opacity: var(--mote-peak, 0.5);
-  }
-  100% {
-    transform: translate3d(calc(var(--mote-sway, 1.4rem) * -0.6), -13vh, 0);
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .golden-mote {
-    animation: none;
-    opacity: 0.16;
-  }
-}
-
-/* ── Horizon glint ────────────────────────────────────────────────────────────
-   A spark of last light sliding along the About band's horizon hairline every
-   few breaths — light catching a taut wire. Width is 8% of the line, so a
-   1150% translateX walks it end to end (transform-only). Hidden entirely under
-   reduced motion (the still picture keeps just the line). */
-.horizon-glint {
-  position: absolute;
-  top: -1px;
-  left: 0;
-  width: 8%;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--color-amber) 80%, white),
-    transparent
-  );
-  opacity: 0;
-  animation: horizon-glint 9s var(--ease-drift) 2.5s infinite;
-}
-@keyframes horizon-glint {
-  0% {
-    transform: translateX(0);
-    opacity: 0;
-  }
-  3% {
-    opacity: 0.85;
-  }
-  24% {
-    transform: translateX(1050%);
-    opacity: 0.85;
-  }
-  28% {
-    transform: translateX(1150%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(1150%);
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .horizon-glint {
-    animation: none;
-    opacity: 0;
-  }
-}
-
-/* ── The ascent (LA RISALITA) ─────────────────────────────────────────────────
-   Underwater breath rising through the teal light, and the living waterline
-   the page descends as. Pure CSS motion: transform+opacity only; per-bubble
-   variety via custom properties; negative delays so nothing is born together.
-   Reduced motion: the band renders a static still instead (component-level). */
-.asc-bubble {
-  position: absolute;
-  bottom: -4%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 30%, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.12) 62%);
-  box-shadow: 0 0 5px 1px rgb(255 255 255 / 0.16);
-  opacity: 0;
-  animation: bubble-rise var(--bub-dur, 11s) linear infinite;
-  animation-delay: var(--bub-delay, 0s);
-}
-@keyframes bubble-rise {
-  0% {
-    transform: translate3d(0, 0, 0);
-    opacity: 0;
-  }
-  8% {
-    opacity: var(--bub-peak, 0.35);
-  }
-  55% {
-    transform: translate3d(var(--bub-sway, 1rem), -58vh, 0);
-  }
-  92% {
-    opacity: var(--bub-peak, 0.35);
-  }
-  100% {
-    transform: translate3d(calc(var(--bub-sway, 1rem) * -0.5), -108vh, 0);
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .asc-bubble {
-    animation: none;
-    opacity: 0;
-  }
-}
-
-/* the waterline strips: 200%-wide tracks drifting one full period (-50%) —
-   seamless loop, transform-only. Two tracks counter-drift for parallax foam.
-   Shared language: LA RISALITA's surface sheet AND the footer's TideEbb. */
-.asc-wave-track {
-  position: absolute;
-  left: 0;
-  width: 200%;
-  will-change: transform;
-  animation: wave-drift var(--wave-dur, 13s) linear infinite;
-}
-@keyframes wave-drift {
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .asc-wave-track {
-    animation: none;
-  }
-}
-
-/* ── Tide ebb (IL RIFLUSSO) ───────────────────────────────────────────────────
-   The closing tide at the page's very bottom: the water body breathes on a
-   slow 9s cycle, star glints twinkle on the crest zone. Reduced motion: the
-   sea holds still, the stars stay as faint fixed points. */
-.tide-breathe {
-  animation: tide-breathe 9s ease-in-out infinite;
-}
-@keyframes tide-breathe {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(0, -6px, 0);
-  }
-}
-.tide-glint {
-  position: absolute;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-amber) 55%, white);
-  box-shadow: 0 0 4px 1px rgb(242 163 60 / 0.25);
-  opacity: 0;
-  animation: tide-glint var(--tg-dur, 5s) ease-in-out infinite;
-  animation-delay: var(--tg-delay, 0s);
-}
-@keyframes tide-glint {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  50% {
-    opacity: var(--tg-peak, 0.4);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .tide-breathe {
-    animation: none;
-  }
-  .tide-glint {
-    animation: none;
-    opacity: 0.16;
-  }
-}
-
-/* ── Keyframes ─────────────────────────────────────────────────────────────  */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(1.5rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(calc(-100% - var(--marquee-gap, 3rem)));
-  }
-}
-
-/* ── Preloader (Preloader.tsx) — SSR'd sheet; CSS failsafe can't trap the page ─── */
+/* ── Preloader: SOLO il guscio (posizione + failsafe). WP-6 lo ridisegna come
+   "il modulo che si stampa"; il failsafe CSS resta perché la pagina non deve
+   mai restare intrappolata se il JS non gira. ─────────────────────────────── */
 .preloader {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: var(--z-preloader);
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 1.4rem;
+  gap: 1rem;
   background: var(--color-paper);
-  /* JS lifts the sheet ~1.5s; this failsafe only fires if the JS never ran. */
-  animation: preloaderFailsafe 0.7s ease 3s forwards;
+  animation: preloader-failsafe 0.4s var(--ease-sheet) 3s forwards;
 }
-.preloader-mark {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(4rem, 12vw, 9rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--color-ink);
-}
-.preloader-track {
-  width: clamp(120px, 18vw, 200px);
-  height: 2px;
-  border-radius: 9999px;
-  background: var(--color-rule);
-  overflow: hidden;
-}
-.preloader-line {
-  width: 100%;
-  height: 100%;
-  background: var(--color-ember);
-  transform-origin: left center;
-  transform: scaleX(0);
-}
-@keyframes preloaderFailsafe {
+@keyframes preloader-failsafe {
   to {
     transform: translateY(-100%);
     visibility: hidden;
-  }
-}
-
-/* FlipText (Codrops 3D RotationX flip): per-word 3D context so chars hinge locally. */
-.flip-word {
-  display: inline-block;
-  perspective: 600px;
-  transform-style: preserve-3d;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }

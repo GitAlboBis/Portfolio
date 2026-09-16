@@ -37,3 +37,42 @@ function resolveSite(): string {
 
 /** Absolute site origin, without a trailing slash (e.g. "https://example.com"). */
 export const SITE = resolveSite();
+
+/* ───────────────────────────── Site metadata (REDESIGN-SPEC §G, §H `meta.*`) ─────────────────────────────
+ * Server-side copy of the `meta` strings. `layout.tsx`, the OG routes and the sitemap
+ * run on the server and cannot import the "use client" dictionary, so the title and
+ * description live here and `src/content/dict.ts` `meta` mirrors them 1:1 for the
+ * client (kept in sync by hand; `scripts/check-claims.mjs` reads both files).
+ * `ogLocale` is the `og:locale` value for each locale; `alternateLocale` the other one.
+ */
+export type SiteLocale = "en" | "it";
+
+export const siteName = "Alberto Tuveri";
+
+export const defaultLocale: SiteLocale = "en";
+
+export interface SiteMeta {
+  /** `<title>` of the home page; sub-routes use `%s — Alberto Tuveri`. */
+  title: string;
+  description: string;
+  /** `og:locale`. */
+  ogLocale: string;
+}
+
+export const siteMeta: Record<SiteLocale, SiteMeta> = {
+  en: {
+    title: "Alberto Tuveri — Software & AI Engineer · Creative Lead",
+    description:
+      "Software & AI engineer and Creative Lead at SerSan: front-end, WebGPU/3D and motion for production platforms, the AI layer of a live trading platform, brand identity and film.",
+    ogLocale: "en_US",
+  },
+  it: {
+    title: "Alberto Tuveri — Software & AI Engineer · Creative Lead",
+    description:
+      "Software & AI engineer e Creative Lead in SerSan: front-end, WebGPU/3D e motion per piattaforme in produzione, la parte AI di una piattaforma di trading live, identità di marca e film.",
+    ogLocale: "it_IT",
+  },
+};
+
+/** Title template for every route below `/` (Next `metadata.title.template`). */
+export const titleTemplate = "%s — Alberto Tuveri";

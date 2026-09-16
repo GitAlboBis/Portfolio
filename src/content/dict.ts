@@ -6,20 +6,217 @@ import { useUI } from "@/store/ui";
 /**
  * Bilingual EN/IT dictionary. Every visible string lives here — never hardcode
  * copy in components. `en` and `it` must share the same shape (validated by zod
- * in dev). Tone: spare, confident, maritime; an engineer who builds things that
- * move. Technical terms (roles, stack) stay in English even in IT.
+ * in dev). Voice (REDESIGN-SPEC §H, stop-slop): plain, factual, no quotables,
+ * no eyebrows, no section numbers; a job card, not a manifesto. Roles, product
+ * names and technical terms stay in English in both locales (project rule).
+ *
+ * LAYOUT OF THIS FILE
+ *   1. "The job order" sections (REDESIGN-SPEC §H): strip · header · phases ·
+ *      band · intake · bench · diagnosis · estimate · work · measured · subform ·
+ *      release · about (captions) · footer.copyright · notFound · a11y · meta.
+ *   2. LEGACY sections kept so the old components still typecheck until WP-9
+ *      deletes them: nav · hero · about.{eyebrow,lead,body} · works · coast ·
+ *      ascent · tech · contact · journey · footer.{place,sound,…}.
+ *      Marked "// LEGACY — removed in WP-9". Do not build on them.
  */
 
+const localizedPhase = z.object({
+  /** Printed name of the phase cell. */
+  name: z.string(),
+  /** Role tag under the stamp (stays English in both locales). */
+  roleTag: z.string(),
+});
+
 const sectionSchema = z.object({
+  /* ───────────────────────────── The job order (REDESIGN-SPEC §H) ───────────────────────────── */
+
+  /** E.1 header-strip: provenance of the sheet. */
+  strip: z.object({
+    employer: z.string(),
+    date: z.string(),
+    status: z.string(),
+  }),
+
+  /** E.2 job-order-header: identity fields. */
+  header: z.object({
+    caption: z.string(),
+    name: z.string(),
+    roleCaption: z.string(),
+    role1: z.string(),
+    role2: z.string(),
+    degree: z.string(),
+  }),
+
+  /** E.3 phase-band: the six phases, keyed by `#phase-<id>` (order: intake → release). */
+  phases: z.object({
+    intake: localizedPhase,
+    diagnosis: localizedPhase,
+    estimate: localizedPhase,
+    work: localizedPhase,
+    test: localizedPhase,
+    release: localizedPhase,
+  }),
+
+  /** E.3 phase-band chrome. `counter` holds a `{n}` placeholder; `total` is the fixed "6". */
+  band: z.object({
+    counter: z.string(),
+    email: z.string(),
+    back: z.string(),
+    /** aria-label of the band's `<nav>`. */
+    ariaLabel: z.string(),
+  }),
+
+  /** E.4 intake: Owner + Current work. */
+  intake: z.object({
+    ownerCaption: z.string(),
+    positioning: z.string(),
+    currentCaption: z.string(),
+  }),
+
+  /** E.5 test-bench: figure caption, readouts, status words and reason lines. */
+  bench: z.object({
+    caption: z.string(),
+    figure: z.string(),
+    readouts: z.object({
+      particles: z.string(),
+      solver: z.string(),
+      render: z.string(),
+      frame: z.string(),
+      dpr: z.string(),
+      tier: z.string(),
+    }),
+    /** Fixed readout values (method names, same in both locales). */
+    values: z.object({
+      solver: z.string(),
+      render: z.string(),
+      frameUnit: z.string(),
+    }),
+    tier: z.object({ desktop: z.string(), mobile: z.string() }),
+    live: z.string(),
+    still: z.string(),
+    reasonNoGpu: z.string(),
+    reasonReduced: z.string(),
+    reasonLost: z.string(),
+    compiling: z.string(),
+  }),
+
+  /** E.6 diagnosis: Findings table. */
+  diagnosis: z.object({
+    caption: z.string(),
+    cols: z.object({ finding: z.string(), fix: z.string(), source: z.string() }),
+  }),
+
+  /** E.7 estimate: Parts catalogue. */
+  estimate: z.object({
+    caption: z.string(),
+    cols: z.object({ group: z.string(), qty: z.string(), items: z.string() }),
+  }),
+
+  /** E.8 work-performed table (home: 5 rows; /work: all 9). */
+  work: z.object({
+    caption: z.string(),
+    cols: z.object({ item: z.string(), measured: z.string(), role: z.string(), client: z.string(), open: z.string() }),
+    more: z.string(),
+    noPhoto: z.string(),
+    captureLabel: z.string(),
+    indexTitle: z.string(),
+    /** Measured cell when the CV gives no figure (Voice AI Agent). */
+    none: z.string(),
+  }),
+
+  /** E.9 test-measured table. */
+  measured: z.object({
+    caption: z.string(),
+    cols: z.object({ item: z.string(), before: z.string(), after: z.string(), source: z.string() }),
+  }),
+
+  /** E.12 case-study sub-form on the carbon copy. */
+  subform: z.object({
+    fields: z.object({
+      customer: z.string(),
+      job: z.string(),
+      problem: z.string(),
+      work: z.string(),
+      measured: z.string(),
+      parts: z.string(),
+      links: z.string(),
+    }),
+    pendingUrl: z.string(),
+    pendingFilm: z.string(),
+    next: z.string(),
+  }),
+
+  /** E.10 release panel (contact). */
+  release: z.object({
+    caption: z.string(),
+    headline: z.string(),
+    cta: z.string(),
+    email: z.string(),
+    links: z.object({ linkedin: z.string(), github: z.string(), sersan: z.string(), spherenode: z.string() }),
+    stamp: z.string(),
+  }),
+
+  /** E.13 /about — Owner. `captions` is the new sheet; `eyebrow/lead/body` are LEGACY. */
+  about: z.object({
+    captions: z.object({
+      owner: z.string(),
+      summary: z.string(),
+      experience: z.string(),
+      education: z.string(),
+      thesis: z.string(),
+      languages: z.string(),
+      photograph: z.string(),
+    }),
+    noPhoto: z.string(),
+    // LEGACY — removed in WP-9
+    eyebrow: z.string(),
+    lead: z.string(),
+    body: z.string(),
+  }),
+
+  /** E.14 404. */
+  notFound: z.object({
+    title: z.string(),
+    stamp: z.string(),
+  }),
+
+  /** Screen-reader and skip-link strings. */
+  a11y: z.object({
+    skip: z.string(),
+    /** sr-only suffix on the EN/IT toggle (the visible text must stay in the a11y name). */
+    langToggle: z.string(),
+  }),
+
+  /** Client mirror of `src/lib/site.ts` `siteMeta` (server metadata cannot import this file). */
+  meta: z.object({
+    title: z.string(),
+    description: z.string(),
+  }),
+
+  /** E.11 footer. `copyright` is the new sheet; the rest is LEGACY. */
+  footer: z.object({
+    copyright: z.string(),
+    // LEGACY — removed in WP-9
+    place: z.string(),
+    sound: z.string(),
+    soundOn: z.string(),
+    soundOff: z.string(),
+    rights: z.string(),
+    email: z.string(),
+    top: z.string(),
+  }),
+
+  /* ───────────────────────────── LEGACY — removed in WP-9 ─────────────────────────────
+   * Old Golden Hour / ocean sections still read by components scheduled for deletion
+   * (Nav, MenuOverlay, HeroCopy, About, Tech, Contact, WorksGallery, WorkHorizontal,
+   * WorkCaseStudy, AboutJourney, Footer). Nothing new reads them. */
   nav: z.object({
     work: z.string(),
     about: z.string(),
     contact: z.string(),
     menu: z.string(),
     close: z.string(),
-    /** sr-only suffix on the EN/IT toggle (the visible text must stay in the a11y name). */
     langToggle: z.string(),
-    /** Captions under the menu-portal route previews (decorative panel, desktop only). */
     preview: z.object({
       home: z.string(),
       about: z.string(),
@@ -32,14 +229,8 @@ const sectionSchema = z.object({
     name: z.string(),
     role: z.string(),
     tagline: z.string(),
-    /** The one jewel word inside `tagline` (must be a substring of it). */
     taglineAccent: z.string(),
     scroll: z.string(),
-  }),
-  about: z.object({
-    eyebrow: z.string(),
-    lead: z.string(),
-    body: z.string(),
   }),
   works: z.object({
     eyebrow: z.string(),
@@ -53,7 +244,6 @@ const sectionSchema = z.object({
     wip: z.string(),
     back: z.string(),
     next: z.string(),
-    /** Caption prefix on the case-study photographic detail cuts ("Detail 01"). */
     detail: z.string(),
   }),
   coast: z.object({
@@ -63,9 +253,7 @@ const sectionSchema = z.object({
   }),
   ascent: z.object({
     eyebrow: z.string(),
-    /** the held-breath line, alone underwater (reads clean by itself) */
     deep: z.string(),
-    /** the release line on paper — `deep + " " + breathe` must read as one sentence */
     breathe: z.string(),
     meta: z.string(),
   }),
@@ -100,21 +288,148 @@ const sectionSchema = z.object({
       meta: z.string(),
     }),
   }),
-  footer: z.object({
-    place: z.string(),
-    sound: z.string(),
-    /** State suffixes for the ambient toggle ("Ambient · On/Off"). */
-    soundOn: z.string(),
-    soundOff: z.string(),
-    rights: z.string(),
-    email: z.string(),
-    top: z.string(),
-  }),
 });
 
 export type Dict = z.infer<typeof sectionSchema>;
+/** Phase ids in sheet order; the band counter counts them. */
+export const PHASE_IDS = ["intake", "diagnosis", "estimate", "work", "test", "release"] as const;
+export type PhaseId = (typeof PHASE_IDS)[number];
+
+const EMAIL = "albertotuveri@gmail.com";
 
 const en: Dict = {
+  strip: {
+    employer: "Sersan Limited · London · Remote",
+    date: "Sep 2026",
+    status: "Status · OPEN",
+  },
+  header: {
+    caption: "Job order",
+    name: "Alberto Tuveri",
+    roleCaption: "Role",
+    role1: "Software & AI Engineer · Creative Lead",
+    role2: "Full-Stack · WebGPU / 3D & Motion",
+    degree:
+      "B.Sc. Computer Science, University of Camerino, 2026 · M.Sc. Artificial Intelligence Systems, University of Trento, in progress",
+  },
+  phases: {
+    intake: { name: "Intake", roleTag: "Engineer" },
+    diagnosis: { name: "Diagnosis", roleTag: "Engineer" },
+    estimate: { name: "Estimate", roleTag: "Full-Stack" },
+    work: { name: "Work", roleTag: "Creative Lead" },
+    test: { name: "Test", roleTag: "Engineer" },
+    release: { name: "Release", roleTag: "Contact" },
+  },
+  band: {
+    counter: "{n} / 6",
+    email: "Email",
+    back: "Job order ↖",
+    ariaLabel: "Job order phases",
+  },
+  intake: {
+    ownerCaption: "Owner",
+    positioning:
+      "I own the front-end, 3D and motion layer of everything SerSan ships, and the AI layer of its live trading platform.",
+    currentCaption: "Current work",
+  },
+  bench: {
+    caption: "Test bench",
+    figure: "Fluid under test — MLS-MPM · screen-space fluid · confined to a letter-A field · written against the WebGPU API",
+    readouts: { particles: "Particles", solver: "Solver", render: "Render", frame: "Frame", dpr: "DPR", tier: "Tier" },
+    values: { solver: "MLS-MPM", render: "SSF", frameUnit: "ms" },
+    tier: { desktop: "Desktop", mobile: "Mobile" },
+    live: "LIVE",
+    still: "STILL",
+    reasonNoGpu: "Renderer not available on this device",
+    reasonReduced: "Renderer paused — reduced motion",
+    reasonLost: "Context lost — still frame",
+    compiling: "Compiling pipelines…",
+  },
+  diagnosis: {
+    caption: "Findings",
+    cols: { finding: "Finding", fix: "Fix", source: "Source" },
+  },
+  estimate: {
+    caption: "Parts catalogue",
+    cols: { group: "Part group", qty: "Qty", items: "Items" },
+  },
+  work: {
+    caption: "Work performed",
+    cols: { item: "Item", measured: "Measured", role: "Role", client: "Client · period", open: "Open" },
+    more: "4 more line items",
+    noPhoto: "no photograph on file",
+    captureLabel: "capture · Sep 2026",
+    indexTitle: "Things I've built",
+    none: "—",
+  },
+  measured: {
+    caption: "Measured",
+    cols: { item: "Item", before: "Before", after: "After", source: "Source" },
+  },
+  subform: {
+    fields: {
+      customer: "Customer",
+      job: "Job",
+      problem: "Problem reported",
+      work: "Work performed",
+      measured: "Measured",
+      parts: "Parts",
+      links: "Links",
+    },
+    pendingUrl: "URL: pending",
+    pendingFilm: "Film link: pending",
+    next: "Next line item",
+  },
+  release: {
+    caption: "Release",
+    headline: "Hiring, or building something with WebGPU, motion or AI? Write to me.",
+    cta: `Email ${EMAIL}`,
+    email: EMAIL,
+    links: { linkedin: "LinkedIn", github: "GitHub", sersan: "SerSan", spherenode: "SphereNode" },
+    stamp: "RELEASED",
+  },
+  about: {
+    captions: {
+      owner: "Owner",
+      summary: "Summary",
+      experience: "Experience",
+      education: "Education",
+      thesis: "Thesis",
+      languages: "Languages",
+      photograph: "Photograph",
+    },
+    noPhoto: "none on file",
+    // LEGACY — removed in WP-9
+    eyebrow: "01 — About",
+    lead: "Calm on the surface. Alive underneath.",
+    body: "Five years turning hard problems into things that feel inevitable — full-stack systems, AI pipelines, and the occasional shader. I care about the moment an interface stops feeling like software and starts feeling like a place.",
+  },
+  notFound: {
+    title: "No job order at this address.",
+    stamp: "VOID",
+  },
+  a11y: {
+    skip: "Skip to work performed",
+    langToggle: "switch language",
+  },
+  meta: {
+    title: "Alberto Tuveri — Software & AI Engineer · Creative Lead",
+    description:
+      "Software & AI engineer and Creative Lead at SerSan: front-end, WebGPU/3D and motion for production platforms, the AI layer of a live trading platform, brand identity and film.",
+  },
+  footer: {
+    copyright: "© 2026 Alberto Tuveri",
+    // LEGACY — removed in WP-9
+    place: "Masua · 39°09′N 8°25′E",
+    sound: "Ambient",
+    soundOn: "On",
+    soundOff: "Off",
+    rights: "All rights reserved",
+    email: "Email",
+    top: "Top",
+  },
+
+  // ───────────────────────────── LEGACY — removed in WP-9 ─────────────────────────────
   nav: {
     work: "Work",
     about: "About",
@@ -131,11 +446,6 @@ const en: Dict = {
     tagline: "I build interfaces that move like water.",
     taglineAccent: "water",
     scroll: "Scroll to dive",
-  },
-  about: {
-    eyebrow: "01 — About",
-    lead: "Calm on the surface. Alive underneath.",
-    body: "Five years turning hard problems into things that feel inevitable — full-stack systems, AI pipelines, and the occasional shader. I care about the moment an interface stops feeling like software and starts feeling like a place.",
   },
   works: {
     eyebrow: "Selected Work · 2021—2026",
@@ -180,7 +490,7 @@ const en: Dict = {
     eyebrow: "03 — Contact",
     headline: "Let's make something that moves.",
     cta: "Write to me",
-    email: "albertotuveri@gmail.com",
+    email: EMAIL,
   },
   journey: {
     eyebrow: "The long version",
@@ -214,18 +524,142 @@ const en: Dict = {
       meta: "Porto Flavia · Masua, Sardinia · est. 1924",
     },
   },
-  footer: {
-    place: "Masua · 39°09′N 8°25′E",
-    sound: "Ambient",
-    soundOn: "On",
-    soundOff: "Off",
-    rights: "All rights reserved",
-    email: "Email",
-    top: "Top",
-  },
 };
 
 const it: Dict = {
+  strip: {
+    employer: "Sersan Limited · Londra · da remoto",
+    date: "Set 2026",
+    status: "Stato · APERTO",
+  },
+  header: {
+    caption: "Ordine di lavoro",
+    name: "Alberto Tuveri",
+    roleCaption: "Ruolo",
+    role1: "Software & AI Engineer · Creative Lead",
+    role2: "Full-Stack · WebGPU / 3D & Motion",
+    degree:
+      "Laurea triennale in Informatica, Università di Camerino, 2026 · Laurea magistrale in Artificial Intelligence Systems, Università di Trento, in corso",
+  },
+  phases: {
+    intake: { name: "Accettazione", roleTag: "Engineer" },
+    diagnosis: { name: "Diagnosi", roleTag: "Engineer" },
+    estimate: { name: "Preventivo", roleTag: "Full-Stack" },
+    work: { name: "Lavorazione", roleTag: "Creative Lead" },
+    test: { name: "Collaudo", roleTag: "Engineer" },
+    release: { name: "Consegna", roleTag: "Contact" },
+  },
+  band: {
+    counter: "{n} / 6",
+    email: "Email",
+    back: "Ordine di lavoro ↖",
+    ariaLabel: "Fasi dell'ordine di lavoro",
+  },
+  intake: {
+    ownerCaption: "Titolare",
+    positioning:
+      "Costruisco il front-end, il livello 3D e motion di tutto ciò che SerSan mette in produzione, e la parte AI della sua piattaforma di trading live.",
+    currentCaption: "Incarichi attuali",
+  },
+  bench: {
+    caption: "Banco prova",
+    figure:
+      "Fluido in prova — MLS-MPM · screen-space fluid · confinato in un campo a forma di A · scritto direttamente contro l'API WebGPU",
+    readouts: { particles: "Particelle", solver: "Solver", render: "Render", frame: "Frame", dpr: "DPR", tier: "Tier" },
+    values: { solver: "MLS-MPM", render: "SSF", frameUnit: "ms" },
+    tier: { desktop: "Desktop", mobile: "Mobile" },
+    live: "LIVE",
+    still: "STILL",
+    reasonNoGpu: "Renderer non disponibile su questo dispositivo",
+    reasonReduced: "Renderer in pausa — movimento ridotto",
+    reasonLost: "Contesto perso — fotogramma fisso",
+    compiling: "Compilazione delle pipeline…",
+  },
+  diagnosis: {
+    caption: "Rilievi",
+    cols: { finding: "Rilievo", fix: "Intervento", source: "Fonte" },
+  },
+  estimate: {
+    caption: "Distinta ricambi",
+    cols: { group: "Gruppo", qty: "Q.tà", items: "Voci" },
+  },
+  work: {
+    caption: "Lavori eseguiti",
+    cols: { item: "Voce", measured: "Misurato", role: "Ruolo", client: "Cliente · periodo", open: "Apri" },
+    more: "Altre 4 voci",
+    noPhoto: "nessuna fotografia agli atti",
+    captureLabel: "cattura · set 2026",
+    indexTitle: "Cose che ho costruito",
+    none: "—",
+  },
+  measured: {
+    caption: "Misurato",
+    cols: { item: "Voce", before: "Prima", after: "Dopo", source: "Fonte" },
+  },
+  subform: {
+    fields: {
+      customer: "Cliente",
+      job: "Lavoro",
+      problem: "Problema segnalato",
+      work: "Lavori eseguiti",
+      measured: "Misurato",
+      parts: "Ricambi",
+      links: "Link",
+    },
+    pendingUrl: "URL: in attesa",
+    pendingFilm: "Link al film: in attesa",
+    next: "Voce successiva",
+  },
+  release: {
+    caption: "Consegna",
+    headline: "Stai assumendo, o vuoi costruire qualcosa con WebGPU, motion o AI? Scrivimi.",
+    cta: `Scrivi a ${EMAIL}`,
+    email: EMAIL,
+    links: { linkedin: "LinkedIn", github: "GitHub", sersan: "SerSan", spherenode: "SphereNode" },
+    stamp: "CONSEGNATO",
+  },
+  about: {
+    captions: {
+      owner: "Titolare",
+      summary: "Profilo",
+      experience: "Esperienza",
+      education: "Formazione",
+      thesis: "Tesi triennale",
+      languages: "Lingue",
+      photograph: "Fotografia",
+    },
+    noPhoto: "nessuna agli atti",
+    // LEGACY — removed in WP-9
+    eyebrow: "01 — Chi sono",
+    lead: "Calmo in superficie. Vivo sotto.",
+    body: "Cinque anni a trasformare problemi difficili in cose che sembrano inevitabili — sistemi full-stack, pipeline AI e qualche shader. Mi interessa il momento in cui un'interfaccia smette di sembrare software e inizia a sembrare un luogo.",
+  },
+  notFound: {
+    title: "Nessun ordine di lavoro a questo indirizzo.",
+    stamp: "ANNULLATO",
+  },
+  a11y: {
+    skip: "Vai ai lavori eseguiti",
+    langToggle: "cambia lingua",
+  },
+  meta: {
+    title: "Alberto Tuveri — Software & AI Engineer · Creative Lead",
+    description:
+      "Software & AI engineer e Creative Lead in SerSan: front-end, WebGPU/3D e motion per piattaforme in produzione, la parte AI di una piattaforma di trading live, identità di marca e film.",
+  },
+  footer: {
+    copyright: "© 2026 Alberto Tuveri",
+    // LEGACY — removed in WP-9
+    place: "Masua · 39°09′N 8°25′E",
+    sound: "Ambiente",
+    soundOn: "On",
+    soundOff: "Off",
+    rights: "Tutti i diritti riservati",
+    email: "Email",
+    top: "Su",
+  },
+
+  // ───────────────────────────── LEGACY — removed in WP-9 ─────────────────────────────
   nav: {
     work: "Lavori",
     about: "Chi sono",
@@ -242,11 +676,6 @@ const it: Dict = {
     tagline: "Costruisco interfacce che si muovono come l'acqua.",
     taglineAccent: "acqua",
     scroll: "Scorri per immergerti",
-  },
-  about: {
-    eyebrow: "01 — Chi sono",
-    lead: "Calmo in superficie. Vivo sotto.",
-    body: "Cinque anni a trasformare problemi difficili in cose che sembrano inevitabili — sistemi full-stack, pipeline AI e qualche shader. Mi interessa il momento in cui un'interfaccia smette di sembrare software e inizia a sembrare un luogo.",
   },
   works: {
     eyebrow: "Lavori scelti · 2021—2026",
@@ -291,7 +720,7 @@ const it: Dict = {
     eyebrow: "03 — Contatti",
     headline: "Facciamo qualcosa che si muove.",
     cta: "Scrivimi",
-    email: "albertotuveri@gmail.com",
+    email: EMAIL,
   },
   journey: {
     eyebrow: "La versione lunga",
@@ -325,15 +754,6 @@ const it: Dict = {
       meta: "Porto Flavia · Masua, Sardegna · 1924",
     },
   },
-  footer: {
-    place: "Masua · 39°09′N 8°25′E",
-    sound: "Ambiente",
-    soundOn: "On",
-    soundOff: "Off",
-    rights: "Tutti i diritti riservati",
-    email: "Email",
-    top: "Su",
-  },
 };
 
 // Dev-only shape guard: surfaces en/it drift early.
@@ -344,7 +764,7 @@ if (process.env.NODE_ENV !== "production") {
 
 export const dict: Record<"en" | "it", Dict> = { en, it };
 
-/** Returns the active-locale dictionary tree. Usage: const t = useDict(); t.hero.name */
+/** Returns the active-locale dictionary tree. Usage: const t = useDict(); t.header.name */
 export function useDict(): Dict {
   const locale = useUI((s) => s.locale);
   return dict[locale];

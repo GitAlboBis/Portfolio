@@ -16,14 +16,49 @@ export type Localized = { en: string; it: string };
 export type WorkStatus = "confirmed" | "provisional";
 /** Who can open the delivered thing: a public URL, a client's product, studio-internal, or academic. */
 export type WorkAccess = "public" | "client" | "internal" | "academic";
+/**
+ * One row of the Measured table (REDESIGN-SPEC §E.9, §I): a single `MeasuredRow`
+ * renders it. Pairs from the CV are `{ before, after, unit }` ("52% → 68%" → before
+ * "52", after "68", unit "%"); single figures are `{ value }` ("17", "48,000", "0").
+ * `before`/`after` are bare numerals in the CV's own notation (decimal point) so a
+ * consumer can parse them for the proportional double bar; `unit` carries the symbol.
+ * `source` is the provenance cell printed on every row.
+ */
 export interface WorkMetric {
-  /** Verbatim CV figure ("52% → 68%", "17", "48,000", "0"). */
-  value: string;
   label: Localized;
+  /**
+   * Display figure. For pairs it equals the "after" string with its unit
+   * ("68%", "1.74 s"); for single figures it is the verbatim CV figure.
+   * LEGACY ALIAS (removed in WP-9): required only because the old `CountUp`
+   * consumer in `WorkCaseStudy.tsx` reads `m.value`; the new `MeasuredRow`
+   * reads `before`/`after`/`unit` and falls back to `value` for single figures.
+   */
+  value: string;
+  /** "Before" numeral of a CV pair, without unit. */
+  before?: string;
+  /** "After" numeral of a CV pair, without unit. */
+  after?: string;
+  /** Unit symbol of a pair ("%", "s", "ms"); localized because IT may spell some out. */
+  unit?: Localized;
+  /** Provenance: where and when the figure was measured ("161-question bilingual evaluation set · SerSan 2026"). */
+  source: Localized;
 }
 export interface WorkLink {
   label: string;
-  href: string;
+  /** Absent while `pending` is set: the CV names the thing but gives no public address. */
+  href?: string;
+  /** Declared hole (PRODUCT.md §8.1): the sub-form prints "URL: pending" / "Film link: pending". */
+  pending?: "url" | "film";
+}
+/** Phase-band role tag the job carries in the Work performed table (REDESIGN-SPEC §E.3 role tags). */
+export type PhaseRole = "Engineer" | "Creative Lead" | "Full-Stack";
+/** A real capture of a public site (WP-7, `public/captures/*`, provenance in the EXIF and PROVENANCE.md). */
+export interface WorkCapture {
+  src: string;
+  /** Printed next to the capture ("capture · Sep 2026"). */
+  label: Localized;
+  width: number;
+  height: number;
 }
 
 export interface Work {
@@ -33,12 +68,18 @@ export interface Work {
   year: string;
   /** Short role label for the card. */
   role: string;
+  /** Role tag stamped on the row (Engineer / Creative Lead / Full-Stack). */
+  phaseRole: PhaseRole;
   stack: string[];
   status: WorkStatus;
-  /** Atmospheric mood (tokens only) — drives this slide's background blobs. */
+  /** Atmospheric mood (tokens only) — drives this slide's background blobs. LEGACY (old galleries; removed in WP-9). */
   mood: Mood;
-  /** Optional project still (WebP). When absent the plane shows a duotone gradient. */
+  /** Optional project still (WebP). LEGACY (old galleries until WP-5); the new surfaces read `capture`. */
   textureSrc?: string;
+  /** Real capture of the public site, only where one exists (sersan-io, spherenode). */
+  capture?: WorkCapture;
+  /** Ruled SVG schematic drawn in the sub-form (REDESIGN-SPEC §B napkin raise): RAG pipeline or the six-phase job order. */
+  schematic?: "rag" | "job-order";
   access?: WorkAccess;
   /** Employer / engagement line, e.g. "Sersan Limited · London · Remote". */
   orgMeta?: string;
@@ -63,6 +104,22 @@ const SERSAN_ORG = "SerSan · AI Studio";
 const SERSAN_META = "Sersan Limited · London · Remote";
 const SERSAN_ROLE = "Software & AI Engineer · Creative Lead";
 
+/* Provenance cells (Measured / Work performed). One constant per source so the
+ * wording is identical on every row it applies to. */
+const SRC_SERSAN: Localized = { en: "SerSan · 2026", it: "SerSan · 2026" };
+const SRC_EVAL_SET: Localized = {
+  en: "161-question bilingual evaluation set · SerSan 2026",
+  it: "Set di valutazione bilingue da 161 domande · SerSan 2026",
+};
+const SRC_LIGHTHOUSE: Localized = { en: "Lighthouse · sersan.io · 2026", it: "Lighthouse · sersan.io · 2026" };
+const SRC_REAL_PHONES: Localized = { en: "Measured on real phones · SerSan 2026", it: "Misurato su telefoni reali · SerSan 2026" };
+const SRC_ALS: Localized = { en: "ALS MCL Civitanova · 2026", it: "ALS MCL Civitanova · 2026" };
+const SRC_UNICAM: Localized = { en: "University of Camerino · GitHub", it: "Università di Camerino · GitHub" };
+const UNIT_PCT: Localized = { en: "%", it: "%" };
+const UNIT_S: Localized = { en: "s", it: "s" };
+const UNIT_MS: Localized = { en: "ms", it: "ms" };
+const CAPTURE_LABEL: Localized = { en: "capture · Sep 2026", it: "cattura · set 2026" };
+
 export const works: Work[] = [
   // ── 1. SphereNode ─────────────────────────────────────────────────────────
   {
@@ -72,7 +129,9 @@ export const works: Work[] = [
     orgMeta: SERSAN_META,
     year: "2026",
     role: SERSAN_ROLE,
+    phaseRole: "Engineer",
     access: "public",
+    capture: { src: "/captures/spherenode-1600.webp", label: CAPTURE_LABEL, width: 1600, height: 1000 },
     stack: [
       "React 18",
       "Vite",
@@ -136,13 +195,18 @@ export const works: Work[] = [
         it: "SphereNode è stato lanciato pubblicamente ed è in produzione su spherenode.com. Sono stato release manager di 21 delle sue 49 release di produzione, incluso il lancio pubblico.",
       },
       metrics: [
-        { value: "8", label: { en: "tools replaced by one platform", it: "strumenti sostituiti da una sola piattaforma" } },
+        {
+          value: "8",
+          label: { en: "tools replaced by one platform", it: "strumenti sostituiti da una sola piattaforma" },
+          source: SRC_SERSAN,
+        },
         {
           value: "21 / 49",
           label: {
             en: "production releases shipped as release manager, including the public launch",
             it: "release di produzione gestite come release manager, incluso il lancio pubblico",
           },
+          source: SRC_SERSAN,
         },
         {
           value: "5",
@@ -150,14 +214,17 @@ export const works: Work[] = [
             en: "revenue-critical defects closed in the payments-to-entitlement pipeline",
             it: "difetti critici per il fatturato chiusi nella pipeline pagamenti → entitlement",
           },
+          source: SRC_SERSAN,
         },
         {
           value: "6",
           label: { en: "access-control defects closed before public launch", it: "difetti di access control chiusi prima del lancio pubblico" },
+          source: SRC_SERSAN,
         },
         {
           value: "33",
           label: { en: "security-audit findings remediated in one batch", it: "finding dell'audit di sicurezza rimediati in un unico batch" },
+          source: SRC_SERSAN,
         },
         {
           value: "21",
@@ -165,6 +232,7 @@ export const works: Work[] = [
             en: "scheduled jobs found dead for weeks, root-caused, now monitored",
             it: "job schedulati fermi da settimane: causa individuata, ora monitorati",
           },
+          source: SRC_SERSAN,
         },
       ],
       links: [{ label: "spherenode.com", href: "https://spherenode.com" }],
@@ -179,6 +247,8 @@ export const works: Work[] = [
     orgMeta: SERSAN_META,
     year: "2026",
     role: "Software & AI Engineer",
+    phaseRole: "Engineer",
+    schematic: "rag",
     access: "public",
     stack: ["RAG", "pgvector", "Embeddings", "Semantic chunking", "LLM relevance grader", "LLM evaluation", "Guardrails", "Supabase"],
     status: "confirmed",
@@ -228,25 +298,52 @@ export const works: Work[] = [
       },
       metrics: [
         {
-          value: "52% → 68%",
-          label: {
-            en: "answer-policy accuracy on the 161-question bilingual evaluation set",
-            it: "accuratezza dell'answer policy sul set di valutazione bilingue da 161 domande",
-          },
+          value: "68%",
+          before: "52",
+          after: "68",
+          unit: UNIT_PCT,
+          label: { en: "answer-policy accuracy", it: "accuratezza dell'answer policy" },
+          source: SRC_EVAL_SET,
         },
         {
-          value: "56% → 16%",
+          value: "16%",
+          before: "56",
+          after: "16",
+          unit: UNIT_PCT,
           label: { en: "over-answering on questions it should withhold", it: "over-answering sulle domande da trattenere" },
+          source: SRC_EVAL_SET,
         },
-        { value: "75% → 94%", label: { en: "clarification precision", it: "precision delle richieste di chiarimento" } },
-        { value: "32% → 90%", label: { en: "clarification recall", it: "recall delle richieste di chiarimento" } },
-        { value: "1.9% → 0.6%", label: { en: "unsupported claims", it: "affermazioni non supportate" } },
+        {
+          value: "94%",
+          before: "75",
+          after: "94",
+          unit: UNIT_PCT,
+          label: { en: "clarification precision", it: "precision delle richieste di chiarimento" },
+          source: SRC_EVAL_SET,
+        },
+        {
+          value: "90%",
+          before: "32",
+          after: "90",
+          unit: UNIT_PCT,
+          label: { en: "clarification recall", it: "recall delle richieste di chiarimento" },
+          source: SRC_EVAL_SET,
+        },
+        {
+          value: "0.6%",
+          before: "1.9",
+          after: "0.6",
+          unit: UNIT_PCT,
+          label: { en: "unsupported claims", it: "affermazioni non supportate" },
+          source: SRC_EVAL_SET,
+        },
         {
           value: "100%",
           label: {
             en: "citation correctness, with zero fabricated citations and zero locked-content leaks",
             it: "correttezza delle citazioni, con zero citazioni inventate e zero leak di contenuti bloccati",
           },
+          source: SRC_EVAL_SET,
         },
       ],
       links: [{ label: "spherenode.com", href: "https://spherenode.com" }],
@@ -261,6 +358,8 @@ export const works: Work[] = [
     orgMeta: SERSAN_META,
     year: "2026",
     role: SERSAN_ROLE,
+    phaseRole: "Full-Stack",
+    schematic: "job-order",
     access: "client",
     stack: ["Vite", "React 18", "TypeScript", "Supabase", "Postgres 17", "RLS", "Edge Functions", "TanStack Query"],
     status: "confirmed",
@@ -313,14 +412,20 @@ export const works: Work[] = [
         it: "Consegnati il cuore del dominio, l'integrazione fornitori su dieci portali e un modello di sicurezza che tiene a livello di database. Chiusa una privilege escalation ad alta severità che permetteva a qualunque utente con accesso ai prezzi di cambiare la destinazione delle credenziali dei fornitori.",
       },
       metrics: [
-        { value: "9", label: { en: "roles, with default-deny access rules on every table", it: "ruoli, con regole di accesso default-deny su ogni tabella" } },
+        {
+          value: "9",
+          label: { en: "roles, with default-deny access rules on every table", it: "ruoli, con regole di accesso default-deny su ogni tabella" },
+          source: SRC_SERSAN,
+        },
         {
           value: "6",
           label: { en: "phases in the job-order state machine, transitions gated by role", it: "fasi della state machine degli ordini di lavoro, transizioni vincolate al ruolo" },
+          source: SRC_SERSAN,
         },
         {
           value: "10",
           label: { en: "trade portals integrated, with article-level price comparison", it: "portali di settore integrati, con confronto prezzi a livello di articolo" },
+          source: SRC_SERSAN,
         },
       ],
     },
@@ -335,7 +440,9 @@ export const works: Work[] = [
     year: "2026",
     period: "Jun – Sep 2026",
     role: "Sole engineer and designer",
+    phaseRole: "Creative Lead",
     access: "public",
+    capture: { src: "/captures/sersan-io-1600.webp", label: CAPTURE_LABEL, width: 1600, height: 1000 },
     stack: ["Next.js 16", "React 19", "three.js (WebGPU/TSL)", "React Three Fiber", "GSAP", "Lenis", "Tailwind v4", "Vercel"],
     status: "confirmed",
     mood: { base: palette.paper, blob1: palette.dusk, blob2: palette.rose },
@@ -390,23 +497,27 @@ export const works: Work[] = [
         {
           value: "17",
           label: { en: "scroll-locked scenes on one continuous 3D canvas", it: "scene bloccate allo scroll su un'unica canvas 3D continua" },
+          source: SRC_SERSAN,
         },
         {
           value: "48,000",
           label: { en: "particles in the wordmark intro, in compute shaders", it: "particelle nell'intro del wordmark, in compute shader" },
+          source: SRC_SERSAN,
         },
         {
           value: "80,000",
           label: { en: "cells in the portrait morph, lit from generated depth maps", it: "celle nel morph del ritratto, illuminato da depth map generate" },
+          source: SRC_SERSAN,
         },
-        { value: "100", label: { en: "Lighthouse Accessibility", it: "Lighthouse Accessibility" } },
-        { value: "100", label: { en: "Lighthouse SEO", it: "Lighthouse SEO" } },
+        { value: "100", label: { en: "Lighthouse Accessibility", it: "Lighthouse Accessibility" }, source: SRC_LIGHTHOUSE },
+        { value: "100", label: { en: "Lighthouse SEO", it: "Lighthouse SEO" }, source: SRC_LIGHTHOUSE },
         {
           value: "0",
           label: {
             en: "effects removed on weak mobile GPUs: the full scene at a quarter of the pixels",
             it: "effetti tolti sulle GPU mobile deboli: la scena intera a un quarto dei pixel",
           },
+          source: SRC_SERSAN,
         },
       ],
       links: [{ label: "sersan.io", href: "https://sersan.io" }],
@@ -421,6 +532,7 @@ export const works: Work[] = [
     orgMeta: SERSAN_META,
     year: "2026",
     role: SERSAN_ROLE,
+    phaseRole: "Creative Lead",
     access: "client",
     stack: ["Next.js 16", "GSAP", "Lenis", "Supabase"],
     status: "confirmed",
@@ -465,10 +577,26 @@ export const works: Work[] = [
         it: "Largest-contentful-paint mobile 4,75 s → 1,74 s e blocking time 572 ms → 274 ms, con l'esperienza cinematografica mantenuta e zero layout shift.",
       },
       metrics: [
-        { value: "4.75 s → 1.74 s", label: { en: "mobile largest-contentful-paint", it: "largest-contentful-paint mobile" } },
-        { value: "572 ms → 274 ms", label: { en: "mobile blocking time", it: "blocking time mobile" } },
-        { value: "0", label: { en: "layout shift", it: "layout shift" } },
+        {
+          value: "1.74 s",
+          before: "4.75",
+          after: "1.74",
+          unit: UNIT_S,
+          label: { en: "mobile largest-contentful-paint", it: "largest-contentful-paint mobile" },
+          source: SRC_REAL_PHONES,
+        },
+        {
+          value: "274 ms",
+          before: "572",
+          after: "274",
+          unit: UNIT_MS,
+          label: { en: "mobile blocking time", it: "blocking time mobile" },
+          source: SRC_REAL_PHONES,
+        },
+        { value: "0", label: { en: "layout shift", it: "layout shift" }, source: SRC_SERSAN },
       ],
+      // PRODUCT.md §8.1: the CV names no public address for Domus Tua.
+      links: [{ label: "Domus Tua", pending: "url" }],
     },
   },
 
@@ -480,6 +608,7 @@ export const works: Work[] = [
     orgMeta: SERSAN_META,
     year: "2026",
     role: "Art direction · Motion graphics · VFX · 3D · Video",
+    phaseRole: "Creative Lead",
     access: "public",
     stack: ["Art direction", "Brand identity", "Typography", "Motion graphics", "VFX", "3D", "After Effects", "Compositing", "Colour grading", "Sound design"],
     status: "confirmed",
@@ -524,11 +653,23 @@ export const works: Work[] = [
         it: "Un'unica identità tra sito, scene 3D e lavoro video, e un brand film 4K da 64 secondi in quattordici scene, finito.",
       },
       metrics: [
-        { value: "64 s", label: { en: "brand film, in 4K, from concept and script to final cut", it: "brand film, in 4K, dal concept e dallo script al final cut" } },
-        { value: "14", label: { en: "scenes built on the studio's positioning", it: "scene costruite sul posizionamento dello studio" } },
-        { value: "4K", label: { en: "kinetic typography throughout", it: "tipografia cinetica per tutta la durata" } },
+        {
+          value: "64 s",
+          label: { en: "brand film, in 4K, from concept and script to final cut", it: "brand film, in 4K, dal concept e dallo script al final cut" },
+          source: SRC_SERSAN,
+        },
+        {
+          value: "14",
+          label: { en: "scenes built on the studio's positioning", it: "scene costruite sul posizionamento dello studio" },
+          source: SRC_SERSAN,
+        },
+        { value: "4K", label: { en: "kinetic typography throughout", it: "tipografia cinetica per tutta la durata" }, source: SRC_SERSAN },
       ],
-      links: [{ label: "sersan.io", href: "https://sersan.io" }],
+      // PRODUCT.md §8.1/§8.4: no public link to the film yet (NDA question open).
+      links: [
+        { label: "sersan.io", href: "https://sersan.io" },
+        { label: "Brand film", pending: "film" },
+      ],
     },
   },
 
@@ -541,6 +682,7 @@ export const works: Work[] = [
     year: "2026",
     period: "Jan 2026 – Present",
     role: "Full-Stack Developer · Freelance",
+    phaseRole: "Full-Stack",
     access: "client",
     stack: ["Next.js 15", "React 19", "TypeScript", "Supabase", "PostGIS", "Serwist (PWA)", "Web Push (VAPID)", "Leaflet", "Sentry", "GitHub Actions"],
     status: "confirmed",
@@ -590,10 +732,16 @@ export const works: Work[] = [
         it: "Rilasciata in produzione con piena capacità offline, messaggistica in tempo reale e ricerca geospaziale sub-secondo, con zero vulnerabilità auth note al lancio e punti ciechi sugli errori ridotti quasi a zero.",
       },
       metrics: [
-        { value: "0", label: { en: "known auth vulnerabilities at launch", it: "vulnerabilità auth note al lancio" } },
-        { value: "<1 s", label: { en: "geospatial caregiver search (PostGIS 3)", it: "ricerca geospaziale dei caregiver (PostGIS 3)" } },
-        { value: "3", label: { en: "runtime layers covered by Sentry: client, server, edge", it: "layer di runtime coperti da Sentry: client, server, edge" } },
+        { value: "0", label: { en: "known auth vulnerabilities at launch", it: "vulnerabilità auth note al lancio" }, source: SRC_ALS },
+        { value: "<1 s", label: { en: "geospatial caregiver search (PostGIS 3)", it: "ricerca geospaziale dei caregiver (PostGIS 3)" }, source: SRC_ALS },
+        {
+          value: "3",
+          label: { en: "runtime layers covered by Sentry: client, server, edge", it: "layer di runtime coperti da Sentry: client, server, edge" },
+          source: SRC_ALS,
+        },
       ],
+      // PRODUCT.md §8.1: production URL not confirmed by Alberto yet.
+      links: [{ label: "Badante24h", pending: "url" }],
     },
   },
 
@@ -606,6 +754,7 @@ export const works: Work[] = [
     year: "2025–2026",
     period: "Nov 2025 – Feb 2026",
     role: "AI & Software Developer · Internship",
+    phaseRole: "Engineer",
     access: "client",
     stack: ["Azure Speech", "Copilot Studio", "Power Automate", "Dynamics 365", "Angular", "TypeScript"],
     status: "confirmed",
@@ -661,6 +810,7 @@ export const works: Work[] = [
     orgMeta: "Academic · Software Engineering exam project",
     year: "B.Sc.",
     role: "Software Engineering exam · Team of 3",
+    phaseRole: "Full-Stack",
     access: "academic",
     stack: ["Java", "Spring Boot", "Spring Security", "PostgreSQL", "JWT", "REST", "Unified Process", "UML"],
     status: "confirmed",
@@ -706,8 +856,8 @@ export const works: Work[] = [
         it: "Una piattaforma multi-ruolo funzionante con architettura documentata e guidata dai pattern e una REST API, consegnata da un team di 3. Il repository è pubblico su GitHub.",
       },
       metrics: [
-        { value: "10", label: { en: "roles: producers, curators, animators, buyers", it: "ruoli: produttori, curatori, animatori, acquirenti" } },
-        { value: "3", label: { en: "people in the team", it: "persone nel team" } },
+        { value: "10", label: { en: "roles: producers, curators, animators, buyers", it: "ruoli: produttori, curatori, animatori, acquirenti" }, source: SRC_UNICAM },
+        { value: "3", label: { en: "people in the team", it: "persone nel team" }, source: SRC_UNICAM },
       ],
       links: [{ label: "GitHub", href: "https://github.com/daveeCity/IDS_GROUP_PROJECT" }],
     },

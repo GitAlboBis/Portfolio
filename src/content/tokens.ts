@@ -1,55 +1,73 @@
 /**
- * tokens.ts — single source of truth for color on the JS/WebGL side.
- * MIRRORS the `@theme` block in src/app/globals.css.
- *
- * Direction: GOLDEN HOUR. Light/warm-white site, sunset palette — orange (ember)
- * led, with coral/amber/rose warmth, a cool dusk counterpoint, and one deep
- * "night" band for drama. Text is warm ink. Light-first (not system-dark).
+ * tokens.ts — the JS/WebGL mirror of the `@theme` palette in src/app/globals.css.
+ * THE JOB ORDER (redesign 2026-09, REDESIGN-SPEC.md §C.1): workshop paper, ink,
+ * graphite for provenance, safety yellow as whole REGIONS, stamp red for stamps
+ * and links, `oil` as the fluid's diffuse reference. Change CSS and this file
+ * together — nothing else defines a colour.
  */
 
-export const palette = {
-  // ── Ground / neutrals (warm whites → warm dark text) ──────────────────────
-  paper: "#fbf6ef", // page ground (warm white)
-  paperDeep: "#f1e4d3", // secondary surface, cards, hairlines
-  ink: "#2a1a14", // primary text (warm espresso)
-  inkMute: "#6e5447", // muted text — AA on paper
+/** The ten colours of the sheet (§C.1). */
+const sheet = {
+  // ── Paper (three sheets) ──────────────────────────────────────────────────
+  paper: "#f5f4ef", // ground of the whole site (top sheet)
+  paperField: "#ebe9e1", // field fill, alternate rows, bench backdrop
+  paperCarbon: "#dcd9cf", // /work/[slug] sub-form ground (carbon copy)
 
-  // ── Sunset ramp: golden → dusk ────────────────────────────────────────────
-  amber: "#f2a33c", // golden hour — fills, large accents
-  coral: "#ff8a4c", // peach-coral — fills, gradient mid
-  ember: "#ee5b23", // PRIMARY accent (orange) — fills, large display, CTAs
-  emberInk: "#bc410f", // darker orange for ORANGE TEXT that needs AA on paper
-  rose: "#e15d6b", // sunset rose-red — accent, gradient
-  dusk: "#5e4b7e", // cool twilight violet — counterpoint accent / depth
+  // ── Ink & graphite ────────────────────────────────────────────────────────
+  ink: "#141414", // primary text, every 1px rule, text on yellow
+  graphite: "#5a5a57", // meta on paper/fields: provenance, captions, units
+  graphiteDeep: "#4a4a47", // meta on carbon copy
 
-  // ── Drama band ─────────────────────────────────────────────────────────────
-  night: "#2a1820", // deep warm plum — the one dark section / footer (text = paper)
+  // ── Stamp red ─────────────────────────────────────────────────────────────
+  stamp: "#b40f29", // stamps on paper, links, arrows
+  stampDeep: "#8a0a1f", // stamp lettering ON the yellow band (6.13:1)
+
+  // ── Safety yellow — regions only, never a stripe ──────────────────────────
+  safety: "#ffc400", // phase band, readouts column, Release panel, focus ring
+
+  // ── Fluid reference (WGSL constant, never text) ───────────────────────────
+  oil: "#c98a2a",
 } as const;
 
-export type PaletteToken = keyof typeof palette;
+/**
+ * DEPRECATED Golden Hour keys — still read by src/content/works.ts (`mood`, until
+ * WP-1/WP-5 restructure it) and src/components/atmosphere/MurmurationCanvas.tsx
+ * (WP-9 deletes). Every alias resolves to a JOB-ORDER tone so nothing sunset can
+ * leak into a render. WP-9 removes this object and the spread below.
+ */
+const legacy = {
+  /** @deprecated → paperField */ paperDeep: sheet.paperField,
+  /** @deprecated → graphite */ inkMute: sheet.graphite,
+  /** @deprecated → paperCarbon */ amber: sheet.paperCarbon,
+  /** @deprecated → paperCarbon */ coral: sheet.paperCarbon,
+  /** @deprecated → stamp */ ember: sheet.stamp,
+  /** @deprecated → stampDeep */ emberInk: sheet.stampDeep,
+  /** @deprecated → stamp */ rose: sheet.stamp,
+  /** @deprecated → graphiteDeep */ dusk: sheet.graphiteDeep,
+  /** @deprecated → ink */ night: sheet.ink,
+} as const;
+
+export const palette = { ...sheet, ...legacy } as const;
+
+/** Token names of the sheet — the legacy keys are deliberately NOT part of this type. */
+export type PaletteToken = keyof typeof sheet;
 
 /**
- * The sunset gradient — warm (golden) → cool (dusk). Used for the hero sky,
- * section washes, and the molten "A". Mirror of --gradient-sunset in CSS.
+ * `oil` as linear RGB for the fluid's `diffuseColor` in
+ * src/webgl/waterball/render/fluid.wgsl.ts (WP-3). Same number as REDESIGN-SPEC §F.1.
  */
-export const sunsetStops: readonly string[] = [
-  "#ffe3b0",
-  palette.amber,
-  palette.coral,
-  palette.ember,
-  palette.rose,
-  palette.dusk,
-] as const;
+export const oilLinear: readonly [number, number, number] = [0.79, 0.54, 0.16];
 
-/** A per-project atmospheric mood for the Works depth gallery — tokens only. */
+/** @deprecated per-project atmosphere of the removed depth gallery — WP-9 deletes. */
 export interface Mood {
   base: string;
   blob1: string;
   blob2: string;
 }
 
+/** @deprecated see `Mood`. Paper tones only, so nothing sunset can leak. */
 export const defaultMood: Mood = {
-  base: palette.paper,
-  blob1: palette.amber,
-  blob2: palette.coral,
+  base: sheet.paper,
+  blob1: sheet.paperField,
+  blob2: sheet.paperCarbon,
 };

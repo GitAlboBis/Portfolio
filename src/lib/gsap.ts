@@ -5,10 +5,10 @@
  * Observer / CustomEase / useGSAP from HERE everywhere so plugins register exactly
  * once. All plugins are free in GSAP 3.13+ (we ship 3.15).
  *
- * LA MAREA — the site's signature eases are registered here as named CustomEases,
- * mirroring the CSS `--ease-*` tokens in globals.css 1:1 (change them together).
- * Components never write literal curves: they say `ease: EASE.tide` via the token
- * table in src/lib/motion.ts.
+ * THE JOB ORDER — the two verbs of the sheet are registered here as named
+ * CustomEases, mirroring `--ease-rule / --ease-stamp / --ease-sheet` in
+ * globals.css 1:1 (change them together). Components never write literal
+ * curves: they say `ease: EASE.rule` via src/lib/motion.ts.
  */
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -21,11 +21,18 @@ import { useGSAP } from "@gsap/react";
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, SplitText, Flip, Observer, CustomEase, useGSAP);
 
-  // Signature curves — JS mirror of --ease-* in globals.css @theme.
-  CustomEase.create("tide", "0.16,1,0.3,1"); // entrances & settles — the default voice
-  CustomEase.create("dive", "0.65,0,0.35,1"); // curtains, wipes, state transitions
-  CustomEase.create("drift", "0.33,0,0.67,1"); // ambient, continuous drift
-  CustomEase.create("crest", "0.34,1.56,0.64,1"); // wave-overshoot micro-emphasis
+  // The sheet's verbs — JS mirror of --ease-* in globals.css :root (§C.6).
+  CustomEase.create("rule", "0.16,1,0.3,1"); // RULE-IN — rules drawing themselves
+  CustomEase.create("stamp", "0.2,0.9,0.25,1.03"); // STAMP — impact, hair of overshoot
+  CustomEase.create("sheet", "0.65,0,0.35,1"); // route cover — the paper sheet rising
+
+  // DEPRECATED — Golden Hour curves, kept registered ONLY so the old components
+  // (reveal/**, atmosphere/**, Preloader, RouteTransition…) don't throw on an
+  // unknown ease name until WP-9 deletes them. Do not use in new code.
+  CustomEase.create("tide", "0.16,1,0.3,1");
+  CustomEase.create("dive", "0.65,0,0.35,1");
+  CustomEase.create("drift", "0.33,0,0.67,1");
+  CustomEase.create("crest", "0.34,1.56,0.64,1");
 }
 
 export { gsap, ScrollTrigger, SplitText, Flip, Observer, CustomEase, useGSAP };

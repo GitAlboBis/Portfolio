@@ -1,55 +1,52 @@
 "use client";
 
-import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
-import { useUI } from "@/store/ui";
-import { WorkHorizontal } from "@/components/work/WorkHorizontal";
-import { RollLink } from "@/components/motion/RollLink";
+import { works } from "@/content/works";
+import { WorkTable } from "@/components/work/WorkTable";
+import { Release } from "@/components/sections/Release";
+import { Footer } from "@/components/footer/Footer";
+import { phaseAnchor } from "@/lib/phases";
 
 /**
- * WorkIndex — the /work index page: a minimal header + the scroll-driven
- * horizontal gallery of all projects (each slide opens its /work/[slug] case
- * study). The home keeps the depth-fade gallery; this is the dedicated
- * "all work" explorer.
+ * WorkIndex — the `/work` sheet (REDESIGN-SPEC §D, §E.8): the SAME table the
+ * job order prints, with all nine line items instead of the first five. One
+ * source, one component, no second gallery anywhere on the site — the old
+ * horizontal runway and its canvas are gone.
+ *
+ * The page carries `#phase-work`, so the band's WORK cell (pre-stamped on
+ * every `/work*` route) matches the region, and the global skip link
+ * ("Skip to work performed") lands on the table on this route too.
+ *
+ * Below the table, the compact Release (§E.10: the full yellow panel is the
+ * sheet's own signature; sub-routes get the signature cell) and the footer. No
+ * renderer is mounted here: `/work` is DOM, CSS and one capture per public
+ * site.
  */
 export function WorkIndex() {
   const t = useDict();
-  const locale = useUI((s) => s.locale);
-  const toggleLocale = useUI((s) => s.toggleLocale);
 
   return (
-    <main id="main" className="relative min-h-dvh bg-paper">
-      <header className="fixed inset-x-0 top-0 z-50">
-        <nav
-          className="container-edit flex items-center justify-between"
-          style={{ height: "var(--nav-h)" }}
-        >
-          <Link
-            href="/"
-            className="font-display text-lg font-semibold tracking-[-0.02em] text-ink transition-opacity duration-300 hover:opacity-70"
-          >
-            Alberto&nbsp;Tuveri
-          </Link>
-          <div className="flex items-center gap-5 sm:gap-7">
-            <button
-              onClick={toggleLocale}
-              className="t-meta text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
-            >
-              {locale === "en" ? "IT" : "EN"}
-              <span className="sr-only"> — {t.nav.langToggle}</span>
-            </button>
-            <RollLink
-              as={Link}
-              href="/"
-              prefix="←"
-              label={t.journey.back}
-              className="t-meta transition-colors duration-300 hover:text-ember-ink"
-            />
-          </div>
-        </nav>
-      </header>
+    <main id="main">
+      <section
+        id={phaseAnchor("work")}
+        aria-labelledby="work-index-title"
+        className="sheet scroll-mt-[var(--band-h)] pt-8 md:pt-12"
+      >
+        <h1 id="work-index-title" className="f-headline text-ink">
+          {t.work.indexTitle}
+        </h1>
+        <div className="mt-6 md:mt-10">
+          <WorkTable items={works} />
+        </div>
+      </section>
 
-      <WorkHorizontal />
+      {/* the signature cell, not the full panel: the yellow region that closes
+          the order belongs to the sheet itself (§E.10) */}
+      <div className="sheet pt-[var(--section-gap)]">
+        <Release variant="box" />
+      </div>
+
+      <Footer />
     </main>
   );
 }

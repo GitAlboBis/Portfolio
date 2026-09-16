@@ -1,96 +1,84 @@
 "use client";
 
 import * as React from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
-import { DUR, EASE } from "@/lib/motion";
+import { RuleIn } from "@/components/sheet/RuleIn";
+import { useRowStagger } from "@/components/sections/useRowStagger";
 import { useUI } from "@/store/ui";
-import { DrawLine } from "@/components/reveal/DrawLine";
-
-export type JourneyEntry = {
-  period: string;
-  /** headline — education: degree; experience: org. */
-  primary: string;
-  /** sub — education: org; experience: role. */
-  secondary: string;
-};
 
 /**
- * JourneyTimeline — the editorial timeline for /about's Education & Experience.
- * A single self-drawing ember rail (DrawLine, §6) runs down the reading column;
- * each entry carries a node that IGNITES (scale + opacity, fired once) as it
- * enters, and its copy rises with it. The list stays a plain <ul> for screen
- * readers + keyboard; the rail and nodes are aria-hidden decoration.
- * reduced-motion → rail fully drawn, nodes lit, no scroll motion.
+ * JourneyTimeline — Experience and Education on `/about`, as the ruled
+ * two-column tables of the job order (REDESIGN-SPEC §E.13). The editorial
+ * timeline with its drawn line is gone: these are rows of a form — period on
+ * the left, the engagement on the right — every value transcribed from
+ * `src/content/career.ts` (the September 2026 CV).
+ *
+ * The table carries its own `<caption>` and nothing else: there are no column
+ * labels in the copy, so none are invented. Every row's period cell is the row
+ * header (`<th scope="row">`) and the figures are tabular.
+ *
+ * Motion: RULE-IN for the head rule, then the 40ms row stagger — the same two
+ * verbs as every other table on the sheet.
  */
-export function JourneyTimeline({ items }: { items: JourneyEntry[] }) {
-  const ref = React.useRef<HTMLUListElement>(null);
-  const reduced = useUI((s) => s.reducedMotion);
+export interface JourneyRow {
+  /** Stable key (the CV org / degree — never displayed as a key). */
+  id: string;
+  period: string;
+  /** The role (Experience) or the degree (Education). */
+  title: string;
+  org: string;
+  /** Contract type and place. */
+  meta: string;
+  /** The CV's one-line description, where it has one. */
+  note?: string;
+}
 
-  useGSAP(
-    () => {
-      const root = ref.current;
-      if (!root || reduced) return;
+export interface JourneyTimelineProps {
+  caption: string;
+  captionId?: string;
+  rows: JourneyRow[];
+}
 
-      // Copy rises once as each row enters (matches the page's Appear rhythm).
-      gsap.utils.toArray<HTMLElement>(".tl-row", root).forEach((row) => {
-        gsap.from(row, {
-          y: 16,
-          autoAlpha: 0,
-          duration: DUR.swell,
-          ease: EASE.tide,
-          scrollTrigger: { trigger: row, start: "top 85%", once: true },
-        });
-      });
-
-      // Nodes ignite (transform/opacity only — compositor-cheap).
-      gsap.utils.toArray<HTMLElement>(".tl-node", root).forEach((node) => {
-        gsap.fromTo(
-          node,
-          { scale: 0.35, autoAlpha: 0.25 },
-          {
-            scale: 1,
-            autoAlpha: 1,
-            duration: DUR.swell,
-            ease: EASE.crest,
-            scrollTrigger: { trigger: node, start: "top 82%", once: true },
-          },
-        );
-      });
-    },
-    // revertOnUpdate: on a reduced-motion flip, revert the prior per-row/per-node
-    // ScrollTriggers before re-running (else @gsap/react defers cleanup to unmount).
-    { scope: ref, dependencies: [reduced, items.length], revertOnUpdate: true },
-  );
+export function JourneyTimeline({ caption, captionId, rows }: JourneyTimelineProps) {
+  const locale = useUI((s) => s.locale);
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  useRowStagger(rootRef, [locale, rows.length]);
 
   return (
-    <ul ref={ref} className="col-read relative">
-      {/* Self-drawing ember rail down its own gutter, inset far enough that the
-          first node clears the oversized col-meta heading's text overflow.
-          `h-full` (not inset-y) because an <svg> is a replaced element — top/
-          bottom won't stretch it. */}
-      <DrawLine className="pointer-events-none absolute left-[29px] top-0 h-full w-[2px] sm:left-[37px]" />
-      {items.map((e, i) => (
-        <li key={i} className="relative py-6 pl-10 sm:pl-14">
-          <span
-            aria-hidden="true"
-            className="tl-node absolute left-6 top-7 h-[11px] w-[11px] rounded-full sm:left-8"
-            style={{
-              background: "var(--color-ember)",
-              boxShadow: "0 0 0 4px color-mix(in oklab, var(--color-ember) 16%, transparent)",
-            }}
-          />
-          <div className="tl-row flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-            <span>
-              <span className="block font-display text-2xl font-semibold text-ink">
-                {e.primary}
-              </span>
-              <span className="t-body t-body--mute">{e.secondary}</span>
-            </span>
-            {e.period ? <span className="t-meta shrink-0">{e.period}</span> : null}
-          </div>
-        </li>
-      ))}
-    </ul>
+    <RuleIn>
+      <div ref={rootRef}>
+        <table className="w-full border-collapse text-left">
+          <caption
+            id={captionId}
+            className="f-caption py-2 text-left text-graphite"
+          >
+            {caption}
+          </caption>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="align-top">
+                <th
+                  scope="row"
+                  className="w-[34%] border-t border-rule-soft py-4 pr-4 text-left align-top font-normal md:w-[24%] md:pr-8"
+                >
+                  <span className="f-cell block whitespace-normal tabular-nums text-graphite">
+                    {r.period}
+                  </span>
+                </th>
+                <td className="border-t border-rule-soft py-4 align-top">
+                  <span className="f-role block font-semibold text-ink">{r.title}</span>
+                  <span className="f-cell block max-w-none text-ink">{r.org}</span>
+                  <span className="f-meta block text-graphite">{r.meta}</span>
+                  {r.note ? (
+                    <span className="f-cell mt-2 block max-w-none text-graphite">{r.note}</span>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div aria-hidden className="border-t border-ink" />
+      </div>
+    </RuleIn>
   );
 }
 

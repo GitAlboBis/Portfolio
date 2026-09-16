@@ -1,242 +1,139 @@
 "use client";
 
-import * as React from "react";
-import { TransitionLink as Link } from "@/components/transition/TransitionLink";
 import { useDict } from "@/content/dict";
 import { useUI } from "@/store/ui";
-import { ScrollTrigger } from "@/lib/gsap";
-import { DualWaveText } from "@/components/reveal/DualWaveText";
-import { ScrollWords } from "@/components/reveal/ScrollWords";
-import { Appear } from "@/components/motion/Appear";
-import { Parallax } from "@/components/motion/Parallax";
-import { JourneyTimeline } from "@/components/about/JourneyTimeline";
-import { FilmScrub } from "@/components/home/FilmScrub";
-import { LazyOnView } from "@/components/motion/LazyOnView";
-import { ShallowWater } from "@/components/atmosphere/ShallowWater";
-import { GoldenMotes } from "@/components/atmosphere/GoldenMotes";
-import { TornEdge } from "@/components/atmosphere/TornEdge";
-import { RollLink } from "@/components/motion/RollLink";
+import { education, experience, identity } from "@/content/career";
+import { languages } from "@/data/skills";
+import { Field } from "@/components/sheet/Field";
+import { Release } from "@/components/sections/Release";
+import { Footer } from "@/components/footer/Footer";
+import { JourneyTimeline, type JourneyRow } from "@/components/about/JourneyTimeline";
 
 /**
- * AboutJourney — the long-form "/about" page: extended bio, Education, an Experience
- * timeline and the thesis note. Every line is from the confirmed bio in
- * docs/07-PROJECTS.md (no invented facts) and routed through the EN/IT dictionary
- * (`journey.*`). Golden Hour editorial layout + the shared motion primitives.
+ * AboutJourney — `/about`, the OWNER of the job order (REDESIGN-SPEC §E.13).
+ *
+ * The lexicon decision of §B holds: the block is called Owner, not "vehicle".
+ * Everything printed here is transcribed content — `career.ts` for the
+ * identity, the experience and the education rows and the thesis,
+ * `skills.ts` for the languages — and the two holes PRODUCT.md declares are
+ * printed as fields rather than hidden: "Photograph — none on file".
+ *
+ * Layout: the Owner and Summary fields on one ruled row, then Experience and
+ * Education as the ruled two-column tables of `JourneyTimeline`, then Thesis ·
+ * Languages · Photograph, the compact Release (§E.10) and the footer. Motion:
+ * RULE-IN only. No renderer is mounted on this route.
  */
 export function AboutJourney() {
   const t = useDict();
-  const j = t.journey;
   const locale = useUI((s) => s.locale);
-  const toggleLocale = useUI((s) => s.toggleLocale);
 
-  // A locale flip re-flows the whole bio (EN/IT copy lengths differ) while the
-  // scrubbed triggers outside the remounted subtrees keep stale positions —
-  // one debounced refresh after the swap settles (same fix as WorkCaseStudy).
-  React.useEffect(() => {
-    const id = window.setTimeout(() => ScrollTrigger.refresh(), 160);
-    return () => window.clearTimeout(id);
-  }, [locale]);
+  const experienceRows: JourneyRow[] = experience.map((e) => ({
+    id: `${e.org}-${e.period.en}`,
+    period: e.period[locale],
+    title: e.role,
+    org: e.org,
+    meta: e.meta[locale],
+    note: e.note?.[locale],
+  }));
+
+  const educationRows: JourneyRow[] = education.map((e) => ({
+    id: `${e.org}-${e.period.en}`,
+    period: e.period[locale],
+    title: e.degree[locale],
+    org: e.org,
+    meta: e.meta[locale],
+  }));
+
+  // The thesis the CV records, with its own abstract (B.Sc., University of Camerino).
+  const thesis = education.find((e) => e.thesis)?.thesis;
 
   return (
-    <main id="main" className="relative min-h-dvh bg-paper">
-      {/* Minimal header (no in-page section nav — those anchors live on home). */}
-      <header className="fixed inset-x-0 top-0 z-50">
-        {/* paper scrim — the chrome must stay legible over the photo strips
-            below (paper-on-paper = invisible at rest; same as WorkCaseStudy) */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0"
-          style={{
-            height: "calc(var(--nav-h) * 1.6)",
-            background:
-              "linear-gradient(to bottom, var(--color-paper) 38%, color-mix(in oklab, var(--color-paper) 55%, transparent) 68%, transparent)",
-          }}
-        />
-        <nav
-          className="container-edit relative flex items-center justify-between"
-          style={{ height: "var(--nav-h)" }}
-        >
-          <Link
-            href="/"
-            className="font-display text-lg font-semibold tracking-[-0.02em] text-ink transition-opacity duration-300 hover:opacity-70"
-          >
-            Alberto&nbsp;Tuveri
-          </Link>
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* px/py: tap target toward the 44px bar (Nav.tsx's padded-toggle
-                pattern); the tighter gap keeps the optical spacing unchanged */}
-            <button
-              onClick={toggleLocale}
-              className="t-meta px-3 py-2 text-ember-ink underline-offset-4 transition-colors duration-300 hover:underline"
-            >
-              {locale === "en" ? "IT" : "EN"}
-              <span className="sr-only"> — {t.nav.langToggle}</span>
-            </button>
-            <RollLink
-              as={Link}
-              href="/"
-              prefix="←"
-              label={j.back}
-              className="t-meta transition-colors duration-300 hover:text-ember-ink"
-            />
-          </div>
-        </nav>
-      </header>
+    <main id="main">
+      {/* ── Owner · Summary ───────────────────────────────────────────────── */}
+      <section
+        aria-labelledby="owner-name"
+        className="sheet scroll-mt-[var(--band-h)] pt-8 md:pt-12"
+      >
+        <div className="fields grid-12">
+          {/* the field's caption is a label, not a heading: the page's single
+              h1 is the owner's name, and it comes first in the outline */}
+          <Field caption={t.about.captions.owner} className="col-span-12 md:col-span-5">
+            <h1 id="owner-name" className="f-headline mt-1 text-ink">
+              {identity.name}
+            </h1>
+            <p className="f-role mt-3 text-ink">{identity.roleLine}</p>
+            <p className="f-role text-graphite">{identity.subLine}</p>
+          </Field>
 
-      {/* Atmosphere — the Sulcis coast itself as a faint watercolor chart
-          (terracotta/amber/dusk washes, multiply -> melts into the paper),
-          anchored where the intro leaves air, plus golden pollen drifting up
-          the first two viewports. Decorative; the headline names this coast. */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[220vh] overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/coast/sulcis-map.webp"
-          alt=""
-          className="absolute -right-[6%] top-[-2%] w-[min(56vw,860px)] mix-blend-multiply opacity-40"
-          style={{
-            maskImage: "linear-gradient(to bottom, black 55%, transparent 95%)",
-            WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 95%)",
-          }}
+          <Field
+            caption={t.about.captions.summary}
+            delay={0.06}
+            tone="field"
+            className="col-span-12 md:col-span-7"
+          >
+            <p className="f-lead mt-1 text-ink">{identity.summary[locale]}</p>
+          </Field>
+        </div>
+      </section>
+
+      {/* ── Experience ────────────────────────────────────────────────────── */}
+      <section aria-labelledby="experience-caption" className="sheet pt-[var(--section-gap)]">
+        <JourneyTimeline
+          caption={t.about.captions.experience}
+          captionId="experience-caption"
+          rows={experienceRows}
         />
-        <GoldenMotes count={12} salt={7} />
+      </section>
+
+      {/* ── Education ─────────────────────────────────────────────────────── */}
+      <section aria-labelledby="education-caption" className="sheet pt-[var(--section-gap)]">
+        <JourneyTimeline
+          caption={t.about.captions.education}
+          captionId="education-caption"
+          rows={educationRows}
+        />
+      </section>
+
+      {/* ── Thesis · Languages · Photograph ───────────────────────────────── */}
+      <section className="sheet pt-[var(--section-gap)]">
+        <div className="fields grid-12">
+          <Field caption={t.about.captions.thesis} className="col-span-12 md:col-span-8">
+            {thesis ? (
+              <>
+                <p className="f-role mt-1 font-semibold text-ink">{thesis.title}</p>
+                <p className="f-body mt-2 text-ink">{thesis.abstract[locale]}</p>
+              </>
+            ) : null}
+          </Field>
+
+          <Field
+            caption={t.about.captions.languages}
+            delay={0.06}
+            tone="field"
+            className="col-span-12 md:col-span-4"
+          >
+            <ul className="mt-1">
+              {languages.items.map((l) => (
+                <li key={l.en} className="rule-soft py-2 first:border-t-0">
+                  <span className="f-cell block text-ink">{l[locale]}</span>
+                </li>
+              ))}
+            </ul>
+          </Field>
+
+          {/* A declared hole (PRODUCT §8.2), printed as a field — never a
+              placeholder portrait, never an empty frame. */}
+          <Field caption={t.about.captions.photograph} delay={0.12} className="col-span-12">
+            <p className="f-cell mt-1 text-graphite">{t.about.noPhoto}</p>
+          </Field>
+        </div>
+      </section>
+
+      <div className="sheet pt-[var(--section-gap)]">
+        <Release variant="box" />
       </div>
 
-      {/* Intro — over the ShallowWater atmosphere: golden-hour caustics on the
-          paper (the Sulcis coast the headline names), dissolving into dry ground
-          before the bio. Decorative, absolute-fill (zero CLS); no-WebGL falls back
-          to the page's own bg-paper. */}
-      <section
-        className="relative"
-        style={{ paddingBlock: "calc(var(--nav-h) + var(--section-y))" }}
-      >
-        <LazyOnView>
-          <ShallowWater />
-        </LazyOnView>
-        <div className="container-edit grid-edit relative">
-          <Appear as="div" className="col-meta mb-6 lg:mb-0">
-            <p className="t-eyebrow eyebrow-tick">{j.eyebrow}</p>
-          </Appear>
-          <div className="col-read">
-            <DualWaveText as="h1" className="t-display max-w-[20ch]">
-              {j.title}
-            </DualWaveText>
-            <p className="t-lead mt-6">{j.lead}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* The coast itself — the REAL Masua cliff (Gianluca's drone, DJI-LUT
-          graded): a full-bleed editorial strip with a slow parallax window.
-          The page opens on the place, not on empty paper. */}
-      <figure aria-hidden className="relative mb-[var(--section-y)] h-[54vh] overflow-hidden">
-        <Parallax from={-36} to={36} className="absolute inset-x-0 -inset-y-[12%]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/coast/masua-cliff.webp"
-            alt=""
-            className="h-full w-full object-cover"
-          />
-        </Parallax>
-        {/* the paper TEARS open on the photograph — ragged fibre seams */}
-        <TornEdge side="top" seed={5} />
-        <TornEdge side="bottom" seed={11} />
-      </figure>
-
-      {/* Bio */}
-      <section className="container-edit pb-[var(--section-y)]">
-        <div className="grid-edit">
-          <div className="col-read flex flex-col gap-6">
-            {j.bio.map((p, i) => (
-              <ScrollWords as="p" key={i} className="t-body">
-                {p}
-              </ScrollWords>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* LA ROCCIA — real drone film of Masua/Porto Flavia (scroll-scrubbed):
-          the coast the footer coordinates point at, and a 1924 lesson in
-          engineering carved into the landscape. Real footage (G. Ghiani). */}
-      <FilmScrub
-        srcDesktop="/coast/rock-1600.mp4"
-        srcMobile="/coast/rock-960.mp4"
-        poster="/coast/rock-poster.jpg"
-        eyebrow={j.film.eyebrow}
-        title={j.film.title}
-        meta={j.film.meta}
-        heightVh={220}
-      />
-
-      {/* Education + Experience */}
-      <section className="container-edit pb-[var(--section-y)]">
-        <div className="grid-edit gap-y-16">
-          <div className="col-meta mb-4 lg:mb-0">
-            <h2 className="t-title">{j.educationTitle}</h2>
-          </div>
-          <JourneyTimeline
-            items={j.education.map((e) => ({
-              period: e.period,
-              primary: e.title,
-              secondary: e.org,
-            }))}
-          />
-
-          <div className="col-meta mb-4 mt-8 lg:mb-0 lg:mt-0">
-            <h2 className="t-title">{j.experienceTitle}</h2>
-          </div>
-          <JourneyTimeline
-            items={j.experience.map((e) => ({
-              period: e.period,
-              primary: e.org,
-              secondary: e.role,
-            }))}
-          />
-        </div>
-      </section>
-
-      {/* Thesis */}
-      <section className="container-edit pb-[var(--section-y)]">
-        <div className="grid-edit">
-          <div className="col-meta mb-4 lg:mb-0">
-            <p className="t-eyebrow eyebrow-tick">{j.thesisTitle}</p>
-          </div>
-          <div className="col-read">
-            <ScrollWords as="p" className="t-lead">
-              {j.thesis}
-            </ScrollWords>
-          </div>
-        </div>
-      </section>
-
-      {/* Closing CTA — night band over the REAL night: Pan di Zucchero under
-          the Milky Way (warm-dark overlay keeps the copy AA on any pixel). */}
-      <section className="night bleed relative overflow-hidden" style={{ background: "var(--color-night)" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/coast/night-sea.webp"
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover object-[center_38%]"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to right, color-mix(in srgb, var(--color-night) 78%, transparent), color-mix(in srgb, var(--color-night) 45%, transparent))",
-          }}
-        />
-        <div className="container-edit relative flex flex-col items-start gap-6 py-16 sm:flex-row sm:items-center sm:justify-between">
-          <p className="t-title max-w-[16ch]">{t.contact.headline}</p>
-          <Link
-            href="/#contact"
-            className="link t-meta whitespace-nowrap text-amber transition-colors duration-300 hover:text-paper"
-          >
-            {t.contact.cta} →
-          </Link>
-        </div>
-      </section>
+      <Footer />
     </main>
   );
 }

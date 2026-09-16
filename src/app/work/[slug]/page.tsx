@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import { works, worksConfirmed } from "@/content/works";
-import { WorkCaseStudy } from "@/components/work/WorkCaseStudy";
+import { works } from "@/content/works";
+import { SubForm } from "@/components/work/SubForm";
 
-// Only confirmed projects get a case-study page; unknown/provisional slugs 404.
+/* `/work/[slug]` — the sub-form on the carbon copy (REDESIGN-SPEC §D, §E.12).
+   All nine line items are prerendered; anything else is a 404 (the job order
+   has no tenth row). */
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return worksConfirmed.map((w) => ({ slug: w.slug }));
+  return works.map((w) => ({ slug: w.slug }));
 }
 
 type Params = { params: Promise<{ slug: string }> };
@@ -15,6 +17,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const w = works.find((x) => x.slug === slug);
   const title = w ? w.title : "Work";
+  // The card's description is the job's own summary, EN (metadata has no locale).
   const description = w?.study?.summary.en;
   const ogTitle = `${title} — Alberto Tuveri`;
   return {
@@ -22,11 +25,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     description,
     alternates: { canonical: `/work/${slug}` },
     openGraph: { url: `/work/${slug}`, title: ogTitle, description },
-    twitter: { title: ogTitle, description },
+    twitter: { card: "summary_large_image", title: ogTitle, description },
   };
 }
 
-export default async function WorkPage({ params }: Params) {
+export default async function WorkSubFormPage({ params }: Params) {
   const { slug } = await params;
-  return <WorkCaseStudy slug={slug} />;
+  return <SubForm slug={slug} />;
 }

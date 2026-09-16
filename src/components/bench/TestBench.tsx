@@ -97,15 +97,39 @@ export function TestBench({ className, ...rest }: TestBenchProps) {
             ) : null}
 
             {isStill ? (
-            // The labelled still. TODO(WP-7b): drop the captured frame
-            // public/bench/tank-still-{1520,700}.webp in behind this label
-            // (Chrome WebGPU capture of this very engine, provenance embedded).
-            // Until it exists the box stays the bare paper-field ground — a
-            // missing image is never rendered as a broken one.
-              <div className="absolute inset-0 grid place-content-center justify-items-center gap-2 px-6 text-center">
-                <span className="f-stamp text-ink">{t.bench.still}</span>
-                {reasonLine ? <span className="f-meta text-graphite">{reasonLine}</span> : null}
-              </div>
+              <>
+                {/* The captured frame of THIS engine (WP-7b): shot from the live
+                    bench on /dev/bench with Chrome WebGPU, cropped to the inside
+                    of the ruled frame (the frame is drawn by `.bench-box`, so the
+                    raster must not carry a second one), provenance embedded in
+                    EXIF + public/bench/PROVENANCE.md. Plain <img>: a decorative,
+                    fixed-size raster inside an aspect-ratio box — no CLS to
+                    solve, nothing for the image optimiser to do.
+                    alt="" on purpose: the caption above the frame and the STILL
+                    label + reason line below already carry the meaning. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/bench/tank-still-1520.webp"
+                  srcSet="/bench/tank-still-700.webp 700w, /bench/tank-still-1520.webp 1520w"
+                  sizes="(max-width: 767px) 350px, 760px"
+                  width={1520}
+                  height={1079}
+                  alt=""
+                  aria-hidden
+                  draggable={false}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 grid place-content-center justify-items-center gap-2 px-6 text-center">
+                  <span className="f-stamp text-ink">{t.bench.still}</span>
+                  {/* the reason line was graphite while the ground was bare
+                      paper-field (5.70:1). Over the captured amber body graphite
+                      measures 2.50:1 — an AA failure the still would have
+                      introduced — so on the still surface it prints in ink
+                      (6.01:1 measured over the amber body). Same string, same
+                      place, same size: only the ink is darker. */}
+                  {reasonLine ? <span className="f-meta text-ink">{reasonLine}</span> : null}
+                </div>
+              </>
             ) : null}
           </div>
 

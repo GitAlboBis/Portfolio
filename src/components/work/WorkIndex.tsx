@@ -26,7 +26,7 @@ export function WorkIndex() {
   const t = useDict();
 
   return (
-    <main id="main">
+    <main id="main" tabIndex={-1}>
       <section
         id={phaseAnchor("work")}
         aria-labelledby="work-index-title"

@@ -34,6 +34,10 @@ export interface MeasuredRowProps {
   labelClassName: string;
   /** Column labels, for the mobile pairs. */
   cols: { item: string; before: string; after: string; source: string };
+  /** Screen-reader name of the before→after cell on mobile (the arrow says it visually). */
+  pairLabel: string;
+  /** The provenance this row's group already prints; "" when the group has none. */
+  groupSource?: string;
 }
 
 /** Bare numerals only: "4.75" → 4.75, "sub-second" / "21 / 49" → null. */
@@ -43,7 +47,14 @@ function numeral(s: string | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export function MeasuredRow({ metric, cellClassName, labelClassName, cols }: MeasuredRowProps) {
+export function MeasuredRow({
+  metric,
+  cellClassName,
+  labelClassName,
+  cols,
+  pairLabel,
+  groupSource = "",
+}: MeasuredRowProps) {
   const locale = useUI((s) => s.locale);
   const rowRef = React.useRef<HTMLTableRowElement>(null);
   const arrowRef = React.useRef<SVGPathElement>(null);
@@ -105,9 +116,16 @@ export function MeasuredRow({ metric, cellClassName, labelClassName, cols }: Mea
       </td>
 
       <td role="cell" className={cn(cellClassName, "md:text-right")}>
-        <span className={labelClassName}>
-          {isPair ? `${cols.before} → ${cols.after}` : cols.after}
-        </span>
+        {/* On the sheet the column head names this cell. At 390px the pair is
+            printed on one line WITH its drawn arrow, so a visible "BEFORE →
+            AFTER" caption over every one of 32 rows was repetition, not
+            information (finish review F5) — the name stays, for the screen
+            reader that cannot see the arrow. */}
+        {isPair ? (
+          <span className="sr-only md:hidden">{pairLabel}</span>
+        ) : (
+          <span className={labelClassName}>{cols.after}</span>
+        )}
         <span className="f-cell flex items-baseline gap-2 whitespace-nowrap tabular-nums text-ink md:justify-end">
           {isPair ? (
             <span className="md:hidden">{`${metric.before}${unit}`}</span>
@@ -134,7 +152,16 @@ export function MeasuredRow({ metric, cellClassName, labelClassName, cols }: Mea
         </span>
       </td>
 
-      <td role="cell" className={cn(cellClassName, "md:text-right")}>
+      {/* Provenance: always the right-hand column on the sheet; on mobile only
+          when it differs from the one the group header already printed (F5). */}
+      <td
+        role="cell"
+        className={cn(
+          cellClassName,
+          "md:text-right",
+          metric.source[locale] === groupSource && "hidden md:table-cell",
+        )}
+      >
         <span className={labelClassName}>{cols.source}</span>
         <span className="f-meta block text-graphite">{metric.source[locale]}</span>
       </td>

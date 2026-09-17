@@ -65,11 +65,15 @@ export function JourneyTimeline({ caption, captionId, rows }: JourneyTimelinePro
                   </span>
                 </th>
                 <td className="border-t border-rule-soft py-4 align-top">
-                  <span className="f-role block font-semibold text-ink">{r.title}</span>
-                  <span className="f-cell block max-w-none text-ink">{r.org}</span>
-                  <span className="f-meta block text-graphite">{r.meta}</span>
+                  <span className="f-role block max-w-[var(--measure)] font-semibold text-ink">{r.title}</span>
+                  {/* `max-w-none` let these rows run the full table width (~87
+                      chars/line on /about). `.f-meta` carries no measure of its
+                      own, so all three are capped at --measure (68ch); short
+                      strings are unaffected. */}
+                  <span className="f-cell block max-w-[var(--measure)] text-ink">{r.org}</span>
+                  <span className="f-meta block max-w-[var(--measure)] text-graphite">{r.meta}</span>
                   {r.note ? (
-                    <span className="f-cell mt-2 block max-w-none text-graphite">{r.note}</span>
+                    <span className="f-cell mt-2 block max-w-[var(--measure)] text-graphite">{r.note}</span>
                   ) : null}
                 </td>
               </tr>

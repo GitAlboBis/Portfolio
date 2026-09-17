@@ -81,6 +81,8 @@ const sectionSchema = z.object({
       frame: z.string(),
       dpr: z.string(),
       tier: z.string(),
+      /** The instrument's own state row — where the reason line is printed. */
+      state: z.string(),
     }),
     /** Fixed readout values (method names, same in both locales). */
     values: z.object({
@@ -88,6 +90,10 @@ const sectionSchema = z.object({
       render: z.string(),
       frameUnit: z.string(),
     }),
+    /** Value of the `state` readout while the fluid settles before it is shown. */
+    settling: z.string(),
+    /** Value of the `state` readout once the bench is live. */
+    running: z.string(),
     tier: z.object({ desktop: z.string(), mobile: z.string() }),
     live: z.string(),
     still: z.string(),
@@ -112,6 +118,8 @@ const sectionSchema = z.object({
   /** E.8 work-performed table (home: 5 rows; /work: all 9). */
   work: z.object({
     caption: z.string(),
+    /** Field caption of the cover's summary block — never the same as `caption`. */
+    summaryCaption: z.string(),
     cols: z.object({ item: z.string(), measured: z.string(), role: z.string(), client: z.string(), open: z.string() }),
     more: z.string(),
     noPhoto: z.string(),
@@ -125,10 +133,14 @@ const sectionSchema = z.object({
   measured: z.object({
     caption: z.string(),
     cols: z.object({ item: z.string(), before: z.string(), after: z.string(), source: z.string() }),
+    /** Mobile: the pair caption, screen-reader only (the arrow prints it visually). */
+    pair: z.string(),
   }),
 
   /** E.12 case-study sub-form on the carbon copy. */
   subform: z.object({
+    /** Parts column: a part the CV's SKILLS block has no group for. */
+    partNoGroup: z.string(),
     fields: z.object({
       customer: z.string(),
       job: z.string(),
@@ -176,6 +188,8 @@ const sectionSchema = z.object({
   /** Screen-reader and skip-link strings. */
   a11y: z.object({
     skip: z.string(),
+    /** Skip-link label on every route that is not the sheet (target: #main). */
+    skipMain: z.string(),
     /** sr-only suffix on the EN/IT toggle (the visible text must stay in the a11y name). */
     langToggle: z.string(),
   }),
@@ -302,8 +316,10 @@ const en: Dict = {
   bench: {
     caption: "Test bench",
     figure: "Fluid under test — MLS-MPM · screen-space fluid · confined to a letter-A field · written against the WebGPU API",
-    readouts: { particles: "Particles", solver: "Solver", render: "Render", frame: "Frame", dpr: "DPR", tier: "Tier" },
+    readouts: { particles: "Particles", solver: "Solver", render: "Render", frame: "Frame", dpr: "DPR", tier: "Tier", state: "State" },
     values: { solver: "MLS-MPM", render: "SSF", frameUnit: "ms" },
+    settling: "Settling",
+    running: "Running",
     tier: { desktop: "Desktop", mobile: "Mobile" },
     live: "LIVE",
     still: "STILL",
@@ -322,6 +338,7 @@ const en: Dict = {
   },
   work: {
     caption: "Work performed",
+    summaryCaption: "Line items on file",
     cols: { item: "Item", measured: "Measured", role: "Role", client: "Client · period", open: "Open" },
     more: "4 more line items",
     noPhoto: "no photograph on file",
@@ -332,8 +349,10 @@ const en: Dict = {
   measured: {
     caption: "Measured",
     cols: { item: "Item", before: "Before", after: "After", source: "Source" },
+    pair: "Before to after",
   },
   subform: {
+    partNoGroup: "not in the catalogue",
     fields: {
       customer: "Customer",
       job: "Job",
@@ -373,6 +392,7 @@ const en: Dict = {
   },
   a11y: {
     skip: "Skip to work performed",
+    skipMain: "Skip to content",
     langToggle: "switch language",
   },
   meta: {
@@ -495,8 +515,10 @@ const it: Dict = {
     caption: "Banco prova",
     figure:
       "Fluido in prova — MLS-MPM · screen-space fluid · confinato in un campo a forma di A · scritto direttamente contro l'API WebGPU",
-    readouts: { particles: "Particelle", solver: "Solver", render: "Render", frame: "Frame", dpr: "DPR", tier: "Tier" },
+    readouts: { particles: "Particelle", solver: "Solver", render: "Render", frame: "Frame", dpr: "DPR", tier: "Tier", state: "Stato" },
     values: { solver: "MLS-MPM", render: "SSF", frameUnit: "ms" },
+    settling: "Assestamento",
+    running: "In moto",
     tier: { desktop: "Desktop", mobile: "Mobile" },
     live: "LIVE",
     still: "STILL",
@@ -515,6 +537,7 @@ const it: Dict = {
   },
   work: {
     caption: "Lavori eseguiti",
+    summaryCaption: "Voci agli atti",
     cols: { item: "Voce", measured: "Misurato", role: "Ruolo", client: "Cliente · periodo", open: "Apri" },
     more: "Altre 4 voci",
     noPhoto: "nessuna fotografia agli atti",
@@ -525,8 +548,10 @@ const it: Dict = {
   measured: {
     caption: "Misurato",
     cols: { item: "Voce", before: "Prima", after: "Dopo", source: "Fonte" },
+    pair: "Da prima a dopo",
   },
   subform: {
+    partNoGroup: "non a catalogo",
     fields: {
       customer: "Cliente",
       job: "Lavoro",
@@ -566,6 +591,7 @@ const it: Dict = {
   },
   a11y: {
     skip: "Vai ai lavori eseguiti",
+    skipMain: "Vai al contenuto",
     langToggle: "cambia lingua",
   },
   meta: {

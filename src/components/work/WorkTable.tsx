@@ -105,10 +105,17 @@ export function WorkTable({
     return (
       <div ref={rootRef} id={id} className={cn("w-full", className)}>
         <table className="w-full border-collapse">
+          {/* A field caption of its own: the cover block and the line-item
+              table below printed the SAME words over the same five rows, which
+              reads as duplication and labels two regions identically for a
+              screen reader (finish review F9). */}
           <caption id={captionId} className="f-caption mb-2 text-left text-graphite">
-            {t.work.caption}
+            {t.work.summaryCaption}
           </caption>
-          <thead>
+          {/* At 390 the two column heads cost the first viewport 41px and say
+              what the caption above them already says; they stay for the screen
+              reader and come back as printed heads on the sheet (F4). */}
+          <thead className="sr-only md:not-sr-only">
             <tr>
               <th scope="col" className={cn(HEAD_CELL, "w-[38%] border-y border-ink px-0")}>
                 {t.work.cols.item}
@@ -119,10 +126,13 @@ export function WorkTable({
             </tr>
           </thead>
           <tbody>
-            {items.map((w) => {
+            {items.map((w, i) => {
               const lines = measuredLines(w, locale, 1);
               return (
-                <tr key={w.slug}>
+                // §A's mobile first viewport budgets TWO line items for the
+                // cover ("due righe Work"); the rest are printed in full in the
+                // Work phase below (finish review F4). Desktop prints all five.
+                <tr key={w.slug} className={i > 1 ? "hidden md:table-row" : undefined}>
                   <th
                     scope="row"
                     className="border-t border-rule-soft py-2 pr-3 text-left align-top"
@@ -196,7 +206,7 @@ export function WorkTable({
                         aria-label={`${w.title} · ${w.capture.label[locale]}`}
                         className="shrink-0"
                       >
-                        <Loupe src={w.capture.src} width={160} height={100} radius={40} />
+                        <Loupe src={w.capture.src} width={160} height={100} radius={60} />
                       </TransitionLink>
                     ) : null}
                     <span className="min-w-0">

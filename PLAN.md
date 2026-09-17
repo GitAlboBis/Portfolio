@@ -1,47 +1,53 @@
-# PLAN — Next steps (prioritized)
+# PLAN — prossimi passi
 
-> Backlog for the Golden Hour portfolio. See **`HANDOFF.md`** for current state + file map, **`CLAUDE.md`** for the operational brain (rules, reference links + code-extraction, skill routing, gates), **`WATER-WAVE-PLAN.md`** for the water sim.
-> Updated **2026-07-16 (bis)**. Latest shipped (HANDOFF §2026-07-16 bis): **② CASE STUDY VIVI FATTO** (IL SERVIZIO FOTOGRAFICO, `f648546`) + **④ WORKS GALLERY DoF FATTO** (RACK FOCUS, P1 chiuso) + **⑤ ECOSISTEMA FATTO** (LA MAREA TOCCA IL NOME, `1b8100d` — wordmark ripple su tide-touch + ScrollProgress underwater/flare). Review avversariali: 21+10 agenti, 5+2 finding fixati. Osservazione preload fantasma CHIUSA (RSC prefetch by-design). **Prossimo round: ③ beat drone — BLOCCATO su questo PC (URL Drive/LUT/master sull'altro PC — serve il link da Alberto); kling loop case study (G5).**
-> (Storico) 2026-07-16: ① MENU-PORTALE (d9a5cf5) + warm-up progressivo + bump deps + 18 skill. **WP-10 mobile VERDE: Lighthouse mobile prod = 84** (2026-07-15).
-> (Storico) 2026-07-12: motion package merged @ `5c9d12c` — hero ink, RollLink/.link, footer wordmark, next-project loop, runway spotlight+odometer.
+> Backlog vivo del branch `feat/redesign-2026-09`, ordinato. Stato al **2026-09-17**: il redesign **"The job order"** è costruito (WP-0 → WP-10), la finish review è chiusa, il batch di fix è applicato, `DESIGN.md` e `.impeccable/design.json` esistono. Il contesto è in [`HANDOFF.md`](./HANDOFF.md); le regole in [`CLAUDE.md`](./CLAUDE.md).
+>
+> Regola che vale su ogni riga di questo file: **niente "fatto" senza prova visiva** (`node scripts/visual-gate.mjs`, desktop + mobile, console pulita).
 
-## ✅ Done 2026-07-12 (motion package — dettagli in HANDOFF)
-- Hero copy over the water "A" (h1 reale, AA pixel-misurato, no-WebGPU fallback rescued) · RollLink char-roll + .link underline-draw (partition table in RollLink.tsx) · footer FlipText wordmark + © dinamico · next-project handoff band sui case study · /work spotlight + odometer + will-change cleanup.
-- **Continuous Curtain SHIPPED (2026-07-12, `f4eb0dc`+`f5c7827`)**: exit-cover via TransitionLink + CoverOverlay (handoff/bail/inert), hash-nav multi-snap, 11-scenario QA matrix. Sbloccato il prossimo candidato: shared-title handoff /work→case study (prototipa, gate spietato).
+---
 
-## ✅ Done (this session — see HANDOFF for the commit list)
-- **CLAUDE.md** rewritten to Golden Hour (+ §6 reference links/extraction, skill routing). Skills installed under `.claude/skills/`.
-- **Multi-page**: `/about` (bio/education/experience, real confirmed content) + `/work/[slug]` case studies (3 confirmed projects) + **route transition** (sunset curtain via `template.tsx`).
-- **Selected Work** (two surfaces, both → `/work/[slug]`): home keeps the **depth fly-through gallery** (`WorksGallery`, `#works`, caption "Open case →" / "All work ↗"); **`/work`** is the dedicated index — a **3D arc carousel** (`WorkCarousel` via `WorkIndex`) where clicking a card opens its case study. Real project data in `works.ts`.
-- **Fluid-island nav** (floating glass pill, scroll hide/reveal + reveal-on-pointer-top + active indicator).
-- **Motion system**: parallax backbone, Reveal/ScrollText/WordGenerate/FlipText/ShimmerText, Appear, Marquee (velocity), border-beam CTA, magnetic CTA/wordmark, hero scroll-settle, Preloader.
-- **SEO**: metadata, OG/Twitter cards, favicon (`icon.tsx`), `opengraph-image.tsx`, sitemap, robots, Person JSON-LD.
-- **Email** → public `albertotuveri@gmail.com`. Custom cursor removed (native cursor restored).
+## P0 — bloccanti, servono risposte o decisioni
 
-## ▶ Immediate next (recommended order)
-1. **Re-verify `155115d` visually** (cursor + nav): native cursor visible · nav reappears when reaching to the top after scrolling down. *(Done this session: home depth gallery + `/work` carousel render + console clean + card→`/work/[slug]` click — `82feb3a`.)*
-2. **Get real SerSan ×2 content** from Alberto (titles, Problem→Action→Result, stack) → fill `works.ts` (currently `provisional` WIP) + flip status to `confirmed` so they get `/work` pages. *(Blocking those two cards. 🔵)*
-3. **Perf & A11y pass** (WP-10, no input): Lighthouse mobile ≥80 (skill `frontend-lighthouse`), axe (skill `accessibility-compliance-accessibility-audit`/`fixing-accessibility`), reduced-motion end-to-end, lazy-mount heavy scenes, ensure `leva` is out of the prod bundle, true-mobile 390px QA.
-4. **Cleanup**: delete the dead `src/components/Cursor.tsx` & `.cursor-*`/`html.has-custom-cursor` CSS in `globals.css`. Reconcile the package manager (npm vs the stray `bun.lock`). *(Note: `WorksGallery.tsx` is **kept** — it's the home gallery; do NOT delete it.)*
+| # | Cosa | Chi | Nota |
+|---|---|---|---|
+| 1 | **Rispondere alle domande aperte L.1–L.7** (`REDESIGN-SPEC.md` §L, riprese in `HANDOFF.md` §5) | 🔵 Alberto | Sbloccano Fase B, la correzione del CV, i media e il copy di `/about` |
+| 2 | **Commit del lavoro WP-10** (fix batch + `DESIGN.md` + `.impeccable/design.json` + doc riscritti) | direttore | 19 file modificati + i nuovi; un commit atomico `build(WP-10)` |
+| 3 | **Decidere i 6 sidecar di provenienza** `public/{captures,bench}/*.webp.json` | 🔵 Alberto | Verranno serviti come URL pubblici. Restano o si spostano fuori da `public/`? |
+| 4 | **Impostare `NEXT_PUBLIC_SITE_URL`** nell'ambiente Vercel | direttore | Senza, canonical e OG puntano a `http://localhost:3000` |
+| 5 | **G3 — merge su `main` + deploy** | 🔵 Alberto | Solo con ok esplicito |
 
-## 🎛 Ready-to-build effect presets (already researched — mechanism + reimplementation extracted, NO new deps)
-These came from Workflow research against the CLAUDE.md §6 references; re-implement on our GSAP/Lenis/three stack. Full notes were in the session's workflow outputs — re-run the research workflow if you need them again.
-- **Premium menu overlay** (Codrops): rebuild `MenuOverlay.tsx` with ONE reversible timeline + **SplitText `mask:"lines"`** line reveal + a CSS **hamburger→X morph** toggle (replace the text "Menu"/"Close").
-- **Sticky scroll-stacking sections** (Codrops): wrap home sections so they pin (CSS `sticky`, NOT ScrollTrigger pin) + recede (scale/blur) as the next slides over — *restructures the home scroll rhythm, confirm feel first*.
-- **Tide-rail nav extras**: a side dot-rail (buoys) + scroll-progress hairline + GSAP-Flip sliding active indicator.
-- **Sunset curtain — full version**: add the EXIT cover (intercept internal links → cover → `router.push`) so the curtain covers *before* leaving, not just reveals on enter (medium risk — touches every internal Link).
-- (Rejected/parked: SVG-mask blinds transition; View Transitions API — experimental, fights the WebGPU canvas.)
+---
 
-## 🔵 Needs Alberto / gates
-- **SerSan project content** (above).
-- **`NEXT_PUBLIC_SITE_URL`** env on deploy (absolute OG/canonical/sitemap).
-- **G4** — hero fluid (`src/webgl/waterball/**`) params/feel: don't retune without explicit ok.
-- **G3** — merge to `main` / production deploy: Alberto's ok.
-- **G5** — paid asset generation (Higgsfield/Blender clip + portrait).
-- **Feel review** of the accumulated motion/transitions/nav/carousel — taste sign-off.
+## P1 — qualità, dopo le risposte
 
-## P1/P2 (from the original plan, still open)
-- ~~**Gallery depth-of-field**~~ ✅ FATTO 2026-07-16 bis (RACK FOCUS, `f648546`) · ~~real project stills via `Work.textureSrc`~~ ✅ (still Higgsfield montate su entrambe le superfici, 26bc7de) · ambient WebGL layer (caustics, under content) · wave physics in `WATER-WAVE-PLAN.md` (only with the "A" as a soft reflecting container).
+| # | Cosa | Dipende da | Accettazione |
+|---|---|---|---|
+| 6 | **Rimisurare Lighthouse sul build di produzione** e aggiornare la voce di CV | P0.1 (L.2) | mobile `/` ≥ 80, sotto-route ≥ 90, desktop ≥ 95; i numeri finiscono nel CV **solo** dopo la misura |
+| 7 | **Fase B del banco** — sostituire in `g2p.wgsl.ts` l'asse mediano a 3 segmenti con un SDF di box (`inflate/restoreK/leash` identici), rimuovere "confined to a letter-A field" dalla didascalia | 🔵 **G4**, P0.1 (L.1) | `git diff --stat src/webgl/waterball/mls-mpm` mostra **solo** `g2p.wgsl.ts`; 60fps desktop; still di fallback ricatturato (`scripts/capture-bench.mjs`) |
+| 8 | **Media mancanti** — still/URL per Maintech OMA, Domus Tua, brand film, Badante24h | P0.1 (L.3) | Ogni riga passa da "no photograph on file" / "URL: pending" a una cattura reale con provenienza incorporata e l'etichetta "capture · <mese> <anno>"; `impeccable embed-prompt --scan` = 0 missing |
+| 9 | **Ritratto su `/about`** oppure conferma definitiva di "nessun volto" | P0.1 (L.4) | Il campo "Photograph" stampa un'immagine o resta un buco dichiarato, mai un segnaposto |
+| 10 | **Prima viewport mobile (F4, residuo)** — portare anche la cella Email a tutta larghezza sopra la piega a 390×844, o emendare la riga di contratto | — | Oggi sopra la piega: strip, nome 52px, Role, banda 48px, banco 350×230 + letture, la prima voce di lavoro. La cella Email della **banda** è comunque sempre visibile |
+| 11 | **`works.ts` `role` localizzato** (slot EN/IT sul tipo `Work`) | 🔵 Alberto (copy) | Serve solo se vuole "Sole engineer and designer" anche in italiano |
 
-## Housekeeping
-- Rewrite or archive the dated `docs/*` and `DESIGN-SYSTEM.md` (still "Ocean") for Golden Hour, or delete to avoid confusion (CLAUDE.md already supersedes them).
+---
+
+## P2 — housekeeping
+
+| # | Cosa | Nota |
+|---|---|---|
+| 12 | **Rimuovere le dipendenze non più usate**: `three`, `@react-three/fiber`, `@react-three/drei`, `@react-three/postprocessing`, `postprocessing`, `simple-icons` | Il mondo attuale non monta nessuna scena R3F e non usa loghi. Verifica con `grep -r "three\|simple-icons" src` prima di togliere, poi `npm run build` |
+| 13 | **Archiviare i doc storici**: `ANIMATION-PLAN.md`, `CODEDROPSPLAN.md`, `IDEAS.md`, `docs/0*.md` → `docs/archive/` | Descrivono mondi eliminati. `docs/redesign/` resta dov'è: è il record del round di direzione |
+| 14 | **Potare `scripts/probes/`** — ~60 sonde, molte legate a mondi morti (`_wave`, `_tide`, `_nightfall`, `_runway`, `_dof`…) | Tenere: `a11y-gate.mjs`, `wp10-evidence.mjs`, `_recapture.mjs`, `_contrast.mjs`, `_shoot.mjs` e le sonde `_fix_*` del batch WP-10 |
+| 15 | **`.shots/` in `.gitignore`** e ripulire le catture vecchie | Le evidenze archiviate vivono in `.impeccable/review/` e `.shots/wp10-fixed/` |
+| 16 | **Verificare che la chiave `localStorage` `"ocean-ui"` non dia fastidio** | Nome legacy ma funzionante: rinominarla richiede una migrazione, non farlo a cuor leggero |
+| 17 | **Sonda di campionamento ripetuto per axe** — oggi axe gira una volta per route, dopo l'assestamento | Uno snapshot singolo può non vedere uno stato transitorio di animazione (è così che il difetto F6 è sfuggito al gate e l'ha visto Lighthouse) |
+
+---
+
+## Non fare
+
+- **Non toccare `src/webgl/waterball/mls-mpm/**` né `common.ts`** senza sblocco G4 esplicito.
+- **Non reintrodurre** ombre, gradienti, vetro, sezioni scure, monospace, count-up sui numeri, icon cloud, gallerie 3D: sono nella refuse list di `DESIGN.md`, e mezza di quella lista è il mondo che Alberto ha rifiutato.
+- **Non scrivere copy nei componenti**: passa da `src/content/dict.ts`, EN e IT insieme.
+- **Non stampare un numero** che non sia in `PRODUCT.md` §3/§9.
+- **Non fidarsi di uno screenshot full-page** di una pagina oltre i 16.384 px di device pixel: si cattura a tile.

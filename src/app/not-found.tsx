@@ -17,7 +17,7 @@ import { TransitionLink } from "@/components/transition/TransitionLink";
 export default function NotFound() {
   const t = useDict();
   return (
-    <main id="main" className="sheet min-h-[calc(100dvh-var(--band-h)-3rem)] py-[var(--section-gap)]">
+    <main id="main" tabIndex={-1} className="sheet min-h-[calc(100dvh-var(--band-h)-3rem)] py-[var(--section-gap)]">
       <div className="fields grid-12">
         <Field caption={t.header.caption} className="col-span-12 md:col-span-8 min-h-[16rem] md:min-h-[22rem]">
           <div className="flex h-full flex-col justify-between gap-8">

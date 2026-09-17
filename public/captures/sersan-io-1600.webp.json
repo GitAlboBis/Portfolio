@@ -1,0 +1,4 @@
+{
+  "prompt": "ORIGIN (pre-existing raster, not generated): browser capture of the live public site https://sersan.io, taken 2026-09-16 with Playwright (Chrome 152.0.7977.83, channel chrome), viewport 1600x1000 @ DPR 1, waitUntil networkidle + settle, cookie banner declined, scrolled to 0; encoded to WebP q78 effort 6 with sharp by scripts/capture-sites.mjs. Site owned by SerSan; used as evidence of work performed. Full record: public/captures/PROVENANCE.md",
+  "createdAt": "2026-09-17T00:28:32.318Z"
+}

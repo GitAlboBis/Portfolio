@@ -113,11 +113,14 @@ export function StyleguideSheet() {
   const sg = t.styleguide;
 
   return (
-    <main id="main" className="sheet pb-24 pt-[var(--section-gap)]">
+    <main id="main" tabIndex={-1} className="sheet pb-24 pt-[var(--section-gap)]">
       {/* ── Header: caption + lead (the EN | IT toggle lives in HeaderStrip) ── */}
       <section className="grid-12 fields">
         <Field className="col-span-12">
-          <h1 className="f-caption field-caption">{sg.title}</h1>
+          {/* the h1 used to print at `.f-caption` (13px) — the same size as every
+              h2/h3 on the page and smaller than body, so the sheet had no type
+              hierarchy at all. It is the title of the document: headline scale. */}
+          <h1 className="f-headline text-ink">{sg.title}</h1>
           <p className="f-lead mt-2">{sg.lead}</p>
         </Field>
       </section>
@@ -181,7 +184,7 @@ export function StyleguideSheet() {
       {/* ── AA: every §C.2 pair, ratio computed at render time ────────────── */}
       <section className="mt-[var(--section-gap)]">
         <SheetCaption>{sg.aa.caption}</SheetCaption>
-        <p className="f-meta mt-2 text-graphite">
+        <p className="f-meta mt-2 max-w-[var(--measure)] text-graphite">
           {sg.aa.normalNote.replace("{n}", AA_NORMAL.toFixed(1))} {sg.aa.largeNote.replace("{n}", AA_LARGE.toFixed(1))}
         </p>
         <AATable rows={AA_PAIRS} sg={sg} label={sg.aa.caption} />
@@ -248,7 +251,7 @@ export function StyleguideSheet() {
             </a>
           </div>
         </div>
-        <p className="f-meta mt-2 text-graphite">
+        <p className="f-meta mt-2 max-w-[var(--measure)] text-graphite">
           {palette.safety} · {formatRatio(contrastRatio(palette.ink, palette.safety))} : 1 ·{" "}
           {formatRatio(contrastRatio(palette.stampDeep, palette.safety))} : 1
         </p>
@@ -276,7 +279,7 @@ export function StyleguideSheet() {
       </section>
 
       <Perforation className="mt-[var(--section-gap)]" />
-      <p className="f-strip text-graphite">
+      <p className="f-strip max-w-[var(--measure)] text-graphite">
         {t.footer.copyright} · {sg.note}
       </p>
     </main>
@@ -318,7 +321,7 @@ function AATable({
             <span role="cell" className="row-span-2 md:row-span-1">
               <span
                 aria-hidden="true"
-                className="f-stamp flex h-12 w-full items-center justify-center md:w-16"
+                className="f-stamp flex h-12 w-full items-center justify-center text-[1.5rem] md:w-16"
                 style={{ background: p.bg, color: p.fg, outline: "1px solid var(--color-rule-soft)", outlineOffset: -1 }}
               >
                 Aa

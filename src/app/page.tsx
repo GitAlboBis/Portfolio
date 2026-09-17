@@ -53,7 +53,7 @@ export default function Home() {
   const sheetRows = works.slice(0, 5);
 
   return (
-    <main id="main">
+    <main id="main" tabIndex={-1}>
       <JobOrderHeader />
       <PhaseBand />
 
@@ -64,14 +64,18 @@ export default function Home() {
           one phase at a time on the way down (§E.3). */}
       <section
         id={phaseAnchor("intake")}
-        className="sheet scroll-mt-[var(--band-h)] pb-[var(--section-gap-after)] pt-4"
+        className="sheet scroll-mt-[var(--band-h)] pb-[var(--section-gap-after)] pt-2 md:pt-4"
       >
-        <div className="flex flex-col gap-8 xl:flex-row xl:items-stretch xl:gap-8">
+        <div className="flex flex-col gap-4 md:gap-8 xl:flex-row xl:items-start xl:gap-8">
           <TestBench className="min-w-0 xl:flex-1" />
 
-          <div className="flex min-w-0 flex-col gap-6 xl:w-[420px] xl:shrink-0">
+          {/* The signature cell sizes to its content: `xl:flex-1` stretched it to
+              the bench's 540px and `justify-between` pushed its two lines to the
+              far ends, leaving ~200px of empty yellow in the first viewport
+              (finish review F1). The column no longer stretches either. */}
+          <div className="flex min-w-0 flex-col gap-4 md:gap-6 xl:w-[420px] xl:shrink-0">
             <WorkTable items={sheetRows} variant="summary" />
-            <Release variant="box" className="xl:flex-1" />
+            <Release variant="box" />
           </div>
         </div>
       </section>
@@ -83,6 +87,9 @@ export default function Home() {
       {/* ── Work performed — the line items (§E.8) ───────────────────────── */}
       <section
         id={phaseAnchor("work")}
+        /* skip-link target on the sheet: focusable so Enter really moves focus
+           here (tabindex="-1" keeps it out of the tab sequence). */
+        tabIndex={-1}
         aria-labelledby="work-caption"
         className="sheet scroll-mt-[var(--band-h)] pt-[var(--section-gap)]"
       >

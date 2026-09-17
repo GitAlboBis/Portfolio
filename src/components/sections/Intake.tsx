@@ -42,6 +42,11 @@ export function Intake() {
             {t.intake.ownerCaption}
           </h2>
           <p className="f-lead mt-1 text-ink">{t.intake.positioning}</p>
+          {/* Printed HERE on a phone only: row B of the mobile first viewport
+              cannot afford it and the Owner field is the same identity (§E.2,
+              §E.4; finish review F4). `display:none` on the other side means it
+              is announced exactly once at every width. */}
+          <p className="f-meta mt-3 text-graphite md:hidden">{t.header.degree}</p>
         </Field>
 
         <Field

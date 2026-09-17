@@ -85,7 +85,13 @@ export function Estimate() {
                   </td>
                   <td role="cell" className={CELL}>
                     <span className={MOBILE_LABEL}>{t.estimate.cols.items}</span>
-                    <span className="f-cell block max-w-none text-ink">{r.items.join(" · ")}</span>
+                    {/* `max-w-none` let this one line run ~130 characters at 1440 — the only
+                        place on the sheet that doubles the measure floor (finish review
+                        F11). It is a dot-separated scan list, not prose, so it takes the
+                        sheet measure rather than `.f-cell`'s 44ch. */}
+                    <span className="f-cell block max-w-[var(--measure)] text-ink">
+                      {r.items.join(" · ")}
+                    </span>
                   </td>
                 </tr>
               ))}

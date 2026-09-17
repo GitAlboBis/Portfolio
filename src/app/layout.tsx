@@ -3,7 +3,7 @@ import { Archivo } from "next/font/google";
 import { Smooth } from "@/app/_providers/Smooth";
 import { Preloader } from "@/components/Preloader";
 import { CoverOverlay } from "@/components/transition/CoverOverlay";
-import { HeaderStrip, SkipLink } from "@/components/sheet/HeaderStrip";
+import { HeaderStrip } from "@/components/sheet/HeaderStrip";
 import { PhaseBand } from "@/components/sheet/PhaseBand";
 import { SITE, defaultLocale, siteMeta, siteName, titleTemplate } from "@/lib/site";
 import "./globals.css";
@@ -22,7 +22,9 @@ import "./globals.css";
       <html data-motion>.
     - CoverOverlay: la metà EXIT della copertura di route — deve vivere QUI,
       non in template.tsx, per sopravvivere allo swap di rotta che copre.
-    - SkipLink → #phase-work, HeaderStrip (provenienza, tutte le route) e la
+    - HeaderStrip (provenienza, tutte le route; porta dentro il proprio
+      landmark `banner` anche lo SkipLink, che è route-aware: #phase-work
+      sulla sheet, #main altrove) e la
       banda fasi PhaseBand (WP-2). Contratto: l'istanza di layout della banda
       si nasconde su "/" (la home monta <PhaseBand/> DOPO il job-order-header,
       §A FIRST VIEWPORT righe A–C); ogni altra route la riceve da qui.
@@ -139,7 +141,7 @@ export default function RootLayout({
         <Smooth />
         {/* EXIT cover (route transition) — lives here to survive the route swap. */}
         <CoverOverlay />
-        <SkipLink />
+        {/* the skip link is rendered INSIDE HeaderStrip's banner landmark */}
         <HeaderStrip />
         <PhaseBand layoutMount />
         {children}

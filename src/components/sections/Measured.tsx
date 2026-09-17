@@ -23,8 +23,18 @@ import { cn } from "@/lib/cn";
  * Motion: RULE-IN and the arrows drawing (in the row). **No count-up**: the
  * Magic UI number ticker and the spinning counter were evaluated and refused
  * (§E.9) — a printed value is final the moment it is on the sheet.
+ *
+ * THE SOURCE IS HOISTED TO THE GROUP (finish review F5). On the sheet the
+ * provenance is a quiet right-hand column that scans; at 390px the table breaks
+ * into label/value pairs and every row re-printed "SOURCE" plus the whole source
+ * string — "161-question bilingual evaluation set · SerSan 2026" six times inside
+ * one group — which roughly doubled each row and made this one table 44% of the
+ * document. The group header now prints the source its rows share (mobile only:
+ * the desktop column is untouched) and a row only prints its own when it DIFFERS
+ * from the group's. Not one fact is dropped; the repetition is.
  */
-const CELL = "block border-t border-rule-soft px-0 py-3 align-top md:table-cell md:px-4";
+/* denser at 390, where each cell is its own label/value block (finish review F5) */
+const CELL = "block border-t border-rule-soft px-0 py-2 align-top md:table-cell md:px-4 md:py-3";
 const HEAD_CELL = "f-caption whitespace-nowrap px-0 py-2 text-left align-bottom text-graphite md:px-4";
 const MOBILE_LABEL = "f-caption mb-1 block text-graphite md:hidden";
 
@@ -35,7 +45,19 @@ export function Measured() {
   useRowStagger(rootRef, [locale]);
 
   const groups = works
-    .map((w) => ({ work: w, metrics: w.study?.metrics ?? [] }))
+    .map((w) => {
+      const metrics = w.study?.metrics ?? [];
+      // the group's source = the one most of its rows carry (ties keep the first)
+      const tally = new Map<string, number>();
+      for (const m of metrics) {
+        const key = m.source[locale];
+        tally.set(key, (tally.get(key) ?? 0) + 1);
+      }
+      let groupSource = "";
+      let best = 0;
+      for (const [key, n] of tally) if (n > best) [groupSource, best] = [key, n];
+      return { work: w, metrics, groupSource: best > 1 ? groupSource : "" };
+    })
     .filter((g) => g.metrics.length > 0);
 
   const cols = {
@@ -86,6 +108,13 @@ export function Measured() {
                     >
                       <span className="f-role block font-semibold text-ink">{g.work.title}</span>
                       <span className="f-meta block text-graphite">{g.work.org}</span>
+                      {/* mobile only: the provenance every row of this group
+                          shares, printed once instead of on every row (F5) */}
+                      {g.groupSource ? (
+                        <span className="f-meta mt-1 block text-graphite md:hidden">
+                          {cols.source}: {g.groupSource}
+                        </span>
+                      ) : null}
                     </th>
                   </tr>
                   {g.metrics.map((m, i) => (
@@ -95,6 +124,8 @@ export function Measured() {
                       cellClassName={CELL}
                       labelClassName={MOBILE_LABEL}
                       cols={cols}
+                      pairLabel={t.measured.pair}
+                      groupSource={g.groupSource}
                     />
                   ))}
                 </React.Fragment>

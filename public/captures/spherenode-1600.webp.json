@@ -1,0 +1,4 @@
+{
+  "prompt": "ORIGIN (pre-existing raster, not generated): browser capture of the live public site https://spherenode.com, taken 2026-09-16 with Playwright (Chrome 152.0.7977.83, channel chrome), viewport 1600x1000 @ DPR 1, waitUntil networkidle + settle, scrolled to 0; encoded to WebP with sharp by scripts/capture-sites.mjs. Site owned by its respective holder; used as evidence of work performed. Full record: public/captures/PROVENANCE.md Cookie banner declined via 'Only necessary'. Output 1600x1000 WebP q82.",
+  "createdAt": "2026-09-17T00:28:51.096Z"
+}

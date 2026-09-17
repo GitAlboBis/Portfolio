@@ -1,0 +1,293 @@
+﻿[
+  {
+    "antipattern": "cramped-padding",
+    "name": "Cramped padding",
+    "description": "Text is too close to the edge of its container. Two shapes: (1) an element with its own text where the padding is too low for the font size, and (2) a wrapper with text-bearing children and near-zero padding against a visible boundary (border, outline, or non-transparent background) — children land flush against the boundary line. Add at least 8px (ideally 12–16px) of padding inside bordered, outlined, or colored containers.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "http://localhost:3000/",
+    "line": 0,
+    "snippet": "<div> \"bench-box\": children flush against border+bg on top/bottom (no inset)"
+  },
+  {
+    "antipattern": "tight-leading",
+    "name": "Tight line height",
+    "description": "Line height below 1.3x the font size makes multi-line text hard to read. Use 1.5 to 1.7 for body text so lines have room to breathe.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "http://localhost:3000/",
+    "line": 0,
+    "snippet": "line-height 1.05x (need >=1.3)"
+  },
+  {
+    "antipattern": "kicker-above-heading",
+    "name": "Kicker / eyebrow label above heading",
+    "description": "A tiny tracked uppercase or small-caps label sitting as its own block directly above a heading is banned outright, repeated or not. Generated kickers never earn their place: the heading carries its own weight. Delete the label and let the heading speak; if the words matter, work them into the heading or the body.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/",
+    "line": 0,
+    "snippet": "kicker \"Job order\" above h1 \"Alberto Tuveri\""
+  },
+  {
+    "antipattern": "cream-palette",
+    "name": "Cream / beige palette",
+    "description": "A warm cream or beige page background has become the default \"tasteful\" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/",
+    "line": 0,
+    "snippet": "cream/beige page background rgb(245, 244, 239)"
+  },
+  {
+    "antipattern": "cream-palette",
+    "name": "Cream / beige palette",
+    "description": "A warm cream or beige page background has become the default \"tasteful\" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work",
+    "line": 0,
+    "snippet": "cream/beige page background rgb(245, 244, 239)"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sersan-io",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sersan-io",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sersan-io",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sersan-io",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sersan-io",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sersan-io",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "cream-palette",
+    "name": "Cream / beige palette",
+    "description": "A warm cream or beige page background has become the default \"tasteful\" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sersan-io",
+    "line": 0,
+    "snippet": "cream/beige page background rgb(245, 244, 239)"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sphere-ai",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sphere-ai",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sphere-ai",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sphere-ai",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sphere-ai",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sphere-ai",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sphere-ai",
+    "line": 0,
+    "snippet": "Card inside card"
+  },
+  {
+    "antipattern": "cream-palette",
+    "name": "Cream / beige palette",
+    "description": "A warm cream or beige page background has become the default \"tasteful\" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/work/sphere-ai",
+    "line": 0,
+    "snippet": "cream/beige page background rgb(245, 244, 239)"
+  },
+  {
+    "antipattern": "tight-leading",
+    "name": "Tight line height",
+    "description": "Line height below 1.3x the font size makes multi-line text hard to read. Use 1.5 to 1.7 for body text so lines have room to breathe.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "http://localhost:3000/about",
+    "line": 0,
+    "snippet": "line-height 1.30x (need >=1.3)"
+  },
+  {
+    "antipattern": "kicker-above-heading",
+    "name": "Kicker / eyebrow label above heading",
+    "description": "A tiny tracked uppercase or small-caps label sitting as its own block directly above a heading is banned outright, repeated or not. Generated kickers never earn their place: the heading carries its own weight. Delete the label and let the heading speak; if the words matter, work them into the heading or the body.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/about",
+    "line": 0,
+    "snippet": "kicker \"Owner\" above h1 \"Alberto Tuveri\""
+  },
+  {
+    "antipattern": "cream-palette",
+    "name": "Cream / beige palette",
+    "description": "A warm cream or beige page background has become the default \"tasteful\" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/about",
+    "line": 0,
+    "snippet": "cream/beige page background rgb(245, 244, 239)"
+  },
+  {
+    "antipattern": "gray-on-color",
+    "name": "Gray text on colored background",
+    "description": "Gray text looks washed out on colored backgrounds. Use a darker shade of the background color instead, or white/near-white for contrast.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "http://localhost:3000/styleguide",
+    "line": 0,
+    "snippet": "text #5a5a57 on bg #ffc400"
+  },
+  {
+    "antipattern": "tight-leading",
+    "name": "Tight line height",
+    "description": "Line height below 1.3x the font size makes multi-line text hard to read. Use 1.5 to 1.7 for body text so lines have room to breathe.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "http://localhost:3000/styleguide",
+    "line": 0,
+    "snippet": "line-height 1.05x (need >=1.3)"
+  },
+  {
+    "antipattern": "tight-leading",
+    "name": "Tight line height",
+    "description": "Line height below 1.3x the font size makes multi-line text hard to read. Use 1.5 to 1.7 for body text so lines have room to breathe.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "http://localhost:3000/styleguide",
+    "line": 0,
+    "snippet": "line-height 1.20x (need >=1.3)"
+  },
+  {
+    "antipattern": "flat-type-hierarchy",
+    "name": "Flat type hierarchy",
+    "description": "Dominant heading and body roles are separated by less than 1.25× at every step, leaving the size hierarchy flat. Add at least one stronger size step.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/styleguide",
+    "line": 0,
+    "snippet": "Role sizes: body 13px, h2 13px, h3 13px (largest adjacent step 1.00:1; target 1.25:1)"
+  },
+  {
+    "antipattern": "em-dash-overuse",
+    "name": "Em-dash overuse",
+    "description": "Em-dash saturation in body copy is an AI cadence tell. Advisory only: humans use em-dashes legitimately, so this fires only on saturation — at least 8 em-dashes (— or --) at a density near one per 500 characters of body text — never on a long article that uses a few. Prefer commas, colons, periods, or parentheses.",
+    "severity": "advisory",
+    "category": "slop",
+    "file": "http://localhost:3000/styleguide",
+    "line": 0,
+    "snippet": "10 em-dashes in body text",
+    "advisory": true
+  },
+  {
+    "antipattern": "cream-palette",
+    "name": "Cream / beige palette",
+    "description": "A warm cream or beige page background has become the default \"tasteful\" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "http://localhost:3000/styleguide",
+    "line": 0,
+    "snippet": "cream/beige page background rgb(245, 244, 239)"
+  }
+]

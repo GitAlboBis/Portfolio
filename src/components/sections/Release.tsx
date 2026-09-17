@@ -17,8 +17,11 @@ import { cn } from "@/lib/cn";
  *     yellow — §C.2 forbids it), the four public links from `career.ts`, and
  *     the RELEASED stamp landing once in the top-right corner.
  *   variant="box" the signature cell of the first viewport (§A row D): the
- *     same yellow, the caption and the address — the primary action is on
- *     screen before anything is scrolled.
+ *     same yellow, the caption, the ASK (the Release headline, set at `.f-role`)
+ *     and the address — the primary action is on screen, and says what it is
+ *     for, before anything is scrolled. It sizes to its content: stretching it
+ *     to the height of the bench column left ~200px of empty yellow in the most
+ *     valuable block of the sheet (finish review F1).
  *
  * Yellow is a REGION here, never a stripe, and it never animates (§C.7): the
  * only motion is the one stamp landing.
@@ -60,15 +63,26 @@ export function Release({ variant = "panel", className }: ReleaseProps) {
     { scope: rootRef, dependencies: [variant] },
   );
 
+  /* THE ADDRESS MUST NEVER LEAVE ITS PANEL (finish review F3). As an
+     `inline-flex` line this link was an unbreakable 369px box at the `.f-headline`
+     clamp minimum: at 390px it overhung its own yellow panel by 19px and below
+     that it was silently clipped off-screen (375px cut 14px, 360px cut 29px) —
+     invisible to a page-level scrollWidth probe, because clipping keeps
+     scrollWidth clean. It is now a block that WRAPS: `overflow-wrap: anywhere`
+     lets the address break, the 56px target is kept by padding rather than by a
+     fixed line box, and the panel variant takes its own clamp whose minimum
+     (20px) fits an unbroken albertotuveri@gmail.com at 320px. */
   const address = (
     <a
       href={`mailto:${t.release.email}`}
       className={cn(
-        "inline-flex min-h-[56px] items-center text-ink",
+        "block min-h-[56px] py-3 text-ink [overflow-wrap:anywhere]",
         "underline decoration-1 underline-offset-[8px]",
         "transition-[text-decoration-thickness] duration-[var(--dur-hover)] ease-linear",
         "hover:decoration-2 focus-visible:decoration-2",
-        variant === "panel" ? "f-headline" : "f-role font-semibold",
+        variant === "panel"
+          ? "f-headline text-[clamp(1.25rem,5.2vw,2.5rem)]"
+          : "f-role font-semibold",
       )}
     >
       {t.release.cta}
@@ -80,11 +94,12 @@ export function Release({ variant = "panel", className }: ReleaseProps) {
       <div
         ref={rootRef}
         className={cn(
-          "flex min-w-0 flex-col justify-between gap-4 border border-ink bg-safety p-5 text-ink",
+          "flex min-w-0 flex-col gap-3 border border-ink bg-safety p-5 text-ink",
           className,
         )}
       >
         <span className="f-caption block">{t.release.caption}</span>
+        <p className="f-role max-w-[34ch]">{t.release.headline}</p>
         <span className="block">{address}</span>
       </div>
     );

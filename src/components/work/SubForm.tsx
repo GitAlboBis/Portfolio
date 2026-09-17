@@ -59,8 +59,31 @@ export interface SubFormProps {
    Normalised comparison (case, versions and parentheses dropped): an exact
    match first, across every group, so "React Three Fiber" is 3D & Graphics and
    not Front-End; then the longest prefix match ("Postgres 17" → PostgreSQL,
-   "Azure Speech" → Azure (AD, Speech)). No match → no id printed: a part with
-   no catalogue group is a fact, not a gap to fill. */
+   "Azure Speech" → Azure (AD, Speech)), then the alias table below.
+
+   §B's parts raise asks that this column tie every part back to the Estimate
+   catalogue. String matching alone resolved 3 of 8 rows on /work/sphere-ai and
+   left the rest blank, which reads as a data gap rather than a deliberate
+   partial (finish review F12). Two things changed: the aliases below name the
+   catalogue entry a part is a PIECE of — "Semantic chunking" and "Guardrails"
+   are not separate skills, they are what "RAG & embeddings" and "LLM evaluation
+   & guardrails" are made of — and a part the CV's SKILLS block genuinely has no
+   group for now PRINTS that ("not in the catalogue") instead of nothing:
+   absence as information (§B), never a blank cell. */
+const PART_ALIASES: Record<string, string> = {
+  // AI — pieces of "RAG & embeddings" / "LLM evaluation & guardrails"
+  rag: "ai",
+  embeddings: "ai",
+  "semantic chunking": "ai",
+  "llm relevance grader": "ai",
+  guardrails: "ai",
+  // Back-end & DB — Supabase/Postgres surfaces named on their own in a stack
+  // the CV writes "Tailwind CSS v4", a stack line writes "Tailwind v4"
+  "tailwind v": "front-end",
+  rls: "back-end-db",
+  realtime: "back-end-db",
+  "edge functions": "back-end-db",
+};
 function normalise(s: string): string {
   return s
     .toLowerCase()
@@ -80,6 +103,7 @@ function partGroupId(stackItem: string): string | null {
   if (!key) return null;
   const exact = PART_GROUPS.find((p) => p.item === key);
   if (exact) return exact.id;
+  if (PART_ALIASES[key]) return PART_ALIASES[key];
   let best: { id: string; len: number } | null = null;
   for (const p of PART_GROUPS) {
     const [short, long] = p.item.length <= key.length ? [p.item, key] : [key, p.item];
@@ -134,7 +158,7 @@ export function SubForm({ slug }: SubFormProps) {
         : [];
 
   return (
-    <main id="main" className="min-h-dvh bg-paper-carbon pb-[var(--section-gap)]">
+    <main id="main" tabIndex={-1} className="min-h-dvh bg-paper-carbon pb-[var(--section-gap)]">
       <div className="sheet py-6 md:py-10">
         {/* the carbon copy beneath: the same rectangle, 8px down-right, no shadow */}
         <div className="relative">
@@ -267,6 +291,7 @@ export function SubForm({ slug }: SubFormProps) {
                               cellClassName={CELL}
                               labelClassName={MOBILE_LABEL}
                               cols={cols}
+                              pairLabel={t.measured.pair}
                             />
                           ))}
                         </tbody>
@@ -298,9 +323,9 @@ export function SubForm({ slug }: SubFormProps) {
                             {String(i + 1).padStart(2, "0")}
                           </span>
                           <span className="f-cell min-w-0 flex-1 text-ink">{item}</span>
-                          {group ? (
-                            <span className="f-meta shrink-0 text-graphite">{group}</span>
-                          ) : null}
+                          <span className="f-meta shrink-0 text-graphite">
+                            {group ?? t.subform.partNoGroup}
+                          </span>
                         </li>
                       );
                     })}

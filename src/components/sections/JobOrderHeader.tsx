@@ -36,7 +36,12 @@ export function JobOrderHeader() {
         >
           <p className="f-role mt-1 text-ink">{t.header.role1}</p>
           <p className="f-role text-ink">{t.header.role2}</p>
-          <p className="f-meta mt-3 text-graphite">{t.header.degree}</p>
+          {/* The degree line is three lines of 13px at 390px — 66px of the 844
+              the mobile first viewport has to spend (finish review F4). On a
+              phone it is printed once, in the Owner field of the Intake block
+              below the fold, where it belongs to the same identity; here it is
+              a desktop row-B field, exactly as §A specifies. */}
+          <p className="f-meta mt-3 hidden text-graphite md:block">{t.header.degree}</p>
         </Field>
       </div>
     </header>

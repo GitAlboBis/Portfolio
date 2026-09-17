@@ -90,6 +90,17 @@ const FRAME_MARGIN = 1.2;
 const AUTO_ROTATE = false; // the "A" should read head-on, not spin out of legibility
 // readout cadence: the frame-time moving average is published every 500ms (§E.5)
 const FRAME_WINDOW_MS = 500;
+/* SETTLE BEFORE YOU SHOW (finish review F2). The solver is untouched (G4): what
+   changes is only WHEN the first live frame is PRESENTED. From a cold start the
+   sample needs about four seconds of stepping before the confined field reads as
+   a letter — until then the box is an undifferentiated churn, and the caption
+   above it claims a letter-A field. So the engine renders into a canvas that is
+   still transparent, accumulates RENDERED time here (idle time while the bench
+   is scrolled out of view does not count), and only then flips the status to
+   "live" — at which point TestBench cross-fades its captured still out and the
+   LIVE stamp lands. Nothing is faked in the meantime: the readouts are already
+   the real measured values and the `state` readout prints "Settling". */
+const SETTLE_MS = 4200;
 // a box resize rebuilds the render targets; debounced so a live drag doesn't thrash
 const RESIZE_DEBOUNCE_MS = 200;
 
@@ -235,6 +246,9 @@ export function WaterBallHero() {
     let winSum = 0;
     let winN = 0;
     let firstFrameReported = false;
+    /** rendered (not idle) ms since the first presented frame — the settle clock */
+    let settleAcc = 0;
+    let settled = false;
     // LEGACY drain beat (no writer on the bench; kept intact)
     let drained = false;
     let lastOpacity = "";
@@ -365,7 +379,17 @@ export function WaterBallHero() {
       // ── frame-time instrument: moving average over FRAME_WINDOW_MS ──
       const now = performance.now();
       if (lastFrameT > 0) {
-        winSum += now - lastFrameT;
+        const dt = now - lastFrameT;
+        // the settle clock counts RENDERED time only (§F, finish review F2)
+        if (firstFrameReported && !settled) {
+          settleAcc += dt;
+          if (settleAcc >= SETTLE_MS) {
+            settled = true;
+            const st = useHeroStore.getState();
+            if (st.status === "warming") st.set({ status: "live", reason: null });
+          }
+        }
+        winSum += dt;
         winN += 1;
         if (winStart === 0) winStart = now;
         if (now - winStart >= FRAME_WINDOW_MS && winN > 0) {
@@ -452,7 +476,9 @@ export function WaterBallHero() {
         dev.queue.onSubmittedWorkDone().then(() => {
           if (cancelled) return;
           const s = useHeroStore.getState();
-          if (s.status === "compiling") s.set({ status: "live", reason: null });
+          // the pipelines are built and the GPU has produced a frame — but the
+          // sample has not settled yet, so the bench is WARMING, not live.
+          if (s.status === "compiling") s.set({ status: "warming", reason: null });
         });
       }
       rafId = requestAnimationFrame(frame);

@@ -1,0 +1,4 @@
+{
+  "prompt": "ORIGIN (pre-existing raster, not generated): a frame CAPTURED FROM THIS PROJECT'S OWN ENGINE — the MLS-MPM WebGPU fluid test bench (REDESIGN-SPEC §E.5, §F.6), shading WP-3b. Shot 2026-09-16 from http://localhost:3000/dev/bench in engine state 'live' with Playwright (Chrome 152.0.7977.83, --enable-unsafe-webgpu), viewport 1440x1200 CSS px @ deviceScaleFactor 2.05, 8000 ms settle, no pointer poke, no scroll; cropped to .bench-box minus its 1px border (758x538 CSS px) and DOWNSCALED, never upscaled; encoded to WebP q82 effort 6 with sharp by scripts/capture-bench.mjs. Instrument readings at the instant of capture: Particles 74,403 - Frame 16.7 ms - DPR 1.5 - Tier desktop. No artist rendering. Full record: public/bench/PROVENANCE.md Output 700x497.",
+  "createdAt": "2026-09-17T00:28:51.545Z"
+}

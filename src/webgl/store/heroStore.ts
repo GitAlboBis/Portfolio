@@ -16,7 +16,13 @@ import { create } from "zustand";
   is absent: a missing renderer prints STILL + a reason line, never a number.
 
   status:    "compiling" while the device/pipelines/cubemap are being built;
-             "live" after the first rendered frame has completed on the GPU;
+             "warming" after the first rendered frame has completed on the GPU but
+             before the sample has settled: the engine is running and every readout
+             is already real, but the frame is not shown yet (the bench holds its
+             captured still and the `state` readout prints "Settling") because a
+             cold start churns for ~4s before the confined field reads as a letter;
+             "live" once the settle window has elapsed in RENDERED time — the still
+             cross-fades out and the LIVE stamp lands;
              "still" when there is no renderer (no WebGPU / reduced motion);
              "lost" after device.lost (the last frame stays, readouts freeze).
   reason:    why the bench is a still ("nogpu" | "reduced" | "lost") — the
@@ -29,7 +35,7 @@ import { create } from "zustand";
   reveal / video: the old liquid-text and frame-scrub progress values. No
              readers and no writers left; the solver ignores them.
 */
-export type BenchStatus = "compiling" | "live" | "still" | "lost";
+export type BenchStatus = "compiling" | "warming" | "live" | "still" | "lost";
 export type BenchTier = "desktop" | "mobile";
 export type BenchStillReason = "nogpu" | "reduced" | "lost" | null;
 

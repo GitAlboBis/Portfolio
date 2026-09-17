@@ -48,7 +48,7 @@ export function AboutJourney() {
   const thesis = education.find((e) => e.thesis)?.thesis;
 
   return (
-    <main id="main">
+    <main id="main" tabIndex={-1}>
       {/* ── Owner · Summary ───────────────────────────────────────────────── */}
       <section
         aria-labelledby="owner-name"
@@ -100,7 +100,9 @@ export function AboutJourney() {
           <Field caption={t.about.captions.thesis} className="col-span-12 md:col-span-8">
             {thesis ? (
               <>
-                <p className="f-role mt-1 font-semibold text-ink">{thesis.title}</p>
+                {/* `.f-role` carries no measure of its own: the thesis title ran ~87
+                    chars per line at 1280px. */}
+                <p className="f-role mt-1 max-w-[var(--measure)] font-semibold text-ink">{thesis.title}</p>
                 <p className="f-body mt-2 text-ink">{thesis.abstract[locale]}</p>
               </>
             ) : null}

@@ -4,7 +4,8 @@ import * as React from "react";
 import { useDict } from "@/content/dict";
 import { LocaleToggle } from "@/components/sheet/LocaleToggle";
 import { RuleIn } from "@/components/sheet/RuleIn";
-import { phaseHash } from "@/lib/phases";
+import { usePathname } from "next/navigation";
+import { isSheetRoute, phaseHash } from "@/lib/phases";
 import { cn } from "@/lib/cn";
 
 /*
@@ -27,6 +28,11 @@ export function HeaderStrip() {
 
   return (
     <RuleIn role="banner" className="h-10 border-b border-ink md:h-12">
+      {/* The skip link is the first thing in the tab order and it lives INSIDE
+          the banner: as a bare child of <body> it was page content outside every
+          landmark (axe `region`, moderate, on every route). It is sr-only until
+          focused, then `position: fixed` lifts it out of this 40px strip. */}
+      <SkipLink />
       <div className="flex h-full w-full items-stretch f-strip text-graphite">
         <div className={cn(cell, "border-l-0 flex-1 overflow-hidden text-ellipsis")}>
           <span className="truncate text-ink">{t.strip.employer}</span>
@@ -47,23 +53,31 @@ export function HeaderStrip() {
 }
 
 /**
- * SkipLink — "Skip to work performed" → `#phase-work` (REDESIGN-SPEC §G).
+ * SkipLink — the first stop in the tab order (REDESIGN-SPEC §G).
  * Visually hidden until focused, then a ruled ink cell at the top-left on
- * `--z-skip` (above the band and the cover). Lives in this file because the
- * strip is the first thing in the tab order right after it.
+ * `--z-skip` (above the band and the cover).
+ *
+ * The target is ROUTE-AWARE. `#phase-work` only exists on the sheet itself, so
+ * on /about, /styleguide and the 404 the link pointed at nothing (axe
+ * `skip-link`, moderate: "No skip link target") and pressing Enter did nothing.
+ * Off the sheet it goes to `#main` — the landmark each of those routes owns —
+ * with the matching label. Every target carries `tabIndex={-1}` so focus really
+ * lands there instead of staying on the link.
  */
 export function SkipLink() {
   const t = useDict();
+  const pathname = usePathname();
+  const onSheet = isSheetRoute(pathname ?? "/");
   return (
     <a
-      href={phaseHash("work")}
+      href={onSheet ? phaseHash("work") : "#main"}
       className={cn(
         "sr-only focus:not-sr-only focus:fixed focus:left-0 focus:top-0 focus:z-[var(--z-skip)]",
         "focus:flex focus:h-12 focus:items-center focus:border focus:border-ink focus:bg-ink focus:px-5",
         "focus:text-[0.8125rem] focus:font-semibold focus:uppercase focus:tracking-[0.06em] focus:text-paper",
       )}
     >
-      {t.a11y.skip}
+      {onSheet ? t.a11y.skip : t.a11y.skipMain}
     </a>
   );
 }

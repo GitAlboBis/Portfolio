@@ -82,6 +82,10 @@
 }
 @media (max-width: 767.98px) {
   :root {
+    /* The sheet is denser on a phone: the same fields, printed tighter, so the
+       first viewport can still reach the line items (finish review F4). */
+    --field-pad: 12px 16px;
+    --caption-h: 20px;
     --band-h: 48px;
     --bench-w: 350px;
     --bench-h: 230px;
@@ -165,6 +169,15 @@ body {
   :where(.bg-safety, .on-safety):focus-visible {
     outline-color: var(--color-ink);
     box-shadow: 0 0 0 1px var(--color-paper);
+  }
+  /* I bersagli dello skip link (`main[tabindex="-1"]`, `#phase-*`) ricevono il
+     fuoco SOLO in modo programmatico: non sono nella tab sequence, quindi
+     l'anello — che qui cingerebbe l'intero foglio — è rumore, non un indicatore.
+     Il fuoco ci si sposta davvero: il Tab successivo riparte da dentro. */
+  :where(main, section)[tabindex="-1"]:focus,
+  :where(main, section)[tabindex="-1"]:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
   /* Barre di scorrimento: righello, non pillola. */
   @supports (scrollbar-color: auto) {

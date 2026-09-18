@@ -1,0 +1,283 @@
+/* ==========================================================================
+   fx-nav.css · owner WP-A "Navigazione" · prefix nv-
+   Header and its hairline, nav word roll, mobile menu, label cursor, links and
+   buttons (plan §5), the S5 "Tendina" column cover, the S4 "Stacco" sheet and
+   travelling image, and the prototype identity switcher.
+   Tokens, easings and the z scale live in fx-core.css. Nothing here hides page
+   content: the overlays are chrome, and every hidden state either belongs to an
+   overlay or is scoped to a class that only fx-nav.js sets.
+   ========================================================================== */
+
+/* ---------- 1. Header ---------- */
+.hdr {
+  position: fixed; inset: 0 0 auto 0; z-index: var(--z-header);
+  height: var(--hdr);
+  display: flex; align-items: center; justify-content: space-between; gap: 2rem;
+  padding-inline: var(--pad);
+  border-bottom: 1px solid transparent; /* kept transparent: the visible rule is drawn by ::after */
+  background: transparent;
+  transition: background-color 0.3s var(--ease-soft), transform 0.55s var(--ease-io);
+}
+/* the bottom hairline is drawn left to right when the header turns solid */
+.hdr::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: var(--line); transform: scaleX(0); transform-origin: left center;
+  transition: transform 0.6s var(--ease-out);
+}
+.hdr.is-solid { background: var(--paper-deep); }
+.hdr.is-solid::after { transform: scaleX(1); }
+.hdr.is-hidden { transform: translateY(-101%); }
+.brand { display: inline-flex; align-items: center; gap: 0.85rem; text-decoration: none; min-height: 44px; }
+.brand-name { font: 600 1rem/1.2 var(--f-text); text-transform: uppercase; letter-spacing: 0.08em; }
+.mark { position: relative; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); flex: none; }
+.mark svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 50%; }
+.mark-mono { font-family: var(--f-display); font-weight: var(--w-display); font-size: 17px; line-height: 1; letter-spacing: 0; text-transform: uppercase; }
+
+.nav { display: flex; align-items: center; gap: clamp(1.25rem, 2.4vw, 2.5rem); }
+.nav a, .nav .lang {
+  font: 500 1rem/1.2 var(--f-text); text-transform: uppercase; letter-spacing: 0.08em;
+  text-decoration: none; text-underline-offset: 0.4em; text-decoration-thickness: 1.5px;
+}
+.nav a { position: relative; display: inline-flex; align-items: center; color: var(--ink); padding-left: calc(1.25em + 0.55rem); }
+/* accent dash in front of the section currently under the reader. FIX MQ-12: the room for it is
+   reserved, so it only scales in; no word next to it ever moves */
+.nav a::before {
+  content: ""; position: absolute; left: 0; top: 50%; width: 1.25em; height: 1.5px; margin-top: -0.75px;
+  background: var(--accent); transform: scaleX(0); transform-origin: left center;
+  transition: transform 0.45s var(--ease-out);
+}
+.nav a[aria-current="true"]::before { transform: scaleX(1); }
+@media (pointer: coarse) { .nav a { padding-block: 12px; } }   /* FIX A10 */
+.nav .lang { color: var(--stone); }
+.nav .lang b { color: var(--ink); font-weight: 600; }
+
+/* word mask roll: the label leaves upward while its twin arrives from below */
+.nv-roll { display: inline-block; position: relative; overflow: hidden; vertical-align: bottom; }
+.nv-roll > span { display: block; transition: transform 0.45s var(--ease-out); }
+.nv-roll > span + span { position: absolute; left: 0; top: 0; transform: translateY(100%); }
+@media (hover: hover) and (pointer: fine) {
+  .nav a:hover .nv-roll > span:first-child,
+  .nav a:focus-visible .nv-roll > span:first-child { transform: translateY(-100%); }
+  .nav a:hover .nv-roll > span + span,
+  .nav a:focus-visible .nv-roll > span + span { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav .nv-roll > span + span { display: none; }
+  .nav a:hover, .nav a:focus-visible { text-decoration: underline; }
+}
+
+.menu-btn {
+  display: none; background: none; border: 0; padding: 0.6rem 0; color: var(--ink); cursor: pointer; min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  font: 600 1rem/1.2 var(--f-text); text-transform: uppercase; letter-spacing: 0.08em;
+  text-decoration: none; /* an underline inside the roll mask would cut through CLOSE once MENU has left */
+}
+.menu-btn .nv-roll { display: block; min-width: 4.6em; height: 1.2em; }
+.menu-btn.is-open .nv-roll > span:first-child { transform: translateY(-100%); }
+.menu-btn.is-open .nv-roll > span + span { transform: none; }
+@media (max-width: 1023.98px) {
+  .nav { display: none; }
+  .menu-btn { display: inline-flex; align-items: center; }
+  .mark { width: 38px; height: 38px; }
+  .mark-mono { font-size: 15px; }
+}
+
+/* ---------- 2. Mobile menu: five paper columns and a filled second half ---------- */
+.menu {
+  position: fixed; inset: var(--hdr) 0 0 0; z-index: var(--z-menu);
+  background: transparent; overflow-y: auto; overscroll-behavior: contain;
+  visibility: hidden;
+}
+.menu.is-open, .menu.is-closing { visibility: visible; }
+.nv-menu_cols { position: fixed; inset: var(--hdr) 0 0 0; display: flex; pointer-events: none; }
+.nv-menu_cols i {
+  flex: 1 1 0; background: var(--paper-deep);
+  border-left: 1px solid var(--line);
+  box-shadow: 1px 0 0 var(--paper-deep); /* covers the sub-pixel seam at fractional widths */
+}
+.nv-menu_cols i:first-child { border-left-color: transparent; }
+.nv-menu_in {
+  position: relative; min-height: 100%;
+  padding: 2rem var(--pad) 4rem;
+  display: flex; flex-direction: column;
+}
+.menu ul:not(.nv-menu_else) { border-top: 1px solid var(--line); }
+.menu ul:not(.nv-menu_else) li { position: relative; overflow: hidden; }
+.menu ul:not(.nv-menu_else) li::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--line);
+  transform: scaleX(0); transform-origin: left center; transition: transform 0.7s var(--ease-out);
+}
+.menu.is-open ul:not(.nv-menu_else) li::after { transform: scaleX(1); transition-delay: calc(0.18s + var(--k, 0) * 0.06s); }
+.menu li a { display: flex; align-items: baseline; gap: 1rem; padding: 1.1rem 0; text-decoration: none; color: var(--ink); }
+.nv-menu_n { flex: none; width: 2.2em; color: var(--stone); font-style: normal; font-variant-numeric: tabular-nums; }
+.menu .mi { display: inline-block; transform: translateY(110%); transition: transform 0.8s var(--ease-out); }
+/* FIX MQ-06: the words rise once the inner layer is on (0.4 s), so the rise is seen on paper */
+.menu.is-open .mi { transform: none; transition-delay: calc(0.42s + var(--k, 0) * 0.06s); }
+.nav a, .tile-link, .menu a { -webkit-tap-highlight-color: transparent; }
+
+.menu .menu-foot { margin-top: auto; padding-top: clamp(2.5rem, 7vh, 4.5rem); display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+.nv-menu_h { margin: 0; }
+.nv-menu_mail {
+  font: 300 var(--t-lead)/1.25 var(--f-text); color: var(--ink); text-decoration: none;
+  position: relative; word-break: break-word;
+}
+.nv-menu_mail::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -0.12em; height: 1px; background: var(--ink);
+  transform-origin: left center; transition: transform 0.35s var(--ease-soft);
+}
+.nv-menu_mail:hover::after, .nv-menu_mail:focus-visible::after { transform: scaleX(0); transform-origin: right center; }
+.nv-menu_else { display: flex; gap: 1.75rem; margin-top: 1.25rem; }
+.nv-menu_lang { margin-top: 1.25rem; }
+.nv-menu_lang b { color: var(--ink); font-weight: 600; }
+
+/* ---------- 3. Label cursor (fine pointer, motion allowed; built by fx-nav.js) ---------- */
+.nv-cursor {
+  position: fixed; top: 0; left: 0; z-index: var(--z-cursor); pointer-events: none;
+  background: var(--paper); border: 1px solid var(--ink); padding: 0.25rem 0.6rem;
+  font: 500 1rem/1.75rem var(--f-text); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink);
+  opacity: 0;   /* FIX MQ-10: no permanent layer; GSAP promotes it only while it moves */
+}
+.nv-cursor_m { display: block; overflow: hidden; height: 1.75rem; }
+.nv-cursor_m > span { display: block; }
+html[data-fx-locked] .nv-cursor { opacity: 0 !important; }
+
+/* ---------- 4. Links and buttons (plan §5) ---------- */
+.btn { position: relative; overflow: hidden; z-index: 0; }
+.btn::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--accent-dark);
+  clip-path: inset(0 100% 0 0); transition: clip-path 0.35s var(--ease-out);
+}
+/* the fill is the hover state, so the flat colour swap from fx-core.css is switched off */
+.btn:hover, .btn:focus-visible { background: var(--accent); border-color: var(--accent); }
+.btn:hover::before, .btn:focus-visible::before { clip-path: inset(0 0 0 0); }
+.btn:active { transform: scale(0.98); transition: transform 0.12s var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover svg, .btn:focus-visible svg { animation: nv-arrow 0.3s var(--ease-io); }
+}
+/* the arrow leaves top-right and re-enters from bottom-left */
+@keyframes nv-arrow {
+  0% { transform: none; opacity: 1; }
+  44% { transform: translate(0.75em, -0.75em); opacity: 0; }
+  45% { transform: translate(-0.75em, 0.75em); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+/* the one primary address: two hairlines drawn in opposite directions, on their own curves */
+a.ghost[href^="mailto:"]::before { transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1); }
+a.ghost[href^="mailto:"]::after { transition: transform 0.4s cubic-bezier(0.2, 1, 0.8, 1) 0.1s; }
+/* footer and inline links: a faint printed rule that the ink redraws over */
+.link-draw, .foot li a:not(.btn):not(.ghost) {
+  position: relative; text-decoration: none; color: inherit;
+  background-image: linear-gradient(var(--line), var(--line));
+  background-size: 100% 1px; background-position: 0 100%; background-repeat: no-repeat;
+}
+.link-draw::after, .foot li a:not(.btn):not(.ghost)::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: currentColor;
+  transform: scaleX(0); transform-origin: left center; transition: transform 0.35s var(--ease-soft);
+}
+.link-draw:hover::after, .link-draw:focus-visible::after,
+.foot li a:not(.btn):not(.ghost):hover::after,
+.foot li a:not(.btn):not(.ghost):focus-visible::after { transform: scaleX(1); }
+
+/* ---------- 5. S5 "Tendina": the paper column cover ---------- */
+.nv-cols {
+  position: fixed; inset: 0; z-index: var(--z-cols); overflow: hidden;
+  visibility: hidden; pointer-events: none;
+}
+.nv-cols_grid { position: absolute; inset: 0; display: flex; }
+.nv-cols_grid i {
+  flex: 1 1 0; background: var(--paper-deep);
+  border-left: 1px solid var(--line); border-top: 1px solid var(--stone);
+  box-shadow: 1px 0 0 var(--paper-deep); /* 1 px overlap: no seam at fractional column widths */
+}
+.nv-cols_copy { position: absolute; inset: 0; padding: 0 var(--pad) 12vh; display: flex; flex-direction: column; justify-content: flex-end; }
+.nv-cols_mark { position: absolute; top: calc(var(--hdr) / 2 - 22px); left: var(--pad); }
+.nv-cols_label { overflow: hidden; padding: 0.08em 0 0.02em; margin: 0; }
+.nv-cols_label > span { display: block; }
+.nv-cols_sub { margin-top: 1rem; color: var(--stone); overflow: hidden; }
+.nv-cols_sub > span { display: block; }
+@media (max-width: 767.98px) {
+  .nv-cols_grid i:nth-child(n + 6) { display: none; } /* five columns below 768, each still flex: 1 */
+}
+
+/* ---------- 6. S4 "Stacco": the paper sheet and the travelling image ---------- */
+.nv-sheet {
+  position: fixed; inset: 0; z-index: var(--z-nav-sheet); background: var(--paper);
+  visibility: hidden; pointer-events: none;
+}
+.nv-img {
+  position: fixed; inset: 0; z-index: var(--z-nav-img); overflow: hidden;
+  visibility: hidden; pointer-events: none; background: transparent;
+}
+/* FIX (found in r4, mobile S4): the travelling image is the uncropped cover of the viewport at the
+   capture's own aspect, centred, so a portrait phone no longer crops it to a narrow strip before the
+   clip is applied (coverXf assumes exactly this box) */
+.nv-img img {
+  --nvw: max(100vw, calc(100vh * var(--pt-ar, 1.6))); --nvh: max(100vh, calc(100vw / var(--pt-ar, 1.6)));
+  position: absolute; left: 50%; top: 50%; width: var(--nvw); height: var(--nvh);
+  margin: calc(var(--nvh) / -2) 0 0 calc(var(--nvw) / -2);   /* centred by margins: GSAP owns transform (and folds any translate into it) */
+  object-fit: cover; transform-origin: 50% 50%; max-width: none;
+}
+
+/* First paint on arrival. The head script has already written --pt-*, so the overlay lands on the
+   exact pixels the previous page left, with no deferred JS. A guarded CSS failsafe clears it if the
+   navigation module never starts; fx-nav.js sets html[data-nv-live] and takes over. */
+html[data-arrive]:not([data-arrive^="flip"]) .nv-cols { visibility: visible; animation: nv-failsafe 0.3s linear 3.5s forwards; }
+html[data-arrive^="flip"] .nv-sheet { visibility: visible; animation: nv-failsafe 0.3s linear 3.5s forwards; }
+html[data-arrive^="flip"] .nv-img {
+  visibility: visible;
+  clip-path: inset(var(--pt-t, 0px) var(--pt-r, 0px) var(--pt-b, 0px) var(--pt-l, 0px));
+  animation: nv-failsafe 0.3s linear 3.5s forwards;
+}
+html[data-arrive^="flip"] .nv-img img { transform: translate(var(--pt-x, 0px), var(--pt-y, 0px)) scale(var(--pt-s, 1)); }
+html[data-nv-live] .nv-cols, html[data-nv-live] .nv-sheet, html[data-nv-live] .nv-img { animation: none !important; }
+@keyframes nv-failsafe { to { visibility: hidden; } }
+
+/* ---------- 7. Identity switcher (prototype chrome only) ----------
+   Collapsed it is one small square tab that lives inside the page gutter (left 8 px, 32 px wide,
+   the gutter is 8vw = 115 px at 1440), so it never covers a line of content. Hover (fine pointer)
+   or a click / Enter opens the three variants above it; Escape, a choice or a click elsewhere closes.
+   Below 768 the gutter is 5vw, so the tab becomes an 18 px edge tab flush left. */
+.switcher {
+  position: fixed; left: 8px; bottom: 8px; z-index: var(--z-switcher);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.2; color: var(--ink);
+}
+.switcher .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.switcher_tab {
+  all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; background: var(--paper); border: 1px solid var(--ink);
+  font: 700 11px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: 0.02em; color: var(--ink);
+  transition: background-color 0.2s var(--ease-soft), color 0.2s var(--ease-soft);
+}
+.switcher_tab:hover, .switcher[data-open] .switcher_tab { background: var(--ink); color: var(--paper); }
+.switcher_tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.switcher .opts {
+  position: absolute; left: 0; bottom: calc(100% + 6px); min-width: 11.5rem;
+  display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--ink);
+  visibility: hidden; opacity: 0; transform: translateY(6px);
+  transition: opacity 0.2s var(--ease-soft), transform 0.25s var(--ease-out), visibility 0s linear 0.25s;
+}
+/* the 6 px gap is bridged so a hover can travel from the tab into the list */
+.switcher .opts::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 8px; }
+@media (hover: hover) and (pointer: fine) {
+  .switcher:hover .opts { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+}
+.switcher[data-open] .opts { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+.switcher p { padding: 6px 10px 5px; margin: 0; border-bottom: 1px solid var(--line); color: var(--stone); letter-spacing: 0.04em; text-transform: uppercase; font-size: 12px; }
+.switcher .opts button {
+  all: unset; box-sizing: border-box; cursor: pointer; padding: 8px 10px; display: flex; gap: 8px; align-items: center;
+  font-size: 14px; color: var(--ink); border-top: 1px solid transparent; white-space: nowrap;
+}
+.switcher .opts button + button { border-top-color: var(--line); }
+.switcher .opts button b { font-weight: 700; min-width: 1.4em; }
+.switcher .opts button:hover { background: var(--paper-deep); }
+.switcher .opts button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.switcher .opts button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (max-width: 767.98px) {
+  .switcher { left: 0; bottom: 12px; }
+  .switcher_tab { width: 24px; height: 44px; border-left: 0; font-size: 10px; writing-mode: vertical-rl; }
+  .switcher .opts { left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .switcher .opts { transform: none; transition: none; } }
+@media (pointer: coarse) and (min-width: 768px) { .switcher_tab { width: 44px; height: 44px; } }   /* FIX A10 */
+/* FIX MQ-11: during a cut or under the menu the prototype chrome is not painted over the cover */
+html[data-fx-locked] .switcher .opts { visibility: hidden !important; opacity: 0 !important; }

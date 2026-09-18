@@ -1,0 +1,187 @@
+/* ==========================================================================
+   fx-hero.css · owner WP-B "Carta corrente" · prefix hr-
+   S1 "Registro" (the instrument preloader), the hero stage that carries S2
+   "Carta corrente" and S3 "Otturatore", the GL host, canvas and posters, and
+   the first-paint hero film.
+   Tokens, easings and the z scale live in fx-core.css (read-only for B).
+   Runtime property written by B: --hero-cover on <html>, only while the stage
+   is on. State selectors owned by B: html[data-preloader] ..., .hr-stage[data-on] ...
+   ========================================================================== */
+
+/* ==========================================================================
+   1 · Hero stage
+   Off (mobile, reduced motion, no WebGL2, no JS) it is an ordinary section.
+   On, it is three viewports tall: one to read, one for the S3 scrub, one for
+   the next sheet to rise over the pinned plate.
+   ========================================================================== */
+.hr-stage { position: relative; }
+.hr-screen {
+  position: relative;
+  z-index: var(--z-hero);            /* the float canvas sits at --z-gl, under this */
+  padding-top: calc(var(--hdr) + clamp(1.5rem, 4vh, 3rem));
+  padding-bottom: clamp(2rem, 6vh, 4rem);
+}
+.hr-stage[data-on] { height: 300svh; }
+.hr-stage[data-on] .hr-screen { position: sticky; top: 0; height: 100svh; padding-bottom: clamp(1.5rem, 4vh, 2.5rem); }
+/* the next sheet rises over the pinned plate, straight edged, on one hairline;
+   --hero-cover is written by fx-hero.js */
+.hr-stage[data-on] + section {
+  margin-top: calc(-1 * var(--hero-cover, 0px));
+  border-top: 1px solid var(--line);
+}
+
+.hr-type { min-width: 0; }
+.hr-side { display: flex; flex-direction: column; min-width: 0; }
+
+.lockup {
+  position: relative;
+  font-family: var(--f-display); font-weight: var(--w-hero); font-size: var(--t-hero);
+  line-height: 0.9; letter-spacing: var(--tr-hero); text-transform: uppercase;
+  padding-inline: var(--pad); margin: 0;
+}
+.lk-line { display: block; overflow: hidden; padding: 0.1em 0 0.03em; margin: -0.1em 0 -0.03em; white-space: nowrap; }
+.lk-line.l2 { padding-left: 0.95em; }
+.lk-word { display: inline-block; white-space: nowrap; }
+.ch { display: inline-block; }
+.hr-orn { display: block; }
+/* .ornament and .orn-rule live in fx-core.css §4: the case hero (C) shares them. */
+
+.hr-said { margin-top: clamp(1.5rem, 4.5vh, 3.25rem); }
+.hr-said h1 { max-width: calc(var(--ch-d) * 30); margin-top: 0.9rem; }
+
+.hero-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 1.1rem; }
+.hero-cta .ghosts { display: flex; gap: 2rem; flex-wrap: wrap; }
+
+/* ---------- the plate and its caption ---------- */
+.hr-plate { margin: 0; }
+.hr-frame { position: relative; overflow: hidden; background: var(--paper-deep); }
+.hr-cap {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  padding-top: 1rem; font-size: 1rem; line-height: 1.45; color: var(--stone);
+}
+.hr-cap .label { color: var(--ink); }
+.hr-instr {
+  font-size: 1rem; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase;
+  font-variant-numeric: tabular-nums lining-nums; color: var(--graphite);
+}
+.hr-instr:empty { display: none; }
+/* FIX (found in r4): the engine's readout arrives a frame after the first GL tick; its two lines are
+   reserved from the first paint, so the page below never grows (it moved the work rail 49 px on a
+   phone and broke the S4 back cut there) */
+html.rv-js:not(.gl-off):not(.fx-off-gl):not(.fx-fail-gl) .hr-instr { display: block; min-height: 2.8em; }
+.hr-note { max-width: 46ch; }
+.hr-still { display: none; }
+html.gl-off .hr-still,
+html.fx-off-gl .hr-still,
+html.fx-fail-gl .hr-still,
+html:not(.rv-js) .hr-still { display: block; }
+
+/* ---------- mobile and tablet: CTA first, then a full-bleed 4:5 plate ---------- */
+@media (max-width: 1023.98px) {
+  .hr-act { order: 1; padding-inline: var(--pad); margin-top: clamp(1.5rem, 4.5vh, 3rem); }
+  .hr-plate { order: 2; margin-top: clamp(2rem, 5vh, 3.5rem); }
+  .hr-frame { aspect-ratio: 4 / 5; }
+  .hr-cap { padding-inline: var(--pad); }
+}
+
+/* ---------- desktop: the plate takes the empty right third, full bleed right ---------- */
+@media (min-width: 1024px) {
+  .hr-screen {
+    --t-hero: clamp(3.1rem, 10.5vw, 11rem);   /* the lockup shares the row with the plate */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(18rem, 31vw, 34rem);
+    column-gap: 0;
+    align-items: stretch;
+    min-height: 100svh;
+  }
+  .hr-type { display: flex; flex-direction: column; min-height: 0; }
+  .hr-said { margin-top: auto; }              /* the sentence settles on the CTA's line */
+  .hr-side { justify-content: space-between; min-height: 0; }
+  /* the plate takes the room the caption and the CTA leave, so a short screen
+     shrinks the figure instead of pushing the buttons past the fold */
+  .hr-plate { order: 1; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  .hr-frame { flex: 1 1 auto; min-height: 8rem; max-height: min(52svh, 34rem); }
+  .hr-act { order: 2; flex: none; margin-top: clamp(1.25rem, 3vh, 2.5rem); padding-right: var(--pad); }
+  .hero-cta { align-items: flex-end; text-align: right; }
+  .hr-said h1 { max-width: calc(var(--ch-d) * 34); }
+  .hr-cap { padding-right: clamp(1.5rem, 3vw, 3rem); }
+}
+
+/* ==========================================================================
+   2 · GL host, canvas, poster
+   Only B styles .gl-host and .gl-canvas. The poster is a real <img> captured
+   from this engine: it is what shows with no WebGL2, no JS, or a shader error.
+   ========================================================================== */
+.gl-host { position: absolute; inset: 0; overflow: hidden; background: var(--paper-deep); }
+/* float mode: the canvas is fixed behind the hero screen, so the plate's ground
+   and its poster step aside and let it show through. */
+.hr-frame.hr-float,
+.hr-frame.hr-float .gl-host { background: transparent; }
+.hr-frame.hr-float .hr-poster { visibility: hidden; }
+.gl-host[data-gl-host="band"] { background: var(--paper); z-index: 0; }
+.gl-canvas { display: block; }
+.hr-poster { display: none; width: 100%; height: 100%; object-fit: cover; }
+html[data-variant="1"] .hr-poster.v1,
+html[data-variant="2"] .hr-poster.v2,
+html[data-variant="3"] .hr-poster.v3 { display: block; }
+
+/* ==========================================================================
+   3 · S1 "Registro": the instrument preloader
+   No name here. Rolling digits in fixed cells, a rule that is the real
+   progress, and the live window (the GL canvas in float mode, above this sheet).
+   ========================================================================== */
+html[data-preloader] { overflow: hidden; }
+html[data-preloader] .hdr { z-index: var(--z-pre-hdr); }
+html[data-preloader] .nav,
+html[data-preloader] .menu-btn { opacity: 0; pointer-events: none; }
+html.hr-pre-out .nav,
+html.hr-pre-out .menu-btn { transition: opacity 0.7s var(--ease-out) 0.25s; }
+
+.hr-pre { position: fixed; inset: 0; z-index: var(--z-pre); display: none; }
+html[data-preloader] .hr-pre { display: block; cursor: pointer; animation: hr-pre-failsafe 0.5s var(--ease-io) 5.2s forwards; }
+.hr-pre_sheet { position: absolute; inset: 0; background: var(--paper); }
+.hr-pre_foot { position: absolute; left: var(--pad); right: var(--pad); bottom: 9vh; }
+
+.hr-pre_count {
+  --cell: 1.12em;
+  display: flex; margin: 0;
+  font-family: var(--f-display); font-weight: var(--w-hero);
+  font-size: clamp(4.5rem, 14vw, 14rem); line-height: 1;
+  letter-spacing: var(--tr-hero); color: var(--ink);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.hr-dig { display: block; width: 0.6em; height: var(--cell); overflow: hidden; }
+.hr-dig_in { display: block; height: 100%; overflow: hidden; } /* the strip is clipped to its own cell, so the exit never shows a neighbour numeral */
+.hr-dig_st { display: block; }
+.hr-dig_st i { display: block; height: var(--cell); line-height: var(--cell); font-style: normal; text-align: center; }
+.hr-pre_rule { width: min(22rem, 60vw); height: 1px; background: var(--line); overflow: hidden; margin-top: clamp(1rem, 2.5vh, 1.75rem); }
+.hr-pre_rule i { display: block; height: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left center; }
+.hr-pre_meta { margin-top: 0.9rem; color: var(--stone); }
+.hr-pre_meta [data-pre-what] { color: var(--ink); }
+
+/* FIX D2: counter, rule and meta are painted by CSS from the very first frame: no entrance that
+   starts hidden, nothing waits on JS or on the faces. The counter then moves at its real value. */
+@keyframes hr-rise { from { transform: translateY(108%); } to { transform: none; } }
+@keyframes hr-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hr-pre-failsafe { to { opacity: 0; visibility: hidden; } }
+
+@media (max-width: 1023.98px) {
+  .hr-pre_foot { bottom: 7vh; }
+  .hr-pre_count { font-size: clamp(4rem, 26vw, 9rem); }
+}
+
+/* ==========================================================================
+   4 · Hero first-paint film (CSS only, always ends visible)
+   --hd is written by the head script (1.85s under the preloader, 0.45s on
+   arrival, 0.15s otherwise) and rewritten by fx-hero.js at the S1 handoff, so
+   the name rises exactly once, when the sheet has gone.
+   These animations fill both ways and outrank inline styles: set animation:none
+   on an element before handing it to a GSAP tween (the S3 scrub).
+   ========================================================================== */
+html.rv-motion .lockup .ch { animation: rv-rise 1.25s var(--ease-out) calc(var(--hd, 0.15s) + var(--i, 0) * 0.045s) both; }
+html.rv-motion [data-hero-reveal] { animation: rv-fade-up 0.9s var(--ease-out) calc(var(--hd, 0.15s) + 0.5s + var(--d, 0s)) both; }
+/* the curtain runs only when the GL window is not the one revealing the plate */
+html.rv-motion .hr-frame.hr-curtain { animation: rv-media 1.5s var(--ease-soft) calc(var(--hd, 0.15s) + 0.35s) both; }
+html.rv-motion[data-hero-now] .lockup .ch { animation-name: rv-rise-b; animation-delay: calc(var(--i, 0) * 0.04s); }
+html.rv-motion[data-hero-now] [data-hero-reveal] { animation-name: rv-fade-up-b; animation-delay: calc(0.35s + var(--d, 0s)); }
+@keyframes rv-media { from { clip-path: inset(100% 0 0 0); transform: translateY(8vh); } to { clip-path: inset(0 0 0 0); transform: none; } }

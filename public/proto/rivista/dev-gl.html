@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow plate PoC (art director scratch)</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%23f6f3ec%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Geist:wght@500;600&family=Instrument+Serif&display=swap">
+<style>
+  html,body{margin:0;height:100%;background:#f6f3ec;overflow:hidden;font:12px/1.3 ui-monospace,monospace;color:#24211e}
+  canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+  #hud{position:fixed;left:12px;top:12px;background:#fff8;padding:6px 8px;white-space:pre}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"></div>
+<script>if(new URLSearchParams(location.search).get("hud")==="0")document.getElementById("hud").style.display="none";</script>
+<script>
+(async () => {
+const Q = new URLSearchParams(location.search);
+const V = Q.get("v") || "1";
+const N = +(Q.get("n") || 16384);
+const DPRCAP = +(Q.get("dpr") || 1.5);
+const TRAILSCALE = +(Q.get("ts") || 1);
+const PAL = {
+  1: { paper: "#f6f3ec", deep: "#ede7dc", ink: "#24211e", accent: "#2340c9", font: '600 200px "Cormorant Garamond"' },
+  2: { paper: "#f5f6f7", deep: "#eceef0", ink: "#0f1113", accent: "#00766c", font: '600 200px "Geist"' },
+  3: { paper: "#f2eee6", deep: "#e8e2d6", ink: "#26231f", accent: "#1d4a39", font: '400 200px "Instrument Serif"' },
+}[V];
+document.documentElement.style.background = PAL.paper;
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+await Promise.race([document.fonts.load(PAL.font), new Promise((r) => setTimeout(r, 2500))]);
+await document.fonts.ready;
+
+const canvas = document.getElementById("c");
+const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "high-performance" });
+const tq = gl.getExtension("EXT_disjoint_timer_query_webgl2");
+const dpr = Math.min(DPRCAP, devicePixelRatio || 1);
+const W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr);
+canvas.width = W; canvas.height = H;
+const TW = Math.round(W * TRAILSCALE), TH = Math.round(H * TRAILSCALE);
+const ASPECT = W / H;
+
+/* glyph texture 512x512: R = blurred coverage (flow ramp), G = sharp coverage (blind emboss fill), B = ink-free interior (counters + narrow gaps) */
+const GS = 512;
+const mk = () => { const c = document.createElement("canvas"); c.width = c.height = GS; return c; };
+const drawA = (c, blur) => { const g = c.getContext("2d"); g.fillStyle = "#000"; g.fillRect(0, 0, GS, GS); g.filter = blur ? "blur(" + blur + "px)" : "none";
+  g.fillStyle = "#fff"; g.textAlign = "center"; g.textBaseline = "alphabetic"; g.font = PAL.font.replace("200px", "430px");
+  const m = g.measureText("A"); const gh = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent; g.fillText("A", GS / 2, GS / 2 + gh / 2 - m.actualBoundingBoxDescent); return g; };
+const cB = mk(), cS = mk(); const gB = drawA(cB, 10), gS = drawA(cS, 0);
+const dB = gB.getImageData(0, 0, GS, GS).data, dS = gS.getImageData(0, 0, GS, GS).data;
+// interior: flood fill from the border on a 128px grid with the glyph dilated by DIL cells; unreachable + not glyph = interior
+const LS = 128, K = GS / LS, DIL = +(Q.get("dil") || 5);
+const solid = new Uint8Array(LS * LS), glyphLo = new Uint8Array(LS * LS);
+for (let y = 0; y < LS; y++) for (let x = 0; x < LS; x++) glyphLo[y * LS + x] = dS[((y * K + K / 2 | 0) * GS + (x * K + K / 2 | 0)) * 4] > 127 ? 1 : 0;
+for (let y = 0; y < LS; y++) for (let x = 0; x < LS; x++) { let hit = 0; for (let j = -DIL; j <= DIL && !hit; j++) for (let i = -DIL; i <= DIL; i++) { if (i * i + j * j > DIL * DIL) continue; const xx = x + i, yy = y + j; if (xx < 0 || yy < 0 || xx >= LS || yy >= LS) continue; if (glyphLo[yy * LS + xx]) { hit = 1; break; } } solid[y * LS + x] = hit; }
+const reach = new Uint8Array(LS * LS), stack = [];
+for (let i = 0; i < LS; i++) { stack.push(i, (LS - 1) * LS + i, i * LS, i * LS + LS - 1); }
+while (stack.length) { const k = stack.pop(); if (reach[k] || solid[k]) continue; reach[k] = 1; const x = k % LS, y = (k / LS) | 0; if (x > 0) stack.push(k - 1); if (x < LS - 1) stack.push(k + 1); if (y > 0) stack.push(k - LS); if (y < LS - 1) stack.push(k + LS); }
+const cI = mk(), gI = cI.getContext("2d"); const lo = document.createElement("canvas"); lo.width = lo.height = LS; const gl2d = lo.getContext("2d"); const im = gl2d.createImageData(LS, LS);
+// interior = not reachable (dilated) -> then grow back by DIL so it touches the real glyph edge
+for (let k = 0; k < LS * LS; k++) { const v = reach[k] ? 0 : 255; im.data[k * 4] = im.data[k * 4 + 1] = im.data[k * 4 + 2] = v; im.data[k * 4 + 3] = 255; }
+gl2d.putImageData(im, 0, 0); gI.filter = "blur(3px)"; gI.imageSmoothingEnabled = true; gI.drawImage(lo, 0, 0, GS, GS);
+const dI = gI.getImageData(0, 0, GS, GS).data;
+const packed = new Uint8Array(GS * GS * 4);
+for (let k = 0; k < GS * GS; k++) { packed[k * 4] = dB[k * 4]; packed[k * 4 + 1] = dS[k * 4]; packed[k * 4 + 2] = dI[k * 4]; packed[k * 4 + 3] = 255; }
+// flip Y manually (row order) so texture v goes up
+const flipped = new Uint8Array(GS * GS * 4); for (let y = 0; y < GS; y++) flipped.set(packed.subarray(y * GS * 4, (y + 1) * GS * 4), (GS - 1 - y) * GS * 4);
+const gtex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, gtex);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GS, GS, 0, gl.RGBA, gl.UNSIGNED_BYTE, flipped);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+const NOISE = `
+vec2 hash2(vec2 p){ p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))); return -1.0 + 2.0 * fract(sin(p) * 43758.5453123); }
+float gnoise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f*f*f*(f*(f*6.0-15.0)+10.0);
+  return mix(mix(dot(hash2(i), f), dot(hash2(i + vec2(1,0)), f - vec2(1,0)), u.x),
+             mix(dot(hash2(i + vec2(0,1)), f - vec2(0,1)), dot(hash2(i + vec2(1,1)), f - vec2(1,1)), u.x), u.y); }
+`;
+const UPDATE_VS = `#version 300 es
+precision highp float;
+in vec2 aPos; in float aAge; in float aSeed;
+out vec2 vPos; out float vAge; out float vSeed;
+uniform float uTime, uDt, uAspect, uGlyphScale;
+uniform vec2 uGlyphPos;       // sim space center of the glyph (x in 0..aspect, y in 0..1)
+uniform vec3 uMouse;          // xy sim pos, z strength
+uniform vec2 uMouseVel;
+uniform sampler2D uGlyph;
+${NOISE}
+float ramp(vec2 p){ vec2 q = (p - uGlyphPos) / uGlyphScale + 0.5; if (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0) return 1.0;
+  float c = texture(uGlyph, q).r; return 1.0 - smoothstep(0.03, 0.55, c); }
+float interior(vec2 p){ vec2 q = (p - uGlyphPos) / uGlyphScale + 0.5; if (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0) return 0.0; return texture(uGlyph, q).b; }
+float psi(vec2 p){
+  float n = 0.115 * gnoise(p * 1.35 + vec2(0.0, uTime * 0.045)) + 0.05 * gnoise(p * 3.1 - vec2(uTime * 0.07, 0.0));
+  return ramp(p) * (0.105 * p.y + n);
+}
+vec2 vel(vec2 p){ float e = 0.004; float dx = psi(p + vec2(e,0)) - psi(p - vec2(e,0)); float dy = psi(p + vec2(0,e)) - psi(p - vec2(0,e));
+  vec2 v = vec2(dy, -dx) / (2.0 * e);
+  vec2 d = p - uMouse.xy; float gsn = exp(-dot(d,d) / 0.012) * uMouse.z; v += gsn * uMouseVel * 1.4; return v; }
+float h1(float n){ return fract(sin(n) * 43758.5453); }
+void main(){
+  vec2 p = vec2(aPos.x * uAspect, aPos.y);
+  vec2 v = vel(p);
+  // midpoint integration keeps streamlines smooth around the glyph
+  vec2 pm = p + v * uDt * 0.5; v = vel(pm);
+  p += v * uDt;
+  float age = aAge + uDt;
+  float life = 2.2 + 3.8 * h1(aSeed * 91.7);
+  float rp = ramp(p);
+  if (length(v) < 0.035) age += uDt * 6.0;            // stagnant ink dries fast: no dark pile-ups
+  bool dead = age > life || p.x < -0.02 || p.x > uAspect + 0.02 || p.y < -0.02 || p.y > 1.02 || rp < 0.30 || interior(p) > 0.4;
+  if (dead) { float k = aSeed * 13.13 + uTime; p = vec2(h1(k) * uAspect, h1(k * 1.7 + 4.2)); age = 0.0;
+    if (ramp(p) < 0.45 || interior(p) > 0.3) { p = vec2(h1(k * 2.3 + 1.1) * uAspect, h1(k * 3.1 + 7.7)); } }
+  vPos = vec2(p.x / uAspect, p.y); vAge = age; vSeed = aSeed;
+}`;
+const UPDATE_FS = `#version 300 es
+precision lowp float; out vec4 o; void main(){ o = vec4(0.0); }`;
+const LINE_VS = `#version 300 es
+precision highp float;
+in vec2 aPrev; in float aPrevAge; in vec2 aCurr; in float aCurrAge; in float aSeed;
+out vec2 vCh;
+uniform float uAspect, uGlyphScale; uniform vec2 uGlyphPos; uniform sampler2D uGlyph; uniform float uAccentShare, uAccentGain;
+float h1(float n){ return fract(sin(n) * 43758.5453); }
+float ramp(vec2 p){ vec2 q = (p - uGlyphPos) / uGlyphScale + 0.5; if (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0) return 1.0;
+  float c = texture(uGlyph, q).r; return 1.0 - smoothstep(0.03, 0.55, c); }
+void main(){
+  bool fresh = aCurrAge < aPrevAge;
+  vec2 p = (gl_VertexID == 0) ? aPrev : aCurr; if (fresh) p = aCurr;
+  float life = 2.2 + 3.8 * h1(aSeed * 91.7);
+  float fade = smoothstep(0.0, 0.5, aCurrAge) * (1.0 - smoothstep(life - 0.7, life, aCurrAge));
+  float acc = step(h1(aSeed * 7.31), uAccentShare);
+  vec2 sp = vec2(aCurr.x * uAspect, aCurr.y);
+  vec2 q = (sp - uGlyphPos) / uGlyphScale + 0.5; float inter = (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0) ? 0.0 : texture(uGlyph, q).b;
+  float halo = smoothstep(0.30, 0.78, ramp(sp)) * (1.0 - smoothstep(0.15, 0.4, inter));
+  vCh = vec2(1.0 - acc, acc * uAccentGain) * fade * halo;
+  gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
+}`;
+const LINE_FS = `#version 300 es
+precision mediump float; in vec2 vCh; out vec4 o; uniform float uGain; void main(){ o = vec4(vCh * uGain, 0.0, 1.0); }`;
+const QUAD_VS = `#version 300 es
+in vec2 aP; out vec2 vUv; void main(){ vUv = aP * 0.5 + 0.5; gl_Position = vec4(aP, 0.0, 1.0); }`;
+const FADE_FS = `#version 300 es
+precision mediump float; in vec2 vUv; out vec4 o; uniform sampler2D uT; uniform float uDecay;
+void main(){ vec2 t = texture(uT, vUv).rg; t = max(t * uDecay - 1.2/255.0, 0.0); o = vec4(t, 0.0, 1.0); }`;
+const COMP_FS = `#version 300 es
+precision highp float; in vec2 vUv; out vec4 o; uniform sampler2D uT; uniform sampler2D uGlyph; uniform vec3 uDeep, uInk, uAccent, uPaper; uniform float uTime, uAspect, uGlyphScale; uniform vec2 uGlyphPos;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void main(){ vec2 t = texture(uT, vUv).rg; vec3 c = uDeep;
+  vec2 sp = vec2(vUv.x * uAspect, vUv.y); vec2 q = (sp - uGlyphPos) / uGlyphScale + 0.5;
+  if (q.x > 0.0 && q.x < 1.0 && q.y > 0.0 && q.y < 1.0) { float cov = texture(uGlyph, q).g; c = mix(c, uPaper, smoothstep(0.35, 0.65, cov)); }
+  c = mix(c, uInk, clamp(t.r, 0.0, 1.0) * 0.86);
+  c = mix(c, uAccent, clamp(t.g * 1.35, 0.0, 1.0));
+  c += (hash(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) * (2.0/255.0);
+  o = vec4(c, 1.0); }`;
+
+function prog(vs, fs, tf) {
+  const p = gl.createProgram();
+  for (const [t, s] of [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]]) { const sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh)); gl.attachShader(p, sh); }
+  if (tf) gl.transformFeedbackVaryings(p, tf, gl.INTERLEAVED_ATTRIBS);
+  gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+const pUpd = prog(UPDATE_VS, UPDATE_FS, ["vPos", "vAge", "vSeed"]);
+const pLine = prog(LINE_VS, LINE_FS);
+const pFade = prog(QUAD_VS, FADE_FS);
+const pComp = prog(QUAD_VS, COMP_FS);
+const U = (p, n) => gl.getUniformLocation(p, n);
+
+/* particle buffers: pos.xy, age, seed */
+const init = new Float32Array(N * 4);
+for (let i = 0; i < N; i++) { init[i * 4] = Math.random(); init[i * 4 + 1] = Math.random(); init[i * 4 + 2] = Math.random() * 5; init[i * 4 + 3] = Math.random(); }
+const buf = [gl.createBuffer(), gl.createBuffer()];
+buf.forEach((b) => { gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, init, gl.DYNAMIC_COPY); });
+const STRIDE = 16;
+const updVAO = buf.map((b) => { const v = gl.createVertexArray(); gl.bindVertexArray(v); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  [["aPos", 2, 0], ["aAge", 1, 8], ["aSeed", 1, 12]].forEach(([n, s, o]) => { const l = gl.getAttribLocation(pUpd, n); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, s, gl.FLOAT, false, STRIDE, o); });
+  return v; });
+const lineVAO = [0, 1].map((i) => { const v = gl.createVertexArray(); gl.bindVertexArray(v);
+  const bind = (b, list) => { gl.bindBuffer(gl.ARRAY_BUFFER, b); list.forEach(([n, s, o]) => { const l = gl.getAttribLocation(pLine, n); if (l < 0) return; gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, s, gl.FLOAT, false, STRIDE, o); gl.vertexAttribDivisor(l, 1); }); };
+  bind(buf[i], [["aPrev", 2, 0], ["aPrevAge", 1, 8]]);
+  bind(buf[1 - i], [["aCurr", 2, 0], ["aCurrAge", 1, 8], ["aSeed", 1, 12]]);
+  return v; });
+gl.bindVertexArray(null);
+const quad = gl.createVertexArray(); gl.bindVertexArray(quad);
+const qb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, qb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+for (const p of [pFade, pComp]) { const l = gl.getAttribLocation(p, "aP"); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 2, gl.FLOAT, false, 0, 0); }
+gl.bindVertexArray(null);
+
+/* trail ping-pong, RG8 */
+const mkT = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG8, TW, TH, 0, gl.RG, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+  gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); return { t, f }; };
+let trail = [mkT(), mkT()];
+gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+const glyphPos = [ASPECT * (+(Q.get("gx") || 0.72)), +(Q.get("gy") || 0.52)];
+const glyphScale = +(Q.get("gs") || 0.92);
+const mouse = { x: 0, y: 0, vx: 0, vy: 0, s: 0, lx: 0, ly: 0 };
+addEventListener("pointermove", (e) => { const x = (e.clientX / innerWidth) * ASPECT, y = 1 - e.clientY / innerHeight; mouse.vx = (x - mouse.lx) * 60; mouse.vy = (y - mouse.ly) * 60; mouse.lx = x; mouse.ly = y; mouse.x = x; mouse.y = y; mouse.s = 1; });
+
+let cur = 0, time = 0, last = performance.now(), gpuMs = 0, cpuMs = 0, frames = 0, query = null;
+const hud = document.getElementById("hud");
+window.__stats = { gpu: [], cpu: [] };
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000); last = now; time += dt;
+  const c0 = performance.now();
+  if (tq && !query) { query = gl.createQuery(); gl.beginQuery(tq.TIME_ELAPSED_EXT, query); var began = true; }
+  // 1 update
+  gl.useProgram(pUpd);
+  gl.uniform1f(U(pUpd, "uTime"), time); gl.uniform1f(U(pUpd, "uDt"), dt); gl.uniform1f(U(pUpd, "uAspect"), ASPECT);
+  gl.uniform1f(U(pUpd, "uGlyphScale"), glyphScale); gl.uniform2f(U(pUpd, "uGlyphPos"), glyphPos[0], glyphPos[1]);
+  gl.uniform3f(U(pUpd, "uMouse"), mouse.x, mouse.y, mouse.s); gl.uniform2f(U(pUpd, "uMouseVel"), mouse.vx, mouse.vy);
+  mouse.vx *= 0.9; mouse.vy *= 0.9; mouse.s *= 0.96;
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gtex); gl.uniform1i(U(pUpd, "uGlyph"), 0);
+  gl.bindVertexArray(updVAO[cur]);
+  gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf[1 - cur]);
+  gl.enable(gl.RASTERIZER_DISCARD); gl.beginTransformFeedback(gl.POINTS); gl.drawArrays(gl.POINTS, 0, N); gl.endTransformFeedback(); gl.disable(gl.RASTERIZER_DISCARD);
+  gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+  // 2 fade trail A -> B
+  gl.bindFramebuffer(gl.FRAMEBUFFER, trail[1].f); gl.viewport(0, 0, TW, TH);
+  gl.useProgram(pFade); gl.bindVertexArray(quad); gl.bindTexture(gl.TEXTURE_2D, trail[0].t); gl.uniform1i(U(pFade, "uT"), 0); gl.uniform1f(U(pFade, "uDecay"), +(Q.get("decay") || 0.965));
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  // 3 lines into B (additive)
+  gl.useProgram(pLine); gl.uniform1f(U(pLine, "uGain"), +(Q.get("gain") || 0.34));
+  gl.uniform1f(U(pLine, "uAspect"), ASPECT); gl.uniform1f(U(pLine, "uGlyphScale"), glyphScale); gl.uniform2f(U(pLine, "uGlyphPos"), glyphPos[0], glyphPos[1]);
+  gl.uniform1f(U(pLine, "uAccentShare"), +(Q.get("acc") || 0.10)); gl.uniform1f(U(pLine, "uAccentGain"), +(Q.get("ag") || 2.2)); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gtex); gl.uniform1i(U(pLine, "uGlyph"), 0);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+  gl.bindVertexArray(lineVAO[cur]); gl.drawArraysInstanced(gl.LINES, 0, 2, N);
+  gl.disable(gl.BLEND);
+  // 4 composite
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H);
+  gl.useProgram(pComp); gl.bindVertexArray(quad); gl.bindTexture(gl.TEXTURE_2D, trail[1].t); gl.uniform1i(U(pComp, "uT"), 0);
+  gl.uniform3fv(U(pComp, "uDeep"), hex(PAL.deep)); gl.uniform3fv(U(pComp, "uPaper"), hex(PAL.paper)); gl.uniform1f(U(pComp, "uAspect"), ASPECT); gl.uniform1f(U(pComp, "uGlyphScale"), glyphScale); gl.uniform2f(U(pComp, "uGlyphPos"), glyphPos[0], glyphPos[1]);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, gtex); gl.uniform1i(U(pComp, "uGlyph"), 1); gl.activeTexture(gl.TEXTURE0); gl.uniform3fv(U(pComp, "uInk"), hex(PAL.ink)); gl.uniform3fv(U(pComp, "uAccent"), hex(PAL.accent)); gl.uniform1f(U(pComp, "uTime"), time);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  if (began) gl.endQuery(tq.TIME_ELAPSED_EXT);
+  trail.reverse(); cur = 1 - cur;
+  cpuMs = performance.now() - c0; window.__stats.cpu.push(cpuMs);
+  if (query && !began) { const ok = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE); const dis = gl.getParameter(tq.GPU_DISJOINT_EXT);
+    if (ok) { if (!dis) { gpuMs = gl.getQueryParameter(query, gl.QUERY_RESULT) / 1e6; window.__stats.gpu.push(gpuMs); } gl.deleteQuery(query); query = null; } }
+  if (++frames % 20 === 0) hud.textContent = `v${V}  N=${N}  ${W}x${H}  dpr ${dpr}  trail ${TW}x${TH}\ngpu ${gpuMs.toFixed(2)} ms   cpu(js) ${cpuMs.toFixed(2)} ms`;
+  requestAnimationFrame(frame);
+}
+// warm-up so the plate is already drawn at first paint
+requestAnimationFrame(frame);
+window.__ready = true;
+})().catch((e) => { document.getElementById("hud").textContent = "ERR " + e.message; console.error(e); });
+</script>
+</body>
+</html>

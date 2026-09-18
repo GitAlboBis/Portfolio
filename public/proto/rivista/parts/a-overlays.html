@@ -1,0 +1,35 @@
+<!-- Navigation overlays (owner WP-A). S5 "Tendina" columns, S4 "Stacco" sheet and travelling
+     image, prototype identity switcher. Everything here is painted correctly at first paint from
+     the CSS variables the head script wrote, so an arrival never shows a bare page. -->
+<div class="nv-cols" data-nv-cols aria-hidden="true">
+  <div class="nv-cols_grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="nv-cols_copy">
+    <span class="mark nv-cols_mark" data-nv-mark></span>
+    <p class="nv-cols_label d1"><span data-nv-label></span></p>
+    <p class="nv-cols_sub label"><span data-nv-sub></span></p>
+  </div>
+</div>
+<div class="nv-sheet" data-nv-sheet aria-hidden="true"></div>
+<div class="nv-img" data-nv-img aria-hidden="true"><img alt="" decoding="sync" fetchpriority="high"></div>
+<script>
+/* First paint of an arrival (owner WP-A). Runs at parse time, before the overlays are painted:
+   copies the AT ring out of the header, then fills the travelling image and the cut's label from
+   window.__rvArrive. The geometry itself is already in --pt-* , written by the head script. */
+(function(){
+  var m=document.querySelector('[data-nv-mark]'), src=document.querySelector('.hdr .mark');
+  if(m&&src) m.innerHTML=src.innerHTML;
+  var a=window.__rvArrive; if(!a) return;
+  var i=document.querySelector('[data-nv-img] img'); if(i&&a.src) i.src=a.data||a.src;
+  var l=document.querySelector('[data-nv-label]'); if(l) l.textContent=a.label||'';
+  var s=document.querySelector('[data-nv-sub]'); if(s) s.textContent=a.sub||'';
+})();
+</script>
+<div class="switcher" data-switcher>
+  <button type="button" class="switcher_tab" data-switcher-tab aria-expanded="false" aria-controls="switcher-opts"><span class="switcher_now" data-switcher-now>V1</span><span class="sr">Prototype identity variant, show the three variants</span></button>
+  <div class="opts" id="switcher-opts" role="group" aria-label="Prototype identity variant">
+    <p aria-hidden="true">Identity</p>
+    <button type="button" data-v="1" aria-pressed="true"><b>V1</b><span>Carta e cobalto</span></button>
+    <button type="button" data-v="2" aria-pressed="false"><b>V2</b><span>Laboratorio</span></button>
+    <button type="button" data-v="3" aria-pressed="false"><b>V3</b><span>Verde bottiglia</span></button>
+  </div>
+</div>

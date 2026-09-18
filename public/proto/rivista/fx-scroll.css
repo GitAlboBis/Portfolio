@@ -1,0 +1,360 @@
+/* ==========================================================================
+   fx-scroll.css · owner WP-C "Impaginazione" · prefix sc-
+   Every section of home and case below the hero: the uncover sheet, the text
+   system (rules, rises), Now, the work rail and its ledger plates, the scroll
+   ink, the two ledgers, capabilities, path, the closing band copy, the footer
+   and the case page.
+
+   Tokens, easings and the z scale live in fx-core.css (read-only for C).
+   Nothing here hides content by itself: every hidden state is set by
+   fx-scroll.js with gsap.set, inside a motion-ok matchMedia. A JS failure
+   leaves a complete, printed page: rules drawn, figures final, media visible.
+   ========================================================================== */
+
+/* ---------- 1. The uncover sheet ----------
+   The first section after the hero stage rises over the pinned plate as a
+   straight-edged paper sheet with a 1 px top hairline. --hero-cover is written
+   on <html> by WP-B only while the stage is on; it is 0 everywhere else. */
+.sc-sheet {
+  position: relative;
+  z-index: var(--z-sheet);
+  background: var(--paper);
+  margin-top: calc(-1 * var(--hero-cover, 0px));
+}
+html[data-home] .sc-sheet::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--line); z-index: 1;
+}
+
+/* ---------- 2. The text system: rules and rises ----------
+   A rule is a hairline that draws left to right. It is printed by default, so
+   it survives a JS failure; the module sets scaleX(0) only under motion-ok. */
+.sc-rule {
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--line); transform-origin: left center; pointer-events: none;
+}
+.sc-rule-full { left: 0; right: 0; }
+.sc-rule-bleed { left: calc(-1 * var(--pad)); right: calc(-1 * var(--pad)); }
+
+/* A rise is a printed line that comes up through its own mask. The figure is
+   always in its final value: only the mask moves. */
+.sc-rise { display: block; }
+
+/* Staircase steps (.sc-l2 / .sc-l3) are defined at source in fx-core.css. */
+
+/* ---------- 3. Now at SerSan ---------- */
+@media (min-width: 1024px) {
+  .now .media-col { margin-right: calc(-1 * var(--pad)); }
+}
+
+/* ---------- 4. The work rail ---------- */
+.work .head { padding-bottom: clamp(3rem, 8vh, 5rem); }
+/* FIX J6: the one right-aligned chapter. The lead reads first on the left, the title answers
+   from the right edge, stepping back towards the centre. */
+.work .head .work-t { text-align: right; }
+@media (min-width: 1024px) {
+  .work .head { display: grid; grid-template-columns: 1fr 1.35fr; gap: var(--gut); align-items: end; }
+  .work .head > * + * { margin-top: 0; }
+  .work .head .work-t { order: 2; }
+  .work .head .lead { order: 1; padding-bottom: 0.4rem; }
+}
+.railway { position: relative; }
+.rail { position: relative; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; }
+.rail::-webkit-scrollbar { display: none; }
+.rail-track {
+  display: flex; width: max-content; align-items: flex-start;
+  gap: clamp(0.75rem, 1.6vw, 1.75rem); padding-inline: var(--pad);
+}
+.tile { flex: none; scroll-snap-align: start; scroll-margin-left: var(--pad); }
+.tile-link { display: block; text-decoration: none; color: inherit; outline-offset: 4px; }
+.tile-media { position: relative; overflow: hidden; background: var(--paper-deep); width: 76vw; aspect-ratio: 4 / 5; }
+/* FIX J8: the two real captures keep their first-screen headline whole: 16:10 at every width,
+   anchored top-left, and a pan of a few percent instead of a 118 % crop */
+.tile.photo .tile-media { aspect-ratio: 16 / 10; }
+.tile-zoom { position: absolute; inset: 0; transition: transform 0.6s var(--ease-out); }
+.tile-link:hover .tile-zoom, .tile-link:focus-visible .tile-zoom { transform: scale(1.04); }
+.pan { position: absolute; top: 0; bottom: 0; left: -3%; width: 106%; }
+.pan img { width: 100%; height: 100%; object-fit: cover; object-position: left top; }
+@property --rail-p { syntax: "<number>"; inherits: false; initial-value: 0.5; }
+
+/* 4b. Ledger plates: the seven works with no photograph on file.
+   A plate is a paper-deep rectangle set like a page of a ledger: index, three
+   hairlines, the measured figure printed final, the name. Never a card. */
+.sc-plate {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: clamp(1.25rem, 2.2vw, 2rem);
+  container-type: inline-size;
+}
+/* FIX J3: a plate is a typographic title page, not a stat card. No repeated index or name (the
+   caption carries both), the figure light and low, the declared gap printed at the foot, and
+   the alignment alternating from plate to plate. */
+.sc-plate > i { align-self: stretch; }
+.sc-plate-r { display: block; position: relative; height: 1px; background: var(--line); flex: none; }
+.sc-plate .fig {
+  margin-top: auto;
+  font-family: var(--f-display); font-weight: 300; font-size: max(2.25rem, min(34cqi, 9vw));
+  line-height: 0.88; letter-spacing: var(--tr-display); font-variant-numeric: lining-nums;
+}
+.sc-plate .fig.is-word { font-size: max(2rem, min(17cqi, 6vw)); line-height: 0.95; }
+html[data-variant="3"] .sc-plate .fig { font-weight: 400; }
+.sc-plate-r.is-fig { margin-top: 0.55rem; }
+.sc-plate-gap { margin-top: 0.85rem; color: var(--stone); }
+.sc-plate-r:last-of-type { margin-top: 1.25rem; }
+.tile.type:nth-child(even) .sc-plate { align-items: flex-end; text-align: right; }
+.tile.type:nth-child(even) .sc-plate-r.is-fig::after { transform-origin: right center; }
+.sc-plate-r.is-fig::after {
+  content: ""; position: absolute; inset: 0; background: var(--accent);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform 0.45s var(--ease-out);
+}
+.sc-plate .fig-l { margin-top: 0.7rem; font-size: 1rem; line-height: 1.35; color: var(--graphite); max-width: calc(var(--ch-t) * 26); }
+@media (hover: hover) and (pointer: fine) {
+  .tile-link:hover .sc-plate-r.is-fig::after,
+  .tile-link:focus-visible .sc-plate-r.is-fig::after { transform: scaleX(1); }
+}
+@media (max-width: 1023.98px) {
+  .sc-plate .fig { font-size: max(2.25rem, min(34cqi, 14vw)); }
+  .sc-plate .fig.is-word { font-size: max(2rem, min(17cqi, 8vw)); }
+}
+
+.tile-cap { padding-top: 1rem; width: 76vw; }
+.tile-cap .d3 { margin-top: 0.35rem; }
+.tile-cap .body { margin-top: 0.35rem; max-width: calc(var(--ch-t) * 36); }
+
+/* 4c. The instrument: index 01 / 09 with mask-rolling digits and a 2 px line */
+.sc-ix { display: flex; align-items: center; gap: 1.5rem; margin: 2.4rem 0 0 var(--pad); }
+.sc-ix-n { display: inline-flex; align-items: baseline; gap: 0.45rem; color: var(--stone); font-variant-numeric: tabular-nums lining-nums; }
+.sc-ix-now { color: var(--ink); display: inline-flex; }
+.sc-ix-cell { display: inline-block; width: 0.66em; height: 1.3em; overflow: clip; }
+.sc-ix-col { display: block; }
+.sc-ix-col i { display: block; height: 1.3em; line-height: 1.3em; font-style: normal; }
+.sc-ix-bar { position: relative; display: block; width: 4rem; height: 2px; background: color-mix(in srgb, var(--ink) 15%, transparent); overflow: hidden; }
+.sc-ix-bar > i { position: absolute; inset: 0 auto 0 0; width: 33.34%; background: var(--accent); }   /* moved by fx-scroll.js setP */
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .tile-media, .tile-cap { width: 52vw; }
+}
+@media (min-width: 1024px) {
+  .tile-media { --th: min(56vh, 38vw); height: var(--th); width: calc(var(--th) * 0.8); aspect-ratio: auto; }
+  .tile.photo .tile-media { width: calc(var(--th) * 1.6); aspect-ratio: auto; }
+  .tile-cap { width: calc(min(56vh, 38vw) * 0.8); }
+  .tile.photo .tile-cap { width: calc(min(56vh, 38vw) * 1.6); }
+  .rail[data-on] { overflow: hidden; scroll-snap-type: none; }
+  .railway[data-on] { height: calc(var(--rail-len, 0px) + var(--rail-run, 1200px)); }
+  .railway[data-on] > .rail { position: sticky; top: var(--rail-top, 0px); }
+  .railway[data-on] .sc-ix { position: sticky; top: calc(var(--rail-top, 0px) + var(--rail-len, 0px)); }
+}
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+  .rail .pan { transform: translateX(calc((var(--rail-p) - 0.5) * -5%)); }
+}
+/* FIX A7: without the pinned runway (reduced motion, or no JS) a wide screen gets the nine works
+   as a three-column index instead of a sideways scroller a mouse wheel cannot move */
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .rail { overflow: visible; scroll-snap-type: none; }
+  .rail-track { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3.5rem 1.5rem; width: auto; align-items: start; }
+  .rail .tile-media, .rail .tile.photo .tile-media { width: auto; height: auto; aspect-ratio: 4 / 5; }
+  .rail .tile.photo .tile-media { aspect-ratio: 16 / 10; }
+  .rail .tile-cap, .rail .tile.photo .tile-cap { width: auto; }
+  .sc-ix { display: none; }
+}
+@media (min-width: 1024px) {
+  html:not(.rv-js) .rail { overflow: visible; scroll-snap-type: none; }
+  html:not(.rv-js) .rail-track { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3.5rem 1.5rem; width: auto; align-items: start; }
+  html:not(.rv-js) .rail .tile-media { width: auto; height: auto; aspect-ratio: 4 / 5; }
+  html:not(.rv-js) .rail .tile.photo .tile-media { aspect-ratio: 16 / 10; }
+  html:not(.rv-js) .rail .tile-cap { width: auto; }
+  html:not(.rv-js) .sc-ix { display: none; }
+}
+
+/* ---------- 5. Measured · scroll ink ----------
+   The manifesto inks word by word under the reader's scroll. Sticky only on
+   the desktop with motion allowed; everywhere else it is a plain chapter. */
+.sc-ink { position: relative; padding-block: var(--chap); }
+/* FIX J6: the page's second typographic peak, at hero scale */
+.sc-ink .sc-manifesto { font-size: clamp(3.1rem, min(12vw, 17vh), 12rem); line-height: 0.9; max-width: none; letter-spacing: var(--tr-hero); }
+.sc-w { display: inline-block; }
+@media (min-width: 1024px) {
+  .sc-ink[data-on] { height: 180vh; padding-block: 0; }
+  .sc-ink[data-on] .sc-ink-screen {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+}
+
+/* ---------- 6. The ledgers ---------- */
+.sc-ledgers { padding-block: 0 var(--chap); }
+.sc-ledger + .sc-ledger { margin-top: clamp(4rem, 11vh, 8rem); }
+.sc-ledger-head > * + * { margin-top: 1.5rem; }
+@media (min-width: 1024px) {
+  .sc-ledger { display: grid; grid-template-columns: 5fr 7fr; gap: var(--gut); align-items: start; }
+  .sc-ledger-head { position: sticky; top: 22vh; }
+}
+@media (max-width: 1023.98px) {
+  .sc-ledger > * + * { margin-top: 2.5rem; }
+}
+
+.metric-list { display: grid; gap: 0; border-bottom: 1px solid var(--line); }
+.metric { position: relative; padding: 1.2rem 0 1.4rem; }
+.metric .m-l { font-size: 1rem; line-height: 1.35; color: var(--stone); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.metric .m-n { display: block; overflow: clip; margin-top: 0.35rem; padding-bottom: 0.12em; font-family: var(--f-display); letter-spacing: var(--tr-display); line-height: 1; }
+.metric .m-n .sc-rise { display: flex; align-items: baseline; gap: 0.6em; flex-wrap: wrap; }
+.metric .m-n .from { color: var(--stone); font-weight: 300; }
+.metric .m-n .to { color: var(--ink); font-weight: 300; }
+html[data-variant="1"] .metric .m-n .from, html[data-variant="1"] .metric .m-n .to { font-weight: 500; }
+html[data-variant="3"] .metric .m-n .from, html[data-variant="3"] .metric .m-n .to { font-weight: 400; }
+.metric .m-n .arr { font-family: var(--f-text); font-weight: 300; color: var(--stone); font-size: 0.6em; }
+.m-n.sz-2 { font-size: clamp(2rem, min(5.4vh, 3.6vw), 3.6rem); }
+.m-n.sz-1 { font-size: clamp(2.4rem, min(7.5vh, 4.6vw), 5.2rem); }
+.bars { display: grid; gap: 6px; margin-top: 0.9rem; }
+.bar { position: relative; height: 1px; background: var(--line); }
+.bar i { position: absolute; left: 0; top: -1px; height: 3px; width: var(--w); background: var(--stone); transform-origin: left center; }
+.bar.after i { background: var(--accent); }
+
+/* ---------- 7. Capabilities, path ----------
+   FIX D1 / J4 / J11: both chapters are set as typographic indexes at display scale. One hairline
+   row per entry, drawn left to right; the name is display type rising from its own mask; the
+   detail is a light paragraph. No grid of cells, no cards. */
+.caps-head .d1 { max-width: none; }
+.cap-list { margin-top: clamp(3rem, 8vh, 6rem); border-bottom: 1px solid var(--line); }
+.cap { position: relative; display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); gap: 0.75rem 1rem; padding: 1.75rem 0 2rem; }
+.cap .cap-n { color: var(--accent); overflow: clip; padding-top: 0.5rem; }
+.cap .cap-nm { overflow: clip; padding-bottom: 0.06em; line-height: 0.95; }
+.cap .cap-tools { grid-column: 2; font-size: var(--t-lead); font-weight: 300; line-height: 1.45; color: var(--graphite); max-width: calc(var(--ch-t) * 44); }
+.cap .cap-proof { grid-column: 2; color: var(--ink); }
+.cap .cap-proof span { color: var(--stone); margin-right: 0.6rem; }
+.cap .sc-rule::after {
+  content: ""; position: absolute; inset: 0; background: var(--accent);
+  transform: scaleX(0); transform-origin: left center; transition: transform 0.45s var(--ease-out);
+}
+@media (min-width: 1024px) {
+  .cap { grid-template-columns: 3.5rem minmax(0, 4.4fr) minmax(0, 5.2fr) minmax(0, 1.6fr); gap: 0 2.4vw; align-items: baseline; padding: 2.25rem 0 2.5rem; }
+  .cap .cap-tools, .cap .cap-proof { grid-column: auto; }
+  .cap .cap-proof { text-align: right; }
+  .cap .cap-proof span { display: block; margin: 0 0 0.35rem; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .cap:hover .sc-rule::after { transform: scaleX(1); }
+}
+
+.tl { margin-top: clamp(3rem, 8vh, 6rem); border-bottom: 1px solid var(--line); }
+.tl-row { position: relative; display: grid; gap: 0.6rem; padding: 1.9rem 0 2.2rem; }
+.tl-when { color: var(--stone); overflow: clip; padding-top: 0.55rem; }
+.tl-when .tl-kind { color: var(--accent); }
+.tl-what { overflow: clip; padding-bottom: 0.06em; line-height: 0.95; }
+.tl-where { margin-top: 0.9rem; color: var(--graphite); }
+.tl-thesis { margin-top: 1.1rem; max-width: calc(var(--ch-d) * 30); font-family: var(--f-orn); font-style: italic; font-weight: 500; text-transform: none; color: var(--accent); font-size: var(--t-d3); line-height: 1.1; }
+html[data-variant="2"] .tl-thesis { font-family: var(--f-text); font-style: normal; font-weight: 300; }
+@media (min-width: 1024px) {
+  .tl-row { grid-template-columns: minmax(0, 1fr) minmax(0, 3.2fr); gap: 0 3vw; align-items: start; }
+  /* the staircase runs down the timeline: each older entry steps one tread to the right */
+  .tl-body { padding-left: calc(var(--k, 0) * 3.2vw); }
+}
+
+/* ---------- 8. Closing band ---------- */
+.band { position: relative; aspect-ratio: 16 / 9; min-height: 70svh; width: 100%; overflow: hidden; background: var(--paper); }
+/* .gl-host is styled by B in fx-hero.css; C keeps it as the first child of .band and never styles .gl-canvas */
+.band-copy { position: absolute; left: var(--pad); right: var(--pad); bottom: 12vh; z-index: 2; }
+.band-copy h2 { max-width: calc(var(--ch-d) * 18); }
+@media (max-width: 767.98px) { .band { aspect-ratio: auto; min-height: 78svh; } .band-copy { bottom: 8vh; } }
+
+/* The one conversion line, and the one magnetic target. Two hairlines drawn in
+   opposite directions: the ink one retracts right, the accent one draws left. */
+.sc-email {
+  position: relative; display: inline-block; margin-top: 1.75rem; padding-block: 5px;
+  color: var(--ink); text-decoration: none;
+  font-family: var(--f-display); font-weight: var(--w-display);
+  font-size: min(var(--t-d2), 8vw); line-height: 1.08;
+  letter-spacing: var(--tr-display); text-transform: none;
+  transition: color 0.3s var(--ease-soft);
+}
+.sc-email-t { display: block; }
+.sc-email-l { position: absolute; left: 0; right: 0; bottom: 0.02em; height: 1.5px; pointer-events: none; }
+.sc-email-l.l1 { background: var(--ink); transform-origin: right center; transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1); }
+.sc-email-l.l2 { background: var(--accent); transform: scaleX(0); transform-origin: left center; transition: transform 0.4s cubic-bezier(0.2, 1, 0.8, 1) 0.1s; }
+.sc-email:hover, .sc-email:focus-visible { color: var(--accent); }
+.sc-email:hover .l1, .sc-email:focus-visible .l1 { transform: scaleX(0); }
+.sc-email:hover .l2, .sc-email:focus-visible .l2 { transform: scaleX(1); }
+
+/* ---------- 9. Footer ---------- */
+.foot { padding-top: clamp(4rem, 10vh, 7rem); }
+.foot-grid { display: grid; gap: 3rem; }
+@media (min-width: 768px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1024px) { .foot-grid { grid-template-columns: 1.6fr 1fr 1fr; } }
+.foot h2 { font: 300 var(--t-d4)/1.2 var(--f-text); text-transform: uppercase; letter-spacing: 0.01em; overflow: clip; padding-bottom: 0.08em; }
+.foot ul { margin-top: 0.5rem; display: grid; gap: 0; }
+.foot a { text-decoration: none; }
+.foot li a { display: inline-block; padding-block: 0.6rem; }   /* FIX A10: 44 px targets */
+.foot li a.sc-draw::after { bottom: 0.5rem; }
+.foot .body { margin-top: 1rem; }
+@media (max-width: 767.98px) { .foot { padding-bottom: 3.5rem; } }
+.legal { position: relative; margin-top: clamp(3rem, 8vh, 5rem); padding: 1.5rem 0 calc(1.5rem + env(safe-area-inset-bottom)); color: var(--stone); font-size: 1rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem; }
+
+/* inline link underline, drawn left to right */
+.sc-draw { position: relative; }
+.sc-draw::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px;
+  background: currentColor; transform: scaleX(0); transform-origin: left center;
+  transition: transform 0.35s var(--ease-soft);
+}
+.sc-draw:hover::after, .sc-draw:focus-visible::after { transform: scaleX(1); }
+
+/* ---------- 10. Case page ---------- */
+.page-hero { padding-top: calc(var(--hdr) + clamp(3rem, 10vh, 6rem)); padding-bottom: 0; }
+.page-hero .ornament { margin-left: 22vw; font-size: calc(var(--t-d2) * 1.1); margin-top: -0.35em; }
+html[data-variant="2"] .page-hero .orn-rule { margin-left: var(--pad); }
+.page-hero .overline { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; color: var(--stone); }
+.page-hero .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem 2.5rem; }
+/* FIX D5: a match-cut arrival paints the case page from its first frame. The paper sheet is not
+   laid over it (the travelling image is the only thing above the page), the real hero figure
+   waits under the image for the swap, and the title and lead rise by CSS at once, without
+   waiting for the scripts to build. */
+html[data-arrive="flip"] .nv-sheet { visibility: hidden !important; }
+html[data-arrive="flip"] [data-case-hero] { visibility: hidden; }
+html.rv-motion.sc-film .page-hero .page-title,
+html.rv-motion.sc-film .page-hero .lead { animation: sc-title-in 1.05s var(--ease-out) 0.06s both; }
+html.rv-motion.sc-film .page-hero .lead { animation-duration: 0.9s; animation-delay: 0.25s; }
+html[data-arrive="flip"]:not(.rv-ready) .page-hero [data-reveal="hero"] { opacity: 0; }
+@keyframes sc-title-in { from { transform: translateY(0.45em); clip-path: inset(0 0 100% 0); } to { transform: none; clip-path: inset(-20% -5% -20% -5%); } }
+.facts { display: grid; gap: 4rem 3.5vw; margin-top: clamp(3rem, 8vh, 6rem); }
+@media (min-width: 768px) { .facts { grid-template-columns: repeat(2, 1fr); } }
+.fact { position: relative; padding-top: 1.25rem; }
+.fact .num { font-family: var(--f-display); font-size: var(--t-d1); line-height: 0.9; font-weight: 300; letter-spacing: var(--tr-display); overflow: clip; padding-bottom: 0.06em; }
+html[data-variant="1"] .fact .num { font-weight: 500; }
+html[data-variant="3"] .fact .num { font-weight: 400; }
+.fact h3 { margin-top: 1rem; }
+.fact p { margin-top: 0.75rem; }
+/* FIX J5: the eight tools SphereNode replaced, at display size on a 4 x 2 hairline grid; a 1 px
+   ink strike draws through each name once it has risen (fx-scroll.js buildStrikes) */
+.c-what .d1 { max-width: none; }
+.replaced { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: clamp(2.5rem, 7vh, 5rem); border-top: 1px solid var(--line); }
+.replaced li { position: relative; padding: 1.2rem 1rem 1.3rem 0; border-bottom: 1px solid var(--line); }
+.replaced .rp { position: relative; display: inline-block; overflow: clip; padding-bottom: 0.06em; font-family: var(--f-display); font-weight: var(--w-display); letter-spacing: var(--tr-display); text-transform: uppercase; font-size: var(--t-d3); line-height: 1.05; color: var(--graphite); }
+.replaced .strike { position: absolute; left: -0.08em; right: -0.08em; top: 52%; height: 1px; background: var(--ink); transform-origin: left center; pointer-events: none; }
+@media (min-width: 768px) {
+  .replaced { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .replaced li + li { border-left: 0; }
+}
+.replaced-by { margin-top: 1.4rem; color: var(--accent); overflow: clip; padding-bottom: 0.06em; }
+.replaced-by .arr { font-family: var(--f-text); font-weight: 300; margin-right: 0.4em; }
+.c-what-body { margin-top: clamp(3rem, 8vh, 5.5rem); }
+.stack { margin-top: 2rem; }
+@media (min-width: 1024px) { .c-what-body .stack { margin-top: 0.4rem; } }
+.guard { margin-top: 2.5rem; border-bottom: 1px solid var(--line); }
+.guard li { position: relative; padding: 1.1rem 0; color: var(--graphite); display: grid; grid-template-columns: 3rem 1fr; }
+.guard li .g-n { display: block; color: var(--stone); font-weight: 600; font-size: 1rem; padding-top: 0.2rem; overflow: clip; }
+.next { position: relative; }
+.next-link { display: block; text-decoration: none; color: var(--ink); }
+.next-link .d1 { font-size: var(--t-page); margin-top: 1.5rem; transition: color 0.3s var(--ease-soft); }
+.next-link:hover .d1, .next-link:focus-visible .d1 { color: var(--accent); }
+.next-link .arrow { display: inline-block; transition: transform 0.45s var(--ease-soft); }
+.next-link:hover .arrow, .next-link:focus-visible .arrow { transform: translateX(0.12em); }
+
+/* ---------- 11. Reduced motion ----------
+   The page is complete and printed: hairlines drawn, figures final, ink solid.
+   The module sets no hidden state at all, so there is nothing to undo here
+   beyond the two transforms that CSS itself would otherwise carry. */
+@media (prefers-reduced-motion: reduce) {
+  .rail .pan { transform: none; }
+  .sc-email-l.l2 { transform: scaleX(0); }
+}

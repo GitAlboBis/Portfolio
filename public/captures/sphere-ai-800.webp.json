@@ -1,0 +1,4 @@
+{
+  "prompt": "ORIGIN (pre-existing raster, not generated): browser capture of the live Sphere AI mentor page https://www.spherenode.com/mentor, taken 2026-09-03 (first run, 09:57 UTC) by spherenode-promo/scripts/capture.mjs (commit 60169ac, GitAlboBis) in a signed-in SerSan staff session at 1920x1080 @ DPR 2 (source file public/screens-pass1/mentor-chat-en.png of SerSan's spherenode-promo repo, 3840x2160). Cropped 16:10 at source pixels left 690, top 170, 3150x1969 (the account header, the staff e-mail and the conversation list are outside the crop). Seven flat bars redact an instructor's name and the titles of the cited and suggested lessons and live sessions; nothing else is altered. Product owned by SphereNode, Sphere AI built by SerSan; used as evidence of work performed. Encoded to WebP q90 effort 6 with sharp 0.34.5 (800x500). Full record: public/captures/PROVENANCE.md",
+  "createdAt": "2026-10-09T11:47:08.156Z"
+}

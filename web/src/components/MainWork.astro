@@ -1,0 +1,6 @@
+---
+/* Work's main: parts/c-main.work.html (its {{RAIL}}, the nine gallery steps, is filled by the layout). */
+import { partial, literal } from "../lib/site.mjs";
+const html = literal('<main id="main">') + partial("c-main.work.html") + literal("</main>");
+---
+<Fragment set:html={html} />

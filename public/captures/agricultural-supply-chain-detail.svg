@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-labelledby="umld-t umld-d">
+<title id="umld-t">Detail of the model package, redrawn from the team's model, Project class diagram 4</title>
+<desc id="umld-d">A detail of the model package of the class diagram "Project class diagram 4" from the Visual Paradigm model of the Agricultural Supply Chain Platform (team of three, University of Camerino; github.com/daveeCity/IDS_GROUP_PROJECT): 4 packages, 56 classes and 69 relationships in the whole diagram, each at its modelled position, light lines on a night ground. In the accent blue: the associations dettagliare, eseguire and specificare (Prodotto, TracciabilitaProdotto, PassoFiliera, Azienda). Source IDS_project(3).vpp, diagram last modified 2025-12-03. Drawn by scripts/media/vpp-plate.mjs for the portfolio of Alberto Tuveri.</desc>
+<metadata>ORIGIN (drawn from a real artefact, not generated): every shape, name, member and connector read from IDS_project(3).vpp (SQLite, opened read-only), diagram "Project class diagram 4", window x 3305 y 3290 w 1751 h 1070 (model units); uniform scale 0.76636; typography and colours of the site's night studio (Sofia Sans, Sofia Sans Condensed, Sofia Sans Extra Condensed; night, night-2, line, mute, body, ink; one accent thread).</metadata>
+<defs>
+<style>
+.umld-pkg{fill:#0c0e14;stroke:#262a36;stroke-width:1}
+.umld-pkg-name{font:800 20px 'Sofia Sans Extra Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif;text-transform:uppercase;fill:#f4f1ea;letter-spacing:.01em;stroke:#0c0e14;stroke-width:5px;stroke-linejoin:round;paint-order:stroke}
+.umld-cn{fill:none;stroke:#9a958a;stroke-width:1;stroke-linejoin:miter}
+.umld-cn.umld-dash{stroke-dasharray:4 2.6}
+.umld-cn.umld-thread{stroke:#8fa2ff;stroke-width:1.6}
+.umld-tri{fill:#0c0e14;stroke:#9a958a;stroke-width:1;stroke-linejoin:miter}
+.umld-arr{fill:none;stroke:#9a958a;stroke-width:1}
+.umld-dia-c{fill:#9a958a;stroke:#9a958a;stroke-width:.6}
+.umld-dia-s{fill:#0c0e14;stroke:#9a958a;stroke-width:.6}
+.umld-dia-c.umld-thread{fill:#8fa2ff;stroke:#8fa2ff}
+.umld-dia-s.umld-thread{stroke:#8fa2ff}
+.umld-box{fill:#12151d;stroke:#9a958a;stroke-width:1}
+.umld-sep{stroke:#9a958a;stroke-opacity:.4;stroke-width:0.8}
+.umld-nm{font:600 8.813px 'Sofia Sans', 'Barlow', system-ui, sans-serif;fill:#f4f1ea;text-anchor:middle}
+.umld-st{font:400 7.664px 'Sofia Sans', 'Barlow', system-ui, sans-serif;fill:#9a958a;text-anchor:middle}
+.umld-mb{font:400 7.51px 'Sofia Sans', 'Barlow', system-ui, sans-serif;fill:#cfcabf}
+.umld-verb{font:500 8.813px 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif;fill:#9a958a;letter-spacing:.02em}
+.umld-verb.umld-thread{fill:#8fa2ff}
+.umld-end{font:400 7.28px 'Sofia Sans', 'Barlow', system-ui, sans-serif;fill:#9a958a}
+.umld-cap{font:600 13px 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif;text-transform:uppercase;letter-spacing:.12em;fill:#9a958a}
+.umld-rule{stroke:#262a36;stroke-width:1}
+</style>
+<clipPath id="umld-win"><rect x="129.06" y="74.00" width="1341.89" height="820.00"/></clipPath>
+<clipPath id="umld-k0"><rect x="198.03" y="-1296.24" width="232.972" height="52.112"/></clipPath>
+<clipPath id="umld-k1"><rect x="198.03" y="-944.49" width="232.972" height="80.467"/></clipPath>
+<clipPath id="umld-k2"><rect x="1612.72" y="-1277.08" width="228.374" height="102.692"/></clipPath>
+<clipPath id="umld-k3"><rect x="1625.75" y="-943.72" width="228.374" height="137.944"/></clipPath>
+<clipPath id="umld-k4"><rect x="-974.5" y="-1292.41" width="261.327" height="76.636"/></clipPath>
+<clipPath id="umld-k5"><rect x="-974.5" y="-943.72" width="261.327" height="206.916"/></clipPath>
+<clipPath id="umld-k6"><rect x="-596.68" y="-1292.41" width="250.598" height="65.14"/></clipPath>
+<clipPath id="umld-k7"><rect x="-612.01" y="-943.72" width="250.598" height="137.944"/></clipPath>
+<clipPath id="umld-k8"><rect x="1217.28" y="-1277.08" width="266.692" height="85.065"/></clipPath>
+<clipPath id="umld-k9"><rect x="1217.28" y="-943.72" width="266.692" height="149.439"/></clipPath>
+<clipPath id="umld-k10"><rect x="-1602.91" y="-860.95" width="209.981" height="45.981"/></clipPath>
+<clipPath id="umld-k11"><rect x="-228.83" y="-1292.41" width="238.336" height="98.093"/></clipPath>
+<clipPath id="umld-k12"><rect x="-226.53" y="-943.72" width="238.336" height="149.439"/></clipPath>
+<clipPath id="umld-k13"><rect x="619.52" y="-1280.15" width="309.607" height="56.71"/></clipPath>
+<clipPath id="umld-k14"><rect x="637.15" y="-943.72" width="309.607" height="137.944"/></clipPath>
+<clipPath id="umld-k15"><rect x="-722.36" y="513.12" width="137.944" height="61.308"/></clipPath>
+<clipPath id="umld-k16"><rect x="-177.49" y="93.16" width="130.28" height="45.981"/></clipPath>
+<clipPath id="umld-k17"><rect x="1333" y="626.54" width="135.645" height="61.308"/></clipPath>
+<clipPath id="umld-k18"><rect x="-880.23" y="812" width="166.299" height="95.794"/></clipPath>
+<clipPath id="umld-k19"><rect x="343.64" y="552.97" width="246.766" height="45.981"/></clipPath>
+<clipPath id="umld-k20"><rect x="-848.81" y="-125.25" width="173.963" height="107.29"/></clipPath>
+<clipPath id="umld-k21"><rect x="-311.6" y="-129.08" width="210.748" height="118.785"/></clipPath>
+<clipPath id="umld-k22"><rect x="534.46" y="116.15" width="235.271" height="107.29"/></clipPath>
+<clipPath id="umld-k23"><rect x="1734.57" y="169.79" width="120.318" height="153.271"/></clipPath>
+<clipPath id="umld-k24"><rect x="1897.8" y="36.45" width="127.981" height="45.981"/></clipPath>
+<clipPath id="umld-k25"><rect x="920.7" y="91.63" width="131.813" height="130.28"/></clipPath>
+<clipPath id="umld-k26"><rect x="-227.3" y="395.87" width="97.327" height="118.785"/></clipPath>
+<clipPath id="umld-k27"><rect x="-592.85" y="-129.08" width="147.14" height="107.29"/></clipPath>
+<clipPath id="umld-k28"><rect x="587.34" y="735.36" width="181.626" height="141.776"/></clipPath>
+<clipPath id="umld-k29"><rect x="242.48" y="-93.07" width="242.935" height="45.981"/></clipPath>
+<clipPath id="umld-k30"><rect x="-64.83" y="-139.81" width="256.729" height="45.981"/></clipPath>
+<clipPath id="umld-k31"><rect x="141.32" y="81.66" width="122.617" height="107.29"/></clipPath>
+<clipPath id="umld-k32"><rect x="-527.71" y="708.54" width="155.57" height="101.925"/></clipPath>
+<clipPath id="umld-k33"><rect x="817.24" y="353.72" width="101.925" height="67.439"/></clipPath>
+<clipPath id="umld-k34"><rect x="2435.79" y="-1280.92" width="172.43" height="51.346"/></clipPath>
+<clipPath id="umld-k35"><rect x="2435.79" y="-943.72" width="172.43" height="42.15"/></clipPath>
+<clipPath id="umld-k36"><rect x="1970.61" y="-1854.92" width="323.402" height="42.15"/></clipPath>
+<clipPath id="umld-k37"><rect x="2407.43" y="-1852.62" width="203.85" height="65.14"/></clipPath>
+<clipPath id="umld-k38"><rect x="785.06" y="-1854.92" width="318.037" height="63.607"/></clipPath>
+<clipPath id="umld-k39"><rect x="1168.23" y="-1854.92" width="312.673" height="63.607"/></clipPath>
+<clipPath id="umld-k40"><rect x="447.86" y="-1854.92" width="274.355" height="52.112"/></clipPath>
+<clipPath id="umld-k41"><rect x="-1033.5" y="-1854.92" width="330.299" height="63.607"/></clipPath>
+<clipPath id="umld-k42"><rect x="-261.79" y="-1854.92" width="274.355" height="75.103"/></clipPath>
+<clipPath id="umld-k43"><rect x="-627.34" y="-1852.62" width="318.804" height="52.112"/></clipPath>
+<clipPath id="umld-k44"><rect x="1597.39" y="-1854.92" width="257.495" height="63.607"/></clipPath>
+<clipPath id="umld-k45"><rect x="109.9" y="-1854.92" width="276.654" height="52.112"/></clipPath>
+<clipPath id="umld-k46"><rect x="2054.91" y="-1280.15" width="213.047" height="42.916"/></clipPath>
+<clipPath id="umld-k47"><rect x="2054.91" y="-943.72" width="213.813" height="111.888"/></clipPath>
+<clipPath id="umld-k48"><rect x="-1591.41" y="-581.23" width="199.252" height="76.636"/></clipPath>
+<clipPath id="umld-k49"><rect x="-1675.71" y="-1194.32" width="130.28" height="49.047"/></clipPath>
+<clipPath id="umld-k50"><rect x="-1373" y="-1301.61" width="130.28" height="61.308"/></clipPath>
+<clipPath id="umld-k51"><rect x="-1675.71" y="-1355.25" width="130.28" height="31.421"/></clipPath>
+<clipPath id="umld-k52"><rect x="-1602.91" y="-1048.71" width="187.757" height="72.804"/></clipPath>
+<clipPath id="umld-k53"><rect x="-1851.97" y="-860.95" width="203.85" height="53.645"/></clipPath>
+<clipPath id="umld-k54"><rect x="-2066.55" y="-975.91" width="208.449" height="40.617"/></clipPath>
+<clipPath id="umld-k55"><rect x="-2070.38" y="-715.35" width="213.813" height="40.617"/></clipPath>
+</defs>
+<rect width="1600" height="1000" fill="#12151d"/>
+<g clip-path="url(#umld-win)">
+<rect class="umld-pkg" x="-1073.62" y="-2046" width="3746.477" height="443.486"/>
+<rect class="umld-pkg" x="-1073.62" y="-1514.15" width="3746.477" height="1138.57"/>
+<rect class="umld-pkg" x="-2181" y="-1442.88" width="1025.916" height="1079.561"/>
+<rect class="umld-pkg" x="-1073.62" y="-232.04" width="3746.477" height="1176.121"/>
+<polyline class="umld-cn" points="286.16,-1243.36 286.16,-944.49"/>
+<polyline class="umld-cn" points="1725.37,-1173.63 1725.37,-943.72"/>
+<polyline class="umld-cn" points="-869.5,-1215.01 -869.5,-943.72"/>
+<polyline class="umld-cn" points="-474.07,-1226.5 -474.07,-943.72"/>
+<polyline class="umld-cn" points="1324.57,-1191.25 1324.57,-943.72"/>
+<polyline class="umld-cn" points="-106.21,-1193.55 -106.21,-943.72"/>
+<polyline class="umld-cn" points="755.17,-1222.67 755.17,-943.72"/>
+<polyline class="umld-cn" points="-699.37,-17.96 -699.37,513.12"/>
+<polyline class="umld-cn" points="-822.76,-19.5 -822.76,812"/>
+<polyline class="umld-cn" points="556.68,116.15 556.68,-70.84 484.64,-70.84"/>
+<polyline class="umld-cn" points="703.82,115.38 703.82,-172.77 62.38,-172.77 62.38,-139.81"/>
+<polyline class="umld-cn" points="535.22,223.44 535.22,552.97"/>
+<polyline class="umld-cn" points="1777.49,322.3 1777.49,657.2 1468.64,657.2"/>
+<polyline class="umld-cn" points="1826.53,322.3 1826.53,904.73 -638.83,904.73 -638.83,575.2"/>
+<polyline class="umld-cn" points="-127.67,484 397.28,484 397.28,552.97"/>
+<polyline class="umld-cn" points="-641.13,512.36 -641.13,202.75 -546.87,202.75 -546.87,-21.79"/>
+<polyline class="umld-cn" points="-311.6,-75.44 -444.94,-75.44"/>
+<polyline class="umld-cn" points="656.31,735.36 656.31,221.91"/>
+<polyline class="umld-cn" points="656.31,221.91 656.31,735.36"/>
+<polyline class="umld-cn" points="-711.64,850.32 587.34,850.32"/>
+<polyline class="umld-cn" points="-146.83,514.65 -146.83,687.08 615.69,687.08 615.69,736.9"/>
+<polyline class="umld-cn" points="160.48,189.72 160.48,281.68 -605.88,281.68 -605.88,514.65"/>
+<polyline class="umld-cn" points="263.93,116.15 534.46,116.15"/>
+<polyline class="umld-cn" points="142.08,116.15 -47.21,116.15"/>
+<polyline class="umld-cn" points="201.09,189.72 201.09,626.54 1333,626.54"/>
+<polyline class="umld-cn" points="244.78,82.43 244.78,61.74 1897.8,61.74"/>
+<polyline class="umld-cn" points="-372.14,759.12 586.57,759.12"/>
+<polyline class="umld-cn" points="-493.22,-22.56 -493.22,708.54"/>
+<polyline class="umld-cn" points="286.16,-1802.04 286.16,-1297.01"/>
+<polyline class="umld-cn" points="1723.84,-1790.54 1723.84,-1277.85"/>
+<polyline class="umld-cn" points="1320.74,-1790.54 1320.74,-1277.85"/>
+<polyline class="umld-cn" points="850.2,-1790.54 850.2,-1280.92"/>
+<polyline class="umld-cn" points="-475.6,-1799.74 -475.6,-1293.18"/>
+<polyline class="umld-cn" points="-123.07,-1779.05 -123.07,-1293.18"/>
+<polyline class="umld-cn" points="-848.05,-1790.54 -848.05,-1293.18"/>
+<polyline class="umld-cn" points="704.59,-1802.04 704.59,-1280.92"/>
+<polyline class="umld-cn" points="2130.01,-1812 2130.01,-1280.92"/>
+<polyline class="umld-cn" points="2131.54,-1236.47 2131.54,-943.72"/>
+<polyline class="umld-cn" points="2507.82,-1787.48 2507.82,-1280.15"/>
+<polyline class="umld-cn" points="2510.12,-1229.57 2510.12,-943.72"/>
+<polyline class="umld-cn umld-dash" points="-733.09,-736.8 -733.09,-125.25"/>
+<polyline class="umld-cn umld-dash" points="-869.5,-736.8 -869.5,-310.71 -547.64,-310.71 -547.64,-129.08"/>
+<polyline class="umld-cn umld-dash" points="-713.17,-837.96 -602.81,-837.96 -602.81,-600.39 -407.39,-600.39 -407.39,-194.22 -208.14,-194.22 -208.14,-129.08"/>
+<polyline class="umld-cn umld-dash" points="-398.2,-805.78 -398.2,-703.08 -298.57,-703.08 -298.57,-277.76 264.7,-277.76 264.7,-93.07"/>
+<polyline class="umld-cn umld-dash" points="-150.66,-794.28 -150.66,-343.66 397.28,-343.66 397.28,-93.07"/>
+<polyline class="umld-cn umld-dash" points="-47.21,-794.28 -47.21,-427.96 586.57,-427.96 586.57,116.15"/>
+<polyline class="umld-cn" points="273.9,-864.02 273.9,-539.08 -1392.93,-539.08"/>
+<polyline class="umld-cn umld-dash" points="207.22,-864.02 207.22,81.66"/>
+<polyline class="umld-cn umld-dash" points="858.63,-805.78 858.63,353.72"/>
+<polyline class="umld-cn umld-dash" points="937.56,-805.78 937.56,90.86"/>
+<polyline class="umld-cn umld-dash" points="1339.9,-794.28 1339.9,449.51 -129.97,449.51"/>
+<polyline class="umld-cn" points="1795.88,169.79 1795.88,-805.78"/>
+<polyline class="umld-cn umld-dash" points="1665.6,-805.78 1665.6,166.73 1397.37,166.73 1397.37,626.54"/>
+<polyline class="umld-cn umld-dash" points="1696.25,-805.78 1696.25,-296.92 1765.22,-296.92 1765.22,169.79"/>
+<polyline class="umld-cn umld-dash" points="2129.24,-831.83 2129.24,277.08 1854.89,277.08"/>
+<polyline class="umld-cn umld-dash" points="2194.38,-831.83 2194.38,813.53 768.96,813.53"/>
+<polyline class="umld-cn umld-dash" points="2512.42,-901.57 2512.42,54.84 2025.79,54.84"/>
+<polyline class="umld-cn" points="-1648.89,-860.95 -1602.91,-860.95"/>
+<polyline class="umld-cn umld-dash" points="-1855.8,-707.68 -1813.65,-707.68 -1813.65,-807.31"/>
+<polyline class="umld-cn umld-dash" points="-1855.8,-956.75 -1802.16,-956.75 -1802.16,-860.95"/>
+<polyline class="umld-cn umld-dash" points="-1572.25,-1194.32 -1572.25,-1252.56 -1373.77,-1251.79"/>
+<polyline class="umld-cn umld-dash" points="-1570.72,-1323.83 -1570.72,-1290.88 -1373.77,-1291.64"/>
+<polyline class="umld-cn umld-dash" points="-1243.49,-1272.49 -1124.7,-1270.95 -1124.7,-1126.88 -539.21,-1126.88 -539.21,-942.95"/>
+<polyline class="umld-cn umld-dash" points="-1415.92,-1026.49 -585.19,-1026.49 -585.19,-942.95"/>
+<polyline class="umld-cn umld-dash" points="-1393.69,-838.73 -974.5,-838.73"/>
+<polyline class="umld-cn" points="-1491.79,-504.6 -1491.79,155.23 141.32,155.23"/>
+<polyline class="umld-cn umld-thread" points="920.7,162.13 769.73,162.13"/>
+<polyline class="umld-cn umld-thread" points="919.17,386.67 1014.2,386.67 1014.2,222.67"/>
+<polyline class="umld-cn umld-thread" points="768.2,774.45 857.86,774.45 857.86,421.93"/>
+<polygon class="umld-tri" points="286.16,-1243.36 280.64,-1233.40 291.68,-1233.40"/>
+<polygon class="umld-tri" points="1725.37,-1173.63 1719.85,-1163.67 1730.89,-1163.67"/>
+<polygon class="umld-tri" points="-869.5,-1215.01 -875.02,-1205.05 -863.98,-1205.05"/>
+<polygon class="umld-tri" points="-474.07,-1226.5 -479.59,-1216.54 -468.55,-1216.54"/>
+<polygon class="umld-tri" points="1324.57,-1191.25 1319.05,-1181.29 1330.09,-1181.29"/>
+<polygon class="umld-tri" points="-106.21,-1193.55 -111.73,-1183.59 -100.69,-1183.59"/>
+<polygon class="umld-tri" points="755.17,-1222.67 749.65,-1212.71 760.69,-1212.71"/>
+<polygon class="umld-dia-c" points="-822.76,-19.5 -826.29,-13.37 -822.76,-7.24 -819.23,-13.37"/>
+<polygon class="umld-tri" points="556.68,116.15 562.20,106.19 551.16,106.19"/>
+<polygon class="umld-tri" points="703.82,115.38 709.34,105.42 698.30,105.42"/>
+<polygon class="umld-tri" points="535.22,223.44 529.70,233.40 540.74,233.40"/>
+<polygon class="umld-dia-c" points="-641.13,512.36 -637.60,506.23 -641.13,500.10 -644.66,506.23"/>
+<polygon class="umld-dia-c" points="656.31,221.91 652.78,228.04 656.31,234.17 659.84,228.04"/>
+<polygon class="umld-dia-c" points="-146.83,514.65 -150.36,520.78 -146.83,526.91 -143.30,520.78"/>
+<polygon class="umld-tri" points="160.48,189.72 154.96,199.68 166.00,199.68"/>
+<polygon class="umld-tri" points="263.93,116.15 273.89,121.67 273.89,110.63"/>
+<polygon class="umld-tri" points="142.08,116.15 132.12,110.63 132.12,121.67"/>
+<polygon class="umld-tri" points="201.09,189.72 195.57,199.68 206.61,199.68"/>
+<polygon class="umld-tri" points="244.78,82.43 250.30,72.47 239.26,72.47"/>
+<polygon class="umld-dia-c" points="-493.22,-22.56 -496.75,-16.43 -493.22,-10.30 -489.69,-16.43"/>
+<polygon class="umld-dia-c umld-thread" points="919.17,386.67 925.30,390.20 931.43,386.67 925.30,383.14"/>
+<polyline class="umld-arr" points="-729.26,-132.91 -733.09,-125.25 -736.92,-132.91"/>
+<polyline class="umld-arr" points="-543.81,-136.74 -547.64,-129.08 -551.47,-136.74"/>
+<polyline class="umld-arr" points="-204.31,-136.74 -208.14,-129.08 -211.97,-136.74"/>
+<polyline class="umld-arr" points="268.53,-100.73 264.7,-93.07 260.87,-100.73"/>
+<polyline class="umld-arr" points="401.11,-100.73 397.28,-93.07 393.45,-100.73"/>
+<polyline class="umld-arr" points="590.40,108.49 586.57,116.15 582.74,108.49"/>
+<polyline class="umld-arr" points="211.05,74.00 207.22,81.66 203.39,74.00"/>
+<polyline class="umld-arr" points="862.46,346.06 858.63,353.72 854.80,346.06"/>
+<polyline class="umld-arr" points="941.39,83.20 937.56,90.86 933.73,83.20"/>
+<polyline class="umld-arr" points="-122.31,453.34 -129.97,449.51 -122.31,445.68"/>
+<polygon class="umld-tri" points="1795.88,169.79 1801.40,159.83 1790.36,159.83"/>
+<polyline class="umld-arr" points="1401.20,618.88 1397.37,626.54 1393.54,618.88"/>
+<polyline class="umld-arr" points="1769.05,162.13 1765.22,169.79 1761.39,162.13"/>
+<polyline class="umld-arr" points="1862.55,280.91 1854.89,277.08 1862.55,273.25"/>
+<polyline class="umld-arr" points="776.62,817.36 768.96,813.53 776.62,809.70"/>
+<polyline class="umld-arr" points="2033.45,58.67 2025.79,54.84 2033.45,51.01"/>
+<polyline class="umld-arr" points="-1817.48,-799.65 -1813.65,-807.31 -1809.82,-799.65"/>
+<polyline class="umld-arr" points="-1798.33,-868.61 -1802.16,-860.95 -1805.99,-868.61"/>
+<polyline class="umld-arr" points="-1381.42,-1255.65 -1373.77,-1251.79 -1381.45,-1247.99"/>
+<polyline class="umld-arr" points="-1381.45,-1295.44 -1373.77,-1291.64 -1381.42,-1287.78"/>
+<polygon class="umld-tri" points="-1243.49,-1272.49 -1233.60,-1266.84 -1233.46,-1277.88"/>
+<polygon class="umld-tri" points="-1415.92,-1026.49 -1405.96,-1020.97 -1405.96,-1032.01"/>
+<polygon class="umld-tri" points="-1393.69,-838.73 -1383.73,-833.21 -1383.73,-844.25"/>
+<text class="umld-pkg-name" x="-1064.12" y="-2022.50">Controller</text>
+<text class="umld-pkg-name" x="-1064.12" y="-1490.65">Service</text>
+<text class="umld-pkg-name" x="-2171.50" y="-1419.38">Design Patterns</text>
+<text class="umld-pkg-name" x="-1064.12" y="-208.54">model</text>
+<g class="umld-cls"><rect class="umld-box" x="198.03" y="-1296.24" width="232.972" height="52.112"/>
+<line class="umld-sep" x1="198.03" y1="-1271.72" x2="431.00" y2="-1271.72"/>
+<g clip-path="url(#umld-k0)"><text class="umld-st" x="314.52" y="-1286.28">«Interface»</text><text class="umld-nm" x="314.52" y="-1274.40">AutenticazioneService</text><text class="umld-mb" x="201.86" y="-1262.52">registraUtente(RegisterRequestDTO): AuthResponseDTO</text><text class="umld-mb" x="201.86" y="-1251.03">loginUtente(LoginRequestDTO): AuthResponseDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="198.03" y="-944.49" width="232.972" height="80.467"/>
+<line class="umld-sep" x1="198.03" y1="-931.46" x2="431.00" y2="-931.46"/>
+<line class="umld-sep" x1="198.03" y1="-906.17" x2="431.00" y2="-906.17"/>
+<g clip-path="url(#umld-k1)"><text class="umld-nm" x="314.52" y="-934.14">AutenticazioneServiceImpl</text><text class="umld-mb" x="201.86" y="-922.26">utenteFactory: UtenteFactory</text><text class="umld-mb" x="201.86" y="-910.77">utenteRepository: UtenteRepository</text><text class="umld-mb" x="201.86" y="-896.97">AutenticazioneServiceImpl()</text><text class="umld-mb" x="201.86" y="-885.48">registraUtente(RegisterRequestDTO): AuthResponseDTO</text><text class="umld-mb" x="201.86" y="-873.98">loginUtente(LoginRequestDTO): AuthResponseDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1612.72" y="-1277.08" width="228.374" height="102.692"/>
+<line class="umld-sep" x1="1612.72" y1="-1252.56" x2="1841.09" y2="-1252.56"/>
+<g clip-path="url(#umld-k2)"><text class="umld-st" x="1726.91" y="-1267.12">«Interface»</text><text class="umld-nm" x="1726.91" y="-1255.24">EventoService</text><text class="umld-mb" x="1616.55" y="-1243.36">getEventoById(Long): EventoDTO</text><text class="umld-mb" x="1616.55" y="-1231.87">getEventiByAnimatore(Long): List&lt;EventoDTO&gt;</text><text class="umld-mb" x="1616.55" y="-1220.37">creaEvento(EventoRequestDTO, Long): EventoDTO</text><text class="umld-mb" x="1616.55" y="-1208.88">annullaEvento(Long): void</text><text class="umld-mb" x="1616.55" y="-1197.38">partecipaEvento(Long, Long): void</text><text class="umld-mb" x="1616.55" y="-1185.89">aggiornaEvento(Long, EventoRequestDTO): EventoDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1625.75" y="-943.72" width="228.374" height="137.944"/>
+<line class="umld-sep" x1="1625.75" y1="-931.46" x2="1854.12" y2="-931.46"/>
+<line class="umld-sep" x1="1625.75" y1="-917.66" x2="1854.12" y2="-917.66"/>
+<g clip-path="url(#umld-k3)"><text class="umld-nm" x="1739.94" y="-933.37">EventoServiceImpl</text><text class="umld-mb" x="1629.58" y="-922.26">eventoRepository: EventoRepository</text><text class="umld-mb" x="1629.58" y="-908.47">EventoServiceImpl()</text><text class="umld-mb" x="1629.58" y="-896.97">aggiornaEvento(Long, EventoRequestDTO): EventoDTO</text><text class="umld-mb" x="1629.58" y="-885.48">creaEvento(EventoRequestDTO, Long): EventoDTO</text><text class="umld-mb" x="1629.58" y="-873.98">convertToDTO(Evento): EventoDTO</text><text class="umld-mb" x="1629.58" y="-862.49">annullaEvento(Long): void</text><text class="umld-mb" x="1629.58" y="-850.99">partecipaEvento(Long, Long): void</text><text class="umld-mb" x="1629.58" y="-839.50">getEventiByAnimatore(Long): List&lt;EventoDTO&gt;</text><text class="umld-mb" x="1629.58" y="-828.00">findEventoById(Long): Evento</text><text class="umld-mb" x="1629.58" y="-816.50">getEventoById(Long): EventoDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-974.5" y="-1292.41" width="261.327" height="76.636"/>
+<line class="umld-sep" x1="-974.5" y1="-1267.89" x2="-713.17" y2="-1267.89"/>
+<g clip-path="url(#umld-k4)"><text class="umld-st" x="-843.84" y="-1282.45">«Interface»</text><text class="umld-nm" x="-843.84" y="-1270.57">MarketplaceService</text><text class="umld-mb" x="-970.67" y="-1258.69">aggiungiAlCarrello(AggiungiAlCarrelloRequestDTO): CarrelloDTO</text><text class="umld-mb" x="-970.67" y="-1247.20">rimuoviDalCarrello(Long): CarrelloDTO</text><text class="umld-mb" x="-970.67" y="-1235.70">checkout(CheckoutRequestDTO): OrdineDTO</text><text class="umld-mb" x="-970.67" y="-1224.21">getDettaglioOrdine(Long): OrdineDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-974.5" y="-943.72" width="261.327" height="206.916"/>
+<line class="umld-sep" x1="-974.5" y1="-931.46" x2="-713.17" y2="-931.46"/>
+<line class="umld-sep" x1="-974.5" y1="-825.7" x2="-713.17" y2="-825.7"/>
+<g clip-path="url(#umld-k5)"><text class="umld-nm" x="-843.84" y="-933.37">MarketplaceServiceImpl</text><text class="umld-mb" x="-970.67" y="-922.26">carrelloRepository: CarrelloRepository</text><text class="umld-mb" x="-970.67" y="-910.77">ordineMapper: OrdineMapper</text><text class="umld-mb" x="-970.67" y="-899.27">pagamentoService: PagamentoService</text><text class="umld-mb" x="-970.67" y="-887.78">prodottoRepository: ProdottoRepository</text><text class="umld-mb" x="-970.67" y="-876.28">utenteRepository: UtenteRepository</text><text class="umld-mb" x="-970.67" y="-864.79">ordineRepository: OrdineRepository</text><text class="umld-mb" x="-970.67" y="-853.29">pagamentoRepository: PagamentoRepository</text><text class="umld-mb" x="-970.67" y="-841.79">carrelloMapper: CarrelloMapper</text><text class="umld-mb" x="-970.67" y="-830.30">elementoCarrelloRepository: ElementoCarrelloRepository</text><text class="umld-mb" x="-970.67" y="-816.50">MarketplaceServiceImpl()</text><text class="umld-mb" x="-970.67" y="-805.01">findProdottoById(Long): Prodotto</text><text class="umld-mb" x="-970.67" y="-793.51">getOrCreateCarrello(Acquirente): Carrello</text><text class="umld-mb" x="-970.67" y="-782.02">aggiungiAlCarrello(AggiungiAlCarrelloRequestDTO): CarrelloDTO</text><text class="umld-mb" x="-970.67" y="-770.52">getDettaglioOrdine(Long): OrdineDTO</text><text class="umld-mb" x="-970.67" y="-759.03">rimuoviDalCarrello(Long): CarrelloDTO</text><text class="umld-mb" x="-970.67" y="-747.53">checkout(CheckoutRequestDTO): OrdineDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-596.68" y="-1292.41" width="250.598" height="65.14"/>
+<line class="umld-sep" x1="-596.68" y1="-1267.89" x2="-346.08" y2="-1267.89"/>
+<g clip-path="url(#umld-k6)"><text class="umld-st" x="-471.38" y="-1282.45">«Interface»</text><text class="umld-nm" x="-471.38" y="-1270.57">ModerazioneService</text><text class="umld-mb" x="-592.85" y="-1258.69">approvaProdotto(Long): ProdottoDTO</text><text class="umld-mb" x="-592.85" y="-1247.20">rifiutaProdotto(Long, ModerazioneRequestDTO): ProdottoDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-612.01" y="-943.72" width="250.598" height="137.944"/>
+<line class="umld-sep" x1="-612.01" y1="-931.46" x2="-361.41" y2="-931.46"/>
+<line class="umld-sep" x1="-612.01" y1="-894.67" x2="-361.41" y2="-894.67"/>
+<g clip-path="url(#umld-k7)"><text class="umld-nm" x="-486.71" y="-933.37">ModerazioneServiceImpl</text><text class="umld-mb" x="-608.18" y="-922.26">prodottoRepository: ProdottoRepository</text><text class="umld-mb" x="-608.18" y="-910.77">prodottoMapper: ProdottoMapper</text><text class="umld-mb" x="-608.18" y="-899.27">observers: List&lt;ModerationObserver&gt;</text><text class="umld-mb" x="-608.18" y="-885.48">ModerazioneServiceImpl()</text><text class="umld-mb" x="-608.18" y="-873.98">removeObserver(ModerationObserver): void</text><text class="umld-mb" x="-608.18" y="-862.49">approvaProdotto(Long): ProdottoDTO</text><text class="umld-mb" x="-608.18" y="-850.99">notifyObservers(Prodotto, String): void</text><text class="umld-mb" x="-608.18" y="-839.50">addObserver(ModerationObserver): void</text><text class="umld-mb" x="-608.18" y="-828.00">rifiutaProdotto(Long, ModerazioneRequestDTO): ProdottoDTO</text><text class="umld-mb" x="-608.18" y="-816.50">findProdottoById(Long): Prodotto</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1217.28" y="-1277.08" width="266.692" height="85.065"/>
+<line class="umld-sep" x1="1217.28" y1="-1252.56" x2="1483.97" y2="-1252.56"/>
+<g clip-path="url(#umld-k8)"><text class="umld-st" x="1350.63" y="-1267.12">«Interface»</text><text class="umld-nm" x="1350.63" y="-1255.24">PaccoProdottoService</text><text class="umld-mb" x="1221.11" y="-1243.36">getPacchettiByDistributore(Long): List&lt;PaccoProdottoDTO&gt;</text><text class="umld-mb" x="1221.11" y="-1231.87">getPaccoById(Long): PaccoProdottoDTO</text><text class="umld-mb" x="1221.11" y="-1220.37">deletePacco(Long): void</text><text class="umld-mb" x="1221.11" y="-1208.88">creaPacco(PaccoProdottoRequestDTO, Long): PaccoProdottoDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1217.28" y="-943.72" width="266.692" height="149.439"/>
+<line class="umld-sep" x1="1217.28" y1="-931.46" x2="1483.97" y2="-931.46"/>
+<line class="umld-sep" x1="1217.28" y1="-883.18" x2="1483.97" y2="-883.18"/>
+<g clip-path="url(#umld-k9)"><text class="umld-nm" x="1350.63" y="-933.37">PaccoProdottoServiceImpl</text><text class="umld-mb" x="1221.11" y="-922.26">paccoProdottoRepository: PaccoProdottoRepository</text><text class="umld-mb" x="1221.11" y="-910.77">utenteRepository: UtenteRepository</text><text class="umld-mb" x="1221.11" y="-899.27">prodottoMapper: ProdottoMapper</text><text class="umld-mb" x="1221.11" y="-887.78">prodottoRepository: ProdottoRepository</text><text class="umld-mb" x="1221.11" y="-873.98">PaccoProdottoServiceImpl()</text><text class="umld-mb" x="1221.11" y="-862.49">creaPacco(PaccoProdottoRequestDTO, Long): PaccoProdottoDTO</text><text class="umld-mb" x="1221.11" y="-850.99">findPaccoById(Long): PaccoProdotto</text><text class="umld-mb" x="1221.11" y="-839.50">convertToDTO(PaccoProdotto): PaccoProdottoDTO</text><text class="umld-mb" x="1221.11" y="-828.00">deletePacco(Long): void</text><text class="umld-mb" x="1221.11" y="-816.50">getPaccoById(Long): PaccoProdottoDTO</text><text class="umld-mb" x="1221.11" y="-805.01">getPacchettiByDistributore(Long): List&lt;PaccoProdottoDTO&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-1602.91" y="-860.95" width="209.981" height="45.981"/>
+<line class="umld-sep" x1="-1602.91" y1="-847.93" x2="-1392.93" y2="-847.93"/>
+<line class="umld-sep" x1="-1602.91" y1="-834.13" x2="-1392.93" y2="-834.13"/>
+<g clip-path="url(#umld-k10)"><text class="umld-nm" x="-1497.92" y="-850.61">PagamentoService</text><text class="umld-mb" x="-1599.08" y="-838.73">strategie: Map&lt;TipoPagamento, PagamentoStrategy&gt;</text><text class="umld-mb" x="-1599.08" y="-824.93">eseguiPagamento(Pagamento): String</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-228.83" y="-1292.41" width="238.336" height="98.093"/>
+<line class="umld-sep" x1="-228.83" y1="-1267.89" x2="9.51" y2="-1267.89"/>
+<g clip-path="url(#umld-k11)"><text class="umld-st" x="-109.66" y="-1282.45">«Interface»</text><text class="umld-nm" x="-109.66" y="-1270.57">ProdottoService</text><text class="umld-mb" x="-225.00" y="-1258.69">deleteProdotto(Long): void</text><text class="umld-mb" x="-225.00" y="-1247.20">cercaProdottiPerNome(String): List&lt;ProdottoDTO&gt;</text><text class="umld-mb" x="-225.00" y="-1235.70">creaProdotto(ProdottoRequestDTO, Long): ProdottoDTO</text><text class="umld-mb" x="-225.00" y="-1224.21">getProdottiByAziendaId(Long): List&lt;ProdottoDTO&gt;</text><text class="umld-mb" x="-225.00" y="-1212.71">updateProdotto(Long, ProdottoRequestDTO): ProdottoDTO</text><text class="umld-mb" x="-225.00" y="-1201.21">getProdottoById(Long): ProdottoDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-226.53" y="-943.72" width="238.336" height="149.439"/>
+<line class="umld-sep" x1="-226.53" y1="-931.46" x2="11.81" y2="-931.46"/>
+<line class="umld-sep" x1="-226.53" y1="-906.17" x2="11.81" y2="-906.17"/>
+<g clip-path="url(#umld-k12)"><text class="umld-nm" x="-107.36" y="-933.37">ProdottoServiceImpl</text><text class="umld-mb" x="-222.70" y="-922.26">utenteRepository: UtenteRepository</text><text class="umld-mb" x="-222.70" y="-910.77">prodottoRepository: ProdottoRepository</text><text class="umld-mb" x="-222.70" y="-896.97">ProdottoServiceImpl()</text><text class="umld-mb" x="-222.70" y="-885.48">getProdottoById(Long): ProdottoDTO</text><text class="umld-mb" x="-222.70" y="-873.98">cercaProdottiPerNome(String): List&lt;ProdottoDTO&gt;</text><text class="umld-mb" x="-222.70" y="-862.49">getProdottiByAziendaId(Long): List&lt;ProdottoDTO&gt;</text><text class="umld-mb" x="-222.70" y="-850.99">findProdottoById(Long): Prodotto</text><text class="umld-mb" x="-222.70" y="-839.50">convertToDTO(Prodotto): ProdottoDTO</text><text class="umld-mb" x="-222.70" y="-828.00">updateProdotto(Long, ProdottoRequestDTO): ProdottoDTO</text><text class="umld-mb" x="-222.70" y="-816.50">deleteProdotto(Long): void</text><text class="umld-mb" x="-222.70" y="-805.01">creaProdotto(ProdottoRequestDTO, Long): ProdottoDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="619.52" y="-1280.15" width="309.607" height="56.71"/>
+<line class="umld-sep" x1="619.52" y1="-1255.63" x2="929.13" y2="-1255.63"/>
+<g clip-path="url(#umld-k13)"><text class="umld-st" x="774.32" y="-1270.19">«Interface»</text><text class="umld-nm" x="774.32" y="-1258.31">TracciabilitaService</text><text class="umld-mb" x="623.35" y="-1246.43">aggiungiPassoFiliera(Long, Long, PassoFilieraRequestDTO): TracciabilitaDTO</text><text class="umld-mb" x="623.35" y="-1234.93">getTracciabilitaByProdotto(Long): TracciabilitaDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="637.15" y="-943.72" width="309.607" height="137.944"/>
+<line class="umld-sep" x1="637.15" y1="-931.46" x2="946.76" y2="-931.46"/>
+<line class="umld-sep" x1="637.15" y1="-883.18" x2="946.76" y2="-883.18"/>
+<g clip-path="url(#umld-k14)"><text class="umld-nm" x="791.95" y="-933.37">TracciabilitaServiceImpl</text><text class="umld-mb" x="640.98" y="-922.26">tracciabilitaRepository: TracciabilitaProdottoRepository</text><text class="umld-mb" x="640.98" y="-910.77">utenteRepository: UtenteRepository</text><text class="umld-mb" x="640.98" y="-899.27">prodottoRepository: ProdottoRepository</text><text class="umld-mb" x="640.98" y="-887.78">passoFilieraRepository: PassoFilieraRepository</text><text class="umld-mb" x="640.98" y="-873.98">TracciabilitaServiceImpl()</text><text class="umld-mb" x="640.98" y="-862.49">convertPassoToDTO(PassoFiliera): PassoFilieraDTO</text><text class="umld-mb" x="640.98" y="-850.99">convertToDTO(TracciabilitaProdotto): TracciabilitaDTO</text><text class="umld-mb" x="640.98" y="-839.50">findOrCreateTracciabilita(Long): TracciabilitaProdotto</text><text class="umld-mb" x="640.98" y="-828.00">aggiungiPassoFiliera(Long, Long, PassoFilieraRequestDTO): TracciabilitaDTO</text><text class="umld-mb" x="640.98" y="-816.50">getTracciabilitaByProdotto(Long): TracciabilitaDTO</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-722.36" y="513.12" width="137.944" height="61.308"/>
+<line class="umld-sep" x1="-722.36" y1="526.15" x2="-584.42" y2="526.15"/>
+<line class="umld-sep" x1="-722.36" y1="539.94" x2="-584.42" y2="539.94"/>
+<g clip-path="url(#umld-k15)"><text class="umld-nm" x="-653.39" y="523.47">Acquirente</text><text class="umld-mb" x="-718.53" y="535.35">ordini: List&lt;Ordine&gt;</text><text class="umld-mb" x="-718.53" y="549.14">Acquirente(String, String, String)</text><text class="umld-mb" x="-718.53" y="560.64">Acquirente()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-177.49" y="93.16" width="130.28" height="45.981"/>
+<line class="umld-sep" x1="-177.49" y1="106.19" x2="-47.21" y2="106.19"/>
+<g clip-path="url(#umld-k16)"><text class="umld-nm" x="-112.35" y="103.50">Curatore</text><text class="umld-mb" x="-173.66" y="115.38">Curatore()</text><text class="umld-mb" x="-173.66" y="126.88">Curatore(String, String, String)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1333" y="626.54" width="135.645" height="61.308"/>
+<line class="umld-sep" x1="1333" y1="638.8" x2="1468.64" y2="638.8"/>
+<line class="umld-sep" x1="1333" y1="652.6" x2="1468.64" y2="652.6"/>
+<g clip-path="url(#umld-k17)"><text class="umld-nm" x="1400.82" y="636.89">Animatore</text><text class="umld-mb" x="1336.83" y="648.00">eventiCreati: List&lt;Evento&gt;</text><text class="umld-mb" x="1336.83" y="661.79">Animatore()</text><text class="umld-mb" x="1336.83" y="673.29">Animatore(String, String, String)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-880.23" y="812" width="166.299" height="95.794"/>
+<line class="umld-sep" x1="-880.23" y1="825.03" x2="-713.93" y2="825.03"/>
+<line class="umld-sep" x1="-880.23" y1="873.31" x2="-713.93" y2="873.31"/>
+<g clip-path="url(#umld-k18)"><text class="umld-nm" x="-797.08" y="822.35">ElementoCarrello</text><text class="umld-mb" x="-876.40" y="834.22">id: Long</text><text class="umld-mb" x="-876.40" y="845.72">quantita: int</text><text class="umld-mb" x="-876.40" y="857.21">carrello: Carrello</text><text class="umld-mb" x="-876.40" y="868.71">prodotto: Prodotto</text><text class="umld-mb" x="-876.40" y="882.50">ElementoCarrello()</text><text class="umld-mb" x="-876.40" y="894.00">ElementoCarrello(Carrello, Prodotto, int)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="343.64" y="552.97" width="246.766" height="45.981"/>
+<line class="umld-sep" x1="343.64" y1="566" x2="590.41" y2="566"/>
+<g clip-path="url(#umld-k19)"><text class="umld-nm" x="467.02" y="563.32">Distributore</text><text class="umld-mb" x="347.47" y="575.20">Distributore()</text><text class="umld-mb" x="347.47" y="586.69">Distributore(String, String, String, String, String, String, String)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-848.81" y="-125.25" width="173.963" height="107.29"/>
+<line class="umld-sep" x1="-848.81" y1="-112.99" x2="-674.85" y2="-112.99"/>
+<line class="umld-sep" x1="-848.81" y1="-76.21" x2="-674.85" y2="-76.21"/>
+<g clip-path="url(#umld-k20)"><text class="umld-nm" x="-761.83" y="-114.91">Carrello</text><text class="umld-mb" x="-844.98" y="-103.79">id: Long</text><text class="umld-mb" x="-844.98" y="-92.30">elementi: List&lt;ElementoCarrello&gt;</text><text class="umld-mb" x="-844.98" y="-80.80">acquirente: Acquirente</text><text class="umld-mb" x="-844.98" y="-67.01">Carrello(Acquirente)</text><text class="umld-mb" x="-844.98" y="-55.51">Carrello()</text><text class="umld-mb" x="-844.98" y="-44.02">rimuoviElemento(ElementoCarrello): void</text><text class="umld-mb" x="-844.98" y="-32.52">aggiungiElemento(ElementoCarrello): void</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-311.6" y="-129.08" width="210.748" height="118.785"/>
+<line class="umld-sep" x1="-311.6" y1="-116.06" x2="-100.85" y2="-116.06"/>
+<line class="umld-sep" x1="-311.6" y1="-44.79" x2="-100.85" y2="-44.79"/>
+<g clip-path="url(#umld-k21)"><text class="umld-nm" x="-206.23" y="-118.74">Pagamento</text><text class="umld-mb" x="-307.77" y="-106.86">id: Long</text><text class="umld-mb" x="-307.77" y="-95.36">importo: double</text><text class="umld-mb" x="-307.77" y="-83.87">esito: String</text><text class="umld-mb" x="-307.77" y="-72.37">dataPagamento: LocalDateTime</text><text class="umld-mb" x="-307.77" y="-60.88">tipoPagamento: TipoPagamento</text><text class="umld-mb" x="-307.77" y="-49.38">ordine: Ordine</text><text class="umld-mb" x="-307.77" y="-35.59">Pagamento(Ordine, double, TipoPagamento, String)</text><text class="umld-mb" x="-307.77" y="-24.09">Pagamento()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="534.46" y="116.15" width="235.271" height="107.29"/>
+<line class="umld-sep" x1="534.46" y1="129.18" x2="769.73" y2="129.18"/>
+<line class="umld-sep" x1="534.46" y1="188.95" x2="769.73" y2="188.95"/>
+<g clip-path="url(#umld-k22)"><text class="umld-nm" x="652.10" y="126.50">Azienda</text><text class="umld-mb" x="538.29" y="138.37">partitaIva: String</text><text class="umld-mb" x="538.29" y="149.87">nomeAzienda: String</text><text class="umld-mb" x="538.29" y="161.36">indirizzo: String</text><text class="umld-mb" x="538.29" y="172.86">prodotti: List&lt;Prodotto&gt;</text><text class="umld-mb" x="538.29" y="184.36">descrizione: String</text><text class="umld-mb" x="538.29" y="198.15">Azienda()</text><text class="umld-mb" x="538.29" y="209.64">Azienda(String, String, String, String, String, String, String)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1734.57" y="169.79" width="120.318" height="153.271"/>
+<line class="umld-sep" x1="1734.57" y1="182.06" x2="1854.89" y2="182.06"/>
+<line class="umld-sep" x1="1734.57" y1="299.31" x2="1854.89" y2="299.31"/>
+<g clip-path="url(#umld-k23)"><text class="umld-nm" x="1794.73" y="180.14">Evento</text><text class="umld-mb" x="1738.40" y="191.25">id: Long</text><text class="umld-mb" x="1738.40" y="202.75">titolo: String</text><text class="umld-mb" x="1738.40" y="214.24">descrizione: String</text><text class="umld-mb" x="1738.40" y="225.74">luogo: String</text><text class="umld-mb" x="1738.40" y="237.23">dataOraInizio: LocalDateTime</text><text class="umld-mb" x="1738.40" y="248.73">dataOraFine: LocalDateTime</text><text class="umld-mb" x="1738.40" y="260.22">stato: StatoEvento</text><text class="umld-mb" x="1738.40" y="271.72">tipo: TipoEvento</text><text class="umld-mb" x="1738.40" y="283.21">animatore: Animatore</text><text class="umld-mb" x="1738.40" y="294.71">partecipanti: Set&lt;Acquirente&gt;</text><text class="umld-mb" x="1738.40" y="308.50">Evento()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1897.8" y="36.45" width="127.981" height="45.981"/>
+<line class="umld-sep" x1="1897.8" y1="48.71" x2="2025.78" y2="48.71"/>
+<g clip-path="url(#umld-k24)"><text class="umld-nm" x="1961.79" y="46.79">Gestore</text><text class="umld-mb" x="1901.63" y="57.91">Gestore()</text><text class="umld-mb" x="1901.63" y="69.40">Gestore(String, String, String)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="920.7" y="91.63" width="131.813" height="130.28"/>
+<line class="umld-sep" x1="920.7" y1="104.65" x2="1052.51" y2="104.65"/>
+<line class="umld-sep" x1="920.7" y1="198.92" x2="1052.51" y2="198.92"/>
+<g clip-path="url(#umld-k25)"><text class="umld-nm" x="986.61" y="101.97">PassoFiliera</text><text class="umld-mb" x="924.53" y="113.85">id: Long</text><text class="umld-mb" x="924.53" y="125.35">dataOra: LocalDateTime</text><text class="umld-mb" x="924.53" y="136.84">luogo: String</text><text class="umld-mb" x="924.53" y="148.34">descrizione: String</text><text class="umld-mb" x="924.53" y="159.83">ordine: int</text><text class="umld-mb" x="924.53" y="171.33">tipoPasso: TipoPassoFiliera</text><text class="umld-mb" x="924.53" y="182.82">tracciabilita: TracciabilitaProdotto</text><text class="umld-mb" x="924.53" y="194.32">azienda: Azienda</text><text class="umld-mb" x="924.53" y="208.11">PassoFiliera()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-227.3" y="395.87" width="97.327" height="118.785"/>
+<line class="umld-sep" x1="-227.3" y1="408.9" x2="-129.97" y2="408.9"/>
+<line class="umld-sep" x1="-227.3" y1="491.66" x2="-129.97" y2="491.66"/>
+<g clip-path="url(#umld-k26)"><text class="umld-nm" x="-178.64" y="406.21">PaccoProdotto</text><text class="umld-mb" x="-223.47" y="418.09">id: Long</text><text class="umld-mb" x="-223.47" y="429.59">nome: String</text><text class="umld-mb" x="-223.47" y="441.08">descrizione: String</text><text class="umld-mb" x="-223.47" y="452.58">tipoPacco: TipoPacco</text><text class="umld-mb" x="-223.47" y="464.07">prezzo: double</text><text class="umld-mb" x="-223.47" y="475.57">distributore: Distributore</text><text class="umld-mb" x="-223.47" y="487.07">prodotti: List&lt;Prodotto&gt;</text><text class="umld-mb" x="-223.47" y="500.86">PaccoProdotto()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-592.85" y="-129.08" width="147.14" height="107.29"/>
+<line class="umld-sep" x1="-592.85" y1="-116.06" x2="-445.71" y2="-116.06"/>
+<line class="umld-sep" x1="-592.85" y1="-44.79" x2="-445.71" y2="-44.79"/>
+<g clip-path="url(#umld-k27)"><text class="umld-nm" x="-519.28" y="-118.74">Ordine</text><text class="umld-mb" x="-589.02" y="-106.86">id: Long</text><text class="umld-mb" x="-589.02" y="-95.36">stato: StatoOrdine</text><text class="umld-mb" x="-589.02" y="-83.87">dettagliOrdine: List&lt;DettaglioOrdine&gt;</text><text class="umld-mb" x="-589.02" y="-72.37">totale: double</text><text class="umld-mb" x="-589.02" y="-60.88">dataOrdine: LocalDateTime</text><text class="umld-mb" x="-589.02" y="-49.38">acquirente: Acquirente</text><text class="umld-mb" x="-589.02" y="-35.59">Ordine()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="587.34" y="735.36" width="181.626" height="141.776"/>
+<line class="umld-sep" x1="587.34" y1="748.39" x2="768.97" y2="748.39"/>
+<line class="umld-sep" x1="587.34" y1="842.65" x2="768.97" y2="842.65"/>
+<g clip-path="url(#umld-k28)"><text class="umld-nm" x="678.15" y="745.71">Prodotto</text><text class="umld-mb" x="591.17" y="757.59">id: Long</text><text class="umld-mb" x="591.17" y="769.08">nome: String</text><text class="umld-mb" x="591.17" y="780.58">stato: StatoProdotto</text><text class="umld-mb" x="591.17" y="792.07">descrizione: String</text><text class="umld-mb" x="591.17" y="803.57">azienda: Azienda</text><text class="umld-mb" x="591.17" y="815.07">prezzo: double</text><text class="umld-mb" x="591.17" y="826.56">quantitaDisponibile: int</text><text class="umld-mb" x="591.17" y="838.06">inCarrelli: List&lt;ElementoCarrello&gt;</text><text class="umld-mb" x="591.17" y="851.85">Prodotto()</text><text class="umld-mb" x="591.17" y="863.35">Prodotto(String, String, double, int, Azienda)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="242.48" y="-93.07" width="242.935" height="45.981"/>
+<line class="umld-sep" x1="242.48" y1="-80.04" x2="485.41" y2="-80.04"/>
+<g clip-path="url(#umld-k29)"><text class="umld-nm" x="363.95" y="-82.72">Produttore</text><text class="umld-mb" x="246.31" y="-70.84">Produttore(String, String, String, String, String, String, String)</text><text class="umld-mb" x="246.31" y="-59.35">Produttore()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-64.83" y="-139.81" width="256.729" height="45.981"/>
+<line class="umld-sep" x1="-64.83" y1="-126.79" x2="191.90" y2="-126.79"/>
+<g clip-path="url(#umld-k30)"><text class="umld-nm" x="63.53" y="-129.47">Trasformatore</text><text class="umld-mb" x="-61.00" y="-117.59">Trasformatore(String, String, String, String, String, String, String)</text><text class="umld-mb" x="-61.00" y="-106.09">Trasformatore()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="141.32" y="81.66" width="122.617" height="107.29"/>
+<line class="umld-sep" x1="141.32" y1="94.69" x2="263.94" y2="94.69"/>
+<line class="umld-sep" x1="141.32" y1="154.47" x2="263.94" y2="154.47"/>
+<g clip-path="url(#umld-k31)"><text class="umld-nm" x="202.63" y="92.01">Utente</text><text class="umld-mb" x="145.15" y="103.89">id: Long</text><text class="umld-mb" x="145.15" y="115.38">email: String</text><text class="umld-mb" x="145.15" y="126.88">ruoloString: String</text><text class="umld-mb" x="145.15" y="138.37">password: String</text><text class="umld-mb" x="145.15" y="149.87">username: String</text><text class="umld-mb" x="145.15" y="163.66">Utente()</text><text class="umld-mb" x="145.15" y="175.16">Utente(String, String, String)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-527.71" y="708.54" width="155.57" height="101.925"/>
+<line class="umld-sep" x1="-527.71" y1="721.57" x2="-372.14" y2="721.57"/>
+<line class="umld-sep" x1="-527.71" y1="781.35" x2="-372.14" y2="781.35"/>
+<g clip-path="url(#umld-k32)"><text class="umld-nm" x="-449.93" y="718.89">DettaglioOrdine</text><text class="umld-mb" x="-523.88" y="730.77">id: Long</text><text class="umld-mb" x="-523.88" y="742.26">quantita: int</text><text class="umld-mb" x="-523.88" y="753.76">prezzoUnitario: double</text><text class="umld-mb" x="-523.88" y="765.25">ordine: Ordine</text><text class="umld-mb" x="-523.88" y="776.75">prodotto: Prodotto</text><text class="umld-mb" x="-523.88" y="790.54">DettaglioOrdine()</text><text class="umld-mb" x="-523.88" y="802.04">DettaglioOrdine(Ordine, Prodotto, int)</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="817.24" y="353.72" width="101.925" height="67.439"/>
+<line class="umld-sep" x1="817.24" y1="365.98" x2="919.16" y2="365.98"/>
+<line class="umld-sep" x1="817.24" y1="402.77" x2="919.16" y2="402.77"/>
+<g clip-path="url(#umld-k33)"><text class="umld-nm" x="868.20" y="364.07">TracciabilitaProdotto</text><text class="umld-mb" x="821.07" y="375.18">id: Long</text><text class="umld-mb" x="821.07" y="386.67">passi: List&lt;PassoFiliera&gt;</text><text class="umld-mb" x="821.07" y="398.17">prodotto: Prodotto</text><text class="umld-mb" x="821.07" y="411.96">TracciabilitaProdotto()</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="2435.79" y="-1280.92" width="172.43" height="51.346"/>
+<line class="umld-sep" x1="2435.79" y1="-1256.39" x2="2608.22" y2="-1256.39"/>
+<g clip-path="url(#umld-k34)"><text class="umld-st" x="2522.01" y="-1270.95">«Interface»</text><text class="umld-nm" x="2522.01" y="-1259.07">GestoreService</text><text class="umld-mb" x="2439.62" y="-1247.20">getUtentiDaApprovare</text><text class="umld-mb" x="2439.62" y="-1235.70">approvaUtente</text><text class="umld-mb" x="2439.62" y="-1224.21">rifiutaUtente</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="2435.79" y="-943.72" width="172.43" height="42.15"/>
+<line class="umld-sep" x1="2435.79" y1="-931.46" x2="2608.22" y2="-931.46"/>
+<line class="umld-sep" x1="2435.79" y1="-917.66" x2="2608.22" y2="-917.66"/>
+<g clip-path="url(#umld-k35)"><text class="umld-nm" x="2522.01" y="-933.37">GestoreServiceImpl</text><text class="umld-mb" x="2439.62" y="-922.26">UtenteRepository</text><text class="umld-mb" x="2439.62" y="-908.47">approvaUtente</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1970.61" y="-1854.92" width="323.402" height="42.15"/>
+<line class="umld-sep" x1="1970.61" y1="-1842.65" x2="2294.01" y2="-1842.65"/>
+<line class="umld-sep" x1="1970.61" y1="-1828.86" x2="2294.01" y2="-1828.86"/>
+<g clip-path="url(#umld-k36)"><text class="umld-nm" x="2132.31" y="-1844.57">SocialSharingController</text><text class="umld-mb" x="1974.44" y="-1833.46">SocialSharingService</text><text class="umld-mb" x="1974.44" y="-1819.66">getSocialData</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="2407.43" y="-1852.62" width="203.85" height="65.14"/>
+<line class="umld-sep" x1="2407.43" y1="-1840.36" x2="2611.28" y2="-1840.36"/>
+<line class="umld-sep" x1="2407.43" y1="-1826.56" x2="2611.28" y2="-1826.56"/>
+<g clip-path="url(#umld-k37)"><text class="umld-nm" x="2509.36" y="-1842.27">GestoreController</text><text class="umld-mb" x="2411.26" y="-1831.16">GestoreService</text><text class="umld-mb" x="2411.26" y="-1817.36">getRichieste</text><text class="umld-mb" x="2411.26" y="-1805.87">approva</text><text class="umld-mb" x="2411.26" y="-1794.37">rifiuta</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="785.06" y="-1854.92" width="318.037" height="63.607"/>
+<line class="umld-sep" x1="785.06" y1="-1842.65" x2="1103.10" y2="-1842.65"/>
+<g clip-path="url(#umld-k38)"><text class="umld-nm" x="944.08" y="-1844.57">MappaController</text><text class="umld-mb" x="788.89" y="-1833.46">MappaController(AziendaRepository, TracciabilitaService)</text><text class="umld-mb" x="788.89" y="-1821.96">createPosizioneMappaDTO(Azienda, String, String, String): PosizioneMappaDTO</text><text class="umld-mb" x="788.89" y="-1810.47">convertToPosizioneMappaDTO(Azienda): PosizioneMappaDTO</text><text class="umld-mb" x="788.89" y="-1798.97">getPercorsoFiliera(Long): ResponseEntity&lt;List&lt;PosizioneMappaDTO&gt;&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1168.23" y="-1854.92" width="312.673" height="63.607"/>
+<line class="umld-sep" x1="1168.23" y1="-1842.65" x2="1480.90" y2="-1842.65"/>
+<g clip-path="url(#umld-k39)"><text class="umld-nm" x="1324.57" y="-1844.57">PaccoController</text><text class="umld-mb" x="1172.06" y="-1833.46">PaccoController()</text><text class="umld-mb" x="1172.06" y="-1821.96">creaPacco(PaccoProdottoRequestDTO): ResponseEntity&lt;PaccoProdottoDTO&gt;</text><text class="umld-mb" x="1172.06" y="-1810.47">getPacchiByDistributore(Long): ResponseEntity&lt;List&lt;PaccoProdottoDTO&gt;&gt;</text><text class="umld-mb" x="1172.06" y="-1798.97">getPacco(Long): ResponseEntity&lt;PaccoProdottoDTO&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="447.86" y="-1854.92" width="274.355" height="52.112"/>
+<line class="umld-sep" x1="447.86" y1="-1842.65" x2="722.22" y2="-1842.65"/>
+<g clip-path="url(#umld-k40)"><text class="umld-nm" x="585.04" y="-1844.57">TracciabilitaController</text><text class="umld-mb" x="451.69" y="-1833.46">TracciabilitaController()</text><text class="umld-mb" x="451.69" y="-1821.96">getTracciabilita(Long): ResponseEntity&lt;TracciabilitaDTO&gt;</text><text class="umld-mb" x="451.69" y="-1810.47">aggiungiPasso(Long, PassoFilieraRequestDTO): ResponseEntity&lt;?&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-1033.5" y="-1854.92" width="330.299" height="63.607"/>
+<line class="umld-sep" x1="-1033.5" y1="-1842.65" x2="-703.20" y2="-1842.65"/>
+<g clip-path="url(#umld-k41)"><text class="umld-nm" x="-868.35" y="-1844.57">MarketplaceController</text><text class="umld-mb" x="-1029.67" y="-1833.46">MarketplaceController()</text><text class="umld-mb" x="-1029.67" y="-1821.96">aggiungiAlCarrello(AggiungiAlCarrelloRequestDTO): ResponseEntity&lt;CarrelloDTO&gt;</text><text class="umld-mb" x="-1029.67" y="-1810.47">rimuoviDalCarrello(Long): ResponseEntity&lt;CarrelloDTO&gt;</text><text class="umld-mb" x="-1029.67" y="-1798.97">checkout(CheckoutRequestDTO): ResponseEntity&lt;OrdineDTO&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-261.79" y="-1854.92" width="274.355" height="75.103"/>
+<line class="umld-sep" x1="-261.79" y1="-1842.65" x2="12.56" y2="-1842.65"/>
+<g clip-path="url(#umld-k42)"><text class="umld-nm" x="-124.61" y="-1844.57">ProdottoController</text><text class="umld-mb" x="-257.96" y="-1833.46">ProdottoController()</text><text class="umld-mb" x="-257.96" y="-1821.96">getProdotto(Long): ResponseEntity&lt;ProdottoDTO&gt;</text><text class="umld-mb" x="-257.96" y="-1810.47">creaProdotto(ProdottoRequestDTO): ResponseEntity&lt;ProdottoDTO&gt;</text><text class="umld-mb" x="-257.96" y="-1798.97">cercaProdotti(String): ResponseEntity&lt;List&lt;ProdottoDTO&gt;&gt;</text><text class="umld-mb" x="-257.96" y="-1787.48">eliminaProdotto(Long): ResponseEntity&lt;Void&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-627.34" y="-1852.62" width="318.804" height="52.112"/>
+<line class="umld-sep" x1="-627.34" y1="-1840.36" x2="-308.54" y2="-1840.36"/>
+<g clip-path="url(#umld-k43)"><text class="umld-nm" x="-467.94" y="-1842.27">ModerazioneController</text><text class="umld-mb" x="-623.51" y="-1831.16">ModerazioneController()</text><text class="umld-mb" x="-623.51" y="-1819.66">rifiutaProdotto(Long, ModerazioneRequestDTO): ResponseEntity&lt;ProdottoDTO&gt;</text><text class="umld-mb" x="-623.51" y="-1808.17">approvaProdotto(Long): ResponseEntity&lt;ProdottoDTO&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="1597.39" y="-1854.92" width="257.495" height="63.607"/>
+<line class="umld-sep" x1="1597.39" y1="-1842.65" x2="1854.89" y2="-1842.65"/>
+<g clip-path="url(#umld-k44)"><text class="umld-nm" x="1726.14" y="-1844.57">EventoController</text><text class="umld-mb" x="1601.22" y="-1833.46">EventoController()</text><text class="umld-mb" x="1601.22" y="-1821.96">partecipaEvento(Long): ResponseEntity&lt;Void&gt;</text><text class="umld-mb" x="1601.22" y="-1810.47">annullaEvento(Long): ResponseEntity&lt;Void&gt;</text><text class="umld-mb" x="1601.22" y="-1798.97">creaEvento(EventoRequestDTO): ResponseEntity&lt;EventoDTO&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="109.9" y="-1854.92" width="276.654" height="52.112"/>
+<line class="umld-sep" x1="109.9" y1="-1841.89" x2="386.55" y2="-1841.89"/>
+<g clip-path="url(#umld-k45)"><text class="umld-nm" x="248.23" y="-1844.57">AuthController</text><text class="umld-mb" x="113.73" y="-1832.69">AuthController()</text><text class="umld-mb" x="113.73" y="-1821.20">register(RegisterRequestDTO): ResponseEntity&lt;AuthResponseDTO&gt;</text><text class="umld-mb" x="113.73" y="-1809.70">login(LoginRequestDTO): ResponseEntity&lt;AuthResponseDTO&gt;</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="2054.91" y="-1280.15" width="213.047" height="42.916"/>
+<line class="umld-sep" x1="2054.91" y1="-1255.63" x2="2267.96" y2="-1255.63"/>
+<g clip-path="url(#umld-k46)"><text class="umld-st" x="2161.43" y="-1270.19">«Interface»</text><text class="umld-nm" x="2161.43" y="-1258.31">SocialSharingService</text><text class="umld-mb" x="2058.74" y="-1246.43">getShareData</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="2054.91" y="-943.72" width="213.813" height="111.888"/>
+<line class="umld-sep" x1="2054.91" y1="-931.46" x2="2268.72" y2="-931.46"/>
+<line class="umld-sep" x1="2054.91" y1="-883.18" x2="2268.72" y2="-883.18"/>
+<g clip-path="url(#umld-k47)"><text class="umld-nm" x="2161.82" y="-933.37">SocialSharingServiceImpl</text><text class="umld-mb" x="2058.74" y="-922.26">prodottoRepository</text><text class="umld-mb" x="2058.74" y="-910.77">eventoRepository</text><text class="umld-mb" x="2058.74" y="-899.27">aziendaRepository</text><text class="umld-mb" x="2058.74" y="-887.78">BASE_URL_FRONTEND</text><text class="umld-mb" x="2058.74" y="-873.98">getShareData</text><text class="umld-mb" x="2058.74" y="-862.49">generaPerProdotto</text><text class="umld-mb" x="2058.74" y="-850.99">generaPerEvento</text><text class="umld-mb" x="2058.74" y="-839.50">generaPerAzienda</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-1591.41" y="-581.23" width="199.252" height="76.636"/>
+<line class="umld-sep" x1="-1591.41" y1="-568.21" x2="-1392.16" y2="-568.21"/>
+<g clip-path="url(#umld-k48)"><text class="umld-nm" x="-1491.78" y="-570.89">UtenteFactory</text><text class="umld-mb" x="-1587.58" y="-559.01">UtenteFactory()</text><text class="umld-mb" x="-1587.58" y="-547.51">creaUtente(RegisterRequestDTO, String): Utente</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-1675.71" y="-1194.32" width="130.28" height="49.047"/>
+<line class="umld-sep" x1="-1675.71" y1="-1181.29" x2="-1545.43" y2="-1181.29"/>
+<g clip-path="url(#umld-k49)"><text class="umld-nm" x="-1610.57" y="-1183.97">LoggingObserver</text><text class="umld-mb" x="-1671.88" y="-1172.09">LoggingObserver()</text><text class="umld-mb" x="-1671.88" y="-1160.60">update(Prodotto, String): void</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-1373" y="-1301.61" width="130.28" height="61.308"/>
+<line class="umld-sep" x1="-1373" y1="-1277.08" x2="-1242.72" y2="-1277.08"/>
+<g clip-path="url(#umld-k50)"><text class="umld-st" x="-1307.86" y="-1291.64">«Interface»</text><text class="umld-nm" x="-1307.86" y="-1279.77">ModerationObserver</text><text class="umld-mb" x="-1369.17" y="-1267.89">update(Prodotto, String): void</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-1675.71" y="-1355.25" width="130.28" height="31.421"/>
+<line class="umld-sep" x1="-1675.71" y1="-1342.22" x2="-1545.43" y2="-1342.22"/>
+<g clip-path="url(#umld-k51)"><text class="umld-nm" x="-1610.57" y="-1344.91">EmailNotificationObserver</text><text class="umld-mb" x="-1671.88" y="-1333.03">update(Prodotto, String): void</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-1602.91" y="-1048.71" width="187.757" height="72.804"/>
+<line class="umld-sep" x1="-1602.91" y1="-1024.19" x2="-1415.15" y2="-1024.19"/>
+<g clip-path="url(#umld-k52)"><text class="umld-st" x="-1509.03" y="-1038.75">«Interface»</text><text class="umld-nm" x="-1509.03" y="-1026.87">ModerationSubject</text><text class="umld-mb" x="-1599.08" y="-1014.99">addObserver(ModerationObserver): void</text><text class="umld-mb" x="-1599.08" y="-1003.50">removeObserver(ModerationObserver): void</text><text class="umld-mb" x="-1599.08" y="-992.00">notifyObservers(Prodotto, String): void</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-1851.97" y="-860.95" width="203.85" height="53.645"/>
+<line class="umld-sep" x1="-1851.97" y1="-836.43" x2="-1648.12" y2="-836.43"/>
+<g clip-path="url(#umld-k53)"><text class="umld-st" x="-1750.05" y="-850.99">«Interface»</text><text class="umld-nm" x="-1750.05" y="-839.11">PagamentoStrategy</text><text class="umld-mb" x="-1848.14" y="-827.23">processPagamento</text><text class="umld-mb" x="-1848.14" y="-815.74">getTipoPagamento</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-2066.55" y="-975.91" width="208.449" height="40.617"/>
+<line class="umld-sep" x1="-2066.55" y1="-962.88" x2="-1858.10" y2="-962.88"/>
+<g clip-path="url(#umld-k54)"><text class="umld-nm" x="-1962.33" y="-965.56">PayPalStrategy</text><text class="umld-mb" x="-2062.72" y="-953.68">processaPagamento</text><text class="umld-mb" x="-2062.72" y="-942.19">getTipoPagamento</text></g></g>
+<g class="umld-cls"><rect class="umld-box" x="-2070.38" y="-715.35" width="213.813" height="40.617"/>
+<line class="umld-sep" x1="-2070.38" y1="-702.32" x2="-1856.57" y2="-702.32"/>
+<g clip-path="url(#umld-k55)"><text class="umld-nm" x="-1963.47" y="-705.00">CartaCreditoStrategy</text><text class="umld-mb" x="-2066.55" y="-693.12">processaPagamento</text><text class="umld-mb" x="-2066.55" y="-681.63">getTipoPagamento</text></g></g>
+<text class="umld-end" x="909.97" y="159.45" text-anchor="middle">*</text>
+<text class="umld-end" x="780.46" y="170.18" text-anchor="middle">1</text>
+<text class="umld-verb umld-thread" x="845.21" y="159.06" text-anchor="middle">specificare</text>
+<text class="umld-end" x="402.64" y="544.92" text-anchor="middle">1</text>
+<text class="umld-end" x="661.67" y="727.31" text-anchor="middle">1</text>
+<text class="umld-end" x="650.95" y="235.32" text-anchor="middle">1</text>
+<text class="umld-end" x="650.95" y="235.32" text-anchor="middle">1</text>
+<text class="umld-end" x="661.67" y="727.31" text-anchor="middle">*</text>
+<text class="umld-end" x="576.61" y="847.64" text-anchor="middle">1</text>
+<text class="umld-end" x="621.05" y="728.85" text-anchor="middle">*</text>
+<text class="umld-verb" x="234.43" y="684.01" text-anchor="middle">comporre</text>
+<text class="umld-end" x="575.84" y="756.44" text-anchor="middle">1</text>
+<text class="umld-end" x="929.90" y="394.72" text-anchor="middle">1</text>
+<text class="umld-end" x="1008.84" y="236.08" text-anchor="middle">*</text>
+<text class="umld-verb umld-thread" x="1018.03" y="307.74">eseguire</text>
+<text class="umld-end" x="778.93" y="782.50" text-anchor="middle">1</text>
+<text class="umld-end" x="852.50" y="435.34" text-anchor="middle">1</text>
+<text class="umld-verb umld-thread" x="861.69" y="601.26">dettagliare</text>
+<text class="umld-verb" x="604.96" y="446.44" text-anchor="middle">usa</text>
+</g>
+
+</svg>

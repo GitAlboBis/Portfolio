@@ -1,0 +1,6 @@
+---
+/* The cover's main: the first screen (parts/b-hero.html), then Now and the index (parts/c-main.index.html). */
+import { partial, literal } from "../lib/site.mjs";
+const html = literal('<main id="main">') + partial("b-hero.html") + partial("c-main.index.html") + literal("</main>");
+---
+<Fragment set:html={html} />

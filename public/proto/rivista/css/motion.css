@@ -1,0 +1,162 @@
+/* ==========================================================================
+   css/motion.css · the 2D layer as a film's title sequence (round 13, lane MOTION2D; plan 70 §8.5)
+   fx-motion.js moves the DOM with Anime.js 4 through its WAAPI module (transform, opacity, straight clip-paths, on the
+   compositor). This sheet holds what that needs and nothing that moves on its own:
+   · THE HOLD. With motion (html.rv-motion) the head script writes html.mo-wait: the first screen's own CSS entrances
+     (the focus verb, the rise, the header's words) are held until --mo-safe, so fx-motion can claim them and play the
+     page's opening in time with the stage. An element it claims gets .mo-own (its CSS animation off: the WAAPI beats
+     hold and move it). If the library never arrives, the CSS entrances play on their own at --mo-safe and the page is
+     whole by about 2.5 s; fx-motion then leaves what has already started alone (no second entrance, no flash).
+   · THE STEPS. A scene step fx-motion drives gets .mo-step: its words, rows and hairline keep their hidden CSS state
+     and lose their CSS transitions, and only the beats (committed inline by anime at their end) show them.
+   · NEW ELEMENTS: the hairline that draws (.mo-hl), the odometer of a numeral (.od), the scene's name in the header
+     (.hdr-scene), the reading hairline (.hdr-read, scroll-linked on the compositor), the menu row's hairline and arrow.
+   Reduced motion, ?stage=0, no WebGPU, no script, print: nothing here hides anything (every hidden state is scoped to
+   html.rv-motion and to classes only the script writes).
+   ========================================================================== */
+/* round 13 fix: the hold is short. The library is asked for with the deferred scripts and is in by about 0.3 s on a
+   warm connection; the opening claims the first screen by 0.44 s or leaves it to these CSS entrances, which then play
+   at 0.5 s (HEAD's first screen rose at about 0.2 s). The header is never held: its words come in at once, as at HEAD. */
+:root { --mo-safe: 0.5s; }
+/* a cut is landing: the sheet holds the page, the opening follows it at once */
+html.mo-arr { --mo-safe: 0.3s; }
+
+/* ---------------------------------------------------------------- the hold (no library yet) */
+html.rv-motion.mo-wait [data-focus="load"],
+html.rv-motion.mo-wait :is(.t-mega, .t-d1)[data-focus="load"]:not([data-refract]) {
+  animation-delay: calc(var(--mo-safe) + var(--fd, 0ms));
+}
+html.rv-motion.mo-wait [data-focus-lines="load"] > .ln {
+  animation-delay: calc(var(--mo-safe) + var(--fd, 0ms) + var(--li, 0) * var(--line-gap));
+}
+/* claimed: the beats own it */
+html.rv-motion .mo-own, html.rv-motion .mo-own > .ln { animation: none !important; transition: none !important; filter: none !important; }
+
+/* ---------------------------------------------------------------- letters and words of a split title */
+.mo-w { display: inline-block; white-space: nowrap; }
+.mo-c { display: inline-block; }
+.mo-lines-host { position: relative; }
+
+/* ---------------------------------------------------------------- the steps fx-motion drives */
+html.rv-motion .mo-step :is(.rv-split .w, .rv-wipe .w, .rv-row) { transition: none !important; }
+html.rv-motion .mo-step.st-on .rv-split .w, html.rv-motion .mo-step .st-on .rv-split .w {
+  transform: translate3d(0, 104%, 0); clip-path: inset(-0.25em -0.08em 104% -0.08em);
+}
+html.rv-motion .mo-step.st-on .rv-wipe .w, html.rv-motion .mo-step .st-on .rv-wipe .w {
+  clip-path: inset(-0.25em -0.08em 104% -0.08em); opacity: 0;
+}
+html.rv-motion .mo-step.st-on .rv-row, html.rv-motion .mo-step .st-on .rv-row { opacity: 0; transform: translate3d(0, 0.9rem, 0); }
+
+/* ---------------------------------------------------------------- the hairline that draws: 1 px, straight, the
+   accent; it ties a title to the block under it. Decoration (aria-hidden), written by the script, so the printed
+   states never carry it. At rest it is drawn. */
+.mo-hl {
+  display: block; position: absolute; left: 0; top: 0;
+  width: min(7.5rem, 40%); height: 1px;
+  background: var(--accent);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+html[data-ground="dawn"] .mo-hl, .dawn .mo-hl { background: var(--cobalt); }
+html.rv-motion .mo-step .mo-hl { transform: scaleX(0); }
+
+/* ---------------------------------------------------------------- the odometer: a numeral whose digits are columns
+   of 0–9 moved by transform; the printed figure stays in the DOM for readers (sr-only next to it) */
+.od { display: inline-flex; vertical-align: top; font-variant-numeric: tabular-nums lining-nums; }
+.od-d { display: inline-block; height: 1lh; overflow: clip; }
+.od-s { display: block; }
+.od-s > i { display: block; height: 1lh; font-style: normal; }
+
+/* ---------------------------------------------------------------- the header: the scene's name and the reading line.
+   The name is the heading of the scene in view (the page's own words), set as a label after a short rule; it changes
+   behind a straight mask. From 1024 px it follows the header's name on its line; below 1024 px (wave 6, TITLES) it
+   stands under the header's name, which rises to make room (css/chrome.css .hdr.has-scene), and it ends before the
+   sound's toggle and MENU; the open menu hides it. The reading line is a 1 px accent line along the header's foot,
+   drawn as far as the page has been read; it is linked to the scroll on the compositor (no script) and only where the
+   browser can. */
+.hdr-scene { display: none; }
+html.mo-on .hdr-scene {
+  display: flex; align-items: center; gap: var(--s3);
+  min-width: 0;
+  font: 600 var(--t-label)/1.35 var(--f-label); letter-spacing: var(--tr-label); text-transform: uppercase;
+  color: var(--mute);
+  overflow: clip;
+}
+.hdr-scene-r { flex: none; width: 1.5rem; height: 1px; background: var(--line); transform-origin: 0 50%; }
+.hdr-scene-t { display: block; min-width: 0; white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
+.hdr-scene:empty, .hdr-scene[data-empty] { visibility: hidden; }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-scene { color: var(--dawn-mute); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-scene-r { background: var(--dawn-line); }
+@media (min-width: 1024px) {
+  html.mo-on .hdr-scene { flex: 1 1 auto; margin-left: var(--s4); }
+}
+@media (max-width: 1023.98px) {
+  html.mo-on .hdr-scene {
+    position: absolute; top: 50%; left: var(--gut); right: calc(var(--gut) + 7.75rem);
+    gap: var(--s2);
+  }
+  .hdr-scene-r { width: 1rem; }
+  html.menu-open .hdr-scene { visibility: hidden; }
+}
+.hdr-read { display: none; }
+@supports (animation-timeline: scroll()) {
+  html.rv-motion .hdr-read {
+    display: block; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: var(--accent);
+    transform-origin: 0 50%; transform: scaleX(0);
+    pointer-events: none;
+    animation: hdr-read linear both;
+    animation-timeline: scroll(root);
+  }
+  :is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-read { background: var(--cobalt); }
+  html:not(.is-scrolled) .hdr-read { opacity: 0; }
+}
+@keyframes hdr-read { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ---------------------------------------------------------------- the menu's rows answer the hand: a hairline drawn
+   under the row from the left, the arrow travels; it leaves faster, the way it came */
+.menu-a { position: relative; }
+.menu-go { display: none; }
+html.rv-motion .menu-a .menu-go {
+  display: inline-flex; align-self: center; margin-left: auto;
+  width: clamp(1.75rem, 7vw, 3rem); height: clamp(1.75rem, 7vw, 3rem); color: var(--accent);
+  opacity: 0; transform: translate3d(-0.6em, 0, 0);
+  transition: opacity var(--d-hover-out) var(--ease-out), transform var(--d-hover-out) var(--ease-out);
+}
+.menu-go svg { width: 100%; height: 100%; }
+.menu-hl {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--accent);
+  transform: scaleX(0); transform-origin: 100% 50%;
+  transition: transform var(--d-hover-out) var(--ease-out);
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  html.rv-motion .menu-a:hover .menu-go { opacity: 1; transform: none; transition: opacity var(--d-hover) var(--ease-out), transform 0.32s var(--ease-rise); }
+  .menu-a:hover .menu-hl { transform: scaleX(1); transform-origin: 0 50%; transition: transform 0.42s var(--ease-rise); }
+}
+html.rv-motion .menu-a:focus-visible .menu-go { opacity: 1; transform: none; }
+.menu-a:focus-visible .menu-hl { transform: scaleX(1); transform-origin: 0 50%; }
+/* the beats play the rows: the CSS rows stand down when the library runs */
+html.mo-on.rv-motion .menu:not([hidden]) :is(.menu-a .t-d1, .menu-a .menu-n, .menu-foot) { animation: none; }
+/* closing (fx-nav.js holds the sheet for --d-sheet-out): the rows go up behind their masks first (the beats), and the
+   sheet's bottom edge travels up through the whole of its time instead of snapping in its last frames */
+html.mo-on.rv-motion.menu-closing .menu { animation-timing-function: var(--ease-io); }
+
+/* ---------------------------------------------------------------- the cut, played by the beats: the CSS card stands
+   down (its sheet keeps only its visibility) */
+.cut.mo-cut, .cut.mo-cut * { transition: none !important; animation: none !important; }
+.cut.mo-cut.is-rising, .cut.mo-cut.is-leaving { visibility: visible; }
+.cut-n { display: inline-flex; gap: 0.5em; }
+
+/* ---------------------------------------------------------------- the copy control: the confirmation rises from its
+   mask and a hairline is drawn under it (the beats; without them the word simply changes) */
+.copy { position: relative; }
+.copy-hl { position: absolute; left: 0; right: 0; bottom: 0.3rem; height: 2px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mo-own, .mo-own > .ln, .mo-c, .mo-hl, .hdr-read, .menu-go, .menu-hl, .od-s { animation: none !important; transition: none !important; transform: none !important; clip-path: none !important; opacity: 1 !important; }
+  .hdr-read { display: none !important; }
+}
+@media print {
+  .mo-hl, .hdr-read, .hdr-scene, .menu-go, .menu-hl, .copy-hl { display: none !important; }
+}

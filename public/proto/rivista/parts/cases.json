@@ -1,0 +1,708 @@
+[
+  {
+    "slug": "spherenode",
+    "tile": "01",
+    "label": "SphereNode",
+    "titleLines": ["SphereNode"],
+    "overline": [
+      { "t": "SerSan", "src": "P:96" },
+      { "t": { "en": "Since May 2026", "it": "Da maggio 2026" }, "src": "P:96" },
+      { "t": { "en": "Live at spherenode.com", "it": "Online\u00a0su\u00a0spherenode.com" }, "src": "P:101" }
+    ],
+    "ornament": { "t": { "en": "in production", "it": "in produzione" }, "src": "P:101" },
+    "lead": { "t": { "en": "A vertical SaaS that replaced eight tools for the Italian retail-trading market, with Sphere AI, its bilingual RAG mentor, built in.", "it": "Un SaaS verticale per il mercato italiano del retail trading: ha sostituito otto strumenti e integra Sphere AI, il suo mentor RAG bilingue." }, "src": "P:102-105" },
+    "cta": { "label": { "en": "Visit spherenode.com", "it": "Visita spherenode.com" }, "href": "https://spherenode.com", "src": "P:45" },
+    "fields": [],
+    "rail": {
+      "kicker": { "en": "SerSan · live at spherenode.com", "it": "SerSan · online\u00a0su\u00a0spherenode.com" },
+      "body": { "en": "Vertical SaaS that replaced eight tools for the Italian retail-trading market.", "it": "SaaS verticale che ha sostituito otto strumenti per il mercato italiano del retail trading." },
+      "alt": { "en": "The spherenode.com home page, dark with a green accent.", "it": "La home page di spherenode.com, scura con un accento verde." },
+      "src": "P:101-102"
+    },
+    "fig": {
+      "kind": "capture",
+      "stem": "spherenode",
+      "alt": { "en": "The spherenode.com home page: a dark trading-community landing with a green accent.", "it": "La home page di spherenode.com: una landing scura per una community di trading, con un accento verde." },
+      "caption": [{ "en": "spherenode.com", "it": "spherenode.com" }, { "en": "Home page, captured September 2026.", "it": "Home page, catturata a\u00a0settembre\u00a02026." }],
+      "link": { "verb": { "en": "Visit", "it": "Visita" }, "href": "https://spherenode.com" },
+      "src": "public/captures/PROVENANCE.md (2026-09-16)",
+      "plate": {
+        "figure": { "en": "8", "it": "8" }, "word": false,
+        "figLine": { "en": "tools replaced by one platform", "it": "strumenti sostituiti da una sola piattaforma" },
+        "caption": [{ "en": "Eight tools, one platform", "it": "Otto strumenti, una piattaforma" }, { "en": "Circle, Teachable, Zoom, Intercom, HubSpot, Mailchimp, Stripe, Notion.", "it": "Circle, Teachable, Zoom, Intercom, HubSpot, Mailchimp, Stripe, Notion." }],
+        "src": "P:102"
+      }
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "Eight tools,", "it": "Otto strumenti," }, { "en": "one platform", "it": "una piattaforma" }],
+        "replaced": { "tools": ["Circle", "Teachable", "Zoom", "Intercom", "HubSpot", "Mailchimp", "Stripe", "Notion"], "aria": { "en": "The eight tools it replaced", "it": "Gli otto strumenti che ha sostituito" }, "by": "SphereNode", "srBy": { "en": "Replaced by ", "it": "Sostituiti da " }, "src": "P:102" },
+        "lead": { "t": { "en": "A production platform for the Italian retail-trading market that replaced eight separate tools with one product: courses, live sessions, payments and entitlements, a Trading Journal and a bilingual AI mentor.", "it": "Una piattaforma in produzione per il mercato italiano del retail trading che ha sostituito otto strumenti separati con un solo prodotto: corsi, sessioni live, pagamenti e diritti d’accesso, un Trading Journal e un mentor AI bilingue." }, "src": "W:172, P:102-129" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "React 18 · Vite · Supabase (Postgres, RLS, Realtime, pgvector, Edge Functions) · Whop · Cloudflare Stream · Capacitor", "src": "P:103-104" }
+      },
+      {
+        "type": "teaser",
+        "eyebrow": "Sphere AI",
+        "headline": [{ "en": "A mentor,", "it": "Un mentor," }, { "en": "built in", "it": "integrato" }],
+        "lead": { "t": { "en": "Sphere AI is the bilingual (IT/EN) RAG mentor inside SphereNode, answering only from the proprietary curriculum.", "it": "Sphere AI è il mentor RAG bilingue (IT/EN) dentro SphereNode: risponde attingendo solo al curriculum proprietario." }, "src": "P:105-106" },
+        "basis": { "t": { "en": "161-question bilingual evaluation set · before → after", "it": "Set di valutazione bilingue di 161\u00a0domande · prima → dopo" }, "src": "P:108" },
+        "rows": [
+          { "label": { "en": "Answer-policy accuracy", "it": "Accuratezza della policy di risposta" }, "from": "52%", "to": "68%", "src": "P:108" }
+        ],
+        "link": { "to": "sphere-ai", "label": { "en": "Read the Sphere AI file", "it": "Leggi il caso Sphere AI" } }
+      },
+      {
+        "type": "facts",
+        "eyebrow": { "en": "Reliability", "it": "Affidabilità" },
+        "headline": [{ "en": "What had", "it": "Cosa doveva" }, { "en": "to hold", "it": "reggere" }, { "en": "at launch", "it": "al lancio" }],
+        "lead": { "t": { "en": "A paywalled product with tiered access, live video, recurring payments and scheduled jobs, where a single defect leaks paid content or strands paying customers.", "it": "Un prodotto a pagamento con accessi a livelli, video live, pagamenti ricorrenti e job pianificati, dove basta un difetto per far uscire contenuti a pagamento o lasciare fuori clienti paganti." }, "src": "W:176, P:115-123" },
+        "items": [
+          { "num": "5", "title": { "en": "Revenue-critical defects closed", "it": "Difetti critici per\u00a0i\u00a0ricavi,\u00a0chiusi" }, "body": { "en": "The payments-to-entitlement pipeline rebuilt as a tested state machine: access surviving cancellation, disputes and unknown events defaulting to open, empty lookups downgrading paying users, duplicate rows stranding paid customers, out-of-order events resurrecting revoked access.", "it": "La pipeline dai pagamenti ai diritti d’accesso riscritta come state machine testata: accessi che sopravvivevano alla disdetta, contestazioni ed eventi sconosciuti che aprivano l’accesso di default, ricerche a vuoto che declassavano utenti paganti, righe duplicate che lasciavano fuori clienti paganti, eventi fuori ordine che riattivavano accessi revocati." }, "src": "P:115-117" },
+          { "num": "6", "title": { "en": "Access-control defects closed before launch", "it": "Difetti di controllo degli\u00a0accessi chiusi prima\u00a0del\u00a0lancio" }, "body": { "en": "Among them a tier leak exposing 206 live sessions and 79 transcripts to free accounts, alongside a 33-finding security audit remediated in one batch.", "it": "Tra questi, una falla tra i livelli che esponeva 206 sessioni live e 79 trascrizioni agli account gratuiti; in più, un audit di sicurezza da 33 rilievi chiuso in un’unica tornata." }, "src": "P:118-121" },
+          { "num": "21", "title": { "en": "Silent scheduled jobs", "it": "Job pianificati fermi in\u00a0silenzio" }, "body": { "en": "Dead for weeks while every dashboard still reported success. Root-caused, then the missing monitoring and alerting built so it cannot go unnoticed again.", "it": "Fermi da settimane mentre ogni dashboard segnava ancora successo. Trovata la causa, poi costruiti il monitoraggio e gli avvisi che mancavano, perché un fermo non passi più inosservato." }, "src": "P:122-123" },
+          { "num": "21/49", "title": { "en": "Production releases as release manager", "it": "Release di produzione da\u00a0release manager" }, "body": { "en": "Including the public launch. Plus the live-session video pipeline on Cloudflare Stream and the Trading Journal analytics engine.", "it": "Compreso il lancio pubblico. In più, la pipeline video delle sessioni live su Cloudflare Stream e il motore di analisi del Trading Journal." }, "src": "P:124-129" }
+        ]
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Studio", "it": "Studio" }, "v": { "en": "SerSan · Sersan Limited · London · Remote", "it": "SerSan · Sersan Limited · Londra · Da\u00a0remoto" }, "src": "P:96-97" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": "Software & AI Engineer · Creative Lead", "src": "P:97" },
+      { "k": { "en": "Period", "it": "Periodo" }, "v": { "en": "Since May 2026, at SerSan", "it": "Da maggio 2026, in SerSan" }, "src": "P:96" },
+      { "k": { "en": "Access", "it": "Accesso" }, "v": { "en": "Public, spherenode.com", "it": "Pubblico, spherenode.com" }, "src": "P:101, W:124" }
+    ]
+  },
+
+  {
+    "slug": "sphere-ai",
+    "tile": "02",
+    "label": "Sphere AI",
+    "titleLines": ["Sphere AI"],
+    "overline": [
+      { "t": "SerSan", "src": "P:96" },
+      { "t": { "en": "Inside SphereNode", "it": "Dentro SphereNode" }, "src": "P:105" },
+      { "t": { "en": "Live at spherenode.com", "it": "Online\u00a0su\u00a0spherenode.com" }, "src": "P:101" }
+    ],
+    "ornament": { "t": { "en": "grounded", "it": "ancorato" }, "src": "P:105" },
+    "lead": { "t": { "en": "SphereNode's bilingual RAG mentor, grounded only in the proprietary curriculum and measured on a 161-question evaluation set.", "it": "Il mentor RAG bilingue di SphereNode, ancorato solo al curriculum proprietario e misurato su un set di valutazione di 161 domande." }, "src": "W:246, P:105-108" },
+    "cta": { "label": { "en": "Visit spherenode.com", "it": "Visita spherenode.com" }, "href": "https://spherenode.com", "src": "P:45" },
+    "fields": [],
+    "rail": {
+      "kicker": { "en": "SerSan · RAG mentor", "it": "SerSan · mentor RAG" },
+      "body": { "en": "The bilingual mentor inside SphereNode, measured on a 161-question evaluation set.", "it": "Il mentor bilingue dentro SphereNode, misurato su un set di valutazione di 161 domande." },
+      "alt": { "en": "A Sphere AI conversation: a trader's question, the answer with numbered citation markers, and the lessons it drew on listed as source cards, their titles redacted.", "it": "Una conversazione con Sphere AI: la domanda di un trader, la risposta con i rimandi numerati alle citazioni e le lezioni da cui ha attinto, elencate come schede delle fonti con i titoli oscurati." },
+      "src": "P:105-108"
+    },
+    "fig": {
+      "kind": "capture",
+      "stem": "sphere-ai",
+      "contain": true,
+      "alt": { "en": "A whole Sphere AI conversation in SphereNode, on dark green-black: a trader's question about managing risk after a drawdown; the answer, a general paragraph, then a paragraph headed What the transcripts actually support with numbered citation markers and a passage marked as a general concept the excerpts do not cover; the label Based on Spherenode sources; the cited lessons and the suggested lessons and live sessions as source cards; the AI disclaimer and the question box. An instructor's name and every lesson and session title are covered by flat grey bars.", "it": "Un’intera conversazione con Sphere AI in SphereNode, su fondo verde-nero scuro: la domanda di un trader su come gestire il rischio dopo un drawdown; la risposta, con un paragrafo generale e poi un paragrafo intitolato «What the transcripts actually support», con rimandi numerati alle citazioni e un passaggio segnalato come concetto generale che gli estratti non coprono; l’etichetta «Based on Spherenode sources»; le lezioni citate e le lezioni e sessioni live suggerite, come schede delle fonti; l’avvertenza sull’AI e il campo per la domanda. Il nome di un istruttore e i titoli di lezioni e sessioni sono coperti da barre grigie uniformi." },
+      "caption": [{ "en": "Sphere AI, citing its sources", "it": "Sphere AI cita le sue fonti" }, { "en": "A whole answer from the curriculum, with its sources, captured September 2026; a name and the lesson titles redacted.", "it": "Una risposta intera dal curriculum, con le sue fonti, catturata a\u00a0settembre\u00a02026; un nome e i titoli delle lezioni sono oscurati." }],
+      "link": { "verb": { "en": "Visit", "it": "Visita" }, "href": "https://spherenode.com" },
+      "src": "public/captures/PROVENANCE.md (media lane, 2026-10)",
+      "plate": {
+        "figure": { "en": "68%", "it": "68%" }, "word": false,
+        "figLine": { "en": "answer-policy accuracy, from 52%", "it": "accuratezza della policy di risposta, dal 52%" },
+        "caption": [{ "en": "Answer-policy accuracy", "it": "Accuratezza della policy di risposta" }, { "en": "On the bilingual evaluation set, before and after.", "it": "Sul set di valutazione bilingue, prima e dopo." }],
+        "src": "P:108"
+      }
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "It asks", "it": "Chiede prima" }, { "en": "before it guesses", "it": "di azzardare" }],
+        "lead": { "t": { "en": "Sphere AI is the bilingual (IT/EN) RAG mentor inside SphereNode. It answers only from the platform's proprietary curriculum: semantic chunking and embeddings in pgvector, tier-aware retrieval with a curated fast path for canonical answers, and a generation layer with an LLM relevance grader on top.", "it": "Sphere AI è il mentor RAG bilingue (IT/EN) dentro SphereNode. Risponde attingendo solo al curriculum proprietario della piattaforma: chunking semantico ed embedding in pgvector, un retrieval che tiene conto del livello d’abbonamento, con una corsia preferenziale curata per le risposte canoniche, e, sopra la generazione, un LLM che ne valuta la pertinenza." }, "src": "W:273, P:105-107" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "RAG · pgvector · Embeddings · Semantic chunking · LLM relevance grader · LLM evaluation · Guardrails · Supabase", "src": "W:243, P:103-107" }
+      },
+      {
+        "type": "schematic",
+        "eyebrow": { "en": "The pipeline", "it": "La pipeline" },
+        "headline": [{ "en": "Curriculum", "it": "Dal curriculum" }, { "en": "to answer", "it": "alla risposta" }],
+        "lead": { "t": { "en": "Every answer starts from the proprietary curriculum and passes a relevance grader before it reaches the trader.", "it": "Ogni risposta parte dal curriculum proprietario e passa da un valutatore di pertinenza prima di arrivare al trader." }, "src": "P:105-107" },
+        "nodes": [
+          { "t": { "en": "Proprietary curriculum", "it": "Curriculum proprietario" }, "src": "P:105" },
+          { "t": { "en": "Semantic chunking", "it": "Chunking semantico" }, "src": "P:106" },
+          { "t": { "en": "Embeddings in pgvector", "it": "Embedding in pgvector" }, "src": "P:106" },
+          { "t": { "en": "Tier-aware retrieval", "it": "Retrieval per livello" }, "sub": { "en": "with a curated fast path for canonical answers", "it": "con una corsia preferenziale curata per le risposte canoniche" }, "src": "P:106" },
+          { "t": { "en": "Generation", "it": "Generazione" }, "src": "P:107" },
+          { "t": { "en": "LLM relevance grader", "it": "Valutatore di pertinenza LLM" }, "src": "P:107" }
+        ],
+        "outcomesLabel": { "en": "Then it", "it": "Poi" },
+        "outcomes": [
+          { "t": { "en": "Answers, with citations", "it": "Risponde, con le citazioni" }, "src": "P:110" },
+          { "t": { "en": "Asks for clarification", "it": "Chiede un chiarimento" }, "src": "P:112" },
+          { "t": { "en": "Refuses", "it": "Rifiuta" }, "src": "P:113" }
+        ],
+        "caption": [{ "en": "Retrieval and generation", "it": "Retrieval e generazione" }, { "en": "From the curriculum to an answer, a question back, or a refusal.", "it": "Dal curriculum a una risposta, a una controdomanda o a un rifiuto." }]
+      },
+      {
+        "type": "measured",
+        "eyebrow": { "en": "Measured", "it": "Misurato" },
+        "headline": [{ "en": "Before", "it": "Prima" }, { "en": "and after", "it": "e dopo" }],
+        "lead": { "t": { "en": "Every change was measured against the same bilingual evaluation set, with zero locked-content leaks and zero fabricated citations.", "it": "Ogni modifica è stata misurata sullo stesso set di valutazione bilingue, con zero fughe di contenuti bloccati e zero citazioni inventate." }, "src": "P:108-111" },
+        "basis": { "t": { "en": "161-question bilingual evaluation set · before → after", "it": "Set di valutazione bilingue di 161\u00a0domande · prima → dopo" }, "src": "P:108" },
+        "rows": [
+          { "label": { "en": "Answer-policy accuracy", "it": "Accuratezza della policy di risposta" }, "from": "52%", "to": "68%", "src": "P:108" },
+          { "label": { "en": "Over-answering on questions to withhold", "it": "Risposte che andavano trattenute" }, "from": "56%", "to": "16%", "lower": true, "src": "P:109" },
+          { "label": { "en": "Clarification precision", "it": "Precisione dei chiarimenti" }, "from": "75%", "to": "94%", "src": "P:109" },
+          { "label": { "en": "Clarification recall", "it": "Recall dei chiarimenti" }, "from": "32%", "to": "90%", "src": "P:109" },
+          { "label": { "en": "Unsupported claims", "it": "Affermazioni senza riscontro" }, "from": { "en": "1.9%", "it": "1,9%" }, "to": { "en": "0.6%", "it": "0,6%" }, "lower": true, "tiny": true, "src": "P:110" },
+          { "label": { "en": "Citation correctness · zero fabricated citations", "it": "Citazioni corrette · zero citazioni inventate" }, "value": "100%", "src": "P:110-111" }
+        ]
+      },
+      {
+        "type": "list",
+        "eyebrow": { "en": "The guardrails", "it": "I guardrail" },
+        "headline": [{ "en": "What it", "it": "Cosa" }, { "en": "will not do", "it": "non fa" }],
+        "label": { "en": "The guardrails behind the numbers", "it": "I guardrail dietro i numeri" },
+        "items": [
+          { "t": { "en": "Asks for clarification instead of guessing.", "it": "Chiede un chiarimento invece di azzardare una risposta." }, "src": "P:112" },
+          { "t": { "en": "Refuses questions built on a false premise or asking for unsafe actions.", "it": "Rifiuta le domande costruite su una premessa falsa o che chiedono azioni non sicure." }, "src": "P:112-113" },
+          { "t": { "en": "Requires live evidence before answering anything time-sensitive.", "it": "Esige dati in tempo reale prima di rispondere a ciò che dipende dal momento." }, "src": "P:113" },
+          { "t": { "en": "Never lets static FAQ content stand in for current market information.", "it": "Non lascia mai che i contenuti statici delle FAQ prendano il posto delle informazioni di mercato aggiornate." }, "src": "P:114" },
+          { "t": { "en": "Reads the Trading Journal only as a consent-gated, owner-only source, personal data excluded by default.", "it": "Legge il Trading Journal solo con il consenso del titolare e solo per il titolare, con i dati personali esclusi di default." }, "src": "P:125-126" }
+        ]
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Studio", "it": "Studio" }, "v": { "en": "SerSan · Sersan Limited · London · Remote", "it": "SerSan · Sersan Limited · Londra · Da\u00a0remoto" }, "src": "P:96-97" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": { "en": "Designed and built it, as Software & AI Engineer", "it": "L’ho progettato e costruito, come Software & AI Engineer" }, "src": "P:97, P:105" },
+      { "k": { "en": "Lives in", "it": "Dove si trova" }, "v": { "en": "SphereNode, at spherenode.com", "it": "In SphereNode, su spherenode.com" }, "src": "P:101, P:105" },
+      { "k": { "en": "Evaluation", "it": "Valutazione" }, "v": { "en": "161 questions, Italian and English", "it": "161 domande, in italiano e in inglese" }, "src": "P:105, P:108" }
+    ]
+  },
+
+  {
+    "slug": "maintech-oma",
+    "tile": "03",
+    "label": "Maintech OMA",
+    "titleLines": ["Maintech OMA"],
+    "overline": [
+      { "t": "SerSan", "src": "P:96" },
+      { "t": { "en": "Workshop ERP", "it": "ERP d’officina" }, "src": "P:130" },
+      { "t": { "en": "Client system", "it": "Sistema\u00a0del\u00a0cliente" }, "src": "P:32" }
+    ],
+    "ornament": { "t": { "en": "database-first", "it": "database-first" }, "src": "P:137" },
+    "lead": { "t": { "en": "Custom ERP for a heavy-vehicle workshop of about 50 staff, founded from the application scaffold to the first database schema.", "it": "ERP su misura per un’officina di veicoli pesanti con circa 50 addetti: le fondamenta, dallo scaffold applicativo al primo schema del database." }, "src": "W:356, P:132-136" },
+    "cta": null,
+    "fields": [{ "k": { "en": "Access", "it": "Accesso" }, "v": { "en": "no public address", "it": "nessun indirizzo pubblico" }, "src": "W:352" }],
+    "rail": {
+      "kicker": { "en": "SerSan · workshop ERP", "it": "SerSan · ERP d’officina" },
+      "body": { "en": "Job orders on a six-phase state machine, ten trade portals.", "it": "Ordini di lavoro su una state machine a sei fasi, dieci portali di settore." },
+      "src": "P:140-145"
+    },
+    "fig": {
+      "kind": "plate",
+      "figure": { "en": "9", "it": "9" }, "word": false,
+      "figLine": { "en": "roles, default-deny on every table", "it": "ruoli, default-deny su ogni tabella" },
+      "caption": [{ "en": "Nine roles", "it": "Nove ruoli" }, { "en": "Permissions held in the database, not in tokens.", "it": "Permessi conservati nel database, non nei token." }],
+      "src": "P:137-138"
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "Founded", "it": "Le fondamenta," }, { "en": "from the scaffold", "it": "dallo scaffold" }],
+        "lead": { "t": { "en": "A custom ERP for a heavy-vehicle workshop with about 50 staff across mechanics, mechatronics, auto-electrics, bodywork and refrigeration. I founded the system: the application scaffold, the 'Diesel & Safety' design system (design tokens, light and dark themes, a component library) and the first database schema the rest of the product was built on.", "it": "Un ERP su misura per un’officina di veicoli pesanti con circa 50 addetti tra meccanica, meccatronica, elettrauto, carrozzeria e refrigerazione. Ho gettato le fondamenta del sistema: lo scaffold applicativo, il design system «Diesel\u00a0&\u00a0Safety» (design token, temi chiaro e scuro, una libreria di componenti) e il primo schema del database su cui è stato costruito il resto del prodotto." }, "src": "W:387, P:132-136" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Vite · React 18 · TypeScript · Supabase (Postgres 17, RLS, Edge Functions) · TanStack Query", "src": "P:130-131" }
+      },
+      {
+        "type": "schematic",
+        "eyebrow": { "en": "The domain core", "it": "Il cuore del dominio" },
+        "headline": [{ "en": "Customer", "it": "Dal cliente" }, { "en": "to purchase order", "it": "all’acquisto" }],
+        "lead": { "t": { "en": "The domain core I delivered, from the customer to the order that buys the parts.", "it": "Il cuore del dominio che ho consegnato, dal cliente all’ordine che acquista i ricambi." }, "src": "P:140-142" },
+        "nodes": [
+          { "t": { "en": "Customers", "it": "Clienti" }, "src": "P:140" },
+          { "t": { "en": "Vehicles", "it": "Veicoli" }, "sub": { "en": "equipment and inspection deadlines", "it": "attrezzature e scadenze di revisione" }, "src": "P:140" },
+          { "t": { "en": "Job orders", "it": "Ordini di lavoro" }, "sub": { "en": "role-gated transitions, safe numbering under concurrency", "it": "transizioni vincolate al ruolo, numerazione sicura in concorrenza" }, "phases": 6, "src": "P:140-141" },
+          { "t": { "en": "Parts catalogue", "it": "Catalogo ricambi" }, "sub": { "en": "multi-supplier price comparison", "it": "confronto prezzi tra più fornitori" }, "src": "P:141-142" },
+          { "t": { "en": "Purchase orders", "it": "Ordini d’acquisto" }, "src": "P:142" }
+        ],
+        "caption": [{ "en": "The domain core", "it": "Il cuore del dominio" }, { "en": "The job-order phases are numbered here, not named.", "it": "Le fasi dell’ordine di lavoro qui sono numerate, non nominate." }]
+      },
+      {
+        "type": "facts",
+        "eyebrow": { "en": "Security", "it": "Sicurezza" },
+        "headline": [{ "en": "What holds", "it": "Cosa regge" }, { "en": "at the database", "it": "nel database" }],
+        "lead": { "t": { "en": "A database-first security model that cannot be bypassed from the client: default-deny access rules on every table, per-site data segregation, and permissions held in the database rather than in tokens.", "it": "Un modello di sicurezza database-first che non si può aggirare dal client: regole di accesso default-deny su ogni tabella, segregazione dei dati per sede e permessi conservati nel database invece che nei token." }, "src": "P:137-138" },
+        "items": [
+          { "num": "3", "title": { "en": "Live defects", "it": "Difetti reali" }, "body": { "en": "Exposed by the first database test suite written against the model, and fixed before they reached production.", "it": "Emersi con la prima suite di test del database, scritta sul modello, e corretti prima che arrivassero in produzione." }, "src": "P:138-139" },
+          { "num": "6", "title": { "en": "Phases", "it": "Fasi" }, "body": { "en": "Job orders on a state machine with role-gated transitions and safe numbering under concurrency.", "it": "Ordini di lavoro su una state machine con transizioni vincolate al ruolo e numerazione sicura in concorrenza." }, "src": "P:140-141" },
+          { "num": "10", "title": { "en": "Trade portals", "it": "Portali di settore" }, "body": { "en": "A connector console, article-level price comparison and a caching layer that never degrades a good supplier response; and a high-severity privilege escalation closed: it let any user with price access alter where supplier credentials were sent.", "it": "Una console dei connettori, il confronto prezzi a livello di articolo e una cache che non degrada mai una buona risposta del fornitore; e una privilege escalation ad alta gravità, chiusa: permetteva a qualunque utente con accesso ai prezzi di cambiare la destinazione delle credenziali dei fornitori." }, "src": "P:143-145" }
+        ]
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Studio", "it": "Studio" }, "v": { "en": "SerSan · Sersan Limited · London · Remote", "it": "SerSan · Sersan Limited · Londra · Da\u00a0remoto" }, "src": "P:96-97" },
+      { "k": { "en": "Client", "it": "Cliente" }, "v": { "en": "A heavy-vehicle workshop, about 50 staff", "it": "Un’officina di veicoli pesanti, circa 50 addetti" }, "src": "P:132" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": { "en": "Founded the system and its architecture", "it": "Ho impostato il sistema e la sua architettura" }, "src": "P:134" },
+      { "k": { "en": "Access", "it": "Accesso" }, "v": { "en": "Client system, no public address", "it": "Sistema del cliente, nessun indirizzo pubblico" }, "src": "W:352" },
+      { "k": { "en": "Photograph", "it": "Fotografia" }, "v": { "en": "none", "it": "nessuna" }, "gap": true, "onlyPlate": true, "src": "gap: PRODUCT §8 question 1" }
+    ]
+  },
+
+  {
+    "slug": "sersan-io",
+    "tile": "04",
+    "label": "sersan.io",
+    "titleLines": ["sersan.io"],
+    "overline": [
+      { "t": "SerSan", "src": "P:96" },
+      { "t": { "en": "Jun – Sep 2026", "it": "giu – set 2026" }, "src": "P:148" },
+      { "t": { "en": "Live at sersan.io", "it": "Online\u00a0su\u00a0sersan.io" }, "src": "P:33" }
+    ],
+    "ornament": { "t": { "en": "WebGPU-first", "it": "WebGPU-first" }, "src": "P:150" },
+    "lead": { "t": { "en": "The studio's WebGPU-first site: one continuous 3D canvas carrying seventeen scroll-locked scenes, built alone.", "it": "Il sito WebGPU-first dello studio: un unico canvas 3D continuo con diciassette scene agganciate allo scroll, costruito in solitaria." }, "src": "W:437, P:148-151" },
+    "cta": { "label": { "en": "Visit sersan.io", "it": "Visita sersan.io" }, "href": "https://sersan.io", "src": "P:45" },
+    "fields": [],
+    "rail": {
+      "kicker": { "en": "SerSan · Jun – Sep 2026", "it": "SerSan · giu – set 2026" },
+      "body": { "en": "Seventeen scroll-locked scenes on one continuous WebGPU canvas.", "it": "Diciassette scene agganciate allo scroll su un unico canvas WebGPU continuo." },
+      "alt": { "en": "The sersan.io intro: the SerSan mark built of blue particles above the glowing wordmark, both over the bright, bent rim of a black hole.", "it": "L’intro di sersan.io: il marchio SerSan fatto di particelle blu sopra il logotipo luminoso, entrambi sopra il bordo chiaro e curvo di un buco nero." },
+      "src": "P:148-151"
+    },
+    "fig": {
+      "kind": "capture",
+      "stem": "sersan-io",
+      "alt": { "en": "The sersan.io intro: the SerSan mark built of blue particles above the glowing wordmark, both over the bright, bent rim of a black hole.", "it": "L’intro di sersan.io: il marchio SerSan fatto di particelle blu sopra il logotipo luminoso, entrambi sopra il bordo chiaro e curvo di un buco nero." },
+      "caption": [{ "en": "sersan.io", "it": "sersan.io" }, { "en": "Intro, captured September 2026.", "it": "Intro, catturata a\u00a0settembre\u00a02026." }],
+      "link": { "verb": { "en": "Visit", "it": "Visita" }, "href": "https://sersan.io" },
+      "src": "public/captures/PROVENANCE.md (2026-09-16)",
+      "plate": {
+        "figure": { "en": "17", "it": "17" }, "word": false,
+        "figLine": { "en": "scroll-locked scenes on one canvas", "it": "scene agganciate allo scroll su un solo canvas" },
+        "caption": [{ "en": "Seventeen scenes", "it": "Diciassette scene" }, { "en": "One continuous 3D canvas across the site.", "it": "Un unico canvas 3D continuo per tutto il sito." }],
+        "src": "P:151"
+      }
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "One canvas,", "it": "Un canvas," }, { "en": "seventeen scenes", "it": "diciassette scene" }],
+        "lead": { "t": { "en": "I rebuilt the studio's public site single-handedly, as engineer and designer, into a WebGPU-first experience: one continuous 3D canvas carries seventeen scroll-locked scenes across the site, with an automatic fallback for machines without WebGPU and recovery if the graphics context is lost.", "it": "Ho rifatto da solo, come engineer e designer, il sito pubblico dello studio e ne ho fatto un’esperienza WebGPU-first: un unico canvas 3D continuo porta diciassette scene agganciate allo scroll lungo tutto il sito, con un fallback automatico per le macchine senza WebGPU e il ripristino se il contesto grafico va perso." }, "src": "W:468, P:148-152" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Next.js 16 · React 19 · three.js (WebGPU/TSL) · React Three Fiber · GSAP + Lenis · Tailwind v4 · Vercel", "src": "P:149" }
+      },
+      {
+        "type": "facts",
+        "eyebrow": { "en": "The GPU work", "it": "Il lavoro sulla GPU" },
+        "headline": [{ "en": "Written in", "it": "Scritto in" }, { "en": "compute shaders", "it": "compute shader" }],
+        "items": [
+          { "num": "17", "title": { "en": "Scroll-locked scenes", "it": "Scene agganciate allo\u00a0scroll" }, "body": { "en": "On one continuous 3D canvas, with a fallback for machines without WebGPU.", "it": "Su un unico canvas 3D continuo, con un fallback per le macchine senza WebGPU." }, "src": "P:151-152" },
+          { "num": { "en": "48,000", "it": "48.000" }, "title": { "en": "Particles in the wordmark intro", "it": "Particelle nell’intro del\u00a0logotipo" }, "body": { "en": "Computed on the GPU, beside a particle brand mark.", "it": "Calcolate sulla GPU, accanto a un marchio a particelle." }, "src": "P:153" },
+          { "num": { "en": "80,000", "it": "80.000" }, "title": { "en": "Cells in the portrait morph", "it": "Celle nel morph del\u00a0ritratto" }, "body": { "en": "Lit from generated depth maps.", "it": "Illuminate da mappe di profondità generate." }, "src": "P:153-154" }
+        ],
+        "plates": {
+          "label": { "en": "Frames from the one canvas, captured on sersan.io with WebGPU in October 2026.", "it": "Fotogrammi dell’unico canvas, catturati su sersan.io con WebGPU a\u00a0ottobre\u00a02026." },
+          "src": "public/captures/PROVENANCE.md (sersan-io-wordmark, sersan-io-blackhole, sersan-io-portrait). S3 (2026-10-11): the portrait frame is in, the director's decision on PRODUCT §8 question 2; its caption names what the frame shows, does not call the section it sits in on sersan.io by its name (he is the studio's Creative Lead, not its founder) and says the background telemetry is decoration",
+          "items": [
+            {
+              "stem": "sersan-io-wordmark",
+              "alt": { "en": "A frame of the sersan.io intro on black: the letters S, E and R of the SerSan wordmark drawn in fine white particles, the rest of the word still a loose cloud of cyan particles drifting in from the right.", "it": "Un fotogramma dell’intro di sersan.io su nero: le lettere S, E e R del logotipo SerSan disegnate con fini particelle bianche; il resto della parola è ancora una nuvola rada di particelle ciano che arriva da destra." },
+              "caption": [{ "en": "The wordmark intro", "it": "L’intro del logotipo" }, { "en": "Particles assembling the SerSan wordmark, mid-intro.", "it": "Le particelle compongono il logotipo SerSan, a metà intro." }],
+              "src": "P:153"
+            },
+            {
+              "stem": "sersan-io-blackhole",
+              "alt": { "en": "The glowing SerSan wordmark above a raymarched black hole: a dark sphere edged by a thin bright ring, with streams of blue light bent around it, on a sparse starfield.", "it": "Il logotipo SerSan luminoso sopra un buco nero in raymarching: una sfera scura bordata da un sottile anello chiaro, con fasci di luce blu piegati intorno, su un campo di stelle rado." },
+              "caption": [{ "en": "The black hole", "it": "Il buco nero" }, { "en": "Raymarched under the wordmark, with the hero at rest.", "it": "In raymarching sotto il logotipo, con la schermata d’apertura a riposo." }],
+              "src": "P:154"
+            },
+            {
+              "stem": "sersan-io-portrait",
+              "alt": { "en": "A frame of sersan.io on black: a portrait of Alberto Tuveri, a man in round glasses and a red jacket, drawn in fine grains of light. Thin orbit lines around him carry labels such as React / Next.js, TypeScript, Supabase and GitHub Actions, and faint columns of small telemetry-style text fill the background.", "it": "Un fotogramma di sersan.io su nero: un ritratto di Alberto Tuveri, un uomo con occhiali tondi e una giacca rossa, disegnato in fini grani di luce. Sottili linee d’orbita intorno a lui portano etichette come React / Next.js, TypeScript, Supabase e GitHub Actions, e tenui colonne di piccolo testo in stile telemetria riempiono lo sfondo." },
+              "caption": [{ "en": "The portrait morph", "it": "Il morph del ritratto" }, { "en": "My own portrait, drawn in cells, inside an orbit of labels. The telemetry lines behind it are decoration, not readings.", "it": "Il mio ritratto, disegnato a celle, dentro un’orbita di etichette. Le righe di telemetria sullo sfondo sono decorazione, non misure." }],
+              "src": "P:153-154"
+            }
+          ]
+        },
+        "listLabel": { "en": "Also on the canvas", "it": "Sempre sul canvas" },
+        "list": [
+          { "t": { "en": "A custom refractive crystal material.", "it": "Un materiale di cristallo rifrattivo, su misura." }, "src": "P:154" },
+          { "t": { "en": "A selective-bloom post-processing chain.", "it": "Una catena di post-processing con bloom selettivo." }, "src": "P:155" }
+        ]
+      },
+      {
+        "type": "facts",
+        "eyebrow": { "en": "On every device", "it": "Su ogni dispositivo" },
+        "headline": [{ "en": "The full scene,", "it": "La scena intera," }, { "en": "on weak mobile GPUs", "it": "su GPU mobile\u00a0deboli" }],
+        "items": [
+          { "num": "100", "title": { "en": "Lighthouse Accessibility", "it": "Lighthouse Accessibility" }, "body": { "en": "With a reduced-motion path for every 3D section.", "it": "Con una versione reduced-motion di ogni sezione 3D." }, "src": "P:157-158" },
+          { "num": "100", "title": { "en": "Lighthouse SEO", "it": "Lighthouse SEO" }, "body": { "en": "With a non-JavaScript equivalent for every 3D section.", "it": "Con un equivalente senza JavaScript di ogni sezione 3D." }, "src": "P:157-158" }
+        ],
+        "after": { "t": { "en": "A device-tiering system runs the full scene on weak mobile GPUs at a quarter of the pixels, without removing a single effect. The mobile layouts were rebuilt, accessible touch targets restored after tracing every undersized control to a single styling rule, and the mobile home page cut to two-thirds of its length.", "it": "Un sistema di device tiering fa girare la scena intera sulle GPU mobile deboli a un quarto dei pixel, senza togliere un solo effetto. I layout mobile sono stati rifatti; i touch target sono tornati accessibili, una volta ricondotto ogni controllo troppo piccolo a un’unica regola di stile; la home page mobile è stata accorciata a due terzi della sua lunghezza." }, "src": "P:156-161" }
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Studio", "it": "Studio" }, "v": { "en": "SerSan · Sersan Limited · London · Remote", "it": "SerSan · Sersan Limited · Londra · Da\u00a0remoto" }, "src": "P:96-97" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": { "en": "Sole engineer and designer", "it": "Unico engineer e designer" }, "src": "P:148" },
+      { "k": { "en": "Period", "it": "Periodo" }, "v": { "en": "Jun – Sep 2026", "it": "giu – set 2026" }, "src": "P:148" },
+      { "k": { "en": "Access", "it": "Accesso" }, "v": { "en": "Public, sersan.io", "it": "Pubblico, sersan.io" }, "src": "P:33" }
+    ]
+  },
+
+  {
+    "slug": "domus-tua",
+    "tile": "05",
+    "label": "Domus Tua",
+    "titleLines": ["Domus Tua"],
+    "overline": [
+      { "t": "SerSan", "src": "P:96" },
+      { "t": { "en": "Client work", "it": "Lavoro per un cliente" }, "src": "P:34" },
+      { "t": { "en": "Real-estate brand platform", "it": "Piattaforma brand immobiliare" }, "src": "P:162" }
+    ],
+    "ornament": { "t": { "en": "cinematic", "it": "cinematografico" }, "src": "P:163" },
+    "lead": { "t": { "en": "Real-estate brand platform with a cinematic scroll experience, and mobile LCP cut from 4.75 s to 1.74 s on real phones.", "it": "Piattaforma brand immobiliare con un’esperienza di scroll cinematografica, e l’LCP su mobile portato da 4,75\u00a0s a 1,74\u00a0s su telefoni reali." }, "src": "W:527, P:162-166" },
+    "cta": null,
+    "fields": [{ "k": { "en": "URL", "it": "URL" }, "v": { "en": "pending", "it": "in attesa" }, "src": "W:585" }],
+    "rail": {
+      "kicker": { "en": "SerSan · real-estate brand platform", "it": "SerSan · piattaforma brand immobiliare" },
+      "body": { "en": "Mobile LCP 4.75 s → 1.74 s on real phones, no layout shift.", "it": "LCP su mobile 4,75\u00a0s → 1,74\u00a0s su telefoni reali, nessun layout shift." },
+      "alt": { "en": "The method section of the Domus Tua site, in ivory and red: a serif heading above the first steps of the method, set as cards along a winding red line.", "it": "La sezione del metodo del sito Domus Tua, in avorio e rosso: un titolo graziato sopra i primi passi del metodo, disposti come schede lungo una linea rossa sinuosa." },
+      "src": "P:164-166"
+    },
+    "fig": {
+      "kind": "capture",
+      "stem": "domus-tua",
+      "contain": true,
+      "alt": { "en": "The method section of the Domus Tua site, on warm ivory: a small red label, Il metodo Domus Tua; the heading Un percorso chiaro, dalla prima stima alla firma, in a dark serif; a short paragraph and a red button, Inizia dal tuo immobile; below, the first steps, Primo ascolto and Valutazione, as numbered cards on either side of a winding red line. The words Metodo Domus sit behind the heading as a pale watermark.", "it": "La sezione del metodo del sito Domus Tua, su avorio caldo: una piccola etichetta rossa, «Il metodo Domus Tua»; il titolo «Un percorso chiaro, dalla prima stima alla firma», in un graziato scuro; un breve paragrafo e un pulsante rosso, «Inizia dal tuo immobile»; sotto, i primi passi, «Primo ascolto» e «Valutazione», come schede numerate su entrambi i lati di una linea rossa sinuosa. Le parole «Metodo Domus» stanno dietro il titolo come una filigrana chiara." },
+      "caption": [{ "en": "Domus Tua", "it": "Domus Tua" }, { "en": "The method section of the client preview, captured October 2026.", "it": "La sezione del metodo nell’anteprima per il cliente, catturata a\u00a0ottobre\u00a02026." }],
+      "link": null,
+      "src": "public/captures/PROVENANCE.md (S3, 2026-10-11): a view with no person, no personal name and no third-party mark; it replaces the home hero held in S2 (the founder's face and name), which is no longer in the tree. Shown whole (contain): a page of type is not cropped",
+      "plate": {
+        "figure": { "en": "1.74 s", "it": "1,74\u00a0s" }, "word": false,
+        "figLine": { "en": "mobile LCP, from 4.75 s", "it": "LCP su mobile, da 4,75\u00a0s" },
+        "caption": [{ "en": "Mobile Largest Contentful Paint", "it": "Largest Contentful Paint su mobile" }, { "en": "Measured on real phones.", "it": "Misurato su telefoni reali." }],
+        "src": "P:165"
+      }
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "A cinematic scroll,", "it": "Scroll da cinema," }, { "en": "art-directed", "it": "direzione artistica" }],
+        "lead": { "t": { "en": "A real-estate brand platform. I art-directed and built the site's cinematic scroll experience (animated intro, arched page transitions, chapter-based storytelling) with complete reduced-motion and no-JavaScript alternatives and no layout shift, then made it fast on real phones and prepared its launch.", "it": "Una piattaforma brand per l’immobiliare. Ho curato la direzione artistica e costruito l’esperienza di scroll cinematografica del sito (intro animata, transizioni di pagina ad arco, storytelling a capitoli), con alternative complete reduced-motion e senza JavaScript, e nessun layout shift; poi l’ho resa veloce su telefoni reali e ne ho preparato il lancio." }, "src": "W:550, P:163-168" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Next.js 16 · GSAP · Lenis · Supabase", "src": "P:162" }
+      },
+      {
+        "type": "measured",
+        "eyebrow": { "en": "Real phones", "it": "Telefoni reali" },
+        "headline": [{ "en": "Fast on the phone", "it": "Veloce col\u00a0telefono" }, { "en": "in your hand", "it": "in\u00a0mano" }],
+        "lead": { "t": { "en": "The mobile delay was traced to the cookie banner and the intro rebuilt to run in CSS rather than JavaScript. The cinematic experience stayed, with no layout shift.", "it": "Il ritardo su mobile veniva dal banner dei cookie, e l’intro è stata riscritta per girare in CSS invece che in JavaScript. L’esperienza cinematografica è rimasta, senza layout shift." }, "src": "P:164-166" },
+        "basis": { "t": { "en": "Mobile, before → after", "it": "Mobile, prima → dopo" }, "src": "P:165" },
+        "rows": [
+          { "label": { "en": "Mobile Largest Contentful Paint", "it": "Largest Contentful Paint su mobile" }, "from": { "en": "4.75 s", "it": "4,75\u00a0s" }, "to": { "en": "1.74 s", "it": "1,74\u00a0s" }, "lower": true, "src": "P:165" },
+          { "label": { "en": "Mobile blocking time", "it": "Blocking time su mobile" }, "from": { "en": "572 ms", "it": "572\u00a0ms" }, "to": { "en": "274 ms", "it": "274\u00a0ms" }, "lower": true, "src": "P:165-166" }
+        ]
+      },
+      {
+        "type": "list",
+        "eyebrow": { "en": "The launch", "it": "Il lancio" },
+        "headline": [{ "en": "Prepared", "it": "Preparato" }, { "en": "for launch", "it": "per il lancio" }],
+        "items": [
+          { "t": { "en": "Legacy URL redirects, verified against the live listing catalogue.", "it": "Redirect dei vecchi URL, verificati sul catalogo degli annunci online." }, "src": "P:167" },
+          { "t": { "en": "Structured data for listings, breadcrumbs and FAQs.", "it": "Dati strutturati per annunci, breadcrumb e FAQ." }, "src": "P:167-168" },
+          { "t": { "en": "The site's AI assistant persona, with its identity and safety rules.", "it": "Il personaggio dell’assistente AI del sito, con la sua identità e le sue regole di sicurezza." }, "src": "P:168" }
+        ]
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Studio", "it": "Studio" }, "v": { "en": "SerSan · Sersan Limited · London · Remote", "it": "SerSan · Sersan Limited · Londra · Da\u00a0remoto" }, "src": "P:96-97" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": { "en": "Art direction and build", "it": "Direzione artistica e sviluppo" }, "src": "P:163" },
+      { "k": { "en": "URL", "it": "URL" }, "v": { "en": "pending", "it": "in attesa" }, "gap": true, "src": "W:585" },
+      { "k": { "en": "Photograph", "it": "Fotografia" }, "v": { "en": "none", "it": "nessuna" }, "gap": true, "onlyPlate": true, "src": "gap: PRODUCT §8 question 1" }
+    ]
+  },
+
+  {
+    "slug": "sersan-brand",
+    "tile": "06",
+    "label": "Brand film",
+    "titleLines": [{ "en": "Brand identity", "it": "Brand identity" }, { "en": "and brand film", "it": "e brand film" }],
+    "overline": [
+      { "t": "SerSan", "src": "P:169" },
+      { "t": { "en": "Identity and film", "it": "Identità e film" }, "src": "P:169" },
+      { "t": { "en": "Directed and produced", "it": "Regia\u00a0e\u00a0produzione" }, "src": "P:172" }
+    ],
+    "ornament": { "t": { "en": "in motion", "it": "in movimento" }, "src": "P:169" },
+    "lead": { "t": { "en": "The SerSan identity (hexagonal mark, custom display typeface, colour system) and the studio's 4K brand film, from concept to final cut.", "it": "L’identità SerSan (marchio esagonale, carattere display su misura, sistema colore) e il brand film 4K dello studio, dal concept al final cut." }, "src": "W:602, P:170-173" },
+    "cta": { "label": { "en": "Visit sersan.io", "it": "Visita sersan.io" }, "href": "https://sersan.io", "src": "P:45, P:170-171" },
+    "fields": [{ "k": { "en": "Film link", "it": "Link al film" }, "v": { "en": "pending", "it": "in attesa" }, "src": "W:656" }],
+    "rail": {
+      "kicker": { "en": "SerSan · identity and film", "it": "SerSan · identità e film" },
+      "body": { "en": "Hexagonal mark, custom display typeface, colour system, and the brand film.", "it": "Marchio esagonale, carattere display su misura, sistema colore e il brand film." },
+      "alt": { "en": "A frame of the SerSan brand film: a glass browser card on blue, the glowing SerSan mark and wordmark above a black hole on it.", "it": "Un fotogramma del brand film SerSan: una scheda browser in vetro su fondo blu, che mostra il marchio e il logotipo SerSan luminosi sopra un buco nero." },
+      "src": "P:169-173"
+    },
+    "fig": {
+      "kind": "capture",
+      "stem": "sersan-brand",
+      "alt": { "en": "A frame of the SerSan brand film: the centre card of a 3D carousel of glass browser cards on blue, showing the glowing SerSan mark and wordmark above a black hole, the edges of the neighbouring cards at the sides.", "it": "Un fotogramma del brand film SerSan: la scheda centrale di un carosello 3D di schede browser in vetro su fondo blu, con il marchio e il logotipo SerSan luminosi sopra un buco nero; ai lati, i bordi delle schede vicine." },
+      "caption": [{ "en": "A frame of the brand film", "it": "Un fotogramma del\u00a0brand\u00a0film" }, { "en": "The selected-work scene.", "it": "La scena dei lavori scelti." }],
+      "link": null,
+      "src": "public/captures/PROVENANCE.md (media lane, 2026-10)",
+      "plate": {
+        "figure": { "en": "14", "it": "14" }, "word": false,
+        "figLine": { "en": "scenes, directed and produced in 4K", "it": "scene, dirette e prodotte in 4K" },
+        "caption": [{ "en": "The brand film", "it": "Il brand film" }, { "en": "Directed and produced, concept and script to final cut.", "it": "Regia e produzione, dal concept e dallo script al final cut." }],
+        "src": "P:172-173"
+      }
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "A single identity,", "it": "Un’unica identità," }, { "en": "site to film", "it": "dal sito al film" }],
+        "lead": { "t": { "en": "I designed the SerSan visual identity, the hexagonal mark, a custom display typeface and the colour system, and carried it across the website, the 3D scenes and the video work. I then directed and produced the studio's brand film.", "it": "Ho disegnato l’identità visiva SerSan (il marchio esagonale, un carattere display su misura e il sistema colore) e l’ho portata sul sito, nelle scene 3D e nei video. Poi ho diretto e prodotto il brand film dello studio." }, "src": "W:625, P:170-173" },
+        "stack": { "label": { "en": "Disciplines", "it": "Discipline" }, "t": { "en": "Art direction · Motion graphics · VFX · 3D · Video", "it": "Direzione artistica · Motion graphics · VFX · 3D · Video" }, "src": "P:169" }
+      },
+      {
+        "type": "list",
+        "eyebrow": { "en": "The identity", "it": "L’identità" },
+        "headline": [{ "en": "Mark, type", "it": "Marchio, carattere" }, { "en": "and colour", "it": "e colore" }],
+        "figure": {
+          "stem": "sersan-brand-end",
+          "alt": { "en": "The closing card of the brand film, on navy: the hexagonal SerSan mark in white and blue above the SERSAN wordmark, a thin blue rule, the tagline “The intelligence is artificial. The judgement stays human.”, a Send a project brief button and the sersan.io address.", "it": "Il cartello di chiusura del brand film, su blu navy: il marchio esagonale SerSan in bianco e blu sopra il logotipo SERSAN, un sottile filetto blu, il motto «The intelligence is artificial. The judgement stays human.», un pulsante «Send a project brief» e l’indirizzo sersan.io." },
+          "still": true,
+          "caption": [{ "en": "The identity on the film's closing card", "it": "L’identità sul cartello di\u00a0chiusura del\u00a0film" }, { "en": "Mark, display typeface and colour.", "it": "Marchio, carattere display e colore." }]
+        },
+        "items": [
+          { "t": { "en": "The hexagonal mark.", "it": "Il marchio esagonale." }, "src": "P:170" },
+          { "t": { "en": "A custom display typeface.", "it": "Un carattere display su misura." }, "src": "P:170" },
+          { "t": { "en": "The colour system.", "it": "Il sistema colore." }, "src": "P:170" },
+          { "t": { "en": "Carried consistently across the website, the 3D scenes and the video work.", "it": "Portata con coerenza sul sito, nelle scene 3D e nei video." }, "src": "P:171" }
+        ]
+      },
+      {
+        "type": "facts",
+        "eyebrow": { "en": "The film", "it": "Il film" },
+        "headline": [{ "en": "Concept", "it": "Dal concept" }, { "en": "to final cut", "it": "al final cut" }],
+        "lead": { "t": { "en": "Directed and produced from concept and script through to final cut, as a narrative built on the studio's positioning.", "it": "Diretto e prodotto dal concept e dallo script fino al final cut, come un racconto costruito sul posizionamento dello studio." }, "src": "P:172-173" },
+        "items": [
+          { "num": "14", "title": { "en": "Scenes", "it": "Scene" }, "body": { "en": "A narrative built on the studio's positioning, from concept and script to final cut.", "it": "Un racconto costruito sul posizionamento dello studio, dal concept e dallo script al final cut." }, "src": "P:172-173" },
+          { "num": "4K", "title": { "en": "Kinetic typography", "it": "Tipografia cinetica" }, "body": { "en": "Throughout the film.", "it": "Per tutto il film." }, "src": "P:175-176" }
+        ],
+        "listLabel": { "en": "Motion design, VFX and post", "it": "Motion design, VFX e post-produzione" },
+        "list": [
+          { "t": { "en": "A light orb that ignites each interface element it passes.", "it": "Una sfera di luce che accende ogni elemento d’interfaccia al suo passaggio." }, "src": "P:174" },
+          { "t": { "en": "Hexagon screen transitions and 3D product scenes.", "it": "Transizioni di schermata a esagoni e scene 3D di prodotto." }, "src": "P:175" },
+          { "t": { "en": "A closing morph from the final line into the brand mark.", "it": "Un morph di chiusura dall’ultima frase al marchio." }, "src": "P:175" },
+          { "t": { "en": "Post-production end to end: compositing, colour and a sound-design pass timed to the cut.", "it": "Post-produzione dall’inizio alla fine: compositing, colore e una passata di sound design sincronizzata al montaggio." }, "src": "P:177" }
+        ]
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Studio", "it": "Studio" }, "v": { "en": "SerSan · Sersan Limited · London · Remote", "it": "SerSan · Sersan Limited · Londra · Da\u00a0remoto" }, "src": "P:96-97" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": { "en": "Art direction · motion graphics · VFX · 3D · video", "it": "Direzione artistica · motion graphics · VFX · 3D · video" }, "src": "P:169" },
+      { "k": { "en": "Film link", "it": "Link al film" }, "v": { "en": "pending", "it": "in attesa" }, "gap": true, "src": "W:656" },
+      { "k": { "en": "Still", "it": "Fotogramma" }, "v": { "en": "none", "it": "nessuno" }, "gap": true, "onlyPlate": true, "src": "gap: PRODUCT §8 question 1" }
+    ]
+  },
+
+  {
+    "slug": "badante24h",
+    "tile": "07",
+    "label": "Badante24h",
+    "titleLines": ["Badante24h"],
+    "overline": [
+      { "t": "ALS MCL Civitanova", "src": "P:178" },
+      { "t": { "en": "Freelance", "it": "Freelance" }, "src": "P:179" },
+      { "t": { "en": "Jan 2026 – Present", "it": "gen 2026 – oggi" }, "src": "P:178" }
+    ],
+    "ornament": { "t": { "en": "in production", "it": "in produzione" }, "src": "P:180" },
+    "lead": { "t": { "en": "Production PWA matching families with caregivers in the Italian home-care market.", "it": "PWA in produzione che mette in contatto famiglie e caregiver nel mercato italiano dell’assistenza domiciliare." }, "src": "P:180" },
+    "cta": null,
+    "fields": [{ "k": { "en": "URL", "it": "URL" }, "v": { "en": "pending", "it": "in attesa" }, "src": "W:727" }],
+    "rail": {
+      "kicker": { "en": "ALS MCL Civitanova · freelance", "it": "ALS MCL Civitanova · freelance" },
+      "body": { "en": "Sub-second caregiver search; zero known auth vulnerabilities at launch.", "it": "Ricerca dei caregiver in meno di un secondo; zero vulnerabilità di autenticazione note al lancio." },
+      "src": "P:185-189"
+    },
+    "fig": {
+      "kind": "plate",
+      "figure": { "en": "Sub-second", "it": "Sotto il secondo" }, "word": true,
+      "figLine": { "en": "geospatial caregiver search, PostGIS 3", "it": "ricerca geospaziale dei caregiver, PostGIS\u00a03" },
+      "caption": [{ "en": "Caregiver search", "it": "Ricerca dei caregiver" }, { "en": "PostGIS geography, GiST indexes.", "it": "Geography PostGIS, indici GiST." }],
+      "src": "P:185-186",
+      "note": "S2 CASE (verifier defect 8): a plate by data, not by fallback. The public hero prints its empty-data state (media lane, 2026-10-09), so no capture is planned; a capture lands only with a kind, an alt and a caption written after looking at it."
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "Families, caregivers,", "it": "Famiglie, caregiver," }, { "en": "in real time", "it": "in tempo reale" }],
+        "lead": { "t": { "en": "A production PWA that matches families with home-care caregivers across the Italian domiciliary-care market, architected and shipped on Next.js 15 App Router, React 19, TypeScript strict and Supabase.", "it": "Una PWA in produzione che mette in contatto famiglie e caregiver nel mercato italiano dell’assistenza domiciliare, progettata e rilasciata su Next.js 15 App Router, React 19, TypeScript strict e Supabase." }, "src": "W:702, P:180-182" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Next.js 15 · React 19 · TypeScript · Supabase · PostGIS · Serwist (PWA) · Web Push (VAPID) · Leaflet · Sentry · GitHub Actions", "src": "W:672, P:181-192" }
+      },
+      {
+        "type": "list",
+        "eyebrow": { "en": "What it does", "it": "Che cosa fa" },
+        "headline": [{ "en": "Offline, live,", "it": "Offline, live," }, { "en": "on the map", "it": "sulla mappa" }],
+        "items": [
+          { "t": { "en": "Full offline support through a custom Service Worker (Serwist), with VAPID-signed Web Push notifications.", "it": "Supporto offline completo con un Service Worker su misura (Serwist) e notifiche Web Push firmate VAPID." }, "src": "P:181-182" },
+          { "t": { "en": "Real-time messaging between families and caregivers on Supabase Realtime (WebSocket), with integrated push.", "it": "Messaggistica in tempo reale tra famiglie e caregiver su Supabase Realtime (WebSocket), con notifiche push integrate." }, "src": "P:183-184" },
+          { "t": { "en": "Sub-second geospatial caregiver search on PostGIS 3 (GiST indexes, WGS-84 geography), with Leaflet maps and open-source geocoding (Photon and Nominatim): no paid map API.", "it": "Ricerca geospaziale dei caregiver in meno di un secondo su PostGIS\u00a03 (indici GiST, geography WGS-84), con mappe Leaflet e geocoding open source (Photon e Nominatim): nessuna API di mappe a pagamento." }, "src": "P:185-187" }
+        ]
+      },
+      {
+        "type": "facts",
+        "eyebrow": { "en": "Security", "it": "Sicurezza" },
+        "headline": [{ "en": "Hardened", "it": "Protetta" }, { "en": "end to end", "it": "da cima a fondo" }],
+        "items": [
+          { "num": "0", "title": { "en": "Known auth vulnerabilities at launch", "it": "Vulnerabilità di\u00a0autenticazione note al\u00a0lancio" }, "body": { "en": "Row-Level Security on every sensitive table, RBAC middleware, HSTS, a restrictive CSP whitelist and VAPID-signed push.", "it": "Row-Level Security su ogni tabella sensibile, middleware RBAC, HSTS, una whitelist CSP restrittiva e push firmate VAPID." }, "src": "P:188-189" },
+          { "num": "3", "title": { "en": "Runtime layers under Sentry", "it": "Livelli di runtime sotto\u00a0Sentry" }, "body": { "en": "Client, server and edge, with a tunnel route that bypasses ad-blockers.", "it": "Client, server ed edge, con una tunnel route che aggira gli ad-blocker." }, "src": "P:190-191" }
+        ],
+        "after": { "t": { "en": "Plus a localised Italian and English admin dashboard for caregiver identity verification, server-side image optimisation with Sharp, and automated CI/CD on GitHub Actions.", "it": "In più, una dashboard di amministrazione in italiano e in inglese per la verifica d’identità dei caregiver, l’ottimizzazione delle immagini lato server con Sharp e CI/CD automatizzata su GitHub Actions." }, "src": "P:191-192" }
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Client", "it": "Cliente" }, "v": "ALS MCL Civitanova", "src": "P:178" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": { "en": "Full-Stack Developer · Freelance", "it": "Full-Stack Developer · Freelance" }, "src": "P:179" },
+      { "k": { "en": "Period", "it": "Periodo" }, "v": { "en": "Jan 2026 – Present", "it": "gen 2026 – oggi" }, "src": "P:178" },
+      { "k": { "en": "Place", "it": "Luogo" }, "v": { "en": "Marche, Italy", "it": "Marche" }, "src": "P:179" },
+      { "k": { "en": "URL", "it": "URL" }, "v": { "en": "pending", "it": "in attesa" }, "gap": true, "src": "W:727" },
+      { "k": { "en": "Photograph", "it": "Fotografia" }, "v": { "en": "none", "it": "nessuna" }, "gap": true, "onlyPlate": true, "src": "gap: PRODUCT §8 question 1" }
+    ]
+  },
+
+  {
+    "slug": "doit-voice-ai-agent",
+    "tile": "08",
+    "label": "Voice AI Agent",
+    "titleLines": [{ "en": "Voice AI Agent", "it": "Voice AI Agent" }, { "en": "for Microsoft Teams", "it": "per Microsoft Teams" }],
+    "overline": [
+      { "t": "DOIT S.r.l", "src": "P:193" },
+      { "t": { "en": "Internship", "it": "Tirocinio" }, "src": "P:194" },
+      { "t": { "en": "Nov 2025 – Feb 2026", "it": "nov 2025 – feb 2026" }, "src": "P:193" }
+    ],
+    "ornament": { "t": { "en": "hands-free", "it": "a mani libere" }, "src": "P:195" },
+    "lead": { "t": { "en": "Hands-free appointment management in Teams from audio notes: create and update meetings, search colleagues and Dynamics 365 contacts, send invitations.", "it": "Gestione degli appuntamenti in Teams a mani libere, da note vocali: creare e aggiornare riunioni, cercare colleghi e contatti Dynamics 365, inviare inviti." }, "src": "W:745, P:195-198" },
+    "cta": null,
+    "fields": [],
+    "rail": {
+      "kicker": { "en": "DOIT S.r.l · internship", "it": "DOIT S.r.l · tirocinio" },
+      "body": { "en": "Meetings and Dynamics 365 contacts, from natural-language speech.", "it": "Riunioni e contatti Dynamics 365 gestiti a\u00a0voce, in linguaggio naturale." },
+      "src": "P:195-198"
+    },
+    "fig": {
+      "kind": "plate",
+      "figure": { "en": "Hands-free", "it": "A mani libere" }, "word": true,
+      "figLine": { "en": "appointments in Microsoft Teams, from audio notes", "it": "appuntamenti in Microsoft\u00a0Teams, da\u00a0note\u00a0vocali" },
+      "caption": [{ "en": "Voice to calendar", "it": "Dalla voce al calendario" }, { "en": "Meetings and contacts, from natural-language speech in Microsoft Teams.", "it": "Riunioni e contatti gestiti a\u00a0voce, in linguaggio naturale, in\u00a0Microsoft\u00a0Teams." }],
+      "src": "P:195-196"
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "Spoken intent,", "it": "Detto a voce," }, { "en": "calendar actions", "it": "in calendario" }],
+        "lead": { "t": { "en": "A voice AI agent inside Microsoft Teams that turns spoken intent into calendar and contact actions, for field users who manage appointments without typing. Real-time speech input was a feature previously absent from the client's toolset.", "it": "Un agente vocale AI dentro Microsoft Teams che trasforma una richiesta a voce in azioni su calendario e contatti, per chi lavora sul campo e gestisce gli appuntamenti senza digitare. L’input vocale in tempo reale era una funzione che prima mancava tra gli strumenti del cliente." }, "src": "W:768, W:780, P:195-202" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Azure Speech · Copilot Studio · Power Automate · Dynamics 365 · Angular · TypeScript", "src": "W:742, P:196-199" }
+      },
+      {
+        "type": "list",
+        "eyebrow": { "en": "What it does", "it": "Che cosa fa" },
+        "headline": [{ "en": "From a voice note", "it": "Da una nota" }, { "en": "to a meeting", "it": "a una riunione" }],
+        "lead": { "t": { "en": "All of it from natural-language speech.", "it": "Tutto a voce, in linguaggio naturale." }, "src": "P:197" },
+        "items": [
+          { "t": { "en": "Creates and updates meetings.", "it": "Crea e aggiorna riunioni." }, "src": "P:196" },
+          { "t": { "en": "Searches colleagues and Dynamics 365 contacts.", "it": "Cerca colleghi e contatti Dynamics 365." }, "src": "P:196" },
+          { "t": { "en": "Adds contacts.", "it": "Aggiunge contatti." }, "src": "P:196" },
+          { "t": { "en": "Sends invitations.", "it": "Invia inviti." }, "src": "P:197" }
+        ]
+      },
+      {
+        "type": "list",
+        "eyebrow": { "en": "How it is built", "it": "Com’è costruito" },
+        "headline": [{ "en": "Low-code,", "it": "Low-code," }, { "en": "pro-code", "it": "pro-code" }],
+        "items": [
+          { "t": { "en": "Real-time speech-to-text with Azure Speech Services.", "it": "Speech-to-text in tempo reale con Azure Speech Services." }, "src": "P:201" },
+          { "t": { "en": "Orchestration in Copilot Studio and Power Automate.", "it": "Orchestrazione in Copilot Studio e Power Automate." }, "src": "P:197-198" },
+          { "t": { "en": "A pro-code Angular and TypeScript front-end that bridges the low-code automation layer, keeping the UX consistent across Teams and the standalone web app.", "it": "Un front-end pro-code in Angular e TypeScript che fa da ponte verso il livello di automazione low-code e mantiene la UX coerente tra Teams e la web app standalone." }, "src": "P:199-200" }
+        ]
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Company", "it": "Azienda" }, "v": "DOIT S.r.l", "src": "P:193" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": { "en": "AI & Software Developer · Internship", "it": "AI & Software Developer · Tirocinio" }, "src": "P:194" },
+      { "k": { "en": "Period", "it": "Periodo" }, "v": { "en": "Nov 2025 – Feb 2026", "it": "nov 2025 – feb 2026" }, "src": "P:193" },
+      { "k": { "en": "Place", "it": "Luogo" }, "v": { "en": "Fabriano, Italy", "it": "Fabriano" }, "src": "P:194" },
+      { "k": { "en": "Figures", "it": "Dati" }, "v": { "en": "none", "it": "nessuno" }, "gap": true, "src": "gap: PRODUCT §3 item 7 has none" },
+      { "k": { "en": "Photograph", "it": "Fotografia" }, "v": { "en": "none", "it": "nessuna" }, "gap": true, "src": "gap: PRODUCT §5" }
+    ]
+  },
+
+  {
+    "slug": "agricultural-supply-chain",
+    "tile": "09",
+    "label": "Supply Chain",
+    "titleLines": [{ "en": "Agricultural", "it": "Filiera" }, { "en": "supply chain", "it": "agricola" }],
+    "overline": [
+      { "t": { "en": "University of Camerino", "it": "Università di Camerino" }, "src": "P:239-240" },
+      { "t": { "en": "Software Engineering exam", "it": "Esame di\u00a0Ingegneria del\u00a0Software" }, "src": "P:241" },
+      { "t": { "en": "Public on GitHub", "it": "Pubblico su GitHub" }, "src": "P:240" }
+    ],
+    "ornament": { "t": { "en": "team of three", "it": "team di tre" }, "src": "P:245" },
+    "lead": { "t": { "en": "Multi-actor supply-chain platform with 10 roles, built by a team of 3 as the Software Engineering exam project at the University of Camerino.", "it": "Piattaforma di filiera multi-attore con 10 ruoli, costruita da un team di 3 come progetto d’esame di Ingegneria del Software all’Università di Camerino." }, "src": "W:799, P:241-245" },
+    "cta": { "label": { "en": "Read the repository", "it": "Leggi il repository" }, "href": "https://github.com/daveeCity/IDS_GROUP_PROJECT", "src": "P:45, P:240" },
+    "fields": [],
+    "rail": {
+      "kicker": { "en": "University of Camerino", "it": "Università di Camerino" },
+      "body": { "en": "Ten roles, a team of three, on Spring Boot with JWT RBAC.", "it": "Dieci ruoli, un team di tre, su Spring Boot con RBAC basato su JWT." },
+      "alt": { "en": "The team's class diagram of the supply-chain platform, redrawn in light lines on a dark ground.", "it": "Il diagramma delle classi del team per la piattaforma di filiera, ridisegnato a linee chiare su fondo scuro." },
+      "src": "P:241-245"
+    },
+    "fig": {
+      "kind": "capture",
+      "stem": "agricultural-supply-chain",
+      "plateCrop": [0.085, 0.066, 0.915, 0.902],
+      "alt": { "en": "A class diagram of the supply-chain platform, redrawn on a dark ground from the team's model: classes in ruled boxes joined by association lines, the traceability links in blue.", "it": "Un diagramma delle classi della piattaforma di filiera, ridisegnato su fondo scuro dal modello del team: classi in riquadri filettati, unite da linee di associazione; i legami di tracciabilità sono in blu." },
+      "caption": [{ "en": "The team's class diagram", "it": "Il diagramma delle classi del team" }, { "en": "Redrawn from the team's model.", "it": "Ridisegnato dal modello del team." }],
+      "link": { "verb": { "en": "Open", "it": "Apri" }, "href": "https://github.com/daveeCity/IDS_GROUP_PROJECT" },
+      "src": "public/captures/PROVENANCE.md (media lane, 2026-10)",
+      "plate": {
+        "figure": { "en": "10", "it": "10" }, "word": false,
+        "figLine": { "en": "roles, built by a team of three", "it": "ruoli, progetto di un team di tre" },
+        "caption": [{ "en": "Ten roles", "it": "Dieci ruoli" }, { "en": "Producers, curators, animators, buyers.", "it": "Produttori, curatori, animatori, acquirenti." }],
+        "src": "P:243-245"
+      }
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "Ten actors,", "it": "Dieci attori," }, { "en": "a single chain", "it": "una sola filiera" }],
+        "lead": { "t": { "en": "A multi-actor platform modelling an agricultural supply chain with 10 roles (producers, curators, animators, buyers), built as the Software Engineering exam project by a team of 3.", "it": "Una piattaforma multi-attore che modella una filiera agricola con 10 ruoli (produttori, curatori, animatori, acquirenti), costruita come progetto d’esame di Ingegneria del Software da un team di 3." }, "src": "W:822, P:243-245" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Java · Spring Boot · Spring Security · PostgreSQL · JWT · REST · Unified Process · Design Patterns · UML", "src": "P:241-242" }
+      },
+      {
+        "type": "list",
+        "eyebrow": { "en": "The method", "it": "Il metodo" },
+        "headline": [{ "en": "Requirements", "it": "Dai requisiti" }, { "en": "to code", "it": "al codice" }],
+        "figure": {
+          "stem": "agricultural-supply-chain-detail",
+          "alt": { "en": "A detail of the redrawn class diagram: the Utente, Azienda, PassoFiliera, TracciabilitaProdotto, Prodotto, Distributore and Animatore classes with their fields, joined by inheritance and association lines, the traceability links drawn in blue.", "it": "Un dettaglio del diagramma delle classi ridisegnato: le classi Utente, Azienda, PassoFiliera, TracciabilitaProdotto, Prodotto, Distributore e Animatore con i loro campi, unite da linee di ereditarietà e di associazione; i legami di tracciabilità sono in blu." },
+          "caption": [{ "en": "The model package, in detail", "it": "Il package del modello, in\u00a0dettaglio" }, { "en": "Users, companies, products and the steps that trace them, as the team modelled them.", "it": "Utenti, aziende, prodotti e i passi che li tracciano, come li ha modellati il team." }]
+        },
+        "items": [
+          { "t": { "en": "The Unified Process, from requirements and use-case modelling to a layered Spring Boot implementation.", "it": "Lo Unified Process, dai requisiti e dalla modellazione dei casi d’uso a un’implementazione Spring Boot a livelli." }, "src": "P:244" },
+          { "t": { "en": "MVC, Repository and Service Layer, GRASP principles.", "it": "MVC, Repository e Service Layer, principi GRASP." }, "src": "P:245" },
+          { "t": { "en": "JWT-based RBAC on Spring Security.", "it": "RBAC con JWT su Spring Security." }, "src": "P:241, P:245" },
+          { "t": { "en": "Gang-of-Four design patterns throughout.", "it": "Design pattern Gang-of-Four in tutto il progetto." }, "src": "P:246" },
+          { "t": { "en": "A relational PostgreSQL schema linking producers, products, certifications, events and marketplace orders, exposed through REST APIs with geographic search.", "it": "Schema PostgreSQL relazionale che collega produttori, prodotti, certificazioni, eventi e ordini del marketplace, esposto tramite API REST con ricerca geografica." }, "src": "P:246-247" },
+          { "t": { "en": "Documented with full UML artefacts.", "it": "Documentato con artefatti UML completi." }, "src": "P:247-248" }
+        ]
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "University", "it": "Università" }, "v": { "en": "University of Camerino", "it": "Università di Camerino" }, "src": "P:239" },
+      { "k": { "en": "Course", "it": "Corso" }, "v": { "en": "Software Engineering exam project", "it": "Progetto d’esame di Ingegneria del Software" }, "src": "P:241" },
+      { "k": { "en": "Team", "it": "Team" }, "v": { "en": "Three", "it": "Tre" }, "src": "P:245" },
+      { "k": { "en": "Repository", "it": "Repository" }, "v": { "en": "Public on GitHub", "it": "Pubblico su GitHub" }, "src": "P:240" },
+      { "k": { "en": "Period", "it": "Periodo" }, "v": { "en": "undated", "it": "senza data" }, "gap": true, "src": "gap: no date in PRODUCT §9" }
+    ]
+  }
+]

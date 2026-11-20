@@ -1,0 +1,117 @@
+/* ==========================================================================
+   css/tokens.css · the night studio (spec 50 §2). Written from nothing on 2026-11-10.
+   A near-black blue room, warm white type in one condensed grotesk, one cool accent for marks, cobalt only for the
+   filled button and for ink at dawn. Square corners. No CSS shadow, glow, gradient or backdrop blur anywhere: every
+   glow on this site is the canvas's.
+   Contrast (WCAG, computed): ink 17.10 / body 11.81 / mute 6.47 / accent 8.07 on --night; ink 16.18 / body 11.17 /
+   mute 6.12 / accent 7.63 on --night-2; ink on cobalt 7.03; dawn-ink 17.53 / dawn-body 9.58 / dawn-mute 5.54 /
+   cobalt 7.21 on --dawn. Cobalt on night is 2.43: never text on the night.
+   ========================================================================== */
+:root {
+  /* ground */
+  --night: #0c0e14;
+  --night-2: #12151d;
+  --ink: #f4f1ea;
+  --body: #cfcabf;
+  --mute: #9a958a;
+  --line: #262a36;
+  --accent: #8fa2ff;
+  --cobalt: #2340c9;
+  /* morning */
+  --dawn: #f3f4f6;
+  --dawn-ink: #0c0e14;
+  --dawn-body: #3a3f4b;
+  --dawn-mute: #5d6270;
+  --dawn-line: #d6d9e0;
+
+  /* the one superfamily (css/fonts.css); Barlow is the recorded fallback of spec 50 §2 */
+  --f-display: "Sofia Sans Extra Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-text: "Sofia Sans", "Barlow", system-ui, sans-serif;
+  --f-label: "Sofia Sans Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
+
+  /* the scale. Round 10 (Alberto, 2026-11-11: «Le scritte piccole non mi piacciono, sopratutto nei bottoni e nel
+     menu»): nothing a visitor reads is under 16 px on a phone or a desktop; the legal line is --t-small like the rest.
+     Round 11: the reading sizes grow with the screen from about 1200 px wide, as the display type does, so a 1920 or
+     2560 screen does not shrink the menu, the labels and the buttons back to small type beside an 18vw name. Each
+     fluid size is clamp(rem floor, rem + vw, rem cap): the rem terms follow the reader's font size and zoom, the vw
+     term the screen. Phone values here; the desktop ones (≥1024 px) in the media query below.
+     px at 390 / 1024 / 1440 / 1920 / 2560 (16 px root): body 18/20/20/22.5/24 · label 16/16/17/20/22 ·
+     small 16/17/18/21/23 · btn 18/20/20/23/26 · nav 18/18/20/24/28 · lang -/18/18/22/24 · hdr 64/72/72/86/96 ·
+     btn-h 56/64/64/74/84 · lead 22/22/27/31/34. Labels keep their capitals with 0.06em (tracking tightens as the
+     size grows). */
+  --t-mega: clamp(5rem, 18.5vw, 21rem);
+  --t-d1: clamp(3.5rem, 9vw, 9.5rem);
+  --t-d2: clamp(2.2rem, 4.4vw, 4.5rem);
+  /* the lead keeps its ratio to the body (about 1.37): round 10's 1.9vw below 1440 px, then the body's slope */
+  --t-lead: clamp(1.375rem, min(1.9vw, 1.07rem + 0.714vw), 2.125rem);
+  --t-body: 1.125rem;
+  --t-label: 1rem;          /* overlines, fields, counters, captions, the instrument line */
+  --t-small: 1rem;          /* the rows' secondary lines, the tool lists' notes, the legal line */
+  --t-btn: 1.125rem;        /* the filled button and the quiet links beside it */
+  --t-nav: 1.125rem;        /* the header's items, the phone's MENU */
+  --t-lang: 1.125rem;       /* EN / IT in the header (the menu's sets it at --t-btn) */
+  --tr-label: 0.06em;
+  --tr-btn: 0.04em;
+
+  /* space: one gutter, one rhythm (a 4 px base, steps that double) */
+  --gut: clamp(1rem, 3vw, 3rem);
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 1rem;
+  --s4: 1.5rem;
+  --s5: 2.5rem;
+  --s6: 4rem;
+  --s7: 6.5rem;
+  --s8: 10rem;
+  --col: 34rem;            /* the scene's text column: 27.2 body ems on a desktop (544 px at 1440, 612 at 1920, below) */
+  --hdr: 4rem;             /* the header's height: 64 px on a phone, 72 px from 1024 px, growing with --t-nav (below) */
+  --btn-h: 3.5rem;         /* the filled button: 56 px on a phone, 64 px from 1024 px, growing with --t-btn (below) */
+
+  /* motion: the verb is focus (spec 50 §6) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.66, 0, 0.22, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --focus-in: 0.7s;
+  --focus-out: 0.233s;
+  --focus-blur: 10px;
+  --line-gap: 60ms;
+  --d-hover: 0.18s;
+  --d-hover-out: 0.12s;    /* a hover leaves faster than it came */
+  --d-press: 0.1s;
+  /* round 10: titles rise from behind a straight mask (lines --line-gap apart, words of one line together); rows
+     follow --row-gap apart; the header steps away and back; the phone menu's sheet; the cut is a title card */
+  --d-rise: 0.82s;
+  --d-rise-out: 0.26s;
+  --row-gap: 55ms;
+  --d-row: 0.6s;
+  --d-hdr: 0.42s;
+  --d-sheet: 0.46s;
+  --d-sheet-out: 0.28s;
+  --d-cut: 0.42s;          /* the sheet rises; the title card plays on it; the page leaves at --d-cut + 40 ms */
+  --d-cut-clear: 0.1s;     /* arriving (round 11): the card's words go up before the sheet moves */
+  --d-cut-out: 0.28s;      /* arriving: then the sheet leaves upward (0.28: the whole cut lands under 900 ms) */
+  --ease-rise: cubic-bezier(0.19, 1, 0.22, 1);
+  /* read by fx-core.js (FX.motion): the anchor glide and its cap */
+  --d-travel: 1.1s;
+  --d-media: 1.4s;
+  --tempo: 1;
+  /* layers: the stage's canvas sits over the page and under the chrome (menu 45, header 50, cut sheet 90, skip 100);
+     read by fx-stage.js. Without it the canvas fell back to 50 and drew the glass over the phone menu (integrate). */
+  --z-stage: 40;
+
+  color-scheme: dark;
+}
+@media (min-width: 1024px) {
+  :root {
+    /* fluid from the point where the vw term passes the floor (about 1200–1440 px), capped near 2400 px */
+    --t-body: clamp(1.25rem, 0.78125rem + 0.5208vw, 1.5rem);
+    --t-label: clamp(1rem, 0.5rem + 0.625vw, 1.375rem);
+    --t-small: clamp(1.0625rem, 0.5625rem + 0.625vw, 1.4375rem);
+    --t-btn: clamp(1.25rem, 0.6875rem + 0.625vw, 1.625rem);
+    --t-nav: clamp(1.125rem, 0.5rem + 0.8333vw, 1.75rem);
+    --t-lang: clamp(1.125rem, 0.375rem + 0.8333vw, 1.5rem);
+    --hdr: clamp(4.5rem, 1.8rem + 3vw, 6rem);
+    --btn-h: clamp(4rem, 2.2rem + 2vw, 5.25rem);
+    --col: calc(var(--t-body) * 27.2);
+  }
+}

@@ -1,0 +1,71 @@
+/* ==========================================================================
+   css/base.css · the ground, the browser's own surfaces, the helpers
+   html[data-ground] is written by assemble.mjs: night on every page but Contact, dawn there.
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--night);
+  color: var(--body);
+  scroll-padding-top: var(--hdr);
+  scrollbar-color: var(--line) var(--night);
+  scrollbar-width: thin;
+}
+html[data-ground="dawn"] { background: var(--dawn); color: var(--dawn-body); scrollbar-color: var(--dawn-line) var(--dawn); color-scheme: light; }
+body {
+  min-height: 100svh;
+  background: var(--night);
+  font: 400 var(--t-body)/1.55 var(--f-text);
+  font-variant-numeric: tabular-nums lining-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+html[data-ground="dawn"] body { background: var(--dawn); }
+img, svg, video, canvas { display: block; max-width: 100%; }
+img { height: auto; }
+ul, ol { list-style: none; }
+a { color: inherit; text-decoration: none; }
+a, button { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; border-radius: 0; }
+em { font-style: normal; }
+cite { font-style: normal; }
+[id] { scroll-margin-top: calc(var(--hdr) + var(--s3)); }
+[hidden] { display: none !important; }
+
+/* the browser's own surfaces, from the palette */
+::selection { background: var(--accent); color: var(--night); }
+html[data-ground="dawn"] ::selection, .dawn ::selection { background: var(--cobalt); color: var(--dawn); }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+html[data-ground="dawn"] :focus-visible, .dawn :focus-visible { outline-color: var(--cobalt); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--night); }
+::-webkit-scrollbar-thumb { background: var(--line); border: 3px solid var(--night); }
+html[data-ground="dawn"] ::-webkit-scrollbar-track { background: var(--dawn); }
+html[data-ground="dawn"] ::-webkit-scrollbar-thumb { background: var(--dawn-line); border-color: var(--dawn); }
+input, textarea { caret-color: var(--accent); }
+
+/* Lenis 1.3.26 */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+
+/* helpers */
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.skip {
+  position: fixed; left: var(--gut); top: var(--s2); z-index: 100;
+  padding: var(--s2) var(--s3); background: var(--ink); color: var(--night);
+  font: 700 var(--t-btn)/1 var(--f-label); letter-spacing: var(--tr-btn); text-transform: uppercase;
+  transform: translateY(-200%);
+}
+.skip:focus-visible { transform: none; }
+.wrap { padding-inline: var(--gut); }
+.nowrap { white-space: nowrap; }

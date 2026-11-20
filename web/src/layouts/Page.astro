@@ -1,0 +1,11 @@
+---
+/* The layout of every page: its components render to one text (Astro.slots.render), which is finished exactly as
+   assemble.mjs finishes a page (placeholders, it/ relocation or the 404's rooted paths, then what ships) and printed
+   as it is. Nothing of Astro's is added but the router (lane o-router): its two metas and its one module script (Router.astro). */
+import { finish } from "../lib/site.mjs";
+const { page } = Astro.props;
+/* (lane o-router) the router's two metas: the pages it may swap, and no browser view transition (its own "swap") */
+const ROUTER = ['<meta name="astro-view-transitions-enabled" content="true">', '<meta name="astro-view-transitions-fallback" content="swap">', ""].join("\n");
+const html = finish(await Astro.slots.render("default"), page).replace("</head>", ROUTER + "</head>");
+---
+<Fragment set:html={html} />

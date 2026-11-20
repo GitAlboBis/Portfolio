@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Stage bench</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@800&family=Sofia+Sans:wght@400;500&family=Sofia+Sans+Condensed:wght@600&display=swap">
+<!--
+  The stage's bench (spec 50 §5, lane CORE). Query parameters, for frozen headless captures:
+    view=cover|gallery|stack|dawn|fly|plain the composition (plain: formations only, ?f=); dawnall=1: the whole viewport dawn
+    fly (round 10, the free camera): a word of points with thickness, four tall plates at different depths, two
+          straight beams, dust; a camera path that arrives, orbits and flies through the word toward a lit plate,
+          bloom on. p=0..1 holds the path at a progress (frozen captures); live: one pass every period=s (default 14),
+          then again. bloom=k (default 0.9), orbit=0 (no pointer orbit), fog=0 (no fog)
+    field (round 11, THE FIELD, stage/field/): the back wall in relief, about 8k chips of cut glass (A's near, SerSan
+          marks deep), two shafts (one sweeping on the clock, one aimed by the pointer), one clear plate crossing in front
+          of the wall, a word of points; the camera orbits, then flies through the chips. p=0..1 holds the camera's path,
+          sweep=0..1 holds the sweep; only=chips|wall; lights=0|1|2; haze=k; n2=chips (tier A count); bloom=k (default 0.7);
+          field=0 the same scene without the field (to read its cost); failfield=1 its shader fails (the stage draws on)
+    room (wave 1, KIT, scenes/lib/room.js): THE ROOM as a page scene gets it with one call: the wall's grid, the chips (A
+          and the SerSan mark), two travelling blades on the clock, the hand's blade, a subject's light behind a clear
+          plate, and three text blocks kept clear (a title, a paragraph, a button). sweep=0..1 holds the blades (the
+          clock), temp=0..1, dim=0..1, n2=chips, seed=, speed=0..1 (the lens widened by lib/camera.js speedLens),
+          keep=0 (the text not kept clear), bloom=k (default 0.5), field=0 (no room: its cost)
+    splat (wave 2, SPLAT, stage/splat/): GAUSSIAN SPLATTING in the stage's own pass. In the lit room: the letter A of the
+          display face as a solid block, the SerSan mark as a block, a capture (sersan.io) as a low relief, and a synthetic
+          capture written to .splat and .ply and read back (the round trip is checked: window.__stage.formats). The eye
+          orbits; settle runs 0 -> 1 -> 0 on the clock (the swarm becomes the figures and dissolves again).
+          settle=0..1 holds it; orb=-1..1 holds the orbit; only=A|mark|relief|cap; (wave 3) by default only the A and the
+          mark: relief=1 adds the capture's relief (not fit for a page as it is), capture=1 the synthetic capture; n=splats of the synthetic capture
+          (n2=200000: the whole bench holds 200,000); fmt=ply|splat (which read-back draws; splat); room=0 (no room);
+          bloom=k (0.5); failsplat=1 (its shader fails: the stage draws on, console clean); splat=0 (the pass not asked:
+          its cost)
+    free=1 (gallery, stack): the bench's orbiting camera converted to the free camera (stage.js orbitPose): the
+          picture must be the same (one camera, two ways to drive it)
+    t=ms                                    frozen: simulate t ms at 60 Hz, draw once, hold (window.__stage.done)
+    px=&py=                                 the pointer (viewport px); live mode follows the real one
+    tier=A|B|C  n=count  hud=0  look=k:v,..  pl=k:v,.. (PLATE_LOOK)  budget=ms
+    yaw= pitch= dolly=                      camera overrides (rad, rad, px)
+    gallery: at=0..4 (the camera's travel along the line; the nearest plate is in focus), etch=i (plate i etched), clear=i (plate i clear)
+    stack:   lift=0..7 (the lifted layer), layers=1..12 (default 8; 12 = the budget case)
+    plates=0                                no plates (the swarm alone)    f=id[@anchor]:weight,...  formations
+  The bench keeps its own tokens (spec 50 §2); the pages get theirs from the SYSTEM lane's css.
+-->
+<style>
+  :root {
+    --night: #0c0e14; --night-2: #12151d; --ink: #f4f1ea; --body: #cfcabf; --mute: #9a958a; --line: #262a36;
+    --accent: #8fa2ff; --cobalt: #2340c9; --dawn: #f3f4f6; --dawn-ink: #0c0e14; --dawn-body: #3a3f4b; --dawn-line: #d6d9e0;
+    --f-display: "Sofia Sans Extra Condensed", "Barlow Condensed", sans-serif;
+    --f-text: "Sofia Sans", "Barlow", sans-serif;
+    --f-label: "Sofia Sans Condensed", "Barlow Condensed", sans-serif;
+    --gut: clamp(16px, 2.8vw, 44px);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--f-text); font-variant-numeric: tabular-nums; }
+  ::selection { background: var(--cobalt); color: var(--ink); }
+  #stage { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 5; }
+  .v { display: none; position: relative; height: 100svh; overflow: hidden; }
+  html[data-view="cover"] .v-cover, html[data-view="gallery"] .v-gallery, html[data-view="stack"] .v-stack,
+  html[data-view="dawn"] .v-dawn, html[data-view="plain"] .v-plain, html[data-view="fly"] .v-fly, html[data-view="field"] .v-field, html[data-view="room"] .v-room, html[data-view="splat"] .v-splat { display: block; }
+  .rm-col { position: absolute; left: var(--gut); top: 22vh; width: min(560px, calc(100vw - 2 * var(--gut))); }
+  .rm-h { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; line-height: 0.86; margin: 0; font-size: clamp(4rem, 9vw, 8.5rem); }
+  .rm-p { font-size: 20px; line-height: 1.5; color: var(--body); margin: 1.6rem 0 2rem; max-width: 34em; }
+  .rm-b { display: inline-flex; align-items: center; height: 64px; padding: 0 28px; border: 1px solid var(--ink); font-family: var(--f-label); font-weight: 700; font-size: 20px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .lbl { font-family: var(--f-label); font-weight: 600; font-size: 0.8125rem; letter-spacing: 0.12em; text-transform: uppercase; }
+  a { color: inherit; text-decoration: none; }
+  /* chrome */
+  .hd { position: absolute; top: 0; left: 0; right: 0; z-index: 8; display: flex; justify-content: space-between; align-items: center; padding: 22px var(--gut); }
+  .hd nav { display: flex; gap: 1.6rem; color: var(--body); }
+  .hd nav span:last-child { color: var(--mute); }
+  /* the cover */
+  .mega { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; line-height: 0.86; letter-spacing: 0; margin: 0;
+    font-size: clamp(5rem, 18.5vw, 21rem); white-space: nowrap; }
+  .cv-name { position: absolute; left: var(--gut); right: var(--gut); top: 26vh; text-align: center; }
+  .cv-under { position: absolute; left: var(--gut); right: var(--gut); top: calc(26vh + 18.5vw * 0.86 + 5vh); display: flex; justify-content: space-between; align-items: flex-start; gap: 3rem; }
+  .cv-role { color: var(--mute); margin: 0 0 0.9rem; }
+  .cv-lead { font-size: clamp(1.2rem, 1.55vw, 1.55rem); line-height: 1.32; color: var(--body); max-width: 30rem; margin: 0; font-weight: 400; }
+  .cv-act { display: flex; align-items: center; gap: 1.8rem; padding-top: 0.2rem; }
+  .btn { background: var(--cobalt); color: var(--ink); font-family: var(--f-label); font-weight: 600; font-size: 0.9rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 1.05rem 1.6rem; }
+  .q { color: var(--body); border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+  .instr { position: absolute; right: var(--gut); bottom: 22px; color: var(--mute); font-size: 0.75rem; letter-spacing: 0.1em; z-index: 8; }
+  /* the gallery */
+  .ga-head { position: absolute; left: var(--gut); top: 13vh; z-index: 1; }
+  .d1 { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; line-height: 0.86; margin: 0; font-size: clamp(3.5rem, 9vw, 9.5rem); }
+  .ga-step { position: absolute; left: var(--gut); bottom: 9vh; max-width: 26rem; z-index: 8; }
+  .ga-step .idx { color: var(--accent); margin: 0 0 0.6rem; }
+  .ga-step h3 { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; font-size: clamp(2.2rem, 4.4vw, 4.5rem); line-height: 0.86; margin: 0 0 0.8rem; }
+  .ga-step p { color: var(--body); margin: 0; font-size: 1.125rem; line-height: 1.55; }
+  .ga-imgs { display: none; }
+  /* the stack */
+  .st-head { position: absolute; left: var(--gut); top: 14vh; max-width: 34rem; z-index: 8; }
+  .st-head p { color: var(--body); font-size: 1.125rem; line-height: 1.55; margin: 1.4rem 0 0; }
+  /* dawn */
+  .dw-day { position: absolute; top: 0; bottom: 0; right: 0; width: 42%; background: var(--dawn); color: var(--dawn-ink); }
+  .dw-day .d1 { position: absolute; left: 3rem; bottom: 12vh; color: var(--dawn-ink); }
+  .dw-night { position: absolute; left: var(--gut); top: 14vh; max-width: 30rem; z-index: 8; }
+  .dw-night p { color: var(--body); font-size: 1.125rem; line-height: 1.55; }
+  @media (max-width: 760px) {
+    .hd nav { display: none; }
+    .mega { font-size: 31vw; white-space: normal; }
+    .cv-name { top: 17vh; text-align: left; }
+    .cv-name .ln { display: block; }
+    .cv-under { top: auto; bottom: 9vh; flex-direction: column; gap: 1.6rem; }
+    .cv-lead { font-size: 1.2rem; }
+    .ga-head { top: 11vh; }
+    .ga-step { bottom: 6vh; right: var(--gut); }
+    .st-head { top: 10vh; right: var(--gut); }
+    .dw-day { top: auto; left: 0; width: auto; height: 46%; }
+    .dw-day .d1 { left: var(--gut); bottom: 6vh; }
+  }
+  #hud { position: fixed; left: 8px; bottom: 8px; z-index: 60; font: 11px/1.4 ui-monospace, monospace; color: var(--mute); background: var(--night-2); padding: 2px 6px; }
+  html.nohud #hud { display: none; }
+</style>
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+
+<section class="v v-cover" data-stage="hero">
+  <header class="hd"><span class="lbl">Alberto Tuveri</span><nav class="lbl"><span>Work</span><span>About</span><span>Consulting</span><span>Obla</span><span>Contact</span><span>EN / IT</span></nav></header>
+  <h1 class="mega cv-name" data-refract><span class="ln">Alberto</span> <span class="ln">Tuveri</span></h1>
+  <div class="cv-under">
+    <div><p class="lbl cv-role">Software &amp; AI Engineer · Creative Lead at SerSan</p>
+      <p class="cv-lead">From database schema to real-time WebGPU rendering and motion design.</p></div>
+    <div class="cv-act"><a class="btn" href="#">Write to me</a><a class="q lbl" href="#">Work</a><a class="q lbl" href="#">About</a></div>
+  </div>
+  <p class="instr lbl" data-stage-instr>— points · — ms GPU</p>
+</section>
+
+<section class="v v-gallery" data-stage="gallery">
+  <header class="hd"><span class="lbl">Alberto Tuveri</span><nav class="lbl"><span>Work</span><span>About</span><span>Consulting</span><span>Obla</span><span>Contact</span><span>EN / IT</span></nav></header>
+  <div class="ga-head"><h2 class="d1" data-refract>Nine works</h2></div>
+  <div class="ga-step"><p class="lbl idx" id="ga-idx">02 / 09</p><h3 id="ga-name">Domus Tua</h3><p class="lbl" style="color:var(--accent)">Open the case</p></div>
+  <div class="ga-imgs">
+    <img data-cap="sersan-io" src="../../../captures/sersan-io-1600.webp" alt="" width="1600" height="1200">
+    <img data-cap="domus-tua" src="../../../captures/domus-tua-1600.webp" alt="" width="1600" height="1200">
+    <img data-cap="sersan-brand" src="../../../captures/sersan-brand-1600.webp" alt="" width="1600" height="1200">
+    <img data-cap="agricultural-supply-chain" src="../../../captures/agricultural-supply-chain-1600.webp" alt="" width="1600" height="1200">
+    <img data-cap="sersan-io-blackhole" src="../../../captures/sersan-io-blackhole-1600.webp" alt="" width="1600" height="1200">
+  </div>
+</section>
+
+<section class="v v-stack" data-stage="stack">
+  <header class="hd"><span class="lbl">Alberto Tuveri</span><nav class="lbl"><span>Work</span><span>About</span><span>Consulting</span><span>Obla</span><span>Contact</span><span>EN / IT</span></nav></header>
+  <div class="st-head"><h2 class="d1" data-refract>Capabilities</h2><p>Eight layers of the stack, one above the other. The layer in step lifts and its edges light.</p></div>
+</section>
+
+<section class="v v-dawn" data-stage="dawn">
+  <div class="dw-night"><h2 class="d1">Night</h2><p>Light where the ground is night. Past the straight edge the same points are ink.</p></div>
+  <div class="dw-day" data-dawn><h2 class="d1">Write to me.</h2></div>
+</section>
+
+<section class="v v-fly" data-stage="fly">
+  <header class="hd"><span class="lbl">Alberto Tuveri</span><nav class="lbl"><span>Work</span><span>About</span><span>Consulting</span><span>Obla</span><span>Contact</span><span>EN / IT</span></nav></header>
+  <p class="instr lbl" data-stage-instr>— points · — ms GPU</p>
+</section>
+
+<section class="v v-field" data-stage="field">
+  <header class="hd"><span class="lbl">Alberto Tuveri</span><nav class="lbl"><span>Work</span><span>About</span><span>Consulting</span><span>Obla</span><span>Contact</span><span>EN / IT</span></nav></header>
+  <p class="instr lbl" data-stage-instr>— points · — ms GPU</p>
+</section>
+
+<section class="v v-room" data-stage="room">
+  <header class="hd"><span class="lbl">Alberto Tuveri</span><nav class="lbl"><span>Work</span><span>About</span><span>Consulting</span><span>Obla</span><span>Contact</span><span>EN / IT</span></nav></header>
+  <div class="rm-col">
+    <h2 class="rm-h rm-k">Nine works</h2>
+    <p class="rm-p rm-k">A bench line of body text that the room keeps clear: no blade, chip or point crosses it, and it reads the same with the stage off.</p>
+    <a class="rm-b rm-k" href="#">Write to me</a>
+  </div>
+  <p class="instr lbl" data-stage-instr>— points · — ms GPU</p>
+</section>
+
+<section class="v v-splat" data-stage="splat">
+  <header class="hd"><span class="lbl">Alberto Tuveri</span><nav class="lbl"><span>Work</span><span>About</span><span>Consulting</span><span>Obla</span><span>Contact</span><span>EN / IT</span></nav></header>
+  <p class="instr lbl" data-stage-instr>— splats · — ms GPU</p>
+</section>
+
+<section class="v v-plain" data-stage="plain"><div style="position:absolute;inset:20vh 20vw" data-stage-anchor="plain"></div></section>
+
+<div id="hud" aria-hidden="true">stage: starting</div>
+
+<script type="module">
+// @ts-check
+import { requestAdapter, createDevice } from "./gpu.js";
+import { createStage, H, orbitPose, LOOK } from "./stage.js";
+import { cameraPath, speedLens } from "./scenes/lib/camera.js";
+import { room, eyeD } from "./scenes/lib/room.js";
+import { rasteriseBackdrop } from "./glass/backdrop.js";
+
+const Q = new URLSearchParams(location.search);
+const VIEW = Q.get("view") || "cover";
+document.documentElement.dataset.view = VIEW;
+const hud = /** @type {HTMLElement} */ (document.getElementById("hud"));
+if (Q.get("hud") === "0") document.documentElement.classList.add("nohud");
+/** @type {any} */ const W = (window.__stage = { ready: false, failed: null, done: false, log: [] });
+const log = (/** @type {string} */ m) => { W.log.push(m); console.log(m); };
+const num = (/** @type {string} */ k, /** @type {number} */ d) => (Q.has(k) ? +(/** @type {string} */ (Q.get(k))) : d);
+/** "k:v,k:v" -> object of numbers @param {string | null} s */
+const parseKV = (s) => Object.fromEntries((s || "").split(",").filter(Boolean).map((x) => { const [k, v] = x.split(":"); return [k, +v]; }));
+const sm = (/** @type {number} */ x) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
+
+// ---------------------------------------------------------------- the bench's swarm (the scenes write the real ones)
+/** @type {Record<string, any>} */
+const DEMO = {
+  // long arcs of light in depth, a loose bundle crossing the room behind the figure: thin, they stay cobalt;
+  // where they gather they go white. Fit "stretch" on the whole view
+  threads: {
+    share: 0.62, fill: 0.97, fit: "stretch", inkArea: 1296000,
+    targets: (/** @type {typeof H} */ h) => {
+      const r = h.rng(21), sets = [];
+      for (let k = 0; k < 26; k++) {
+        const dy = h.gauss(r) * 0.05, dz = h.gauss(r) * 0.12, ph = r() * 6.28, amp = 0.03 + r() * 0.05, ink = 0.45 + r() * 0.55;
+        const pts = [];
+        // from deep at the left of the figure's half, behind the plate, out toward the reader at the lower right
+        for (let i = 0; i <= 40; i++) {
+          const u = i / 40, x = -0.15 + 1.6 * u;
+          pts.push([x, -0.55 + 0.9 * u * u + dy + amp * Math.sin(x * 3.1 + ph), -0.55 + 0.5 * u + dz + 0.08 * Math.sin(x * 2.3 + ph), ink]);
+        }
+        sets.push(h.polyline(pts, 480));
+      }
+      return h.join(sets);
+    },
+    look: { ink: 0.05, size: 1.0, mistInk: 0.02, mistSize: 1.1 },
+    motion: { spring: 2.2, speed: 380, inertia: 0.3, fuzz: 2.5 },
+    flow: { amp: 10, wavelength: 260, evolution: 0.06, z: 0.6 },
+    update: (/** @type {any} */ c) => ({ shift: c.time * 18 }),
+  },
+  // FLY: the word, a sculpture of points with real thickness (an extruded slab of the glyphs, edges denser)
+  word: {
+    share: 0.6, fill: 1, fit: "contain",
+    targets: async (/** @type {typeof H} */ h) => {
+      const set = await h.glyph("TUVERI", 90000, { edge: 0.5, seed: 5 });
+      const r = h.rng(9), d = set.data;
+      for (let i = 0; i < d.length; i += 4) d[i + 2] = (r() * 2 - 1) * 0.11;
+      return set;
+    },
+    look: { ink: 0.16, size: 1.0, mistInk: 0, mistSize: 1.1 },
+    motion: { spring: 2.6, speed: 900, inertia: 0.25, fuzz: 1.5 },
+    flow: { amp: 4, wavelength: 300, evolution: 0.05, z: 0.4 },
+    emit: -1,
+    update: () => ({ scale: 1.32 }),
+  },
+  // FLY: two straight beams of light across the hall, from deep at the upper left toward the reader
+  beams: {
+    share: 0.12, fill: 1, fit: "contain",
+    targets: (/** @type {typeof H} */ h) => h.join([
+      h.polyline([[-3.0, -1.9, -6.2, 1], [1.2, 1.7, 0.4, 1]], 9000),
+      h.polyline([[-1.6, -2.1, -6.6, 1], [2.6, 1.4, -0.8, 1]], 9000),
+    ]),
+    look: { ink: 0.34, size: 1.1, mistInk: 0, mistSize: 1.1 },
+    motion: { spring: 2.2, speed: 600, inertia: 0.3, fuzz: 2 },
+    flow: { amp: 2, wavelength: 400, evolution: 0.03, z: 0.3 },
+  },
+  // FLY: the hall's volume, sparse points deep in the dark
+  hall: {
+    share: 0.08, fill: 1, fit: "contain",
+    targets: (/** @type {typeof H} */ h) => h.cloud(14000, (i, r) => [(r() * 2 - 1) * 3.2, (r() * 2 - 1) * 2.0, 1.2 - 8.0 * Math.pow(r(), 0.9), 0.4 + 0.6 * r()], 44),
+    look: { ink: 0.09, size: 1.2, mistInk: 0, mistSize: 1.1 },
+    motion: { spring: 1.4, speed: 300, inertia: 0.5, fuzz: 4 },
+    flow: { amp: 10, wavelength: 520, evolution: 0.03, z: 0.4 },
+  },
+  // points far in depth, sparse: the room's volume
+  dust: {
+    share: 0.025, fill: 1, fit: "stretch", inkArea: 1296000,
+    targets: (/** @type {typeof H} */ h) => h.cloud(2400, (i, r) => [(r() * 2 - 1) * 1.4, (r() * 2 - 1) * 1.3, -0.25 - 1.1 * Math.pow(r(), 0.8), 0.4 + 0.6 * r()], 33),
+    look: { ink: 0.1, size: 1.4, mistInk: 0, mistSize: 1.1 },
+    motion: { spring: 1.4, speed: 200, inertia: 0.5, fuzz: 4 },
+    flow: { amp: 14, wavelength: 420, evolution: 0.04, z: 0.5 },
+  },
+};
+
+// ---------------------------------------------------------------- the compositions
+/** @param {Element | null} el */
+const vr = (el) => (el ? el.getBoundingClientRect() : null);
+/** @param {Element} el @param {number} from @param {number} to the viewport rect of a run of the element's text */
+function textRect(el, from, to) {
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const nodes = []; let n; while ((n = walker.nextNode())) nodes.push(/** @type {Text} */ (n));
+  const full = nodes.map((x) => x.data).join("");
+  const a = from < 0 ? full.length + from : from, b = to <= 0 ? full.length + to : to;
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, off = 0;
+  const range = document.createRange();
+  for (const t of nodes) {
+    const s = Math.max(a, off), e = Math.min(b, off + t.data.length);
+    if (s < e) {
+      range.setStart(t, s - off); range.setEnd(t, e - off);
+      for (const r of range.getClientRects()) { x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top); x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); }
+    }
+    off += t.data.length;
+  }
+  return { x0, y0, x1, y1 };
+}
+
+const ptr = { x: num("px", -1e4), y: num("py", -1e4), down: false, present: Q.has("px") };
+const tilt = { x: 0, y: 0, vx: 0, vy: 0 };   // the cover plate's turn with the pointer (inertia, bench-side)
+const fly = { k: num("p", 0), t0: 0 };       // the fly path's progress (p= holds it)
+const fld = { t: 0 };                        // the field bench's own clock (the sweep; frozen with t=)
+const rmState = {};                          // the room's scene state (the hand's spring, the subject's follow)
+
+/** The page's scene as the host will give it: formations, slabs, camera, dawn. @param {number} dt */
+function compose(dt) {
+  const w = innerWidth, h = innerHeight, phone = w < 760;
+  const view = { x: scrollX, y: scrollY, w, h };
+  /** @type {any} */ const out = { formations: [], slabs: [], camera: { yaw: 0, pitch: 0, dolly: 0 }, dawn: [] };
+  const fx = (/** @type {string} */ id, /** @type {number} */ wgt, /** @type {any} */ rect = view) => out.formations.push({ id, weight: wgt, rect });
+  if (VIEW === "cover") {
+    const name = /** @type {Element} */ (document.querySelector(".cv-name"));
+    const fs = parseFloat(getComputedStyle(name).fontSize);
+    const last = textRect(name, -3, 0);              // "ERI"
+    const capH = fs * 0.7;
+    const midY = phone ? (last.y0 + last.y1) / 2 : (last.y0 + last.y1) / 2;
+    // the pointer turns the plate a few degrees, with inertia (a spring, bench-side; the COVER scene owns the real one)
+    const px = ptr.present ? (ptr.x - w / 2) / (w / 2) : 0, py = ptr.present ? (ptr.y - h / 2) / (h / 2) : 0;
+    if (dt > 0) {
+      const k = 18, d = 2 * 0.62 * Math.sqrt(k);
+      tilt.vx += (k * (px * 0.09 - tilt.x) - d * tilt.vx) * dt; tilt.x += tilt.vx * dt;
+      tilt.vy += (k * (-py * 0.06 - tilt.y) - d * tilt.vy) * dt; tilt.y += tilt.vy * dt;
+    }
+    const pw = phone ? w * 0.38 : w * 0.22;
+    out.slabs.push({
+      id: "cover", cx: phone ? last.x1 - pw * 0.42 : last.x1 - pw * 0.52, cy: midY - capH * 0.08, cz: num("cz", 70),
+      yaw: num("pyaw", -0.44) + tilt.x, pitch: num("ppitch", 0.05) + tilt.y, roll: num("proll", 0),
+      w: pw, h: capH * (phone ? 2.0 : 1.72), t: num("thick", phone ? 30 : 58), tex: null, alpha: 1, glow: num("glow", 0.7), sharp: 1,
+    });
+    fx("threads", 1); fx("dust", 1);
+  } else if (VIEW === "gallery") {
+    // five plates on an arc around a point deep in the room; the camera turns about that point (the travel)
+    const at = num("at", 1.15), R = phone ? 620 : 1050, step = phone ? 0.62 : 0.5;
+    const pw = phone ? w * 0.74 : Math.min(600, w * 0.4), ph = pw * 0.75;
+    const ccx = phone ? w / 2 : w * 0.6, ccy = phone ? h * 0.44 : h * 0.5;
+    const caps = ["sersan-io", "domus-tua", "sersan-brand", "agricultural-supply-chain", "sersan-io-blackhole"];
+    caps.forEach((cap, i) => {
+      const th = (i - 2) * step;
+      const near = Math.max(0, 1 - Math.abs(i - 2 - (at - 2)) / 1.1);
+      out.slabs.push({
+        id: "g" + i, cx: ccx + R * Math.sin(th), cy: ccy, cz: -R + R * Math.cos(th), yaw: -th + 0.14 * near + tilt.x * 0.5 * near, pitch: 0.03 * near, roll: 0,
+        w: pw, h: ph, t: 34, tex: Q.get("etch") === String(i) || Q.get("clear") === String(i) ? null : cap, etch: Q.get("etch") === String(i) ? "etch" : null,
+        alpha: 0.55 + 0.45 * sm(near), glow: 0.35 + 0.65 * near, sharp: 0.18 + 0.82 * sm(near),
+      });
+    });
+    out.camera = { yaw: (at - 2) * step, pitch: 0.04, dolly: num("dolly", 160), cx: ccx, cy: ccy, cz: -R, follow: 0.02 };
+    const k = Math.round(at);
+    /** @type {HTMLElement} */ (document.getElementById("ga-idx")).textContent = `0${k + 1} / 09`;
+    fx("threads", 1); fx("dust", 1);
+  } else if (VIEW === "stack") {
+    const lift = num("lift", 3), n = Math.max(1, Math.min(12, num("layers", 8)));
+    const ccx = phone ? w / 2 : w * 0.66, ccy = phone ? h * 0.62 : h * 0.54;
+    const lw = phone ? w * 0.62 : Math.min(560, w * 0.36), ld = lw * 0.62, gap = phone ? 30 : 42;
+    for (let i = 0; i < n; i++) {
+      const up = i === lift ? (phone ? 26 : 40) : 0;
+      out.slabs.push({ id: "s" + i, cx: ccx, cy: ccy + (i - (n - 1) / 2) * gap - up, cz: 0, yaw: 0, pitch: Math.PI / 2, roll: 0,
+        w: lw, h: ld, t: 9, tex: null, alpha: 1, glow: i === lift ? 1 : 0.28, sharp: 1, bevel: 2.5 });
+    }
+    out.camera = { yaw: num("yaw", -0.62), pitch: num("pitch", 0.52), dolly: num("dolly", 0), cx: ccx, cy: ccy, cz: 0, follow: 0.02 };
+    fx("threads", 1, { x: scrollX + ccx - w * 0.5, y: scrollY + ccy - h * 0.5, w, h }); fx("dust", 1);
+  } else if (VIEW === "fly") {
+    const cx = w / 2, cy = h / 2;
+    const path = cameraPath([
+      { at: 0, pos: [cx + 420, cy + 380, 3600], target: [cx, cy, -600], roll: -0.06, aperture: 1.6 },
+      { at: 0.3, pos: [cx, cy - 40, 2050], target: [cx, cy, 0], roll: 0, aperture: 1 },
+      { at: 0.55, pos: [cx - 620, cy - 160, 1500], target: [cx, cy, -100], roll: 0.03 },
+      { at: 0.8, pos: [cx - 60, cy + 10, 420], target: [cx + 40, cy, -1500], roll: 0, focus: 700, aperture: 1.2 },
+      { at: 1, pos: [cx + 90, cy, -1700], target: [cx + 120, cy, -2700], focus: 1000 },
+    ]);
+    const k = fly.k;
+    const pose = path(k);
+    const orb = Q.get("orbit") === "0" ? { yaw: 0, pitch: 0 } : { yaw: 0.12, pitch: 0.07, damp: 0.6 };
+    out.camera = { ...pose, damp: 0, orbit: orb, fog: Q.get("fog") === "0" ? undefined : [2600, 5200] };
+    out.bloom = num("bloom", 0.9);
+    out.rest = 14;
+    const lit = sm((k - 0.6) / 0.35);
+    const pl = (/** @type {string} */ id, /** @type {number} */ x, /** @type {number} */ z, /** @type {number} */ pw, /** @type {number} */ ph, /** @type {number} */ yaw, /** @type {string | null} */ tex, /** @type {number} */ glow) =>
+      out.slabs.push({ id, cx: x, cy, cz: z, yaw, pitch: 0, roll: 0, w: pw, h: ph, t: 44, tex, alpha: 1, glow, sharp: 1 });
+    pl("f0", w * 0.17, -350, 240, 780, 0.35, null, 0.6);
+    pl("f1", w * 0.85, -1000, 270, 920, -0.4, null, 0.6);
+    pl("f2", w * 0.63, 280, 200, 660, -0.22, null, 0.7);
+    pl("f3", w * 0.57, -2700, 760, 500, 0, "sersan-io", 0.4 + 0.6 * lit);
+    fx("word", 1); fx("beams", 1); fx("hall", 1);
+  } else if (VIEW === "field") {
+    // THE FIELD: the wall far behind, the chips through the hall, two shafts, one clear plate, a word of points
+    const cx = w / 2, cy = h / 2, only = Q.get("only") || "";
+    fld.t += dt;
+    const k = fly.k;
+    const path = cameraPath([
+      { at: 0, pos: [cx + 520, cy - 260, 2300], target: [cx, cy, -1200], roll: 0.02 },
+      { at: 0.35, pos: [cx - 560, cy + 120, 2050], target: [cx, cy, -1200], roll: -0.03 },
+      { at: 0.6, pos: [cx - 120, cy - 60, 1200], target: [cx + 60, cy, -1600], roll: 0 },
+      { at: 1, pos: [cx + 140, cy + 20, -900], target: [cx + 200, cy + 10, -2700], roll: 0.02, focus: 900 },
+    ]);
+    const pose = path(k);
+    out.camera = { ...pose, damp: 0, orbit: { yaw: 0.1, pitch: 0.06, damp: 0.6 }, fog: [3600, 6400] };
+    out.bloom = num("bloom", 0.7);
+    out.rest = 14;
+    const sw = Q.has("sweep") ? num("sweep", 0.3) : (fld.t / 9) % 1;
+    const ph = Math.sin(sw * Math.PI * 2);
+    const zW = -2700;
+    /** @type {any[]} */ const lights = [];
+    const nl = num("lights", 2);
+    if (nl >= 1) lights.push({ pos: [cx - 1700, cy - 520, 700], target: [cx - 300 + 1400 * ph, cy + 150, zW], radius: phone ? 150 : 230, aspect: 1.5, roll: 0.25, spread: 0.06, soft: 0.6, strength: 1.1, tint: 0.1, haze: num("haze", 0.06) });
+    if (nl >= 2) {
+      const px = ptr.present ? ptr.x : cx + 0.32 * w * Math.cos(fld.t * 0.5), py = ptr.present ? ptr.y : cy + 0.2 * h * Math.sin(fld.t * 0.7);
+      // a third, falling across the flight's path: the chips flash as the camera goes through it
+      if (k > 0.45) lights.push({ pos: [cx + 260, cy - 1500, -500], target: [cx + 120, cy + 700, -1300], radius: phone ? 170 : 260, aspect: 1.3, roll: 0.1, spread: 0.04, soft: 0.55, strength: Math.min(1, (k - 0.45) / 0.15), tint: 0.25, haze: num("haze", 0.06) * 0.8 });
+      lights.push({ pos: [cx + 1600, cy - 420, 900], target: [cx + (px - cx) * 2.6, cy + (py - cy) * 2.6, zW], radius: phone ? 70 : 100, aspect: 2.6, roll: -0.4, spread: 0.05, soft: 0.5, strength: 0.9, tint: 0.55, haze: num("haze", 0.06) * 0.6 });
+    }
+    out.field = {
+      lights,
+      chips: only === "wall" ? null : { count: num("n2", 8000), center: [cx, cy, -1150], size: [w * 2.4 + 1400, h * 2.4 + 900, 3000], wind: [9, -4, 14], spin: 0.5,
+        sizes: phone ? [8, 22] : [9, 28], shapes: [{ shape: "A", weight: 1, depth: 0.78, width: 0.24 }, { shape: "mark", weight: 1, depth: 0.22, width: 0.24, scale: 1.7 }] },
+      wall: only === "chips" ? null : { point: [cx, cy, zW], normal: [0, 0, 1], cell: phone ? 56 : 72, extent: [w * 2.6 + 1200, h * 2.6 + 700] },
+    };
+    // one clear plate crossing in front of the wall
+    out.slabs.push({ id: "fc", cx: cx + 0.55 * w * Math.sin(fld.t * 0.22 + 0.8), cy, cz: -1700, yaw: 0.35, pitch: 0, roll: 0, w: phone ? 260 : 420, h: phone ? 560 : 820, t: 46, tex: null, alpha: 1, glow: 0.6, sharp: 1 });
+    if (only !== "chips" && only !== "wall") fx("word", 0.55);
+    if (Q.get("field") === "0") out.field = null;   // the same scene without the field (its cost)
+  } else if (VIEW === "room") {
+    // THE ROOM (lib/room.js) as a scene calls it: a context with the clock, the pointer, the text rects
+    fld.t += dt;
+    const D = eyeD(w, h), cx = w / 2, cy = h / 2;
+    const ctime = Q.has("sweep") ? num("sweep", 0.3) * 30 : fld.t;
+    const keepRects = [...document.querySelectorAll(".v-room .rm-k, .v-room .hd > *")].map((e) => { const r = e.getBoundingClientRect(); return { x: r.left - 14, y: r.top - 14, w: r.width + 28, h: r.height + 28 }; });
+    const ctx = { vw: w, vh: h, phone, tier: Q.get("tier") || "A", time: fld.t, dt, clock: { time: ctime }, state: rmState,
+      pointer: { present: ptr.present, nx: ptr.present ? (ptr.x / w) * 2 - 1 : 0, ny: ptr.present ? (ptr.y / h) * 2 - 1 : 0 },
+      aim: { x: ptr.present ? (ptr.x / w) * 2 - 1 : 0, y: ptr.present ? (ptr.y / h) * 2 - 1 : 0, touch: false },
+      textRects: () => (Q.get("keep") === "0" ? [] : keepRects) };
+    const pl = { x: w * (phone ? 0.5 : 0.74), y: h * (phone ? 0.78 : 0.5), z: -0.25 * D, w: phone ? 240 : 420, h: phone ? 150 : 262 };
+    const R = room(ctx, { temp: num("temp", 0.3), dim: num("dim", 0), seed: num("seed", 1), chips: Q.has("n2") ? num("n2", 9000) : undefined, subject: pl });
+    out.camera = { pos: [cx, cy, D], target: [cx, cy, 0], lens: speedLens(1, num("speed", 0)), damp: 0, orbit: { yaw: 0.12, pitch: 0.06, damp: 1.1 }, fog: [3.0 * D, 7.0 * D] };
+    out.bloom = num("bloom", 0.5);
+    out.rest = 14;
+    out.field = R.field;
+    out.keepouts = R.keepouts;
+    if (W.stage) W.stage.look(R.look);
+    if (Q.get("field") === "0") out.field = null;   // the same scene without the room (its cost)
+    out.slabs.push({ id: "rp", cx: pl.x, cy: pl.y, cz: pl.z, yaw: phone ? 0 : -0.32, pitch: 0, roll: 0, w: pl.w, h: pl.h, t: 30, tex: null, alpha: 1, glow: 0.6, sharp: 1 });
+  } else if (VIEW === "splat") {
+    // GAUSSIAN SPLATTING (stage/splat/): the figures in the lit room, the eye orbiting them, settle on the clock
+    fld.t += dt;
+    const D = eyeD(w, h), cx = w / 2, cy = h / 2;
+    const keepRects = [...document.querySelectorAll(".v-splat .hd > *")].map((e) => { const r = e.getBoundingClientRect(); return { x: r.left - 14, y: r.top - 14, w: r.width + 28, h: r.height + 28 }; });
+    if (Q.get("room") !== "0") {
+      const ctx = { vw: w, vh: h, phone, tier: Q.get("tier") || "A", time: fld.t, dt, clock: { time: fld.t }, state: rmState,
+        pointer: { present: ptr.present, nx: ptr.present ? (ptr.x / w) * 2 - 1 : 0, ny: ptr.present ? (ptr.y / h) * 2 - 1 : 0 },
+        aim: { x: ptr.present ? (ptr.x / w) * 2 - 1 : 0, y: ptr.present ? (ptr.y / h) * 2 - 1 : 0, touch: false },
+        textRects: () => keepRects };
+      // (wave 3) the pages' lit room (glow 1: the parallel shafts)
+      const R = room(ctx, { temp: 0.3, seed: 4, glow: 1, subject: { x: cx, y: cy, z: -0.3 * D, w: w * 0.5, h: h * 0.5, strength: 0.35 } });
+      out.field = R.field; out.keepouts = R.keepouts;
+      if (W.stage) W.stage.look(R.look);
+    }
+    // the eye orbits the figures (orb= holds it)
+    const ang = Q.has("orb") ? num("orb", 0) * 0.5 : 0.42 * Math.sin((fld.t * Math.PI * 2) / 18);
+    const tg = [cx, cy, -0.18 * D], dist = D * 1.18;
+    out.camera = { pos: [tg[0] + dist * Math.sin(ang), cy - 0.06 * D, tg[2] + dist * Math.cos(ang)], target: tg, damp: 0, orbit: { yaw: 0.1, pitch: 0.06, damp: 1.0 }, fog: [3.2 * D, 7.5 * D], focus: dist - 0.12 * D, aperture: num("aperture", 0.45) };
+    out.bloom = num("bloom", 0.5);
+    out.rest = 14;
+    // settle: 0 (the swarm's points) -> 1 (the figures) -> 0, a 12 s cycle; settle= holds it
+    const ph = (fld.t / 12) % 1;
+    const settle = Q.has("settle") ? num("settle", 1) : ph < 0.12 ? 0 : ph < 0.42 ? sm((ph - 0.12) / 0.3) : ph < 0.75 ? 1 : 1 - sm((ph - 0.75) / 0.25);
+    const only = Q.get("only") || "";
+    const L = phone
+      ? { A: [w * 0.3, h * 0.33, 0, h * 0.24], mark: [w * 0.72, h * 0.31, -0.05 * D, h * 0.17], relief: [cx, h * 0.58, -0.3 * D, h * 0.2], cap: [cx, h * 0.78, -0.02 * D, h * 0.2] }
+      : { A: [w * 0.25, h * 0.5, -0.04 * D, h * 0.54], mark: [w * 0.76, h * 0.48, -0.1 * D, h * 0.4], relief: [cx, h * 0.4, -0.42 * D, h * 0.44], cap: [cx, h * 0.76, -0.02 * D, h * 0.34] };
+    /** @type {Record<string, any>} */ const extra = {
+      A: { rot: [0.32, 0.05, 0] }, mark: { rot: [-0.34, 0.04, 0] }, relief: { rot: [0, 0, 0] }, cap: { rot: [fld.t * 0.15, 0.35, 0] },
+    };
+    // (wave 3, LIGHT3) the bench shows only what is clean: the solid A and the SerSan mark; the relief with &relief=1, the
+    // synthetic capture (its .splat / .ply round trip is still made and checked: W.formats) only with &capture=1
+    const shown = (/** @type {string} */ k) => (k === "A" || k === "mark") || (k === "relief" && Q.get("relief") === "1") || (k === "cap" && Q.get("capture") === "1");
+    // the scatter they settle from: faint and sparse, close round each figure (spread 0.8 of its radius, points at 0.2), never
+    // a mist over the frame
+    const sets = Object.keys(L).filter((k) => only ? only === k : shown(k)).map((k) => ({ id: k === "cap" ? "cap-" + (Q.get("fmt") || "splat") : k, pos: L[k].slice(0, 3), size: L[k][3], settle, spread: 0.8, pointAlpha: 0.2, stagger: 3, ...extra[k] }));
+    if (Q.get("splat") !== "0") out.passes = { splat: { sets } };
+    else out.passes = {};
+  } else if (VIEW === "dawn") {
+    const d = vr(document.querySelector(".dw-day"));
+    if (d) out.dawn.push({ x0: d.left, y0: d.top, x1: d.right, y1: d.bottom });
+    fx("threads", 1); fx("dust", 1);
+  } else {
+    for (const x of (Q.get("f") || "threads:1").split(",").filter(Boolean)) { const [id, wg] = x.split(":"); fx(id, wg == null ? 1 : +wg); }
+  }
+  // free=1: the same orbiting camera, driven as a free camera (the picture must not change)
+  if (Q.get("free") === "1" && !out.camera.pos) {
+    const c = out.camera, D0 = Math.min(2600, Math.max(1100, LOOK.eye * Math.hypot(w, h)));
+    const pose = orbitPose(c, { w, h }, D0);
+    out.camera = { ...pose, damp: 0, orbit: { yaw: c.follow ?? 0.035, pitch: (c.follow ?? 0.035) * 0.6, damp: LOOK.cameraDamp }, bokeh: 0, near: 0.2 * D0, nearFull: 0.2 * D0 + 1, plateFocus: false, parallax: 1, focus: D0 - num("focus", -170) };
+  }
+  if (Q.has("yaw") && VIEW !== "stack") out.camera.yaw = num("yaw", 0);
+  if (Q.has("pitch") && VIEW !== "stack") out.camera.pitch = num("pitch", 0);
+  if (Q.get("plates") === "0") out.slabs = [];
+  // dawnall=1: the whole viewport is dawn (the Contact page)
+  if (Q.get("dawnall") === "1") { out.dawn = [{ x0: 0, y0: 0, x1: w, y1: h }]; document.body.style.background = "var(--dawn)"; }
+  if (Q.has("f") && VIEW !== "plain") { out.formations = []; for (const x of (Q.get("f") || "").split(",").filter(Boolean)) { const [id, wg] = x.split(":"); fx(id, wg == null ? 1 : +wg); } }
+  return out;
+}
+
+async function main() {
+  const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("stage"));
+  const A = await requestAdapter();
+  if (!A.adapter) { W.failed = A.reason; hud.textContent = "stage: no WebGPU (" + A.reason + ")"; console.warn("[stage] bench: no WebGPU", A.reason); return; }
+  const { device } = await createDevice(A.adapter, { label: "stage-bench" });
+  device.addEventListener("uncapturederror", (e) => console.error("[stage] uncaptured", /** @type {any} */ (e).error?.message));
+  await Promise.all([document.fonts.load('800 100px "Sofia Sans Extra Condensed"'), document.fonts.load('400 18px "Sofia Sans"'), document.fonts.load('600 13px "Sofia Sans Condensed"')]).catch(() => {});
+  await document.fonts.ready;
+  // the name across the measure: its size fitted to the column (one line on a desktop, two on a phone)
+  const fitName = () => {
+    const el = /** @type {HTMLElement} */ (document.querySelector(".cv-name"));
+    el.style.fontSize = "100px";
+    const lines = innerWidth < 760 ? [...el.querySelectorAll(".ln")] : [el];
+    const wide = Math.max(...lines.map((l) => { const r = document.createRange(); r.selectNodeContents(l); return r.getBoundingClientRect().width; }));
+    const col = el.clientWidth;
+    el.style.fontSize = Math.min(336, (100 * col) / wide) + "px";
+    /** @type {HTMLElement} */ (document.querySelector(".cv-under")).style.top = innerWidth < 760 ? "" : `${el.getBoundingClientRect().bottom + innerHeight * 0.13}px`;
+  };
+  if (VIEW === "cover") fitName();
+  // SPLAT: the module registers its pass on import; the bench makes its sets (nothing downloaded: the site's own files)
+  /** @type {any} */ let SPL = null;
+  if (VIEW === "splat") {
+    try {
+      SPL = await import("./splat/splat.js");
+      const t0 = performance.now();
+      const cols = { light: "#f4f1ea", dark: "#2340c9" };
+      const [a, m] = await Promise.all([SPL.putSplats("A", SPL.gen.letter({ text: "A", colors: cols })), SPL.putSplats("mark", SPL.gen.mark({ colors: cols }))]);
+      // (wave 3, LIGHT3) the relief of a capture is OFF by default (&relief=1): it settled into a soft blue rounded blob, a
+      // shape this site forbids, and is not fit for a page as it is (its code in splat/gen.js stays)
+      let rl = { count: 0 };
+      if (Q.get("relief") === "1") {
+        const img = new Image(); img.src = "../../../captures/sersan-io-1600.webp"; await img.decode();
+        rl = await SPL.putSplats("relief", SPL.gen.relief(img, { cols: Q.get("tier") === "B" || innerWidth < 760 ? 180 : 260, depth: 0.05 }));
+      }
+      // the synthetic capture: written to both formats, read back, compared; the one asked for (fmt=) is drawn
+      const nCap = Q.has("n2") ? Math.max(1000, num("n2", 200000) - a.count - m.count - rl.count) : num("n", innerWidth < 760 ? 12000 : 40000);
+      const syn = SPL.gen.synthetic({ count: nCap, colors: cols });
+      const plyBuf = SPL.writePly(syn), splatBuf = SPL.writeSplat(syn);
+      const fromPly = SPL.parsePly(plyBuf), fromSplat = SPL.parseSplat(splatBuf);
+      const capped = SPL.capNearest(fromSplat, Math.floor(nCap / 4));
+      W.formats = { ply: SPL.diffSplats(syn, fromPly), splat: SPL.diffSplats(syn, fromSplat), plyBytes: plyBuf.byteLength, splatBytes: splatBuf.byteLength,
+        cap: { asked: Math.floor(nCap / 4), kept: capped.count, radius: +capped.bounds.radius.toFixed(4), fullRadius: +fromSplat.bounds.radius.toFixed(4) } };
+      const c = await SPL.putSplats("cap-" + (Q.get("fmt") || "splat"), Q.get("fmt") === "ply" ? fromPly : fromSplat);
+      W.splatSets = { A: a.count, mark: m.count, relief: rl.count, cap: c.count, total: a.count + m.count + rl.count + c.count, makeMs: Math.round(performance.now() - t0) };
+      log(`[splat] bench sets: ${JSON.stringify(W.splatSets)}`);
+    } catch (e) { W.splatFailed = String(e); log(`[splat] bench: ${e}`); }
+  }
+  const css = getComputedStyle(document.documentElement);
+  const tok = (/** @type {string} */ n) => css.getPropertyValue(n).trim();
+  const stage = await createStage({
+    device, canvas, tier: /** @type {any} */ (Q.get("tier") || "A"), log,
+    tokens: { paper: tok("--dawn"), ink: tok("--ink"), accent: tok("--cobalt"), night: tok("--night"), nightAccent: tok("--accent") },
+    look: parseKV(Q.get("look")), plateLook: parseKV(Q.get("pl")),
+    count: Q.has("n") ? num("n", 160000) : undefined,
+    budgetMs: Q.has("budget") ? num("budget", 3.5) : undefined,
+  });
+  // (wave 2) createStage may resolve before the swarm's pipelines: a frozen bench frame waits for them
+  for (let i = 0; i < 300 && !W.log.some((/** @type {string} */ m) => /\[stage\] swarm (ready|failed)/.test(m)); i++) await new Promise((r) => setTimeout(r, 20));
+  W.stage = stage;
+  // the plates' pipeline compiles after the swarm's (BOOT): the bench waits for it, so a frozen capture has its plates
+  W.glass = await stage.whenGlass;
+  if (SPL && !W.splatFailed) {
+    // the pass's pipelines, then its sets on the GPU and faded in (a frozen capture must hold them whole)
+    for (let i = 0; i < 200; i++) {
+      const p = stage.stats().passes && stage.stats().passes.splat;
+      if (p && (p.failed || (p.ready && SPL.splatStats().length))) break;
+      await new Promise((r) => setTimeout(r, 30));
+    }
+    W.splatPass = stage.stats().passes ? stage.stats().passes.splat : null;
+  }
+
+  // formations: the bench's own, else a scene/figure module by id (scenes/, night/, day/)
+  const first = compose(0);
+  const ids = [...new Set(first.formations.map((/** @type {any} */ f) => f.id))];
+  for (const id of ids) {
+    let def = DEMO[id];
+    if (!def) for (const dir of ["scenes", "night", "day"]) { try { def = (await import(`./${dir}/${id}.js`)).default; log(`[stage] bench: loaded ${dir}/${id}.js`); break; } catch { /* next */ } }
+    if (!def) { log(`[stage] bench: no formation "${id}"`); continue; }
+    await stage.register(id, def);
+  }
+  // textures: the gallery's captures; an etched lettering on a transparent canvas
+  // the field: its pipelines and its shapes, before a frozen capture
+  if (VIEW === "field" || VIEW === "room" || VIEW === "splat") {
+    W.field = await stage.whenField;
+    stage.set(compose(0));
+    for (let i = 0; W.field && i < 100 && !(stage.stats().field && stage.stats().field.atlas); i++) { stage.frame(0); await new Promise((r) => setTimeout(r, 50)); }
+    if (W.field) await new Promise((r) => setTimeout(r, 800));
+  }
+  if (VIEW === "gallery" || VIEW === "fly") {
+    for (const img of document.querySelectorAll(".ga-imgs img")) await stage.slabTexture(/** @type {string} */ (/** @type {HTMLElement} */ (img).dataset.cap), /** @type {HTMLImageElement} */ (img));
+    if (Q.has("etch")) {
+      const cv = document.createElement("canvas"); cv.width = 1600; cv.height = 1200;
+      const g = /** @type {CanvasRenderingContext2D} */ (cv.getContext("2d"));
+      g.fillStyle = "#fff"; g.textAlign = "center"; g.textBaseline = "middle";
+      g.font = '800 300px "Sofia Sans Extra Condensed"';
+      ["SUPPLY", "CHAIN"].forEach((l, i) => g.fillText(l, 800, 430 + i * 290));
+      await stage.slabTexture("etch", cv);
+    }
+  }
+  const backdrop = async () => {
+    const nodes = [...document.querySelectorAll(`.v-${VIEW} [data-refract]`)];
+    if (!nodes.length) return;
+    const bd = await rasteriseBackdrop({ nodes, pad: 200, grounds: [...document.querySelectorAll(`.v-${VIEW} [data-dawn]`)] });
+    stage.setBackdrop(bd.canvas, bd.rect);
+    W.backdrop = { rect: bd.rect, ms: +bd.ms.toFixed(1), size: [bd.canvas.width, bd.canvas.height] };
+  };
+  stage.resize(innerWidth, innerHeight, devicePixelRatio);
+  await backdrop();
+  const instr = /** @type {HTMLElement | null} */ (document.querySelector(`.v-${VIEW} [data-stage-instr]`));
+  const state = (/** @type {number} */ dt) => ({ ...compose(dt), scroll: { x: scrollX, y: scrollY }, pointer: { ...ptr }, scrollVelocity: 0, mist: { ink: 0 }, focus: num("focus", -170) });
+
+  if (Q.has("t") && SPL && W.splatPass && W.splatPass.ready) {
+    // the splats uploaded and faded in before the frozen frame
+    for (let i = 0; i < 120; i++) {
+      stage.set(state(0)); stage.input(); stage.frame(1 / 60); await device.queue.onSubmittedWorkDone();
+      const sp = SPL.splatStats()[0];
+      if (sp && sp.pool.length && sp.pool.every((/** @type {any} */ p) => p.on) && i > 40) break;
+      await new Promise((r) => setTimeout(r, 16));
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  if (Q.has("t")) {
+    // frozen: the tilt settles with the simulated frames, then one draw
+    const n = Math.round(num("t", 3000) / (1000 / 60));
+    for (let i = 0; i < n; i++) compose(1 / 60);
+    stage.set(state(0));
+    await stage.advance(num("t", 3000));
+    // the GPU cost of the frame as drawn (timestamps), a few redraws
+    const ms = [];
+    for (let i = 0; i < 12; i++) { stage.set({ scroll: { x: scrollX, y: scrollY + (i % 2) * 0.001 } }); stage.frame(0); await device.queue.onSubmittedWorkDone(); await new Promise((r) => setTimeout(r, 20)); const s = stage.stats(); if (s.gpuLastMs != null) ms.push(s.gpuLastMs); }
+    stage.set({ scroll: { x: scrollX, y: scrollY } }); stage.frame(0); await device.queue.onSubmittedWorkDone();
+    const s = stage.stats();
+    const med = ms.length ? ms.sort((a, b) => a - b)[ms.length >> 1] : null;
+    if (SPL) {
+      // the pass's cost: the same frame without it (the draw), plus the sort's own timestamps
+      const sp = SPL.splatStats()[0] || null;
+      const off = [];
+      const keep = compose(0);
+      for (let i = 0; i < 12; i++) { stage.set({ passes: {}, scroll: { x: scrollX, y: scrollY + (i % 2) * 0.001 } }); stage.frame(0); await device.queue.onSubmittedWorkDone(); await new Promise((r) => setTimeout(r, 20)); const s2 = stage.stats(); if (s2.gpuLastMs != null) off.push(s2.gpuLastMs); }
+      const offMed = off.length ? off.sort((a, b) => a - b)[off.length >> 1] : null;
+      stage.set({ ...state(0), passes: keep.passes }); stage.frame(0); await device.queue.onSubmittedWorkDone();
+      await new Promise((r) => setTimeout(r, 60));
+      const sp2 = SPL.splatStats()[0] || sp;
+      W.splat = { ...(sp2 || {}), withMs: med, withoutMs: offMed, drawMs: med != null && offMed != null ? +(med - offMed).toFixed(3) : null };
+      if (sp2 && instr) instr.textContent = `${sp2.splats.toLocaleString("en-US")} splats · ${W.splat.drawMs != null ? (W.splat.drawMs + sp2.sortMed).toFixed(2) : "—"} ms GPU`;
+      hud.textContent = `splat: ${sp2 ? sp2.splats : 0} in ${sp2 ? sp2.sets : 0} sets · draw ${W.splat.drawMs} ms + sort ${sp2 ? sp2.sortMed.toFixed(3) : "—"} ms · stage ${med != null ? med.toFixed(2) : "—"} ms · tier ${stage.stats().tier}`;
+      W.ready = true; W.done = true; W.stats = stage.stats(); W.stillMs = med;
+      return;
+    }
+    if (instr) instr.textContent = `${s.drawn.toLocaleString("en-US")} points · ${med != null ? med.toFixed(2) : "—"} ms GPU`;
+    hud.textContent = `stage: ${s.drawn} points · tier ${s.tier} · plates ${s.plates} · frozen at ${num("t", 3000)} ms · ${med != null ? med.toFixed(2) + " ms (still)" : ""}`;
+    W.ready = true; W.done = true; W.stats = s; W.stillMs = med; W.plates = stage.plates;
+    return;
+  }
+
+  // live
+  for (const ev of ["wheel", "scroll", "pointerdown", "pointerup", "touchstart", "touchmove", "keydown"]) addEventListener(ev, () => stage.input(), { passive: true });
+  addEventListener("pointermove", (e) => { ptr.x = e.clientX; ptr.y = e.clientY; ptr.present = true; stage.input(); }, { passive: true });
+  addEventListener("resize", () => { stage.resize(innerWidth, innerHeight, devicePixelRatio); backdrop(); });
+  let last = performance.now(), hudT = 0;
+  W.ready = true;
+  const tick = (/** @type {number} */ now) => {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (VIEW === "room" || VIEW === "splat") stage.input();
+    if ((VIEW === "fly" || VIEW === "field") && !Q.has("p")) {
+      if (!fly.t0) fly.t0 = now;
+      fly.k = (((now - fly.t0) / 1000) / num("period", VIEW === "field" ? 22 : 14)) % 1;
+      W.flyK = fly.k;
+      stage.input();
+    }
+    stage.set(state(stage.stats().awake ? dt : 0));
+    stage.frame(dt);
+    if ((hudT += dt) > 0.5) {
+      hudT = 0; const s = stage.stats(); W.stats = s;
+      if (instr) instr.textContent = `${s.drawn.toLocaleString("en-US")} points · ${s.gpuMs != null ? s.gpuMs.toFixed(2) : "—"} ms GPU`;
+      if (SPL) { const sp = SPL.splatStats()[0]; W.splat = sp; if (sp && instr) instr.textContent = `${sp.splats.toLocaleString("en-US")} splats · sort ${sp.sortMed.toFixed(2)} ms`; }
+      hud.textContent = `stage: ${s.drawn} points · ${s.gpuMs != null ? s.gpuMs.toFixed(2) + " ms GPU" : "no timestamps"} (sim ${s.passMs[0].toFixed(2)} · ink ${s.passMs[1].toFixed(2)} · canvas ${s.passMs[2].toFixed(2)}) · plates ${s.plates} · ${s.awake ? "moving" : "at rest"} · submits ${s.submits}`;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+main().catch((e) => { W.failed = String(e && e.stack || e); console.error(e); hud.textContent = "stage: failed"; });
+</script>
+</body>
+</html>

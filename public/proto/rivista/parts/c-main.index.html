@@ -1,0 +1,35 @@
+  <!-- THE COVER after the first viewport (spec 50 §4): "now", one step (the plate holds the real sersan.io capture; the
+       capture is in the DOM for the reader without the stage, [data-stage-poster], and for the stage as a texture,
+       data-slab="now"); then the index: four large rows, one per page, each a link carrying data-stage-cue (the swarm
+       draws that page's emblem while the row is hovered, focused, or nearest the middle on touch). The dawn close
+       follows (the footer). COPY: parts/strings.mjs ("now.*", "ix.*"). -->
+  <section class="sc sc-left now" id="now" data-stage="now" style="--steps:1" aria-labelledby="now-h">
+    <div class="sc-view" data-stage-anchor="now" aria-hidden="true"></div>
+    <div class="sc-track">
+      <div class="sc-step" data-stage-step="1">
+        <div class="sc-in">
+          <p class="t-label t-acc now-when">{{t:now.eyebrow}}</p>
+          <h2 id="now-h" class="t-d1 now-t" data-refract="title" data-focus-lines><span class="ln">{{t:now.h.1}}</span><span class="ln">SerSan</span></h2>
+          <p class="t-lead now-lead">{{t:now.lead}}</p>
+          <p class="t-body now-body">{{t:now.body}}</p>
+          <p class="now-go"><a class="q" href="https://sersan.io" rel="noopener">sersan.io <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></p>
+        </div>
+        <figure class="now-fig" data-stage-poster><img data-slab="now" src="/captures/sersan-io-blackhole-sq-1600.webp" srcset="/captures/sersan-io-blackhole-sq-800.webp 800w, /captures/sersan-io-blackhole-sq-1600.webp 1600w" sizes="(min-width:1024px) 40vw, 90vw" width="1600" height="1600" alt="{{t:now.alt}}" loading="lazy" decoding="async"></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="sc sc-left ix" id="index" data-stage="index" aria-labelledby="ix-h">
+    <div class="sc-view" data-stage-anchor="index" aria-hidden="true"></div>
+    <div class="sc-track">
+      <div class="ix-in">
+        <h2 id="ix-h" class="t-label ix-h">{{t:cut.index}}</h2>
+        <ol class="ix-rows rows">
+          <li><a class="ix-a" {{LINK:work}} data-stage-cue="work"><span class="t-label ix-n">01</span><span class="t-d1 ix-t" data-refract="title" data-stage-mark="ix-work">{{t:sec.work}}</span><span class="t-body ix-k">{{t:ix.work}}</span><span class="q ix-v">{{t:ui.open}} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>
+          <li><a class="ix-a" {{LINK:about}} data-stage-cue="about"><span class="t-label ix-n">02</span><span class="t-d1 ix-t" data-refract="title" data-stage-mark="ix-about">{{t:sec.about}}</span><span class="t-body ix-k">{{t:ix.about}}</span><span class="q ix-v">{{t:ui.open}} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>
+          <li><a class="ix-a" {{LINK:consult}} data-stage-cue="consult"><span class="t-label ix-n">03</span><span class="t-d1 ix-t" data-refract="title" data-stage-mark="ix-consult">{{t:sec.consult}}</span><span class="t-body ix-k">{{t:ix.consult}}</span><span class="q ix-v">{{t:ui.open}} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>
+          <li><a class="ix-a" {{LINK:obla}} data-stage-cue="obla"><span class="t-label ix-n">04</span><span class="t-d1 ix-t" data-refract="title" data-stage-mark="ix-obla">{{t:sec.obla}}</span><span class="t-body ix-k">{{t:ix.obla}}</span><span class="q ix-v">{{t:ui.open}} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>
+        </ol>
+      </div>
+    </div>
+  </section>

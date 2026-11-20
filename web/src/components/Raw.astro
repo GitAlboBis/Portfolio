@@ -1,0 +1,6 @@
+---
+/* a literal piece of the shell (<body id="top">, </body></html>), followed by its line break as assemble.mjs writes it */
+import { literal } from "../lib/site.mjs";
+const { html } = Astro.props;
+---
+<Fragment set:html={literal(html)} />

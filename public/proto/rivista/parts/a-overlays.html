@@ -1,0 +1,22 @@
+<!-- The cut's sheet (spec 50 §6; round 10: a title card): a straight-edged sheet of --night-2 (of --dawn towards
+     Contact). On it the destination's index line, a rule that runs across the sheet, and the destination's name set
+     large, its words rising from behind their masks. fx-nav.js raises it on a click and lowers it away on arrival; an
+     arrival is covered from its first paint (the head script's data-arrive, css/cuts.css), and the script below writes
+     the name before that paint. -->
+<div class="cut" data-cut aria-hidden="true">
+  <p class="t-label cut-sub" data-cut-sub></p>
+  <span class="cut-rule"></span>
+  <p class="t-d1 cut-name" data-cut-label></p>
+</div>
+<script>
+(function(){
+  var a=window.__rvArrive; if(!a) return;
+  /* the name's words, each in its own box, as fx-nav.js writes them leaving: on arrival they go up behind their masks
+     before the sheet moves (css/cuts.css .is-clearing) */
+  var l=document.querySelector('[data-cut-label]');
+  if(l){ l.textContent=''; String(a.label||'').split(/\s+/).filter(Boolean).forEach(function(w,i){
+    if(i) l.appendChild(document.createTextNode(' '));
+    var e=document.createElement('span'); e.className='w'; e.textContent=w; l.appendChild(e); }); }
+  var s=document.querySelector('[data-cut-sub]'); if(s) s.textContent=a.sub||'';
+})();
+</script>

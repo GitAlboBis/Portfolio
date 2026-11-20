@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- bench.html — the HOST lane's bench for the scene loader (spec 50 §3, §5). Not a page of the site: it runs the real
+     fx-stage.js with a small stand-in for fx-core.js (window.FX), on markup in the scene grammar of spec 50 §3, so the
+     scenes can be looked at whatever state the site's pages are in.
+     ?scenes=consult,obla,dawn (default) · ?ground=dawn&scenes=contact (the dawn page) · ?debug=1 · ?stage=0 · ?gl=0 -->
+<html lang="en" data-ground="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>Scene bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@800&family=Sofia+Sans:wght@400;500&family=Sofia+Sans+Condensed:wght@600&display=swap">
+<style>
+  :root { --night: #0c0e14; --night-2: #12151d; --ink: #f4f1ea; --body: #cfcabf; --mute: #9a958a; --line: #262a36;
+    --accent: #8fa2ff; --cobalt: #2340c9; --dawn: #f3f4f6; --dawn-ink: #0c0e14; --dawn-body: #3a3f4b; --dawn-line: #d6d9e0;
+    --z-stage: 50; color-scheme: dark; }
+  html { background: var(--night); }
+  html[data-ground="dawn"] { background: var(--dawn); color-scheme: light; }
+  body { margin: 0; background: inherit; color: var(--body); font: 400 1.125rem/1.55 "Sofia Sans", system-ui, sans-serif; }
+  .d1, .mega { font-family: "Sofia Sans Extra Condensed", sans-serif; font-weight: 800; text-transform: uppercase; line-height: .86; color: var(--ink); margin: 0; }
+  .d1 { font-size: clamp(3.5rem, 9vw, 9.5rem); }
+  .mega { font-size: clamp(5rem, 18.5vw, 21rem); }
+  .label { font: 600 .8125rem/1.3 "Sofia Sans Condensed", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+  .pad { padding: 0 clamp(16px, 4vw, 64px); }
+  .head { min-height: 70svh; display: grid; align-content: end; padding-bottom: 10svh; }
+  .sc { position: relative; }
+  .sc-view { position: sticky; top: 0; height: 100svh; }
+  .sc-track { position: relative; margin-top: -100svh; }
+  .sc-step { min-height: 100svh; display: grid; align-content: center; max-width: 34rem; }
+  .sc[data-text="right"] .sc-step { margin-left: auto; }
+  .sc-step h3 { font: 800 clamp(2.2rem, 4.4vw, 4.5rem)/.86 "Sofia Sans Extra Condensed", sans-serif; text-transform: uppercase; color: var(--ink); margin: .2em 0 .3em; }
+  .dawn { background: var(--dawn); color: var(--dawn-body); padding: 18svh clamp(16px, 4vw, 64px) 14svh; min-height: 70svh; }
+  .dawn h2 { color: var(--dawn-ink); }
+  .dawn a { color: var(--cobalt); }
+  .contact { min-height: 100svh; display: grid; align-content: center; color: var(--dawn-body); }
+  .contact .mega { color: var(--dawn-ink); }
+  .instr { position: fixed; right: 16px; bottom: 12px; z-index: 60; }
+  @media (max-width: 759px) {
+    .sc-step { align-content: end; padding-bottom: 6svh; min-height: 100svh; max-width: none; }
+    .sc-step > div { min-height: 40svh; }
+  }
+</style>
+</head>
+<body>
+<p class="label instr" data-stage-instr></p>
+<main id="main"></main>
+<script>
+  // markup in the scene grammar, built from the query (the bench's own labels: nothing here is site copy)
+  (function () {
+    const Q = new URLSearchParams(location.search);
+    if (Q.get("ground") === "dawn") document.documentElement.setAttribute("data-ground", "dawn");
+    const list = (Q.get("scenes") || (Q.get("ground") === "dawn" ? "contact" : "consult,obla,dawn")).split(",");
+    const main = document.getElementById("main");
+    const steps = { consult: ["gen", "cut", "code", "agents"], obla: ["listening", "thinking", "working", "approval", "sleeping"] };
+    let html = '<section class="pad head"><h1 class="d1" data-refract>Scene bench</h1><p class="label">' + list.join(" · ") + "</p></section>";
+    list.forEach((name, i) => {
+      if (name === "dawn") {
+        html += '<section class="dawn" data-stage="dawn" data-dawn><h2 class="d1">Write to me</h2><p>A sentence under the line, as the close carries one.</p><p><a href="#">address@example.com</a></p><p class="label">Legal line · Back to top</p></section>';
+      } else if (name === "contact") {
+        html += '<section class="pad contact" data-stage="contact" data-dawn><h1 class="mega">Write to me.</h1><p>A sentence under the line.</p><p><a href="#" style="color:var(--cobalt)">address@example.com</a></p></section>';
+      } else {
+        const s = steps[name] || ["one", "two", "three"];
+        const side = i % 2 ? "right" : "left";
+        html += '<section class="sc" data-stage="' + name + '" data-text="' + side + '"><div class="sc-view" data-stage-anchor="' + name + '" aria-hidden="true"></div><div class="sc-track pad">'
+          + s.map((w, k) => '<div class="sc-step" data-stage-step="' + (k + 1) + '"><div><p class="label">' + name + " · " + String(k + 1).padStart(2, "0") + '</p><h3>' + w + "</h3><p>Bench step text, one screen of scroll per step.</p></div></div>").join("")
+          + "</div></section>";
+      }
+    });
+    main.innerHTML = html;
+  })();
+  // a stand-in for fx-core.js: just what fx-stage.js reads
+  (function () {
+    const ev = {}, mods = [];
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const S = { "stage.points": "{n} points", "instr.gpu": "{ms} ms GPU" };
+    window.FX = {
+      flags: { motion: !reduce, gl: !/[?&]gl=0/.test(location.search), touch: matchMedia("(hover: none)").matches },
+      register(name, m) { mods.push(m); },
+      on(n, f) { (ev[n] ||= []).push(f); },
+      once(n, f) { const g = (e) => { ev[n] = ev[n].filter((x) => x !== g); f(e); }; this.on(n, g); },
+      emit(n, e) { for (const f of (ev[n] || []).slice()) f(e); },
+      whenStill(fn) { fn(); },
+      t(id, v) { return (S[id] || id).replace(/\{(\w+)\}/g, (_, k) => (v && k in v ? v[k] : "")); },
+      num(v, d) { return Number(v).toLocaleString("en-US", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); },
+      _start() { for (const m of mods) if (m.init) m.init({}); this.emit("fx:ready"); },
+    };
+  })();
+</script>
+<script src="../../fx-stage.js"></script>
+<script>FX._start();</script>
+</body>
+</html>

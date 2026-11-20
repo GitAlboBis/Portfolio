@@ -1,0 +1,22 @@
+/* ==========================================================================
+   css/print.css · the printed page: black on white, every scene as plain flow with its real pictures, no chrome
+   ========================================================================== */
+@media print {
+  :root, .dawn, html[data-ground="dawn"] main, .legal-page {
+    --ink: #000; --body: #222; --mute: #555; --line: #bbb; --accent: #2340c9; --night: #fff; --night-2: #fff; --dawn: #fff;
+  }
+  html, body, .dawn, html[data-ground="dawn"] main { background: #fff !important; color: #222; }
+  .hdr, .menu, .cut, .skip, .sc-view, .dawn-view, [data-stage-instr], .copy, .hero-instr { display: none !important; }
+  [data-stage-poster] { display: block !important; }
+  [data-focus], [data-focus-lines] > .ln, .sc-step .sc-in, .rv-split .w, .rv-wipe .w, .rv-row, .rv-pic img, .rv-pic figcaption { opacity: 1 !important; filter: none !important; transform: none !important; clip-path: none !important; animation: none !important; }
+  .sc, .sc-step { min-height: 0 !important; display: block !important; padding-block: 1.5rem !important; }
+  .hero-in, .ct-in, .dawn { min-height: 0 !important; padding-block: 2rem !important; }
+  .t-mega { font-size: 4.5rem; white-space: normal; }
+  .t-d1 { font-size: 3rem; }
+  .t-d2 { font-size: 2rem; }
+  .btn { background: none; color: #000; border: 1px solid #000; }
+  a[href^="http"]::after, a[href^="mailto"]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #555; }
+  /* the drawn rule of a link in running text (css/type.css) is the printed address here: no box, no transform */
+  :is(.ln-in, .dawn-mail a, .ct-mail a)::after { position: static; height: auto; background: none; transform: none; }
+  img, figure, .metric, .sc-step { break-inside: avoid; }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "rivista-astro",
+  "private": true,
+  "type": "module",
+  "description": "The night studio built by Astro: the same 32 pages as public/proto/rivista/assemble.mjs, from the same parts, strings and cases.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "parity": "node scripts/parity.mjs",
+    "asserts": "node scripts/asserts.mjs",
+    "claims": "node ../scripts/check-claims-proto.mjs --dir=dist/proto/rivista",
+    "serve": "python ../scripts/serve-static.py 5320 dist"
+  },
+  "dependencies": {
+    "astro": "7.3.8"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

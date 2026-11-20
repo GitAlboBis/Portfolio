@@ -1,0 +1,23 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "cd web && npm ci",
+  "buildCommand": "node web/scripts/release.mjs",
+  "outputDirectory": "web/release",
+  "ignoreCommand": "exit 1",
+  "routes": [
+    { "src": "/it", "status": 308, "headers": { "Location": "/it/" } },
+    { "src": "/(work|about|consulting|obla|contact|case-[a-z0-9-]+)/?", "status": 307, "headers": { "Location": "/$1.html" } },
+    { "src": "/it/(work|about|consulting|obla|contact|case-[a-z0-9-]+)/?", "status": 307, "headers": { "Location": "/it/$1.html" } },
+    { "src": "/work/([a-z0-9-]+)/?", "status": 307, "headers": { "Location": "/case-$1.html" } },
+    {
+      "src": "/(.*)",
+      "headers": { "X-Content-Type-Options": "nosniff", "Referrer-Policy": "strict-origin-when-cross-origin" },
+      "continue": true
+    },
+    { "src": "/_astro/(.*)", "headers": { "Cache-Control": "public, max-age=31536000, immutable" }, "continue": true },
+    { "handle": "filesystem" },
+    { "src": "/it/.*", "status": 404, "dest": "/it/404.html" },
+    { "src": "/.*", "status": 404, "dest": "/404.html" }
+  ]
+}

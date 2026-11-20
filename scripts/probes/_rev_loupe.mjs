@@ -1,0 +1,21 @@
+import { chromium } from "playwright";
+const out="C:/Users/alber/AppData/Local/Temp/claude/C--Users-alber-Portfolio/a57754c5-1041-40cd-8985-d3afc45f9fe5/scratchpad/crops/";
+const b = await chromium.launch({ channel:"chrome", headless:true });
+const ctx = await b.newContext({ viewport:{width:1440,height:900} });
+await ctx.addInitScript(()=>{ try{ sessionStorage.setItem("at-preloader-seen","1"); }catch{} });
+const p = await ctx.newPage();
+await p.goto("http://localhost:3000/work", { waitUntil:"networkidle" });
+await p.waitForTimeout(2000);
+const img = p.locator("img").first();
+const bb = await img.boundingBox();
+console.log("capture cell", bb);
+await p.mouse.move(bb.x+bb.width/2, bb.y+bb.height/2);
+await p.waitForTimeout(150);
+await p.mouse.move(bb.x+bb.width/2+10, bb.y+bb.height/2+6);
+await p.waitForTimeout(600);
+await p.screenshot({ path: out+"loupe-hover.png", clip:{x:bb.x-30,y:bb.y-30,width:bb.width+260,height:bb.height+120} });
+console.log(JSON.stringify(await p.evaluate(()=>{
+  const g=document.querySelector("[style*='mask-image'], [style*='--lx']");
+  return g? {cls:g.className.slice(0,80), bg:(g.getAttribute("style")||"").slice(0,200)} : "no glass el";
+})));
+await b.close();

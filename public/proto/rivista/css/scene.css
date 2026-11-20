@@ -1,0 +1,72 @@
+/* ==========================================================================
+   css/scene.css · the scene grammar (spec 50 §3)
+
+     <section class="sc sc-left|sc-right" data-stage="NAME" style="--steps:N">
+       <div class="sc-view" data-stage-anchor="NAME" aria-hidden="true"></div>   sticky, 100svh, empty: the stage draws here
+       <div class="sc-track">
+         <div class="sc-step" data-stage-step="1"><div class="sc-in"> … real text … </div></div>
+       </div>
+     </section>
+
+   Scene mode is html.sc-on (the head script: motion and WebGPU) without html.gl-off: a scene is a sticky view the
+   stage fills, the track scrolling over it one screen per block (--steps counts the blocks, an intro included). The
+   text keeps to one half: a column of at most 34rem on the side the class names (desktop), the lower 45 % of the
+   screen (phone); the figure has the other half. The view is never boxed: no border, no frame, no caption in it.
+   Without scene mode (reduced motion, no WebGPU, no script, print) a scene is plain flow: its blocks in order, with
+   their real images ([data-stage-poster], hidden in scene mode, where the stage reads them as textures).
+   The step in focus is .is-active (fx-scroll.js): a focus pull, the others soft.
+   ========================================================================== */
+.sc { position: relative; }
+.sc-view { display: none; }
+.sc-track { position: relative; }
+.sc-step { position: relative; padding: var(--s6) var(--gut); }
+.sc-in { position: relative; max-width: 46rem; }
+.sc-step + .sc-step { border-top: 1px solid var(--line); }
+.sc-intro { padding-top: calc(var(--hdr) + var(--s7)); }
+[data-stage-instr] { display: none; }
+html.stage-on [data-stage-instr] { display: block; }
+
+/* ---------------------------------------------------------------- scene mode */
+html.sc-on:not(.gl-off) .sc { min-height: calc(max(var(--steps, 1), 1) * 100svh); }
+html.sc-on:not(.gl-off) .sc-view {
+  display: block;
+  position: sticky; top: 0;
+  height: 100svh;
+  margin-bottom: -100svh;
+  pointer-events: none;
+}
+html.sc-on:not(.gl-off) .sc-step {
+  min-height: 100svh;
+  display: flex; align-items: center;
+  padding: calc(var(--hdr) + var(--s4)) var(--gut) var(--s5);
+  border-top: 0;
+}
+html.sc-on:not(.gl-off) .sc-in { max-width: var(--col); }
+html.sc-on:not(.gl-off) .sc-right .sc-in { margin-left: auto; }
+html.sc-on:not(.gl-off) .sc-left .sc-in { margin-right: auto; }
+html.sc-on:not(.gl-off) [data-stage-poster] { display: none; }
+
+/* the focus pull between steps: the step in focus sharp, its neighbours soft; it leaves in a third of the time */
+html.sc-on:not(.gl-off).fs-on .sc-step[data-stage-step] .sc-in {
+  opacity: 0.12;
+  filter: blur(6px);
+  transition: opacity var(--focus-out) var(--ease-in), filter var(--focus-out) var(--ease-in);
+}
+html.sc-on:not(.gl-off).fs-on .sc-step[data-stage-step].is-active .sc-in {
+  opacity: 1;
+  filter: blur(0);
+  transition: opacity var(--focus-in) var(--ease-out), filter var(--focus-in) var(--ease-out);
+}
+
+/* the phone: the figure above, the text in the lower 45 % of the screen */
+@media (max-width: 1023.98px) {
+  html.sc-on:not(.gl-off) .sc-step { align-items: flex-end; padding-bottom: max(var(--s5), env(safe-area-inset-bottom)); }
+  html.sc-on:not(.gl-off) .sc-step .sc-in { max-width: 40rem; min-height: 0; }
+  html.sc-on:not(.gl-off) .sc-step[data-stage-step] .sc-in { max-height: none; }
+  html.sc-on:not(.gl-off) .sc-intro { align-items: flex-end; }
+}
+
+/* plain flow on a wide screen: two columns, the text and its picture side by side */
+@media (min-width: 1024px) {
+  .sc-step { padding-block: var(--s7); }
+}

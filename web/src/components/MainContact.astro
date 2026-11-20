@@ -1,0 +1,6 @@
+---
+/* Contact's main: parts/c-main.contact.html. */
+import { partial, literal } from "../lib/site.mjs";
+const html = literal('<main id="main">') + partial("c-main.contact.html") + literal("</main>");
+---
+<Fragment set:html={html} />

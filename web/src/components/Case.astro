@@ -1,0 +1,7 @@
+---
+/* A case page's main: parts/c-main.case.mjs render() on the resolved case, its next in the cycle, in the page's language */
+import { caseMain, literal } from "../lib/site.mjs";
+const { page } = Astro.props;
+const html = literal(`<main id="main" data-case="${page.slug}" data-tile="${page.tile}">`) + caseMain(page) + literal("</main>");
+---
+<Fragment set:html={html} />

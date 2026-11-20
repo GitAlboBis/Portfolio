@@ -3,14 +3,13 @@
 /.pnp
 .pnp.*
 
-# package manager: npm is canonical (CLAUDE.md §4) — package-lock.json is
-# TRACKED. Keep stray yarn/bun lockfiles out (a leftover bun.lock would make
-# Vercel auto-detect bun and install from stale resolutions).
+# package manager: npm. Both lockfiles are tracked: package-lock.json (the probes' and media scripts' two packages)
+# and web/package-lock.json (the build, the one the host installs). Lockfiles of other managers stay out.
 /yarn.lock
 /bun.lock
 /bun.lockb
 
-# next.js
+# what the old Next.js app may have left on a disk
 /.next/
 /out/
 /build
@@ -33,6 +32,10 @@ yarn-error.log*
 # claude code — personal overrides (contains secrets, e.g. API_KEY_21ST)
 .claude/settings.local.json
 
+# visual-gate screenshots and probe output (run artefacts, not sources)
+.shots/
+scripts/probes/*.out.json
+
 # vercel
 .vercel
 
@@ -53,5 +56,13 @@ next-env.d.ts
 /.analysis-clones/
 .env*
 
-# reference repo clones studied for effects (never shipped, never imported)
-/_refs/
+# the Astro build (web/): its dependencies, its outputs (dist/ to look at, release/ for the host), its cache
+web/node_modules/
+web/dist/
+web/release/
+web/.astro/
+
+# what a session leaves at the root of a checkout: never part of the site
+/_shots/
+*.stackdump
+.claude/launch.json

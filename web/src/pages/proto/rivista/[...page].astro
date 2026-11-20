@@ -1,0 +1,12 @@
+---
+/* The pages of both editions but the two homes (index.astro, it/index.astro): Work, About, Consulting, Obla,
+   Contact, nine cases and the 404, in English here and in Italian under it/, from assemble.mjs's page table. */
+import Site from "../../../components/Site.astro";
+import { pages } from "../../../lib/site.mjs";
+
+export function getStaticPaths() {
+  return pages().filter((p) => p.key !== "home").map((page) => ({ params: { page: page.out.replace(/\.html$/, "") }, props: { page } }));
+}
+const { page } = Astro.props;
+---
+<Site page={page} />

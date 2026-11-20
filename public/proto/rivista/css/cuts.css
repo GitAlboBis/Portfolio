@@ -1,0 +1,97 @@
+/* ==========================================================================
+   css/cuts.css · page to page (spec 50 §6; round 10: the cut is a title card). A straight-edged sheet rises
+   (--night-2; --dawn towards Contact); on it the destination's index line, a rule that runs across the sheet from the
+   left, and the destination's name set large, its words rising from behind their masks, 45 ms apart. The page changes
+   under it at --d-cut + 40 ms; on arrival the card's words go up first (--d-cut-clear, round 11: the name is never on
+   screen with the page's own h1), then the sheet leaves upward in --d-cut-out while the new page's first screen enters
+   (its load animations are held under html[data-arrive]). 460 + 100 + 280 = 840 ms in all, the loading excepted (measured 880-930 ms on a local server).
+   fx-nav.js drives the classes and still emits fx:nav:start, fx:nav:covered, fx:nav:uncovered and fx:nav:reset.
+   Reduced motion: no sheet, the browser's own navigation.
+   ========================================================================== */
+.cut {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: var(--s3);
+  padding: var(--s6) var(--gut) clamp(var(--s5), 9vh, var(--s7));
+  background: var(--night-2);
+  color: var(--ink);
+  border-top: 1px solid var(--line);
+  transform: translate3d(0, 100%, 0);
+  visibility: hidden;
+  pointer-events: none;
+}
+.cut-name { font-size: clamp(4.5rem, 15vw, 16rem); line-height: 0.84; white-space: normal; }
+.cut-name .w { display: inline-block; }
+.cut-sub { color: var(--accent); font-size: var(--t-btn); }
+.cut-rule { display: block; height: 2px; background: var(--line); transform-origin: 0 50%; }
+.cut.is-dawn, html[data-cut-dawn] .cut { background: var(--dawn); color: var(--dawn-ink); border-top-color: var(--dawn-line); }
+.cut.is-dawn .cut-name, html[data-cut-dawn] .cut .cut-name { color: var(--dawn-ink); }
+.cut.is-dawn .cut-sub, html[data-cut-dawn] .cut .cut-sub { color: var(--cobalt); }
+.cut.is-dawn .cut-rule, html[data-cut-dawn] .cut .cut-rule { background: var(--dawn-line); }
+
+/* leaving a page: the sheet rises from the bottom edge; the title card plays on it as it comes */
+.cut.is-rising { visibility: visible; transform: translate3d(0, 0, 0); transition: transform var(--d-cut) var(--ease-io); }
+.cut.is-rising .cut-sub { animation: cut-row 0.36s var(--ease-rise) 70ms both; }
+.cut.is-rising .cut-rule { animation: cut-rule 0.4s var(--ease-io) 40ms both; }
+.cut.is-rising .cut-name .w { animation: rv-rise 0.36s var(--ease-rise) calc(110ms + var(--wi, 0) * 45ms) both; }
+@keyframes cut-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes cut-row { from { opacity: 0; transform: translate3d(0, 0.6em, 0); } to { opacity: 1; transform: none; } }
+/* arriving: covered from the first paint, the card whole. Round 11: the card's name must never be on screen with the
+   arriving page's own h1 (they are often the same word). So the card clears first, while the sheet still covers
+   everything: its words go up behind their masks, all at once, with the index line and the rule (.is-clearing,
+   --d-cut-clear); only then does the sheet leave upward and the page's first screen start to rise (fx-nav.js). */
+html[data-arrive] .cut { visibility: visible; transform: none; }
+.cut.is-clearing .cut-name .w {
+  transform: translate3d(0, -104%, 0); clip-path: inset(104% -0.08em -0.25em -0.08em);
+  transition: transform var(--d-cut-clear) var(--ease-in), clip-path var(--d-cut-clear) var(--ease-in);
+}
+.cut.is-clearing .cut-sub, .cut.is-clearing .cut-rule { opacity: 0; transition: opacity var(--d-cut-clear) var(--ease-in); }
+.cut.is-leaving { visibility: visible; transform: translate3d(0, -100%, 0); transition: transform var(--d-cut-out) var(--ease-io); }
+.cut.is-leaving .cut-name, .cut.is-leaving .cut-sub, .cut.is-leaving .cut-rule { opacity: 0; }
+/* (lane PORTAL) the flight through the portal of glass: while the stage flies the eye into it (html.cut-portal, set by
+   fx-stage.js) the rising sheet is held back, its card playing unseen on its usual clock; once the glass fills the frame
+   (html.cut-full) the sheet floods in over it in 110 ms, in the same tone (--night-2, or the dawn towards Contact: the
+   glass floods to paper white). No glass, no class: the sheet rises as before. */
+html.cut-portal .cut.is-rising { opacity: 0; }
+html.cut-portal.cut-full .cut.is-rising { opacity: 1; transition: transform var(--d-cut) var(--ease-io), opacity 110ms linear; }
+html[data-arrive] main, html[data-arrive] .dawn { pointer-events: none; }
+/* (lane o-router) the Astro build's soft navigation: the stage outlives the page, so the frame is filled by the glass
+   itself, never by a flat sheet. Under html.cut-soft (fx-nav.js, toward a night page) the sheet stays clear: only its
+   card (the index line, the rule, the name) rides over the glass, leaving and arriving; toward Contact (no cut-soft) the
+   dawn sheet floods in as above. */
+html.cut-soft .cut { background: transparent; border-top-color: transparent; }
+html.cut-soft.cut-portal .cut.is-rising { opacity: 1; }
+/* arriving under the glass: the new page's own text waits until the card has cleared (fx:nav:uncovered); the sheet no
+   longer hides it, and the card's name must never be on screen with the page's title */
+html.cut-soft[data-arrive] main, html.cut-soft[data-arrive] footer { visibility: hidden; }
+/* (lane n-flight) THE FLIGHT (the router, a stage that can fly): the eye dollies through the room to a door of glass and
+   on into the next room. The sheet never covers anything: its card (light type over the night room, toward Contact too:
+   the morning is the light through the door) is read while the door is ahead and clears before the eye is through
+   (fx-motion.js cutOut clearAt); the page changes a breath before the door, so what is left of the card goes with an
+   animation of the router's (rv-router.js swapPage); arriving (html.cut-flown) the sheet is clear and empty. */
+/* (lane m-fly) ... and on the page that arrives too (html.cut-flown): the page changes while the card is being read,
+   and toward Contact the frame is still the night then (the card turned to ink on it, its rule to a bright line) */
+html:is(.cut-fly, .cut-flown) .cut.is-dawn .cut-name { color: var(--ink); }
+html:is(.cut-fly, .cut-flown) .cut.is-dawn .cut-sub { color: var(--accent); }
+html:is(.cut-fly, .cut-flown) .cut.is-dawn .cut-rule { background: var(--line); }
+/* a flight with no card played on it (a view with the morning in it): nothing of the sheet shows on the page that
+   arrives (its rule stood across the frame) */
+html.cut-flown .cut:not(.mo-cut) :is(.cut-name, .cut-sub, .cut-rule) { opacity: 0; }
+/* (lane m-fly) No sheet floods to paper any more, toward Contact or from it. A flight changes the page while the eye is
+   still in the room it leaves (as soon as the old text has left), and the morning arrives as a straight edge of day
+   that the stage sweeps across the frame, seen through the door's glass. Where the ground changes with the page (a view
+   with the morning in it, or Contact ahead), the ground the old view stood on is kept UNDER the canvas, beside the
+   body (rv-router.js makes it at the swap): night, with the day from the dawn close's top edge down (its <i>), or all
+   paper for Contact. fx-stage.js takes it away in the frame the door of glass hides everything and the new room takes
+   the stage. Straight edges, flat tones: it is the page's own ground, not a light. */
+.cut-ground { position: fixed; inset: 0; z-index: calc(var(--z-stage, 40) - 1); pointer-events: none; background: var(--night); }
+.cut-ground > i { position: absolute; left: 0; right: 0; bottom: 0; display: block; background: var(--dawn); }
+@media print { .cut-ground { display: none; } }
+/* arriving by a flight the page's text and its load animations wait until the eye is nearly still (fx-nav.js
+   arriveFlown takes html.cut-flown away then); data-arrive itself goes with the room's first frame, so the scenes
+   stand and are lit from the first frame after the door */
+html.cut-flown main, html.cut-flown footer { visibility: hidden; pointer-events: none; }
+html.rv-motion.cut-flown :is(.hdr-name, .hdr-nav > a, .hdr-nav > .lang, .hdr-menu, .hdr-snd) { animation-play-state: paused; }
+html.rv-motion.cut-flown [data-focus="load"], html.rv-motion.cut-flown [data-focus-lines="load"] > .ln { animation-play-state: paused; }
+/* the router's announcement of the new page's title (screen readers only) */
+.astro-route-announcer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; white-space: nowrap; clip-path: inset(50%); }
+@media (prefers-reduced-motion: reduce) { .cut { display: none; } }

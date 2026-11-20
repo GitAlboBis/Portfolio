@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-labelledby="uml-t uml-d">
+<title id="uml-t">Redrawn from the team's model, Project class diagram 4</title>
+<desc id="uml-d">A redraw of the class diagram "Project class diagram 4" from the Visual Paradigm model of the Agricultural Supply Chain Platform (team of three, University of Camerino; github.com/daveeCity/IDS_GROUP_PROJECT): 4 packages, 56 classes and 69 relationships in the whole diagram, each at its modelled position, light lines on a night ground. In the accent blue: the associations dettagliare, eseguire and specificare (Prodotto, TracciabilitaProdotto, PassoFiliera, Azienda). Source IDS_project(3).vpp, diagram last modified 2025-12-03. Drawn by scripts/media/vpp-plate.mjs for the portfolio of Alberto Tuveri.</desc>
+<metadata>ORIGIN (drawn from a real artefact, not generated): every shape, name, member and connector read from IDS_project(3).vpp (SQLite, opened read-only), diagram "Project class diagram 4"; uniform scale 0.20205; typography and colours of the site's night studio (Sofia Sans, Sofia Sans Condensed, Sofia Sans Extra Condensed; night, night-2, line, mute, body, ink; one accent thread).</metadata>
+<defs>
+<style>
+.uml-pkg{fill:#0c0e14;stroke:#262a36;stroke-width:1}
+.uml-pkg-name{font:800 20px 'Sofia Sans Extra Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif;text-transform:uppercase;fill:#f4f1ea;letter-spacing:.01em;stroke:#0c0e14;stroke-width:5px;stroke-linejoin:round;paint-order:stroke}
+.uml-cn{fill:none;stroke:#9a958a;stroke-width:0.8;stroke-linejoin:miter}
+.uml-cn.uml-dash{stroke-dasharray:2.6 1.8}
+.uml-cn.uml-thread{stroke:#8fa2ff;stroke-width:1.4}
+.uml-tri{fill:#0c0e14;stroke:#9a958a;stroke-width:0.8;stroke-linejoin:miter}
+.uml-arr{fill:none;stroke:#9a958a;stroke-width:0.8}
+.uml-dia-c{fill:#9a958a;stroke:#9a958a;stroke-width:.6}
+.uml-dia-s{fill:#0c0e14;stroke:#9a958a;stroke-width:.6}
+.uml-dia-c.uml-thread{fill:#8fa2ff;stroke:#8fa2ff}
+.uml-dia-s.uml-thread{stroke:#8fa2ff}
+.uml-box{fill:#12151d;stroke:#9a958a;stroke-width:1}
+.uml-sep{stroke:#9a958a;stroke-opacity:.4;stroke-width:0.6}
+.uml-nm{font:600 2.324px 'Sofia Sans', 'Barlow', system-ui, sans-serif;fill:#f4f1ea;text-anchor:middle}
+.uml-st{font:400 2.021px 'Sofia Sans', 'Barlow', system-ui, sans-serif;fill:#9a958a;text-anchor:middle}
+.uml-mb{font:400 1.98px 'Sofia Sans', 'Barlow', system-ui, sans-serif;fill:#cfcabf}
+.uml-verb{font:500 2.324px 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif;fill:#9a958a;letter-spacing:.02em}
+.uml-verb.uml-thread{fill:#8fa2ff}
+.uml-end{font:400 1.919px 'Sofia Sans', 'Barlow', system-ui, sans-serif;fill:#9a958a}
+.uml-cap{font:600 13px 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif;text-transform:uppercase;letter-spacing:.12em;fill:#9a958a}
+.uml-rule{stroke:#262a36;stroke-width:1}
+</style>
+
+<clipPath id="uml-k0"><rect x="787.37" y="287.5" width="61.424" height="13.74"/></clipPath>
+<clipPath id="uml-k1"><rect x="787.37" y="380.25" width="61.424" height="21.215"/></clipPath>
+<clipPath id="uml-k2"><rect x="1160.36" y="292.56" width="60.212" height="27.075"/></clipPath>
+<clipPath id="uml-k3"><rect x="1163.79" y="380.45" width="60.212" height="36.369"/></clipPath>
+<clipPath id="uml-k4"><rect x="478.23" y="288.51" width="68.9" height="20.205"/></clipPath>
+<clipPath id="uml-k5"><rect x="478.23" y="380.45" width="68.9" height="54.554"/></clipPath>
+<clipPath id="uml-k6"><rect x="577.84" y="288.51" width="66.071" height="17.174"/></clipPath>
+<clipPath id="uml-k7"><rect x="573.8" y="380.45" width="66.071" height="36.369"/></clipPath>
+<clipPath id="uml-k8"><rect x="1056.1" y="292.56" width="70.314" height="22.428"/></clipPath>
+<clipPath id="uml-k9"><rect x="1056.1" y="380.45" width="70.314" height="39.4"/></clipPath>
+<clipPath id="uml-k10"><rect x="312.55" y="402.27" width="55.362" height="12.123"/></clipPath>
+<clipPath id="uml-k11"><rect x="674.83" y="288.51" width="62.838" height="25.863"/></clipPath>
+<clipPath id="uml-k12"><rect x="675.43" y="380.45" width="62.838" height="39.4"/></clipPath>
+<clipPath id="uml-k13"><rect x="898.5" y="291.75" width="81.629" height="14.952"/></clipPath>
+<clipPath id="uml-k14"><rect x="903.15" y="380.45" width="81.629" height="36.369"/></clipPath>
+<clipPath id="uml-k15"><rect x="544.71" y="764.55" width="36.369" height="16.164"/></clipPath>
+<clipPath id="uml-k16"><rect x="688.37" y="653.82" width="34.349" height="12.123"/></clipPath>
+<clipPath id="uml-k17"><rect x="1086.61" y="794.45" width="35.763" height="16.164"/></clipPath>
+<clipPath id="uml-k18"><rect x="503.08" y="843.35" width="43.845" height="25.257"/></clipPath>
+<clipPath id="uml-k19"><rect x="825.76" y="775.06" width="65.061" height="12.123"/></clipPath>
+<clipPath id="uml-k20"><rect x="511.37" y="596.24" width="45.866" height="28.287"/></clipPath>
+<clipPath id="uml-k21"><rect x="653.01" y="595.23" width="55.564" height="31.318"/></clipPath>
+<clipPath id="uml-k22"><rect x="876.07" y="659.89" width="62.03" height="28.287"/></clipPath>
+<clipPath id="uml-k23"><rect x="1192.49" y="674.03" width="31.722" height="40.41"/></clipPath>
+<clipPath id="uml-k24"><rect x="1235.52" y="638.87" width="33.743" height="12.123"/></clipPath>
+<clipPath id="uml-k25"><rect x="977.91" y="653.42" width="34.753" height="34.349"/></clipPath>
+<clipPath id="uml-k26"><rect x="675.23" y="733.64" width="25.661" height="31.318"/></clipPath>
+<clipPath id="uml-k27"><rect x="578.85" y="595.23" width="38.794" height="28.287"/></clipPath>
+<clipPath id="uml-k28"><rect x="890.01" y="823.14" width="47.886" height="37.38"/></clipPath>
+<clipPath id="uml-k29"><rect x="799.09" y="604.73" width="64.051" height="12.123"/></clipPath>
+<clipPath id="uml-k30"><rect x="718.07" y="592.4" width="67.687" height="12.123"/></clipPath>
+<clipPath id="uml-k31"><rect x="772.42" y="650.79" width="32.328" height="28.287"/></clipPath>
+<clipPath id="uml-k32"><rect x="596.03" y="816.07" width="41.017" height="26.873"/></clipPath>
+<clipPath id="uml-k33"><rect x="950.63" y="722.52" width="26.873" height="17.781"/></clipPath>
+<clipPath id="uml-k34"><rect x="1377.36" y="291.55" width="45.462" height="13.537"/></clipPath>
+<clipPath id="uml-k35"><rect x="1377.36" y="380.45" width="45.462" height="11.113"/></clipPath>
+<clipPath id="uml-k36"><rect x="1254.72" y="140.21" width="85.266" height="11.113"/></clipPath>
+<clipPath id="uml-k37"><rect x="1369.89" y="140.81" width="53.746" height="17.174"/></clipPath>
+<clipPath id="uml-k38"><rect x="942.14" y="140.21" width="83.852" height="16.77"/></clipPath>
+<clipPath id="uml-k39"><rect x="1043.17" y="140.21" width="82.437" height="16.77"/></clipPath>
+<clipPath id="uml-k40"><rect x="853.24" y="140.21" width="72.335" height="13.74"/></clipPath>
+<clipPath id="uml-k41"><rect x="462.67" y="140.21" width="87.084" height="16.77"/></clipPath>
+<clipPath id="uml-k42"><rect x="666.14" y="140.21" width="72.335" height="19.801"/></clipPath>
+<clipPath id="uml-k43"><rect x="569.76" y="140.81" width="84.054" height="13.74"/></clipPath>
+<clipPath id="uml-k44"><rect x="1156.32" y="140.21" width="67.89" height="16.77"/></clipPath>
+<clipPath id="uml-k45"><rect x="764.14" y="140.21" width="72.941" height="13.74"/></clipPath>
+<clipPath id="uml-k46"><rect x="1276.94" y="291.75" width="56.17" height="11.315"/></clipPath>
+<clipPath id="uml-k47"><rect x="1276.94" y="380.45" width="56.373" height="29.5"/></clipPath>
+<clipPath id="uml-k48"><rect x="315.58" y="476.02" width="52.534" height="20.205"/></clipPath>
+<clipPath id="uml-k49"><rect x="293.35" y="314.38" width="34.349" height="12.931"/></clipPath>
+<clipPath id="uml-k50"><rect x="373.16" y="286.09" width="34.349" height="16.164"/></clipPath>
+<clipPath id="uml-k51"><rect x="293.35" y="271.95" width="34.349" height="8.284"/></clipPath>
+<clipPath id="uml-k52"><rect x="312.55" y="352.77" width="49.503" height="19.195"/></clipPath>
+<clipPath id="uml-k53"><rect x="246.88" y="402.27" width="53.746" height="14.144"/></clipPath>
+<clipPath id="uml-k54"><rect x="190.31" y="371.96" width="54.958" height="10.709"/></clipPath>
+<clipPath id="uml-k55"><rect x="189.3" y="440.66" width="56.373" height="10.709"/></clipPath>
+</defs>
+<rect width="1600" height="1000" fill="#12151d"/>
+<g>
+<rect class="uml-pkg" x="452.47" y="90.2" width="987.035" height="116.19"/>
+<rect class="uml-pkg" x="452.47" y="230.42" width="987.035" height="299.451"/>
+<rect class="uml-pkg" x="160.5" y="249.21" width="269.75" height="283.893"/>
+<rect class="uml-pkg" x="452.47" y="568.45" width="987.035" height="309.352"/>
+<polyline class="uml-cn" points="810.61,301.45 810.61,380.25"/>
+<polyline class="uml-cn" points="1190.06,319.83 1190.06,380.45"/>
+<polyline class="uml-cn" points="505.91,308.92 505.91,380.45"/>
+<polyline class="uml-cn" points="610.17,305.89 610.17,380.45"/>
+<polyline class="uml-cn" points="1084.39,315.19 1084.39,380.45"/>
+<polyline class="uml-cn" points="707.16,314.58 707.16,380.45"/>
+<polyline class="uml-cn" points="934.26,306.9 934.26,380.45"/>
+<polyline class="uml-cn" points="550.77,624.53 550.77,764.55"/>
+<polyline class="uml-cn" points="518.24,624.12 518.24,843.35"/>
+<polyline class="uml-cn" points="881.93,659.89 881.93,610.59 862.94,610.59"/>
+<polyline class="uml-cn" points="920.73,659.68 920.73,583.71 751.61,583.71 751.61,592.4"/>
+<polyline class="uml-cn" points="876.27,688.17 876.27,775.06"/>
+<polyline class="uml-cn" points="1203.8,714.24 1203.8,802.54 1122.37,802.54"/>
+<polyline class="uml-cn" points="1216.73,714.24 1216.73,867.8 566.73,867.8 566.73,780.92"/>
+<polyline class="uml-cn" points="701.5,756.87 839.91,756.87 839.91,775.06"/>
+<polyline class="uml-cn" points="566.12,764.35 566.12,682.72 590.98,682.72 590.98,623.52"/>
+<polyline class="uml-cn" points="653.01,609.37 617.85,609.37"/>
+<polyline class="uml-cn" points="908.2,823.14 908.2,687.77"/>
+<polyline class="uml-cn" points="908.2,687.77 908.2,823.14"/>
+<polyline class="uml-cn" points="547.54,853.45 890.01,853.45"/>
+<polyline class="uml-cn" points="696.45,764.95 696.45,810.42 897.49,810.42 897.49,823.55"/>
+<polyline class="uml-cn" points="777.47,679.28 777.47,703.53 575.42,703.53 575.42,764.95"/>
+<polyline class="uml-cn" points="804.75,659.89 876.07,659.89"/>
+<polyline class="uml-cn" points="772.62,659.89 722.72,659.89"/>
+<polyline class="uml-cn" points="788.18,679.28 788.18,794.45 1086.61,794.45"/>
+<polyline class="uml-cn" points="799.7,651 799.7,645.54 1235.52,645.54"/>
+<polyline class="uml-cn" points="637.04,829.41 889.81,829.41"/>
+<polyline class="uml-cn" points="605.12,623.31 605.12,816.07"/>
+<polyline class="uml-cn" points="810.61,154.15 810.61,287.3"/>
+<polyline class="uml-cn" points="1189.66,157.18 1189.66,292.35"/>
+<polyline class="uml-cn" points="1083.38,157.18 1083.38,292.35"/>
+<polyline class="uml-cn" points="959.32,157.18 959.32,291.55"/>
+<polyline class="uml-cn" points="609.77,154.76 609.77,288.31"/>
+<polyline class="uml-cn" points="702.71,160.21 702.71,288.31"/>
+<polyline class="uml-cn" points="511.57,157.18 511.57,288.31"/>
+<polyline class="uml-cn" points="920.93,154.15 920.93,291.55"/>
+<polyline class="uml-cn" points="1296.75,151.52 1296.75,291.55"/>
+<polyline class="uml-cn" points="1297.15,303.26 1297.15,380.45"/>
+<polyline class="uml-cn" points="1396.36,157.99 1396.36,291.75"/>
+<polyline class="uml-cn" points="1396.96,305.08 1396.96,380.45"/>
+<polyline class="uml-cn uml-dash" points="541.88,435 541.88,596.24"/>
+<polyline class="uml-cn uml-dash" points="505.91,435 505.91,547.34 590.78,547.34 590.78,595.23"/>
+<polyline class="uml-cn uml-dash" points="547.13,408.33 576.23,408.33 576.23,470.97 627.75,470.97 627.75,578.06 680.28,578.06 680.28,595.23"/>
+<polyline class="uml-cn uml-dash" points="630.18,416.82 630.18,443.89 656.44,443.89 656.44,556.03 804.95,556.03 804.95,604.73"/>
+<polyline class="uml-cn uml-dash" points="695.44,419.85 695.44,538.66 839.91,538.66 839.91,604.73"/>
+<polyline class="uml-cn uml-dash" points="722.72,419.85 722.72,516.43 889.81,516.43 889.81,659.89"/>
+<polyline class="uml-cn" points="807.37,401.46 807.37,487.13 367.91,487.13"/>
+<polyline class="uml-cn uml-dash" points="789.8,401.46 789.8,650.79"/>
+<polyline class="uml-cn uml-dash" points="961.54,416.82 961.54,722.52"/>
+<polyline class="uml-cn uml-dash" points="982.35,416.82 982.35,653.22"/>
+<polyline class="uml-cn uml-dash" points="1088.43,419.85 1088.43,747.78 700.89,747.78"/>
+<polyline class="uml-cn" points="1208.65,674.03 1208.65,416.82"/>
+<polyline class="uml-cn uml-dash" points="1174.3,416.82 1174.3,673.22 1103.58,673.22 1103.58,794.45"/>
+<polyline class="uml-cn uml-dash" points="1182.38,416.82 1182.38,550.98 1200.57,550.98 1200.57,674.03"/>
+<polyline class="uml-cn uml-dash" points="1296.54,409.95 1296.54,702.32 1224.21,702.32"/>
+<polyline class="uml-cn uml-dash" points="1313.72,409.95 1313.72,843.75 937.9,843.75"/>
+<polyline class="uml-cn uml-dash" points="1397.57,391.56 1397.57,643.72 1269.27,643.72"/>
+<polyline class="uml-cn" points="300.43,402.27 312.55,402.27"/>
+<polyline class="uml-cn uml-dash" points="245.87,442.68 256.99,442.68 256.99,416.41"/>
+<polyline class="uml-cn uml-dash" points="245.87,377.01 260.02,377.01 260.02,402.27"/>
+<polyline class="uml-cn uml-dash" points="320.63,314.38 320.63,299.02 372.96,299.22"/>
+<polyline class="uml-cn uml-dash" points="321.04,280.23 321.04,288.92 372.96,288.72"/>
+<polyline class="uml-cn uml-dash" points="407.31,293.77 438.63,294.17 438.63,332.16 593,332.16 593,380.65"/>
+<polyline class="uml-cn uml-dash" points="361.85,358.63 580.87,358.63 580.87,380.65"/>
+<polyline class="uml-cn uml-dash" points="367.71,408.13 478.23,408.13"/>
+<polyline class="uml-cn" points="341.85,496.22 341.85,670.19 772.42,670.19"/>
+<polyline class="uml-cn uml-thread" points="977.91,672.01 938.1,672.01"/>
+<polyline class="uml-cn uml-thread" points="977.5,731.21 1002.56,731.21 1002.56,687.97"/>
+<polyline class="uml-cn uml-thread" points="937.7,833.45 961.34,833.45 961.34,740.51"/>
+<polygon class="uml-tri" points="810.61,301.45 807.01,307.95 814.21,307.95"/>
+<polygon class="uml-tri" points="1190.06,319.83 1186.46,326.33 1193.66,326.33"/>
+<polygon class="uml-tri" points="505.91,308.92 502.31,315.42 509.51,315.42"/>
+<polygon class="uml-tri" points="610.17,305.89 606.57,312.39 613.77,312.39"/>
+<polygon class="uml-tri" points="1084.39,315.19 1080.79,321.69 1087.99,321.69"/>
+<polygon class="uml-tri" points="707.16,314.58 703.56,321.08 710.76,321.08"/>
+<polygon class="uml-tri" points="934.26,306.9 930.66,313.40 937.86,313.40"/>
+<polygon class="uml-dia-c" points="518.24,624.12 515.84,628.32 518.24,632.52 520.64,628.32"/>
+<polygon class="uml-tri" points="881.93,659.89 885.53,653.39 878.33,653.39"/>
+<polygon class="uml-tri" points="920.73,659.68 924.33,653.18 917.13,653.18"/>
+<polygon class="uml-tri" points="876.27,688.17 872.67,694.67 879.87,694.67"/>
+<polygon class="uml-dia-c" points="566.12,764.35 568.52,760.15 566.12,755.95 563.72,760.15"/>
+<polygon class="uml-dia-c" points="908.2,687.77 905.80,691.97 908.20,696.17 910.60,691.97"/>
+<polygon class="uml-dia-c" points="696.45,764.95 694.05,769.15 696.45,773.35 698.85,769.15"/>
+<polygon class="uml-tri" points="777.47,679.28 773.87,685.78 781.07,685.78"/>
+<polygon class="uml-tri" points="804.75,659.89 811.25,663.49 811.25,656.29"/>
+<polygon class="uml-tri" points="772.62,659.89 766.12,656.29 766.12,663.49"/>
+<polygon class="uml-tri" points="788.18,679.28 784.58,685.78 791.78,685.78"/>
+<polygon class="uml-tri" points="799.7,651 803.30,644.50 796.10,644.50"/>
+<polygon class="uml-dia-c" points="605.12,623.31 602.72,627.51 605.12,631.71 607.52,627.51"/>
+<polygon class="uml-dia-c uml-thread" points="977.5,731.21 981.70,733.61 985.90,731.21 981.70,728.81"/>
+<polyline class="uml-arr" points="544.48,591.04 541.88,596.24 539.28,591.04"/>
+<polyline class="uml-arr" points="593.38,590.03 590.78,595.23 588.18,590.03"/>
+<polyline class="uml-arr" points="682.88,590.03 680.28,595.23 677.68,590.03"/>
+<polyline class="uml-arr" points="807.55,599.53 804.95,604.73 802.35,599.53"/>
+<polyline class="uml-arr" points="842.51,599.53 839.91,604.73 837.31,599.53"/>
+<polyline class="uml-arr" points="892.41,654.69 889.81,659.89 887.21,654.69"/>
+<polyline class="uml-arr" points="792.40,645.59 789.8,650.79 787.20,645.59"/>
+<polyline class="uml-arr" points="964.14,717.32 961.54,722.52 958.94,717.32"/>
+<polyline class="uml-arr" points="984.95,648.02 982.35,653.22 979.75,648.02"/>
+<polyline class="uml-arr" points="706.09,750.38 700.89,747.78 706.09,745.18"/>
+<polygon class="uml-tri" points="1208.65,674.03 1212.25,667.53 1205.05,667.53"/>
+<polyline class="uml-arr" points="1106.18,789.25 1103.58,794.45 1100.98,789.25"/>
+<polyline class="uml-arr" points="1203.17,668.83 1200.57,674.03 1197.97,668.83"/>
+<polyline class="uml-arr" points="1229.41,704.92 1224.21,702.32 1229.41,699.72"/>
+<polyline class="uml-arr" points="943.10,846.35 937.9,843.75 943.10,841.15"/>
+<polyline class="uml-arr" points="1274.47,646.32 1269.27,643.72 1274.47,641.12"/>
+<polyline class="uml-arr" points="254.39,421.61 256.99,416.41 259.59,421.61"/>
+<polyline class="uml-arr" points="262.62,397.07 260.02,402.27 257.42,397.07"/>
+<polyline class="uml-arr" points="367.77,296.60 372.96,299.22 367.75,301.80"/>
+<polyline class="uml-arr" points="367.75,286.14 372.96,288.72 367.77,291.34"/>
+<polygon class="uml-tri" points="407.31,293.77 413.76,297.45 413.86,290.25"/>
+<polygon class="uml-tri" points="361.85,358.63 368.35,362.23 368.35,355.03"/>
+<polygon class="uml-tri" points="367.71,408.13 374.21,411.73 374.21,404.53"/>
+<text class="uml-pkg-name" x="461.97" y="113.70">Controller</text>
+<text class="uml-pkg-name" x="461.97" y="253.92">Service</text>
+<text class="uml-pkg-name" x="170.00" y="272.71">Design Patterns</text>
+<text class="uml-pkg-name" x="461.97" y="591.95">model</text>
+<g class="uml-cls"><rect class="uml-box" x="787.37" y="287.5" width="61.424" height="13.74"/>
+<line class="uml-sep" x1="787.37" y1="293.97" x2="848.79" y2="293.97"/>
+<g clip-path="url(#uml-k0)"><text class="uml-st" x="818.08" y="290.13">«Interface»</text><text class="uml-nm" x="818.08" y="293.26">AutenticazioneService</text><text class="uml-mb" x="788.38" y="296.39">registraUtente(RegisterRequestDTO): AuthResponseDTO</text><text class="uml-mb" x="788.38" y="299.43">loginUtente(LoginRequestDTO): AuthResponseDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="787.37" y="380.25" width="61.424" height="21.215"/>
+<line class="uml-sep" x1="787.37" y1="383.68" x2="848.79" y2="383.68"/>
+<line class="uml-sep" x1="787.37" y1="390.35" x2="848.79" y2="390.35"/>
+<g clip-path="url(#uml-k1)"><text class="uml-nm" x="818.08" y="382.97">AutenticazioneServiceImpl</text><text class="uml-mb" x="788.38" y="386.11">utenteFactory: UtenteFactory</text><text class="uml-mb" x="788.38" y="389.14">utenteRepository: UtenteRepository</text><text class="uml-mb" x="788.38" y="392.77">AutenticazioneServiceImpl()</text><text class="uml-mb" x="788.38" y="395.80">registraUtente(RegisterRequestDTO): AuthResponseDTO</text><text class="uml-mb" x="788.38" y="398.84">loginUtente(LoginRequestDTO): AuthResponseDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1160.36" y="292.56" width="60.212" height="27.075"/>
+<line class="uml-sep" x1="1160.36" y1="299.02" x2="1220.57" y2="299.02"/>
+<g clip-path="url(#uml-k2)"><text class="uml-st" x="1190.47" y="295.18">«Interface»</text><text class="uml-nm" x="1190.47" y="298.31">EventoService</text><text class="uml-mb" x="1161.37" y="301.45">getEventoById(Long): EventoDTO</text><text class="uml-mb" x="1161.37" y="304.48">getEventiByAnimatore(Long): List&lt;EventoDTO&gt;</text><text class="uml-mb" x="1161.37" y="307.51">creaEvento(EventoRequestDTO, Long): EventoDTO</text><text class="uml-mb" x="1161.37" y="310.54">annullaEvento(Long): void</text><text class="uml-mb" x="1161.37" y="313.57">partecipaEvento(Long, Long): void</text><text class="uml-mb" x="1161.37" y="316.60">aggiornaEvento(Long, EventoRequestDTO): EventoDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1163.79" y="380.45" width="60.212" height="36.369"/>
+<line class="uml-sep" x1="1163.79" y1="383.68" x2="1224.00" y2="383.68"/>
+<line class="uml-sep" x1="1163.79" y1="387.32" x2="1224.00" y2="387.32"/>
+<g clip-path="url(#uml-k3)"><text class="uml-nm" x="1193.90" y="383.18">EventoServiceImpl</text><text class="uml-mb" x="1164.80" y="386.11">eventoRepository: EventoRepository</text><text class="uml-mb" x="1164.80" y="389.74">EventoServiceImpl()</text><text class="uml-mb" x="1164.80" y="392.77">aggiornaEvento(Long, EventoRequestDTO): EventoDTO</text><text class="uml-mb" x="1164.80" y="395.80">creaEvento(EventoRequestDTO, Long): EventoDTO</text><text class="uml-mb" x="1164.80" y="398.84">convertToDTO(Evento): EventoDTO</text><text class="uml-mb" x="1164.80" y="401.87">annullaEvento(Long): void</text><text class="uml-mb" x="1164.80" y="404.90">partecipaEvento(Long, Long): void</text><text class="uml-mb" x="1164.80" y="407.93">getEventiByAnimatore(Long): List&lt;EventoDTO&gt;</text><text class="uml-mb" x="1164.80" y="410.96">findEventoById(Long): Evento</text><text class="uml-mb" x="1164.80" y="413.99">getEventoById(Long): EventoDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="478.23" y="288.51" width="68.9" height="20.205"/>
+<line class="uml-sep" x1="478.23" y1="294.98" x2="547.13" y2="294.98"/>
+<g clip-path="url(#uml-k4)"><text class="uml-st" x="512.68" y="291.14">«Interface»</text><text class="uml-nm" x="512.68" y="294.27">MarketplaceService</text><text class="uml-mb" x="479.24" y="297.40">aggiungiAlCarrello(AggiungiAlCarrelloRequestDTO): CarrelloDTO</text><text class="uml-mb" x="479.24" y="300.44">rimuoviDalCarrello(Long): CarrelloDTO</text><text class="uml-mb" x="479.24" y="303.47">checkout(CheckoutRequestDTO): OrdineDTO</text><text class="uml-mb" x="479.24" y="306.50">getDettaglioOrdine(Long): OrdineDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="478.23" y="380.45" width="68.9" height="54.554"/>
+<line class="uml-sep" x1="478.23" y1="383.68" x2="547.13" y2="383.68"/>
+<line class="uml-sep" x1="478.23" y1="411.56" x2="547.13" y2="411.56"/>
+<g clip-path="url(#uml-k5)"><text class="uml-nm" x="512.68" y="383.18">MarketplaceServiceImpl</text><text class="uml-mb" x="479.24" y="386.11">carrelloRepository: CarrelloRepository</text><text class="uml-mb" x="479.24" y="389.14">ordineMapper: OrdineMapper</text><text class="uml-mb" x="479.24" y="392.17">pagamentoService: PagamentoService</text><text class="uml-mb" x="479.24" y="395.20">prodottoRepository: ProdottoRepository</text><text class="uml-mb" x="479.24" y="398.23">utenteRepository: UtenteRepository</text><text class="uml-mb" x="479.24" y="401.26">ordineRepository: OrdineRepository</text><text class="uml-mb" x="479.24" y="404.29">pagamentoRepository: PagamentoRepository</text><text class="uml-mb" x="479.24" y="407.32">carrelloMapper: CarrelloMapper</text><text class="uml-mb" x="479.24" y="410.35">elementoCarrelloRepository: ElementoCarrelloRepository</text><text class="uml-mb" x="479.24" y="413.99">MarketplaceServiceImpl()</text><text class="uml-mb" x="479.24" y="417.02">findProdottoById(Long): Prodotto</text><text class="uml-mb" x="479.24" y="420.05">getOrCreateCarrello(Acquirente): Carrello</text><text class="uml-mb" x="479.24" y="423.08">aggiungiAlCarrello(AggiungiAlCarrelloRequestDTO): CarrelloDTO</text><text class="uml-mb" x="479.24" y="426.11">getDettaglioOrdine(Long): OrdineDTO</text><text class="uml-mb" x="479.24" y="429.14">rimuoviDalCarrello(Long): CarrelloDTO</text><text class="uml-mb" x="479.24" y="432.17">checkout(CheckoutRequestDTO): OrdineDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="577.84" y="288.51" width="66.071" height="17.174"/>
+<line class="uml-sep" x1="577.84" y1="294.98" x2="643.91" y2="294.98"/>
+<g clip-path="url(#uml-k6)"><text class="uml-st" x="610.88" y="291.14">«Interface»</text><text class="uml-nm" x="610.88" y="294.27">ModerazioneService</text><text class="uml-mb" x="578.85" y="297.40">approvaProdotto(Long): ProdottoDTO</text><text class="uml-mb" x="578.85" y="300.44">rifiutaProdotto(Long, ModerazioneRequestDTO): ProdottoDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="573.8" y="380.45" width="66.071" height="36.369"/>
+<line class="uml-sep" x1="573.8" y1="383.68" x2="639.87" y2="383.68"/>
+<line class="uml-sep" x1="573.8" y1="393.38" x2="639.87" y2="393.38"/>
+<g clip-path="url(#uml-k7)"><text class="uml-nm" x="606.84" y="383.18">ModerazioneServiceImpl</text><text class="uml-mb" x="574.81" y="386.11">prodottoRepository: ProdottoRepository</text><text class="uml-mb" x="574.81" y="389.14">prodottoMapper: ProdottoMapper</text><text class="uml-mb" x="574.81" y="392.17">observers: List&lt;ModerationObserver&gt;</text><text class="uml-mb" x="574.81" y="395.80">ModerazioneServiceImpl()</text><text class="uml-mb" x="574.81" y="398.84">removeObserver(ModerationObserver): void</text><text class="uml-mb" x="574.81" y="401.87">approvaProdotto(Long): ProdottoDTO</text><text class="uml-mb" x="574.81" y="404.90">notifyObservers(Prodotto, String): void</text><text class="uml-mb" x="574.81" y="407.93">addObserver(ModerationObserver): void</text><text class="uml-mb" x="574.81" y="410.96">rifiutaProdotto(Long, ModerazioneRequestDTO): ProdottoDTO</text><text class="uml-mb" x="574.81" y="413.99">findProdottoById(Long): Prodotto</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1056.1" y="292.56" width="70.314" height="22.428"/>
+<line class="uml-sep" x1="1056.1" y1="299.02" x2="1126.41" y2="299.02"/>
+<g clip-path="url(#uml-k8)"><text class="uml-st" x="1091.26" y="295.18">«Interface»</text><text class="uml-nm" x="1091.26" y="298.31">PaccoProdottoService</text><text class="uml-mb" x="1057.11" y="301.45">getPacchettiByDistributore(Long): List&lt;PaccoProdottoDTO&gt;</text><text class="uml-mb" x="1057.11" y="304.48">getPaccoById(Long): PaccoProdottoDTO</text><text class="uml-mb" x="1057.11" y="307.51">deletePacco(Long): void</text><text class="uml-mb" x="1057.11" y="310.54">creaPacco(PaccoProdottoRequestDTO, Long): PaccoProdottoDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1056.1" y="380.45" width="70.314" height="39.4"/>
+<line class="uml-sep" x1="1056.1" y1="383.68" x2="1126.41" y2="383.68"/>
+<line class="uml-sep" x1="1056.1" y1="396.41" x2="1126.41" y2="396.41"/>
+<g clip-path="url(#uml-k9)"><text class="uml-nm" x="1091.26" y="383.18">PaccoProdottoServiceImpl</text><text class="uml-mb" x="1057.11" y="386.11">paccoProdottoRepository: PaccoProdottoRepository</text><text class="uml-mb" x="1057.11" y="389.14">utenteRepository: UtenteRepository</text><text class="uml-mb" x="1057.11" y="392.17">prodottoMapper: ProdottoMapper</text><text class="uml-mb" x="1057.11" y="395.20">prodottoRepository: ProdottoRepository</text><text class="uml-mb" x="1057.11" y="398.84">PaccoProdottoServiceImpl()</text><text class="uml-mb" x="1057.11" y="401.87">creaPacco(PaccoProdottoRequestDTO, Long): PaccoProdottoDTO</text><text class="uml-mb" x="1057.11" y="404.90">findPaccoById(Long): PaccoProdotto</text><text class="uml-mb" x="1057.11" y="407.93">convertToDTO(PaccoProdotto): PaccoProdottoDTO</text><text class="uml-mb" x="1057.11" y="410.96">deletePacco(Long): void</text><text class="uml-mb" x="1057.11" y="413.99">getPaccoById(Long): PaccoProdottoDTO</text><text class="uml-mb" x="1057.11" y="417.02">getPacchettiByDistributore(Long): List&lt;PaccoProdottoDTO&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="312.55" y="402.27" width="55.362" height="12.123"/>
+<line class="uml-sep" x1="312.55" y1="405.7" x2="367.91" y2="405.7"/>
+<line class="uml-sep" x1="312.55" y1="409.34" x2="367.91" y2="409.34"/>
+<g clip-path="url(#uml-k10)"><text class="uml-nm" x="340.23" y="405.00">PagamentoService</text><text class="uml-mb" x="313.56" y="408.13">strategie: Map&lt;TipoPagamento, PagamentoStrategy&gt;</text><text class="uml-mb" x="313.56" y="411.77">eseguiPagamento(Pagamento): String</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="674.83" y="288.51" width="62.838" height="25.863"/>
+<line class="uml-sep" x1="674.83" y1="294.98" x2="737.67" y2="294.98"/>
+<g clip-path="url(#uml-k11)"><text class="uml-st" x="706.25" y="291.14">«Interface»</text><text class="uml-nm" x="706.25" y="294.27">ProdottoService</text><text class="uml-mb" x="675.84" y="297.40">deleteProdotto(Long): void</text><text class="uml-mb" x="675.84" y="300.44">cercaProdottiPerNome(String): List&lt;ProdottoDTO&gt;</text><text class="uml-mb" x="675.84" y="303.47">creaProdotto(ProdottoRequestDTO, Long): ProdottoDTO</text><text class="uml-mb" x="675.84" y="306.50">getProdottiByAziendaId(Long): List&lt;ProdottoDTO&gt;</text><text class="uml-mb" x="675.84" y="309.53">updateProdotto(Long, ProdottoRequestDTO): ProdottoDTO</text><text class="uml-mb" x="675.84" y="312.56">getProdottoById(Long): ProdottoDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="675.43" y="380.45" width="62.838" height="39.4"/>
+<line class="uml-sep" x1="675.43" y1="383.68" x2="738.27" y2="383.68"/>
+<line class="uml-sep" x1="675.43" y1="390.35" x2="738.27" y2="390.35"/>
+<g clip-path="url(#uml-k12)"><text class="uml-nm" x="706.85" y="383.18">ProdottoServiceImpl</text><text class="uml-mb" x="676.44" y="386.11">utenteRepository: UtenteRepository</text><text class="uml-mb" x="676.44" y="389.14">prodottoRepository: ProdottoRepository</text><text class="uml-mb" x="676.44" y="392.77">ProdottoServiceImpl()</text><text class="uml-mb" x="676.44" y="395.80">getProdottoById(Long): ProdottoDTO</text><text class="uml-mb" x="676.44" y="398.84">cercaProdottiPerNome(String): List&lt;ProdottoDTO&gt;</text><text class="uml-mb" x="676.44" y="401.87">getProdottiByAziendaId(Long): List&lt;ProdottoDTO&gt;</text><text class="uml-mb" x="676.44" y="404.90">findProdottoById(Long): Prodotto</text><text class="uml-mb" x="676.44" y="407.93">convertToDTO(Prodotto): ProdottoDTO</text><text class="uml-mb" x="676.44" y="410.96">updateProdotto(Long, ProdottoRequestDTO): ProdottoDTO</text><text class="uml-mb" x="676.44" y="413.99">deleteProdotto(Long): void</text><text class="uml-mb" x="676.44" y="417.02">creaProdotto(ProdottoRequestDTO, Long): ProdottoDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="898.5" y="291.75" width="81.629" height="14.952"/>
+<line class="uml-sep" x1="898.5" y1="298.21" x2="980.13" y2="298.21"/>
+<g clip-path="url(#uml-k13)"><text class="uml-st" x="939.31" y="294.37">«Interface»</text><text class="uml-nm" x="939.31" y="297.51">TracciabilitaService</text><text class="uml-mb" x="899.51" y="300.64">aggiungiPassoFiliera(Long, Long, PassoFilieraRequestDTO): TracciabilitaDTO</text><text class="uml-mb" x="899.51" y="303.67">getTracciabilitaByProdotto(Long): TracciabilitaDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="903.15" y="380.45" width="81.629" height="36.369"/>
+<line class="uml-sep" x1="903.15" y1="383.68" x2="984.78" y2="383.68"/>
+<line class="uml-sep" x1="903.15" y1="396.41" x2="984.78" y2="396.41"/>
+<g clip-path="url(#uml-k14)"><text class="uml-nm" x="943.96" y="383.18">TracciabilitaServiceImpl</text><text class="uml-mb" x="904.16" y="386.11">tracciabilitaRepository: TracciabilitaProdottoRepository</text><text class="uml-mb" x="904.16" y="389.14">utenteRepository: UtenteRepository</text><text class="uml-mb" x="904.16" y="392.17">prodottoRepository: ProdottoRepository</text><text class="uml-mb" x="904.16" y="395.20">passoFilieraRepository: PassoFilieraRepository</text><text class="uml-mb" x="904.16" y="398.84">TracciabilitaServiceImpl()</text><text class="uml-mb" x="904.16" y="401.87">convertPassoToDTO(PassoFiliera): PassoFilieraDTO</text><text class="uml-mb" x="904.16" y="404.90">convertToDTO(TracciabilitaProdotto): TracciabilitaDTO</text><text class="uml-mb" x="904.16" y="407.93">findOrCreateTracciabilita(Long): TracciabilitaProdotto</text><text class="uml-mb" x="904.16" y="410.96">aggiungiPassoFiliera(Long, Long, PassoFilieraRequestDTO): TracciabilitaDTO</text><text class="uml-mb" x="904.16" y="413.99">getTracciabilitaByProdotto(Long): TracciabilitaDTO</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="544.71" y="764.55" width="36.369" height="16.164"/>
+<line class="uml-sep" x1="544.71" y1="767.98" x2="581.08" y2="767.98"/>
+<line class="uml-sep" x1="544.71" y1="771.62" x2="581.08" y2="771.62"/>
+<g clip-path="url(#uml-k15)"><text class="uml-nm" x="562.89" y="767.28">Acquirente</text><text class="uml-mb" x="545.72" y="770.41">ordini: List&lt;Ordine&gt;</text><text class="uml-mb" x="545.72" y="774.05">Acquirente(String, String, String)</text><text class="uml-mb" x="545.72" y="777.08">Acquirente()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="688.37" y="653.82" width="34.349" height="12.123"/>
+<line class="uml-sep" x1="688.37" y1="657.26" x2="722.72" y2="657.26"/>
+<g clip-path="url(#uml-k16)"><text class="uml-nm" x="705.54" y="656.55">Curatore</text><text class="uml-mb" x="689.38" y="659.68">Curatore()</text><text class="uml-mb" x="689.38" y="662.72">Curatore(String, String, String)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1086.61" y="794.45" width="35.763" height="16.164"/>
+<line class="uml-sep" x1="1086.61" y1="797.69" x2="1122.37" y2="797.69"/>
+<line class="uml-sep" x1="1086.61" y1="801.32" x2="1122.37" y2="801.32"/>
+<g clip-path="url(#uml-k17)"><text class="uml-nm" x="1104.49" y="797.18">Animatore</text><text class="uml-mb" x="1087.62" y="800.11">eventiCreati: List&lt;Evento&gt;</text><text class="uml-mb" x="1087.62" y="803.75">Animatore()</text><text class="uml-mb" x="1087.62" y="806.78">Animatore(String, String, String)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="503.08" y="843.35" width="43.845" height="25.257"/>
+<line class="uml-sep" x1="503.08" y1="846.78" x2="546.92" y2="846.78"/>
+<line class="uml-sep" x1="503.08" y1="859.51" x2="546.92" y2="859.51"/>
+<g clip-path="url(#uml-k18)"><text class="uml-nm" x="525.00" y="846.08">ElementoCarrello</text><text class="uml-mb" x="504.09" y="849.21">id: Long</text><text class="uml-mb" x="504.09" y="852.24">quantita: int</text><text class="uml-mb" x="504.09" y="855.27">carrello: Carrello</text><text class="uml-mb" x="504.09" y="858.30">prodotto: Prodotto</text><text class="uml-mb" x="504.09" y="861.94">ElementoCarrello()</text><text class="uml-mb" x="504.09" y="864.97">ElementoCarrello(Carrello, Prodotto, int)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="825.76" y="775.06" width="65.061" height="12.123"/>
+<line class="uml-sep" x1="825.76" y1="778.49" x2="890.82" y2="778.49"/>
+<g clip-path="url(#uml-k19)"><text class="uml-nm" x="858.29" y="777.78">Distributore</text><text class="uml-mb" x="826.77" y="780.92">Distributore()</text><text class="uml-mb" x="826.77" y="783.95">Distributore(String, String, String, String, String, String, String)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="511.37" y="596.24" width="45.866" height="28.287"/>
+<line class="uml-sep" x1="511.37" y1="599.47" x2="557.24" y2="599.47"/>
+<line class="uml-sep" x1="511.37" y1="609.17" x2="557.24" y2="609.17"/>
+<g clip-path="url(#uml-k20)"><text class="uml-nm" x="534.30" y="598.97">Carrello</text><text class="uml-mb" x="512.38" y="601.90">id: Long</text><text class="uml-mb" x="512.38" y="604.93">elementi: List&lt;ElementoCarrello&gt;</text><text class="uml-mb" x="512.38" y="607.96">acquirente: Acquirente</text><text class="uml-mb" x="512.38" y="611.60">Carrello(Acquirente)</text><text class="uml-mb" x="512.38" y="614.63">Carrello()</text><text class="uml-mb" x="512.38" y="617.66">rimuoviElemento(ElementoCarrello): void</text><text class="uml-mb" x="512.38" y="620.69">aggiungiElemento(ElementoCarrello): void</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="653.01" y="595.23" width="55.564" height="31.318"/>
+<line class="uml-sep" x1="653.01" y1="598.66" x2="708.57" y2="598.66"/>
+<line class="uml-sep" x1="653.01" y1="617.46" x2="708.57" y2="617.46"/>
+<g clip-path="url(#uml-k21)"><text class="uml-nm" x="680.79" y="597.96">Pagamento</text><text class="uml-mb" x="654.02" y="601.09">id: Long</text><text class="uml-mb" x="654.02" y="604.12">importo: double</text><text class="uml-mb" x="654.02" y="607.15">esito: String</text><text class="uml-mb" x="654.02" y="610.18">dataPagamento: LocalDateTime</text><text class="uml-mb" x="654.02" y="613.21">tipoPagamento: TipoPagamento</text><text class="uml-mb" x="654.02" y="616.24">ordine: Ordine</text><text class="uml-mb" x="654.02" y="619.88">Pagamento(Ordine, double, TipoPagamento, String)</text><text class="uml-mb" x="654.02" y="622.91">Pagamento()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="876.07" y="659.89" width="62.03" height="28.287"/>
+<line class="uml-sep" x1="876.07" y1="663.32" x2="938.10" y2="663.32"/>
+<line class="uml-sep" x1="876.07" y1="679.08" x2="938.10" y2="679.08"/>
+<g clip-path="url(#uml-k22)"><text class="uml-nm" x="907.09" y="662.61">Azienda</text><text class="uml-mb" x="877.08" y="665.75">partitaIva: String</text><text class="uml-mb" x="877.08" y="668.78">nomeAzienda: String</text><text class="uml-mb" x="877.08" y="671.81">indirizzo: String</text><text class="uml-mb" x="877.08" y="674.84">prodotti: List&lt;Prodotto&gt;</text><text class="uml-mb" x="877.08" y="677.87">descrizione: String</text><text class="uml-mb" x="877.08" y="681.51">Azienda()</text><text class="uml-mb" x="877.08" y="684.54">Azienda(String, String, String, String, String, String, String)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1192.49" y="674.03" width="31.722" height="40.41"/>
+<line class="uml-sep" x1="1192.49" y1="677.26" x2="1224.21" y2="677.26"/>
+<line class="uml-sep" x1="1192.49" y1="708.18" x2="1224.21" y2="708.18"/>
+<g clip-path="url(#uml-k23)"><text class="uml-nm" x="1208.35" y="676.76">Evento</text><text class="uml-mb" x="1193.50" y="679.69">id: Long</text><text class="uml-mb" x="1193.50" y="682.72">titolo: String</text><text class="uml-mb" x="1193.50" y="685.75">descrizione: String</text><text class="uml-mb" x="1193.50" y="688.78">luogo: String</text><text class="uml-mb" x="1193.50" y="691.81">dataOraInizio: LocalDateTime</text><text class="uml-mb" x="1193.50" y="694.84">dataOraFine: LocalDateTime</text><text class="uml-mb" x="1193.50" y="697.87">stato: StatoEvento</text><text class="uml-mb" x="1193.50" y="700.90">tipo: TipoEvento</text><text class="uml-mb" x="1193.50" y="703.93">animatore: Animatore</text><text class="uml-mb" x="1193.50" y="706.96">partecipanti: Set&lt;Acquirente&gt;</text><text class="uml-mb" x="1193.50" y="710.60">Evento()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1235.52" y="638.87" width="33.743" height="12.123"/>
+<line class="uml-sep" x1="1235.52" y1="642.11" x2="1269.26" y2="642.11"/>
+<g clip-path="url(#uml-k24)"><text class="uml-nm" x="1252.39" y="641.60">Gestore</text><text class="uml-mb" x="1236.53" y="644.53">Gestore()</text><text class="uml-mb" x="1236.53" y="647.56">Gestore(String, String, String)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="977.91" y="653.42" width="34.753" height="34.349"/>
+<line class="uml-sep" x1="977.91" y1="656.86" x2="1012.66" y2="656.86"/>
+<line class="uml-sep" x1="977.91" y1="681.71" x2="1012.66" y2="681.71"/>
+<g clip-path="url(#uml-k25)"><text class="uml-nm" x="995.29" y="656.15">PassoFiliera</text><text class="uml-mb" x="978.92" y="659.28">id: Long</text><text class="uml-mb" x="978.92" y="662.31">dataOra: LocalDateTime</text><text class="uml-mb" x="978.92" y="665.34">luogo: String</text><text class="uml-mb" x="978.92" y="668.37">descrizione: String</text><text class="uml-mb" x="978.92" y="671.40">ordine: int</text><text class="uml-mb" x="978.92" y="674.43">tipoPasso: TipoPassoFiliera</text><text class="uml-mb" x="978.92" y="677.46">tracciabilita: TracciabilitaProdotto</text><text class="uml-mb" x="978.92" y="680.50">azienda: Azienda</text><text class="uml-mb" x="978.92" y="684.13">PassoFiliera()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="675.23" y="733.64" width="25.661" height="31.318"/>
+<line class="uml-sep" x1="675.23" y1="737.07" x2="700.89" y2="737.07"/>
+<line class="uml-sep" x1="675.23" y1="758.89" x2="700.89" y2="758.89"/>
+<g clip-path="url(#uml-k26)"><text class="uml-nm" x="688.06" y="736.36">PaccoProdotto</text><text class="uml-mb" x="676.24" y="739.49">id: Long</text><text class="uml-mb" x="676.24" y="742.53">nome: String</text><text class="uml-mb" x="676.24" y="745.56">descrizione: String</text><text class="uml-mb" x="676.24" y="748.59">tipoPacco: TipoPacco</text><text class="uml-mb" x="676.24" y="751.62">prezzo: double</text><text class="uml-mb" x="676.24" y="754.65">distributore: Distributore</text><text class="uml-mb" x="676.24" y="757.68">prodotti: List&lt;Prodotto&gt;</text><text class="uml-mb" x="676.24" y="761.32">PaccoProdotto()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="578.85" y="595.23" width="38.794" height="28.287"/>
+<line class="uml-sep" x1="578.85" y1="598.66" x2="617.64" y2="598.66"/>
+<line class="uml-sep" x1="578.85" y1="617.46" x2="617.64" y2="617.46"/>
+<g clip-path="url(#uml-k27)"><text class="uml-nm" x="598.25" y="597.96">Ordine</text><text class="uml-mb" x="579.86" y="601.09">id: Long</text><text class="uml-mb" x="579.86" y="604.12">stato: StatoOrdine</text><text class="uml-mb" x="579.86" y="607.15">dettagliOrdine: List&lt;DettaglioOrdine&gt;</text><text class="uml-mb" x="579.86" y="610.18">totale: double</text><text class="uml-mb" x="579.86" y="613.21">dataOrdine: LocalDateTime</text><text class="uml-mb" x="579.86" y="616.24">acquirente: Acquirente</text><text class="uml-mb" x="579.86" y="619.88">Ordine()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="890.01" y="823.14" width="47.886" height="37.38"/>
+<line class="uml-sep" x1="890.01" y1="826.58" x2="937.90" y2="826.58"/>
+<line class="uml-sep" x1="890.01" y1="851.43" x2="937.90" y2="851.43"/>
+<g clip-path="url(#uml-k28)"><text class="uml-nm" x="913.95" y="825.87">Prodotto</text><text class="uml-mb" x="891.02" y="829.00">id: Long</text><text class="uml-mb" x="891.02" y="832.03">nome: String</text><text class="uml-mb" x="891.02" y="835.07">stato: StatoProdotto</text><text class="uml-mb" x="891.02" y="838.10">descrizione: String</text><text class="uml-mb" x="891.02" y="841.13">azienda: Azienda</text><text class="uml-mb" x="891.02" y="844.16">prezzo: double</text><text class="uml-mb" x="891.02" y="847.19">quantitaDisponibile: int</text><text class="uml-mb" x="891.02" y="850.22">inCarrelli: List&lt;ElementoCarrello&gt;</text><text class="uml-mb" x="891.02" y="853.86">Prodotto()</text><text class="uml-mb" x="891.02" y="856.89">Prodotto(String, String, double, int, Azienda)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="799.09" y="604.73" width="64.051" height="12.123"/>
+<line class="uml-sep" x1="799.09" y1="608.16" x2="863.14" y2="608.16"/>
+<g clip-path="url(#uml-k29)"><text class="uml-nm" x="831.12" y="607.45">Produttore</text><text class="uml-mb" x="800.10" y="610.59">Produttore(String, String, String, String, String, String, String)</text><text class="uml-mb" x="800.10" y="613.62">Produttore()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="718.07" y="592.4" width="67.687" height="12.123"/>
+<line class="uml-sep" x1="718.07" y1="595.84" x2="785.76" y2="595.84"/>
+<g clip-path="url(#uml-k30)"><text class="uml-nm" x="751.91" y="595.13">Trasformatore</text><text class="uml-mb" x="719.08" y="598.26">Trasformatore(String, String, String, String, String, String, String)</text><text class="uml-mb" x="719.08" y="601.29">Trasformatore()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="772.42" y="650.79" width="32.328" height="28.287"/>
+<line class="uml-sep" x1="772.42" y1="654.23" x2="804.75" y2="654.23"/>
+<line class="uml-sep" x1="772.42" y1="669.99" x2="804.75" y2="669.99"/>
+<g clip-path="url(#uml-k31)"><text class="uml-nm" x="788.58" y="653.52">Utente</text><text class="uml-mb" x="773.43" y="656.65">id: Long</text><text class="uml-mb" x="773.43" y="659.68">email: String</text><text class="uml-mb" x="773.43" y="662.72">ruoloString: String</text><text class="uml-mb" x="773.43" y="665.75">password: String</text><text class="uml-mb" x="773.43" y="668.78">username: String</text><text class="uml-mb" x="773.43" y="672.41">Utente()</text><text class="uml-mb" x="773.43" y="675.44">Utente(String, String, String)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="596.03" y="816.07" width="41.017" height="26.873"/>
+<line class="uml-sep" x1="596.03" y1="819.51" x2="637.05" y2="819.51"/>
+<line class="uml-sep" x1="596.03" y1="835.27" x2="637.05" y2="835.27"/>
+<g clip-path="url(#uml-k32)"><text class="uml-nm" x="616.54" y="818.80">DettaglioOrdine</text><text class="uml-mb" x="597.04" y="821.93">id: Long</text><text class="uml-mb" x="597.04" y="824.96">quantita: int</text><text class="uml-mb" x="597.04" y="827.99">prezzoUnitario: double</text><text class="uml-mb" x="597.04" y="831.02">ordine: Ordine</text><text class="uml-mb" x="597.04" y="834.06">prodotto: Prodotto</text><text class="uml-mb" x="597.04" y="837.69">DettaglioOrdine()</text><text class="uml-mb" x="597.04" y="840.72">DettaglioOrdine(Ordine, Prodotto, int)</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="950.63" y="722.52" width="26.873" height="17.781"/>
+<line class="uml-sep" x1="950.63" y1="725.76" x2="977.50" y2="725.76"/>
+<line class="uml-sep" x1="950.63" y1="735.45" x2="977.50" y2="735.45"/>
+<g clip-path="url(#uml-k33)"><text class="uml-nm" x="964.07" y="725.25">TracciabilitaProdotto</text><text class="uml-mb" x="951.64" y="728.18">id: Long</text><text class="uml-mb" x="951.64" y="731.21">passi: List&lt;PassoFiliera&gt;</text><text class="uml-mb" x="951.64" y="734.24">prodotto: Prodotto</text><text class="uml-mb" x="951.64" y="737.88">TracciabilitaProdotto()</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1377.36" y="291.55" width="45.462" height="13.537"/>
+<line class="uml-sep" x1="1377.36" y1="298.01" x2="1422.82" y2="298.01"/>
+<g clip-path="url(#uml-k34)"><text class="uml-st" x="1400.09" y="294.17">«Interface»</text><text class="uml-nm" x="1400.09" y="297.30">GestoreService</text><text class="uml-mb" x="1378.37" y="300.44">getUtentiDaApprovare</text><text class="uml-mb" x="1378.37" y="303.47">approvaUtente</text><text class="uml-mb" x="1378.37" y="306.50">rifiutaUtente</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1377.36" y="380.45" width="45.462" height="11.113"/>
+<line class="uml-sep" x1="1377.36" y1="383.68" x2="1422.82" y2="383.68"/>
+<line class="uml-sep" x1="1377.36" y1="387.32" x2="1422.82" y2="387.32"/>
+<g clip-path="url(#uml-k35)"><text class="uml-nm" x="1400.09" y="383.18">GestoreServiceImpl</text><text class="uml-mb" x="1378.37" y="386.11">UtenteRepository</text><text class="uml-mb" x="1378.37" y="389.74">approvaUtente</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1254.72" y="140.21" width="85.266" height="11.113"/>
+<line class="uml-sep" x1="1254.72" y1="143.44" x2="1339.99" y2="143.44"/>
+<line class="uml-sep" x1="1254.72" y1="147.08" x2="1339.99" y2="147.08"/>
+<g clip-path="url(#uml-k36)"><text class="uml-nm" x="1297.35" y="142.94">SocialSharingController</text><text class="uml-mb" x="1255.73" y="145.87">SocialSharingService</text><text class="uml-mb" x="1255.73" y="149.50">getSocialData</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1369.89" y="140.81" width="53.746" height="17.174"/>
+<line class="uml-sep" x1="1369.89" y1="144.05" x2="1423.64" y2="144.05"/>
+<line class="uml-sep" x1="1369.89" y1="147.68" x2="1423.64" y2="147.68"/>
+<g clip-path="url(#uml-k37)"><text class="uml-nm" x="1396.76" y="143.54">GestoreController</text><text class="uml-mb" x="1370.90" y="146.47">GestoreService</text><text class="uml-mb" x="1370.90" y="150.11">getRichieste</text><text class="uml-mb" x="1370.90" y="153.14">approva</text><text class="uml-mb" x="1370.90" y="156.17">rifiuta</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="942.14" y="140.21" width="83.852" height="16.77"/>
+<line class="uml-sep" x1="942.14" y1="143.44" x2="1025.99" y2="143.44"/>
+<g clip-path="url(#uml-k38)"><text class="uml-nm" x="984.07" y="142.94">MappaController</text><text class="uml-mb" x="943.15" y="145.87">MappaController(AziendaRepository, TracciabilitaService)</text><text class="uml-mb" x="943.15" y="148.90">createPosizioneMappaDTO(Azienda, String, String, String): PosizioneMappaDTO</text><text class="uml-mb" x="943.15" y="151.93">convertToPosizioneMappaDTO(Azienda): PosizioneMappaDTO</text><text class="uml-mb" x="943.15" y="154.96">getPercorsoFiliera(Long): ResponseEntity&lt;List&lt;PosizioneMappaDTO&gt;&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1043.17" y="140.21" width="82.437" height="16.77"/>
+<line class="uml-sep" x1="1043.17" y1="143.44" x2="1125.61" y2="143.44"/>
+<g clip-path="url(#uml-k39)"><text class="uml-nm" x="1084.39" y="142.94">PaccoController</text><text class="uml-mb" x="1044.18" y="145.87">PaccoController()</text><text class="uml-mb" x="1044.18" y="148.90">creaPacco(PaccoProdottoRequestDTO): ResponseEntity&lt;PaccoProdottoDTO&gt;</text><text class="uml-mb" x="1044.18" y="151.93">getPacchiByDistributore(Long): ResponseEntity&lt;List&lt;PaccoProdottoDTO&gt;&gt;</text><text class="uml-mb" x="1044.18" y="154.96">getPacco(Long): ResponseEntity&lt;PaccoProdottoDTO&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="853.24" y="140.21" width="72.335" height="13.74"/>
+<line class="uml-sep" x1="853.24" y1="143.44" x2="925.58" y2="143.44"/>
+<g clip-path="url(#uml-k40)"><text class="uml-nm" x="889.41" y="142.94">TracciabilitaController</text><text class="uml-mb" x="854.25" y="145.87">TracciabilitaController()</text><text class="uml-mb" x="854.25" y="148.90">getTracciabilita(Long): ResponseEntity&lt;TracciabilitaDTO&gt;</text><text class="uml-mb" x="854.25" y="151.93">aggiungiPasso(Long, PassoFilieraRequestDTO): ResponseEntity&lt;?&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="462.67" y="140.21" width="87.084" height="16.77"/>
+<line class="uml-sep" x1="462.67" y1="143.44" x2="549.75" y2="143.44"/>
+<g clip-path="url(#uml-k41)"><text class="uml-nm" x="506.21" y="142.94">MarketplaceController</text><text class="uml-mb" x="463.68" y="145.87">MarketplaceController()</text><text class="uml-mb" x="463.68" y="148.90">aggiungiAlCarrello(AggiungiAlCarrelloRequestDTO): ResponseEntity&lt;CarrelloDTO&gt;</text><text class="uml-mb" x="463.68" y="151.93">rimuoviDalCarrello(Long): ResponseEntity&lt;CarrelloDTO&gt;</text><text class="uml-mb" x="463.68" y="154.96">checkout(CheckoutRequestDTO): ResponseEntity&lt;OrdineDTO&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="666.14" y="140.21" width="72.335" height="19.801"/>
+<line class="uml-sep" x1="666.14" y1="143.44" x2="738.48" y2="143.44"/>
+<g clip-path="url(#uml-k42)"><text class="uml-nm" x="702.31" y="142.94">ProdottoController</text><text class="uml-mb" x="667.15" y="145.87">ProdottoController()</text><text class="uml-mb" x="667.15" y="148.90">getProdotto(Long): ResponseEntity&lt;ProdottoDTO&gt;</text><text class="uml-mb" x="667.15" y="151.93">creaProdotto(ProdottoRequestDTO): ResponseEntity&lt;ProdottoDTO&gt;</text><text class="uml-mb" x="667.15" y="154.96">cercaProdotti(String): ResponseEntity&lt;List&lt;ProdottoDTO&gt;&gt;</text><text class="uml-mb" x="667.15" y="157.99">eliminaProdotto(Long): ResponseEntity&lt;Void&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="569.76" y="140.81" width="84.054" height="13.74"/>
+<line class="uml-sep" x1="569.76" y1="144.05" x2="653.81" y2="144.05"/>
+<g clip-path="url(#uml-k43)"><text class="uml-nm" x="611.79" y="143.54">ModerazioneController</text><text class="uml-mb" x="570.77" y="146.47">ModerazioneController()</text><text class="uml-mb" x="570.77" y="149.50">rifiutaProdotto(Long, ModerazioneRequestDTO): ResponseEntity&lt;ProdottoDTO&gt;</text><text class="uml-mb" x="570.77" y="152.53">approvaProdotto(Long): ResponseEntity&lt;ProdottoDTO&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1156.32" y="140.21" width="67.89" height="16.77"/>
+<line class="uml-sep" x1="1156.32" y1="143.44" x2="1224.21" y2="143.44"/>
+<g clip-path="url(#uml-k44)"><text class="uml-nm" x="1190.26" y="142.94">EventoController</text><text class="uml-mb" x="1157.33" y="145.87">EventoController()</text><text class="uml-mb" x="1157.33" y="148.90">partecipaEvento(Long): ResponseEntity&lt;Void&gt;</text><text class="uml-mb" x="1157.33" y="151.93">annullaEvento(Long): ResponseEntity&lt;Void&gt;</text><text class="uml-mb" x="1157.33" y="154.96">creaEvento(EventoRequestDTO): ResponseEntity&lt;EventoDTO&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="764.14" y="140.21" width="72.941" height="13.74"/>
+<line class="uml-sep" x1="764.14" y1="143.64" x2="837.08" y2="143.64"/>
+<g clip-path="url(#uml-k45)"><text class="uml-nm" x="800.61" y="142.94">AuthController</text><text class="uml-mb" x="765.15" y="146.07">AuthController()</text><text class="uml-mb" x="765.15" y="149.10">register(RegisterRequestDTO): ResponseEntity&lt;AuthResponseDTO&gt;</text><text class="uml-mb" x="765.15" y="152.13">login(LoginRequestDTO): ResponseEntity&lt;AuthResponseDTO&gt;</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1276.94" y="291.75" width="56.17" height="11.315"/>
+<line class="uml-sep" x1="1276.94" y1="298.21" x2="1333.11" y2="298.21"/>
+<g clip-path="url(#uml-k46)"><text class="uml-st" x="1305.03" y="294.37">«Interface»</text><text class="uml-nm" x="1305.03" y="297.51">SocialSharingService</text><text class="uml-mb" x="1277.95" y="300.64">getShareData</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="1276.94" y="380.45" width="56.373" height="29.5"/>
+<line class="uml-sep" x1="1276.94" y1="383.68" x2="1333.31" y2="383.68"/>
+<line class="uml-sep" x1="1276.94" y1="396.41" x2="1333.31" y2="396.41"/>
+<g clip-path="url(#uml-k47)"><text class="uml-nm" x="1305.13" y="383.18">SocialSharingServiceImpl</text><text class="uml-mb" x="1277.95" y="386.11">prodottoRepository</text><text class="uml-mb" x="1277.95" y="389.14">eventoRepository</text><text class="uml-mb" x="1277.95" y="392.17">aziendaRepository</text><text class="uml-mb" x="1277.95" y="395.20">BASE_URL_FRONTEND</text><text class="uml-mb" x="1277.95" y="398.84">getShareData</text><text class="uml-mb" x="1277.95" y="401.87">generaPerProdotto</text><text class="uml-mb" x="1277.95" y="404.90">generaPerEvento</text><text class="uml-mb" x="1277.95" y="407.93">generaPerAzienda</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="315.58" y="476.02" width="52.534" height="20.205"/>
+<line class="uml-sep" x1="315.58" y1="479.45" x2="368.11" y2="479.45"/>
+<g clip-path="url(#uml-k48)"><text class="uml-nm" x="341.85" y="478.75">UtenteFactory</text><text class="uml-mb" x="316.59" y="481.88">UtenteFactory()</text><text class="uml-mb" x="316.59" y="484.91">creaUtente(RegisterRequestDTO, String): Utente</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="293.35" y="314.38" width="34.349" height="12.931"/>
+<line class="uml-sep" x1="293.35" y1="317.81" x2="327.70" y2="317.81"/>
+<g clip-path="url(#uml-k49)"><text class="uml-nm" x="310.52" y="317.10">LoggingObserver</text><text class="uml-mb" x="294.36" y="320.24">LoggingObserver()</text><text class="uml-mb" x="294.36" y="323.27">update(Prodotto, String): void</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="373.16" y="286.09" width="34.349" height="16.164"/>
+<line class="uml-sep" x1="373.16" y1="292.56" x2="407.51" y2="292.56"/>
+<g clip-path="url(#uml-k50)"><text class="uml-st" x="390.33" y="288.72">«Interface»</text><text class="uml-nm" x="390.33" y="291.85">ModerationObserver</text><text class="uml-mb" x="374.17" y="294.98">update(Prodotto, String): void</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="293.35" y="271.95" width="34.349" height="8.284"/>
+<line class="uml-sep" x1="293.35" y1="275.38" x2="327.70" y2="275.38"/>
+<g clip-path="url(#uml-k51)"><text class="uml-nm" x="310.52" y="274.67">EmailNotificationObserver</text><text class="uml-mb" x="294.36" y="277.81">update(Prodotto, String): void</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="312.55" y="352.77" width="49.503" height="19.195"/>
+<line class="uml-sep" x1="312.55" y1="359.23" x2="362.05" y2="359.23"/>
+<g clip-path="url(#uml-k52)"><text class="uml-st" x="337.30" y="355.39">«Interface»</text><text class="uml-nm" x="337.30" y="358.53">ModerationSubject</text><text class="uml-mb" x="313.56" y="361.66">addObserver(ModerationObserver): void</text><text class="uml-mb" x="313.56" y="364.69">removeObserver(ModerationObserver): void</text><text class="uml-mb" x="313.56" y="367.72">notifyObservers(Prodotto, String): void</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="246.88" y="402.27" width="53.746" height="14.144"/>
+<line class="uml-sep" x1="246.88" y1="408.74" x2="300.63" y2="408.74"/>
+<g clip-path="url(#uml-k53)"><text class="uml-st" x="273.75" y="404.90">«Interface»</text><text class="uml-nm" x="273.75" y="408.03">PagamentoStrategy</text><text class="uml-mb" x="247.89" y="411.16">processPagamento</text><text class="uml-mb" x="247.89" y="414.19">getTipoPagamento</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="190.31" y="371.96" width="54.958" height="10.709"/>
+<line class="uml-sep" x1="190.31" y1="375.4" x2="245.27" y2="375.4"/>
+<g clip-path="url(#uml-k54)"><text class="uml-nm" x="217.79" y="374.69">PayPalStrategy</text><text class="uml-mb" x="191.32" y="377.82">processaPagamento</text><text class="uml-mb" x="191.32" y="380.85">getTipoPagamento</text></g></g>
+<g class="uml-cls"><rect class="uml-box" x="189.3" y="440.66" width="56.373" height="10.709"/>
+<line class="uml-sep" x1="189.3" y1="444.09" x2="245.67" y2="444.09"/>
+<g clip-path="url(#uml-k55)"><text class="uml-nm" x="217.49" y="443.39">CartaCreditoStrategy</text><text class="uml-mb" x="190.31" y="446.52">processaPagamento</text><text class="uml-mb" x="190.31" y="449.55">getTipoPagamento</text></g></g>
+<text class="uml-end" x="547.57" y="631.24" text-anchor="middle">1</text>
+<text class="uml-end" x="553.97" y="759.26" text-anchor="middle">1</text>
+<text class="uml-verb" x="552.77" y="695.35">gestire</text>
+<text class="uml-end" x="515.04" y="630.83" text-anchor="middle">1</text>
+<text class="uml-end" x="521.44" y="838.06" text-anchor="middle">*</text>
+<text class="uml-verb" x="520.24" y="734.55">comporre</text>
+<text class="uml-end" x="1200.60" y="720.95" text-anchor="middle">1</text>
+<text class="uml-end" x="1128.37" y="806.45" text-anchor="middle">1</text>
+<text class="uml-verb" x="1205.80" y="759.20">creare</text>
+<text class="uml-end" x="1213.53" y="720.95" text-anchor="middle">*</text>
+<text class="uml-end" x="563.53" y="787.63" text-anchor="middle">*</text>
+<text class="uml-verb" x="891.73" y="866.20" text-anchor="middle">partecipare</text>
+<text class="uml-end" x="971.91" y="669.52" text-anchor="middle">*</text>
+<text class="uml-end" x="944.10" y="675.92" text-anchor="middle">1</text>
+<text class="uml-verb uml-thread" x="958.00" y="670.41" text-anchor="middle">specificare</text>
+<text class="uml-end" x="707.50" y="760.78" text-anchor="middle">1</text>
+<text class="uml-end" x="843.11" y="769.77" text-anchor="middle">1</text>
+<text class="uml-verb" x="770.70" y="755.27" text-anchor="middle">creare</text>
+<text class="uml-end" x="569.32" y="759.06" text-anchor="middle">1</text>
+<text class="uml-end" x="587.78" y="630.23" text-anchor="middle">*</text>
+<text class="uml-verb" x="568.12" y="724.34">eseguire</text>
+<text class="uml-end" x="647.01" y="606.88" text-anchor="middle">1</text>
+<text class="uml-end" x="623.85" y="613.28" text-anchor="middle">1</text>
+<text class="uml-verb" x="635.43" y="607.77" text-anchor="middle">generare</text>
+<text class="uml-end" x="911.40" y="817.85" text-anchor="middle">1</text>
+<text class="uml-end" x="905.00" y="694.48" text-anchor="middle">1</text>
+<text class="uml-end" x="905.00" y="694.48" text-anchor="middle">1</text>
+<text class="uml-end" x="911.40" y="817.85" text-anchor="middle">*</text>
+<text class="uml-end" x="553.54" y="857.36" text-anchor="middle">1</text>
+<text class="uml-end" x="884.01" y="850.96" text-anchor="middle">1</text>
+<text class="uml-verb" x="718.78" y="851.85" text-anchor="middle">contenere</text>
+<text class="uml-end" x="693.25" y="771.66" text-anchor="middle">1</text>
+<text class="uml-end" x="900.69" y="818.26" text-anchor="middle">*</text>
+<text class="uml-verb" x="796.97" y="808.82" text-anchor="middle">comporre</text>
+<text class="uml-end" x="643.04" y="833.32" text-anchor="middle">1</text>
+<text class="uml-end" x="883.81" y="826.92" text-anchor="middle">1</text>
+<text class="uml-verb" x="763.43" y="827.81" text-anchor="middle">possedere</text>
+<text class="uml-end" x="601.92" y="630.02" text-anchor="middle">1</text>
+<text class="uml-end" x="608.32" y="810.78" text-anchor="middle">*</text>
+<text class="uml-verb" x="607.12" y="720.50">possedere</text>
+<text class="uml-end" x="983.50" y="735.12" text-anchor="middle">1</text>
+<text class="uml-end" x="999.36" y="694.68" text-anchor="middle">*</text>
+<text class="uml-verb uml-thread" x="1004.56" y="710.40">eseguire</text>
+<text class="uml-end" x="943.70" y="837.36" text-anchor="middle">1</text>
+<text class="uml-end" x="958.14" y="747.22" text-anchor="middle">1</text>
+<text class="uml-verb uml-thread" x="963.34" y="787.79">dettagliare</text>
+<text class="uml-verb" x="543.88" y="516.43">gestisce</text>
+<text class="uml-verb" x="507.91" y="491.98">ordine</text>
+<text class="uml-verb" x="629.75" y="525.32">pagamento</text>
+<text class="uml-verb" x="730.70" y="554.43" text-anchor="middle">cambia stato</text>
+<text class="uml-verb" x="767.67" y="537.06" text-anchor="middle">gestisce</text>
+<text class="uml-verb" x="806.26" y="514.83" text-anchor="middle">associa</text>
+<text class="uml-verb" x="791.80" y="526.94">usa</text>
+<text class="uml-verb" x="963.54" y="570.48">gestisce</text>
+<text class="uml-verb" x="984.35" y="535.83">crea</text>
+<text class="uml-verb" x="894.66" y="746.18" text-anchor="middle">usa</text>
+<text class="uml-verb" x="1176.30" y="545.83">usa</text>
+<text class="uml-verb" x="1184.38" y="484.71">usa</text>
+<text class="uml-verb" x="1298.54" y="556.94">legge</text>
+<text class="uml-verb" x="1315.72" y="627.66">legge</text>
+<text class="uml-verb" x="557.13" y="668.59" text-anchor="middle">creare</text>
+</g>
+
+</svg>

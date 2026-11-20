@@ -1,0 +1,4 @@
+{
+  "prompt": "ORIGIN (pre-existing raster, not generated): frame of the live public site https://sersan.io/, taken 2026-10-09T09:05:22.232Z with Playwright (Chrome 155.0.8059.39, channel chrome, headless, --enable-unsafe-webgpu) on a hardware WebGPU adapter (amd rdna-3, fallback refused), viewport 1600x1000 @ DPR 2, 24252 ms after navigation, scrollY 0; the SerSan mark, the wordmark and the raymarched black hole under them, the home hero at rest after the intro (HomeSingularity). Cropped 1:1 at source pixels left 720, top 40, 1920x1920; nothing drawn or altered. By scripts/media/sersan-scenes.mjs (raw frame rest-024252ms.png). Site and scene designed and built by Alberto Tuveri for SerSan (sersan.io); used as evidence of his own work. Encoded to WebP q86 effort 6 with sharp 0.34.5 (800x800). Full record: public/captures/PROVENANCE.md",
+  "createdAt": "2026-10-09T11:26:46.017Z"
+}

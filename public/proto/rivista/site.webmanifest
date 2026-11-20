@@ -1,0 +1,14 @@
+{
+  "name": "Alberto Tuveri — Software & AI Engineer, Creative Lead",
+  "short_name": "Alberto Tuveri",
+  "start_url": "./",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#0c0e14",
+  "theme_color": "#0c0e14",
+  "icons": [
+    { "src": "icons/icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "icons/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

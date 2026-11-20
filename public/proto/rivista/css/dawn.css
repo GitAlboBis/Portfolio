@@ -1,0 +1,61 @@
+/* ==========================================================================
+   css/dawn.css · the morning (spec 50 §1, §4): every page ends at a straight edge where the night becomes morning,
+   a white ground, the same points as ink (the stage's), and the address to write to. Contact is the morning whole.
+   Inside the morning the night's tokens are remapped, so every component reads unchanged.
+   ========================================================================== */
+.dawn, html[data-ground="dawn"] main, .legal-page {
+  --ink: var(--dawn-ink);
+  --body: var(--dawn-body);
+  --mute: var(--dawn-mute);
+  --line: var(--dawn-line);
+  --accent: var(--cobalt);
+  color: var(--dawn-body);
+  background: var(--dawn);
+}
+.dawn .btn, html[data-ground="dawn"] main .btn { color: var(--dawn); }
+.dawn .btn:hover, html[data-ground="dawn"] main .btn:hover { background: var(--dawn-ink); color: var(--dawn); }
+
+/* the close of every page */
+.dawn {
+  position: relative;
+  min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: clamp(var(--s6), 14vh, var(--s8)) var(--gut) var(--s4);
+}
+.dawn-view { position: absolute; inset: 0; pointer-events: none; }
+/* the words sit in the middle of the morning, not under its edge: the last frame of every page is a balanced white
+   ground (integrate: at the end of a page the address hung at the top over 60 % of empty white) */
+.dawn-in { position: relative; margin-block: auto; }
+.dawn-h { font-size: clamp(4.5rem, 15vw, 17rem); white-space: nowrap; }
+.dawn-mail, .ct-mail { margin-top: var(--s5); }
+.dawn-mail a, .ct-mail a {
+  font: 500 clamp(1.5rem, 3.6vw, 3.25rem)/1.1 var(--f-text);
+  color: var(--cobalt);
+  overflow-wrap: anywhere;
+  text-decoration: underline 1px transparent;
+  text-underline-offset: 0.18em;
+}
+.dawn-mail a:hover, .ct-mail a:hover { text-decoration-color: currentColor; }
+.dawn-act, .ct-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s5); margin-top: var(--s4); }
+
+/* the legal line */
+.legal {
+  position: relative;
+  display: grid; gap: var(--s2) var(--s5);
+  margin-top: var(--s7);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line);
+}
+.legal-line { font: 400 var(--t-small)/1.5 var(--f-text); color: var(--body); max-width: 44em; }
+@media (min-width: 1024px) { .legal { grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; } }
+.legal-page { margin-top: 0; padding: var(--s4) var(--gut) var(--s5); border-top: 1px solid var(--dawn-line); }
+
+/* Contact, the dawn page */
+.ct-in {
+  min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: calc(var(--hdr) + var(--s6)) var(--gut) clamp(var(--s6), 10vh, var(--s7));
+}
+.ct-h { margin-left: -0.03em; }
+.ct-line { margin-top: var(--s4); }
+@media (max-width: 1023.98px) { .ct-h { white-space: normal; } }

@@ -1,0 +1,255 @@
+/* ==========================================================================
+   css/type.css · the type, set like film titles (spec 50 §2), the two kinds of link, the rule rows, the motion of the
+   page: the focus verb, titles that rise from behind a straight mask, rows in stagger
+   Display: Sofia Sans Extra Condensed 800, capitals, line-height 0.86, tracking 0. Text: Sofia Sans 400/500.
+   Labels: Sofia Sans Condensed 600, capitals, tracking 0.06em (round 10: 16 px on a desktop, 15 px on a phone).
+   Every number tabular.
+   ========================================================================== */
+.t-mega, .t-d1, .t-d2 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: 0;
+  color: var(--ink);
+  font-kerning: normal;
+  font-synthesis: none;
+}
+.t-mega { font-size: var(--t-mega); white-space: nowrap; }
+.t-d1 { font-size: var(--t-d1); text-wrap: balance; }
+.t-d2 { font-size: var(--t-d2); line-height: 0.9; text-wrap: balance; }
+.t-lead {
+  font: 400 var(--t-lead)/1.38 var(--f-text);
+  color: var(--ink);
+  max-width: 32em;
+  text-wrap: pretty;
+}
+.t-body { font: 400 var(--t-body)/1.55 var(--f-text); color: var(--body); max-width: 36em; text-wrap: pretty; }
+.t-label {
+  font: 600 var(--t-label)/1.35 var(--f-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.t-ink { color: var(--ink); }
+.t-acc { color: var(--accent); }
+.t-num { font-variant-numeric: tabular-nums lining-nums; }
+/* a display line split by the build or by hand: each line one block, so the lines can rise --line-gap apart */
+.ln { display: block; }
+
+/* ---------------------------------------------------------------- the filled button: the one cobalt surface of the
+   night, the site's call to action. 64 px tall on a desktop, 56 on a phone; its label 20 / 18 px, 700. The hand: the
+   ink wipes in from the left edge (a transform on a layer under the label), the arrow travels; pressed, it sinks. */
+.btn {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 0.6em;
+  min-height: var(--btn-h); padding: 0 1.6em 0 1.5em;
+  background: var(--cobalt); color: var(--ink);
+  font: 700 var(--t-btn)/1 var(--f-label); letter-spacing: var(--tr-btn); text-transform: uppercase;
+  white-space: nowrap;
+  transition: color var(--d-hover-out) var(--ease-out), transform var(--d-press) var(--ease-out);
+}
+.btn::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: var(--ink);
+  transform: scaleX(0); transform-origin: 100% 50%;
+  transition: transform var(--d-hover-out) var(--ease-out);
+}
+.btn svg { width: 1.05em; height: 1.05em; flex: none; transition: transform var(--d-hover-out) var(--ease-out); }
+.btn:focus-visible { outline-color: var(--ink); }
+.btn:active { transform: translateY(1px) scale(0.985); }
+@media (hover: hover) {
+  .btn:hover { color: var(--night); transition: color var(--d-hover) var(--ease-out), transform var(--d-press) var(--ease-out); }
+  .btn:hover::before { transform: scaleX(1); transform-origin: 0 50%; transition: transform 0.34s var(--ease-rise); }
+  .btn:hover svg { transform: translate(0.18em, -0.18em); transition: transform 0.34s var(--ease-rise); }
+  /* an arrow that points ahead travels ahead */
+  .btn:hover svg:has(path[d^="M4 12"]) { transform: translateX(0.28em); }
+  .q:hover svg:has(path[d^="M7 17"]) { transform: translate(0.18em, -0.18em); }
+  .q:hover svg:has(path[d^="M12 19"]) { transform: translateY(-0.25em); }
+}
+/* without hover (a phone) the press shows the ink at once */
+@media (hover: none) { .btn:active { color: var(--night); } .btn:active::before { transform: scaleX(1); transition: none; } }
+
+/* ---------------------------------------------------------------- the quiet link: a label in ink at the button's
+   size; the hand draws its rule from the left (a 2 px line, transform only) and the arrow travels */
+.q {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 0.5em;
+  min-height: 2.75rem;
+  font: 700 var(--t-btn)/1.2 var(--f-label); letter-spacing: var(--tr-btn); text-transform: uppercase;
+  color: var(--ink);
+  transition: color var(--d-hover-out) var(--ease-out);
+}
+.q::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0.3rem; height: 2px;
+  background: currentColor;
+  transform: scaleX(0); transform-origin: 100% 50%;
+  transition: transform var(--d-hover-out) var(--ease-out);
+}
+.q svg { width: 1em; height: 1em; flex: none; transition: transform var(--d-hover-out) var(--ease-out); }
+.q:active { transform: translateY(1px); }
+.q:hover, .q:focus-visible { color: var(--accent); transition: color var(--d-hover) var(--ease-out); }
+.q:hover::after, .q:focus-visible::after { transform: scaleX(1); transform-origin: 0 50%; transition: transform 0.32s var(--ease-rise); }
+@media (hover: hover) {
+  .q:hover svg { transform: translateX(0.25em); transition: transform 0.32s var(--ease-rise); }
+}
+/* a link inside running text (round 11: the hand draws its rule as the quiet link's does): the address at the dawn
+   and on Contact, .ln-in in a paragraph. A 1 px rule rests under it in the line colour; on hover or
+   focus a 2 px rule in the text's colour is drawn from the left over it (transform only) and leaves faster, the way
+   it came. On a link that wraps the drawn rule sits under its last line, the resting rule stays under every line. */
+.ln-in, .dawn-mail a, .ct-mail a {
+  position: relative;
+  text-decoration: underline 1px var(--line);
+  text-underline-offset: 0.22em;
+  text-decoration-skip-ink: auto;
+}
+.ln-in { color: var(--ink); }
+:is(.ln-in, .dawn-mail a, .ct-mail a)::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -0.12em; height: 2px;
+  background: currentColor;
+  transform: scaleX(0); transform-origin: 100% 50%;
+  transition: transform var(--d-hover-out) var(--ease-out);
+  pointer-events: none;
+}
+:is(.ln-in, .dawn-mail a, .ct-mail a):is(:hover, :focus-visible) { text-decoration-color: transparent; }
+:is(.ln-in, .dawn-mail a, .ct-mail a):is(:hover, :focus-visible)::after {
+  transform: scaleX(1); transform-origin: 0 50%;
+  transition: transform 0.32s var(--ease-rise);
+}
+.ln-in:hover { color: var(--accent); }
+
+/* rule rows: structure is a 1 px rule, nothing else */
+.rows > * { border-top: 1px solid var(--line); }
+.rows > *:last-child { border-bottom: 1px solid var(--line); }
+
+/* ---------------------------------------------------------------- the focus verb (spec 50 §6)
+   Text arrives by coming into focus: opacity 0 → 1, blur 10 px → 0, 0.7 s ease-out; it leaves in a third of that.
+   Hidden states exist only with motion (html.rv-motion, the head script) and wait for fx-scroll (html.fs-on); if it
+   never arrives, everything shows at 4 s. Nothing slides in from a side. */
+html.rv-motion [data-focus] {
+  opacity: 0;
+  filter: blur(var(--focus-blur));
+  transition: opacity var(--focus-out) var(--ease-in), filter var(--focus-out) var(--ease-in);
+}
+/* (the first screen's "load" text is left out: this rule outranks it, and its focus would then replay when fx-scroll
+   arrives late, a blink of the cover's lower lines on a slow connection) */
+html.rv-motion:not(.fs-on) [data-focus]:not([data-focus="load"]) { animation: rv-show 0s 4s forwards; }
+@keyframes rv-show { to { opacity: 1; filter: none; transform: none; clip-path: none; } }
+html.rv-motion .is-in[data-focus] {
+  opacity: 1;
+  filter: blur(0);
+  transition: opacity var(--focus-in) var(--ease-out), filter var(--focus-in) var(--ease-out);
+  transition-delay: var(--fd, 0ms);
+}
+/* the first screen's text comes into focus at once, without waiting for a script; under a cut's sheet it waits for the
+   sheet to leave (html[data-arrive] is removed as it goes) */
+html.rv-motion [data-focus="load"] {
+  opacity: 1; filter: none; transition: none;
+  animation: rv-focus var(--focus-in) var(--ease-out) var(--fd, 0ms) both;
+}
+@keyframes rv-focus { from { opacity: 0; filter: blur(var(--focus-blur)); } to { opacity: 1; filter: blur(0); } }
+
+/* ---------------------------------------------------------------- the rise (round 10): a display line comes up from
+   behind a straight mask and settles, like a film title. The mask is the line's own box: the line is moved down by its
+   height and clipped at its own bottom edge by the same amount, so at every frame the visible part ends at the line's
+   resting baseline box; nothing else in the layout moves. Lines --line-gap apart.
+   · [data-focus-lines] > .ln: the build's lines (the page's h1 on load, a scene head when it enters)
+   · .rv-split .w: a title the script split into words (fx-scroll.js), --li its line: the steps' titles and the dawn's
+     line rise each time their step comes into focus, and leave faster, all at once, when it goes
+   · .rv-wipe .w: the same, clip only, for the display type the stage bends through its glass ([data-refract]): the
+     host measures those glyphs, so their boxes never move; a straight edge sweeps up over the still letters */
+html.rv-motion [data-focus-lines] > .ln,
+html.rv-motion .rv-split .w {
+  transform: translate3d(0, 104%, 0);
+  clip-path: inset(-0.25em -0.08em 104% -0.08em);
+  transition: transform var(--d-rise-out) var(--ease-in), clip-path var(--d-rise-out) var(--ease-in);
+}
+html.rv-motion .rv-wipe .w {
+  clip-path: inset(-0.25em -0.08em 104% -0.08em);
+  opacity: 0;
+  transition: clip-path var(--d-rise-out) var(--ease-in), opacity var(--d-rise-out) var(--ease-in);
+}
+.rv-split .w, .rv-wipe .w { display: inline-block; }
+html.rv-motion [data-focus-lines].is-in > .ln,
+html.rv-motion .st-on .rv-split .w, html.rv-motion .rv-split.st-on .w {
+  transform: none;
+  clip-path: inset(-0.25em -0.08em -0.3em -0.08em);
+  transition: transform var(--d-rise) var(--ease-rise), clip-path var(--d-rise) var(--ease-rise);
+  transition-delay: calc(var(--fd, 0ms) + var(--li, 0) * var(--line-gap));
+}
+html.rv-motion .st-on .rv-wipe .w, html.rv-motion .rv-wipe.st-on .w {
+  clip-path: inset(-0.25em -0.08em -0.3em -0.08em);
+  opacity: 1;
+  transition: clip-path var(--d-rise) var(--ease-rise), opacity calc(var(--d-rise) / 3) linear;
+  transition-delay: calc(var(--fd, 0ms) + var(--li, 0) * var(--line-gap));
+}
+html.rv-motion [data-focus-lines].is-in > .ln:nth-child(2) { --li: 1; }
+html.rv-motion [data-focus-lines].is-in > .ln:nth-child(3) { --li: 2; }
+html.rv-motion [data-focus-lines].is-in > .ln:nth-child(4) { --li: 3; }
+/* the first screen's lines rise at once, on the first paint (held under a cut's sheet) */
+html.rv-motion [data-focus-lines="load"] > .ln {
+  transform: none; clip-path: none; transition: none;
+  animation: rv-rise var(--d-rise) var(--ease-rise) calc(var(--fd, 0ms) + var(--li, 0) * var(--line-gap)) both;
+}
+html.rv-motion [data-focus-lines="load"] > .ln:nth-child(2) { --li: 1; }
+html.rv-motion [data-focus-lines="load"] > .ln:nth-child(3) { --li: 2; }
+html.rv-motion [data-focus-lines="load"] > .ln:nth-child(4) { --li: 3; }
+/* a one-block display title on the first screen that the stage does not bend (Contact's line, the 404's) rises whole */
+html.rv-motion :is(.t-mega, .t-d1)[data-focus="load"]:not([data-refract]) {
+  filter: none;
+  animation: rv-rise var(--d-rise) var(--ease-rise) var(--fd, 0ms) both;
+}
+@keyframes rv-rise {
+  0% { transform: translate3d(0, 104%, 0); clip-path: inset(-0.25em -0.08em 104% -0.08em); }
+  99.9% { transform: none; clip-path: inset(-0.25em -0.08em 0 -0.08em); }
+  100% { transform: none; clip-path: none; }
+}
+html.rv-motion[data-arrive] [data-focus="load"], html.rv-motion[data-arrive] [data-focus-lines="load"] > .ln { animation-play-state: paused; }
+/* without the script the build's lines must still show: the same 4 s safety as the focus */
+html.rv-motion:not(.fs-on) [data-focus-lines]:not([data-focus-lines="load"]) > .ln { animation: rv-show 0s 4s forwards; }
+
+/* ---------------------------------------------------------------- rows in stagger (round 10): the rows of a list, the
+   parts of a gallery step, a case's fields come up a short way and into focus, --row-gap apart, when their step comes
+   into focus (or their list enters the screen); they leave together, faster. The script marks them (.rv-row, --ri). */
+html.rv-motion .rv-row {
+  opacity: 0;
+  transform: translate3d(0, 0.9rem, 0);
+  transition: opacity var(--focus-out) var(--ease-in), transform var(--focus-out) var(--ease-in);
+}
+html.rv-motion .st-on .rv-row, html.rv-motion .rv-row.st-on {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--d-row) var(--ease-out), transform var(--d-row) var(--ease-rise);
+  transition-delay: calc(var(--rd, 0ms) + var(--ri, 0) * var(--row-gap));
+}
+
+/* ---------------------------------------------------------------- pictures enter (round 11): a picture of the page
+   that the stage does not draw (a case's chapter stills) enters once, as it comes into view: a straight edge rises
+   from its foot and opens it while the picture settles from 106 % to its size; the caption follows. The clip is
+   inset on every side by the overscale (3 %), so the picture never leaves its own box while it settles. fx-scroll.js
+   marks the figure (.rv-pic) and adds .st-on when it enters and its image has decoded. */
+/* (the overscale must not widen the page: a transformed box counts in the scrollable overflow) */
+html.rv-motion .rv-pic { overflow-x: clip; }
+html.rv-motion .rv-pic img {
+  transform: scale(1.06);
+  clip-path: inset(100% 3% 3% 3%);
+}
+html.rv-motion .rv-pic figcaption { opacity: 0; transform: translate3d(0, 0.6rem, 0); }
+html.rv-motion .rv-pic.st-on img {
+  transform: none;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1.05s var(--ease-rise), transform 1.4s var(--ease-rise);
+}
+html.rv-motion .rv-pic.st-on figcaption {
+  opacity: 1; transform: none;
+  transition: opacity var(--d-row) var(--ease-out) 0.28s, transform var(--d-row) var(--ease-rise) 0.28s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-pic img, .rv-pic figcaption,
+  [data-focus], [data-focus-lines] > .ln, .rv-split .w, .rv-wipe .w, .rv-row {
+    opacity: 1 !important; filter: none !important; transform: none !important; clip-path: none !important;
+    transition: none !important; animation: none !important;
+  }
+  .btn, .btn::before, .btn svg, .q, .q::after, .q svg, .ln-in::after, .dawn-mail a::after, .ct-mail a::after { transition: none !important; }
+}

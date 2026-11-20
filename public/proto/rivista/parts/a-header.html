@@ -1,0 +1,47 @@
+<!-- Round 13 (MOTION2D): the header carries the scene in view (.hdr-scene, filled by fx-motion.js from the scene's own
+     heading) and the reading line (.hdr-read, css/motion.css); each menu row an arrow and a hairline for the hand.
+     The header and the menu of every page (spec 50 §4). The name as a label at left; the five pages and EN / IT at
+     right; below 1024 px the pages live in the menu, a full sheet. Every link to a page is written by assemble.mjs from
+     a LINK placeholder: its href, the cut's name and line, its direction (data-back towards an earlier page), the dawn
+     sheet for Contact (data-pt-dawn) and aria-current on the page being read. BRAND is the cover's top or the way back
+     to the cover. -->
+<a class="skip" href="#main">{{t:chrome.skip}}</a>
+<header class="hdr" data-hdr>
+  <a class="hdr-name" {{BRAND}} aria-label="{{t:chrome.brand}}">Alberto Tuveri</a>
+  <span class="hdr-scene" aria-hidden="true" data-hdr-scene data-empty><span class="hdr-scene-r"></span><span class="hdr-scene-t"></span></span>
+  <nav class="hdr-nav" aria-label="{{t:chrome.nav}}">
+    <a {{LINK:work}}>{{t:sec.work}}</a>
+    <a {{LINK:about}}>{{t:sec.about}}</a>
+    <a {{LINK:consult}}>{{t:sec.consult}}</a>
+    <a {{LINK:obla}}>{{t:sec.obla}}</a>
+    <a {{LINK:contact}}>{{t:sec.contact}}</a>
+    <span class="lang" role="group" aria-label="{{t:lang.group}}">{{LANGSWITCH}}</span>
+    <span class="hdr-rule is-idle" aria-hidden="true" data-hdr-rule></span>
+  </nav>
+  <!-- (lane n-sound) the sound's toggle (fx-sound.js): on a desktop after the language, on a phone beside MENU; four
+       straight bars that move while the sound plays and lie flat when it is off (css/chrome.css). (lane n-fix-sound)
+       title: the same word for a mouse, which never hears the aria-label -->
+  <button class="hdr-snd" type="button" aria-pressed="true" aria-label="{{t:chrome.sound}}" title="{{t:chrome.sound}}" data-snd data-snd-state="armed"><span class="snd-bars" aria-hidden="true"><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span></span></button>
+  <button class="hdr-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="{{t:menu.open}}" data-nv-open="{{t:menu.open}}" data-nv-close="{{t:menu.close}}" data-menu-btn><span class="m-open" aria-hidden="true">{{t:menu.word}}</span><span class="m-close" aria-hidden="true">{{t:menu.word.close}}</span></button>
+  <span class="hdr-read" aria-hidden="true"></span>
+</header>
+<div class="menu" id="menu" data-menu role="dialog" aria-modal="true" aria-label="{{t:menu.dialog}}" hidden>
+  <div class="menu-in">
+    <ol class="menu-list">
+      <li><a class="menu-a" {{LINK:work}}><span class="t-label menu-n" aria-hidden="true">01</span><span class="t-d1">{{t:sec.work}}</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+      <li><a class="menu-a" {{LINK:about}}><span class="t-label menu-n" aria-hidden="true">02</span><span class="t-d1">{{t:sec.about}}</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+      <li><a class="menu-a" {{LINK:consult}}><span class="t-label menu-n" aria-hidden="true">03</span><span class="t-d1">{{t:sec.consult}}</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+      <li><a class="menu-a" {{LINK:obla}}><span class="t-label menu-n" aria-hidden="true">04</span><span class="t-d1">{{t:sec.obla}}</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+      <li><a class="menu-a" {{LINK:contact}}><span class="t-label menu-n" aria-hidden="true">05</span><span class="t-d1">{{t:sec.contact}}</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+    </ol>
+    <div class="menu-foot">
+      <a class="menu-mail" href="mailto:albertotuveri@gmail.com">albertotuveri@gmail.com</a>
+      <p><button class="q copy" type="button" data-nv-copy="albertotuveri@gmail.com" data-nv-copied="{{t:copy.done.msg}}" data-nv-failed="{{t:copy.fail.msg}}"><span data-copy-label>{{t:copy.label}}</span><span data-copy-done aria-hidden="true">{{t:copy.done}}</span><span data-copy-fail aria-hidden="true">{{t:copy.fail}}</span></button><span class="sr-only" role="status" data-nv-copy-status></span></p>
+      <ul class="menu-else">
+        <li><a class="q" href="https://www.linkedin.com/in/albertotuveri" rel="noopener">LinkedIn</a></li>
+        <li><a class="q" href="https://github.com/GitAlboBis" rel="noopener">GitHub</a></li>
+        <li class="lang" role="group" aria-label="{{t:lang.group}}">{{LANGSWITCH}}</li>
+      </ul>
+    </div>
+  </div>
+</div>

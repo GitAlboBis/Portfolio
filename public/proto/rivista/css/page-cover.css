@@ -1,0 +1,83 @@
+/* css/page-cover.css · index.html (hero, now, index), composed by the COVER lane in wave 2 (spec 50 §1, §4, §7);
+   the hero's world rewritten in round 11 (lane HERO2).
+   Comes after the system files in fx.css; every rule is scoped to the cover (html[data-page="home"]).
+
+   The first viewport: the name is one line across the measure on a wide screen and two lines on a phone (its two
+   .ln spans are inline from 760 px up). In scene mode the stage draws the name as light in a deep hall
+   (stage/scenes/cover/world.js): the flat h1 is transparent from the first paint and stays the accessible name; it
+   shows as printed type only if the stage cannot draw (html.stage-dead, written by fx-stage.js, or no stage by 6 s).
+   The hero is almost two screens tall there (the flight: the camera is through the name before Now's text comes up); the foot enters once the name stands, the scroll cue after
+   it, and both leave focus over the first sixth of the scroll. */
+
+/* ---------------------------------------------------------------- hero: the name */
+html[data-page="home"] .hero-name .ln { display: inline; }
+@media (max-width: 759.98px) {
+  html[data-page="home"] .hero-name { white-space: normal; font-size: calc((100vw - 2 * var(--gut)) / 2.86); line-height: 0.84; }
+  html[data-page="home"] .hero-name .ln { display: block; }
+}
+
+/* ---------------------------------------------------------------- hero: the world (scene mode only; the printed
+   states keep the flat name and the foot exactly as they were) */
+html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero { min-height: 190svh; }
+html[data-page="home"].sc-on:not(.gl-off) .hero-said { --fd: 2600ms !important; }
+html[data-page="home"].sc-on:not(.gl-off) .hero-act { --fd: 2750ms !important; }
+/* the name is light, never flat type, while the stage is expected; a safety net shows the printed name if no stage has
+   drawn by 6 s (a script that never came), and the stage's death shows it at once */
+html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-name {
+  color: transparent;
+  animation: cover-name-show 0.6s var(--ease-out) 6s both;
+}
+html[data-page="home"].sc-on.stage-on:not(.gl-off):not(.stage-dead) .hero-name { animation: none; }
+@keyframes cover-name-show { from { color: transparent; } to { color: var(--ink); } }
+
+/* ---------------------------------------------------------------- hero: the scroll cue (scene mode only: the scroll
+   is the flight). A label over a short straight line; a mark travels down it twice and rests. Nothing moves forever. */
+.hero-cue { display: none; }
+html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue {
+  display: flex; flex-direction: column; align-items: center; gap: var(--s2);
+  position: absolute; left: 50%; bottom: var(--s4); transform: translateX(-50%);
+  color: var(--mute); pointer-events: none;
+}
+html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-in { padding-bottom: max(clamp(var(--s6), 9vh, var(--s7)), calc(var(--s4) + 6.25rem)); }
+.hero-cue-l { position: relative; display: block; width: 1px; height: 2rem; background: var(--line); overflow: hidden; }
+.hero-cue-l i { position: absolute; left: 0; top: 0; width: 1px; height: 0.75rem; background: var(--ink); transform: translateY(-0.75rem); }
+html.rv-motion[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue-t,
+html.rv-motion[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue-l { animation: rv-focus var(--focus-in) var(--ease-out) 3100ms both; }
+html.rv-motion[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue-l i { animation: cover-cue 1.5s var(--ease-io) 3500ms 2 forwards; }
+@keyframes cover-cue {
+  0% { transform: translateY(-0.75rem); }
+  70%, 100% { transform: translateY(2rem); }
+}
+/* a phone: the instrument line holds the bottom right; the cue stands above its row */
+@media (max-width: 759.98px) {
+  html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue { bottom: calc(var(--s4) + 2.5rem); }
+  html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-in { padding-bottom: calc(var(--s4) + 9rem); }
+}
+
+/* ---------------------------------------------------------------- hero: leaving, the lines under the name lose focus */
+@supports (animation-timeline: scroll()) {
+  html[data-page="home"].sc-on.stage-on:not(.gl-off) .hero-foot,
+  html[data-page="home"].sc-on.stage-on:not(.gl-off) .hero-instr,
+  html[data-page="home"].sc-on.stage-on:not(.gl-off) .hero-cue {
+    animation: cover-leave linear both;
+    animation-timeline: scroll(root);
+    animation-range: 2vh 16vh;   /* gone before the letters come at the eye through its place */
+  }
+}
+@keyframes cover-leave {
+  from { opacity: 1; filter: blur(0); }
+  to { opacity: 0; filter: blur(var(--focus-blur)); }
+}
+@media print { html[data-page="home"] .hero-cue { display: none !important; } }
+
+/* ---------------------------------------------------------------- index: the rows keep to the left; the emblem has the right */
+@media (min-width: 1024px) {
+  html[data-page="home"].sc-on:not(.gl-off) .ix-in { max-width: min(50rem, 54vw); }
+}
+/* while one row is under the hand, the others step back (the mechanism of 21st.dev's "Disc Reveal List": the other
+   rows dim), so the emblem and its row read as one */
+@media (hover: hover) {
+  html[data-page="home"] .ix-rows:has(.ix-a:hover) .ix-a:not(:hover) .ix-t,
+  html[data-page="home"] .ix-rows:has(.ix-a:focus-visible) .ix-a:not(:focus-visible) .ix-t { color: var(--mute); }
+  html[data-page="home"] .ix-t { transition: color var(--d-hover) var(--ease-out); }
+}

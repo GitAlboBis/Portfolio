@@ -1,254 +1,223 @@
-# CLAUDE.md — Portfolio Alberto Tuveri (Master Entry Point)
+# CLAUDE.md — Portfolio Alberto Tuveri · **LO STUDIO DI NOTTE** (ogni pagina una stanza dello stesso studio illuminato, un occhio che viaggia)
 
-> **Cervello operativo del progetto.** Claude Code lo legge per primo: orienta qualsiasi agente in 60 secondi — visione, regole d'oro, stato reale del codice, design system, **librerie sorgente + come estrarne il codice**, routing skill/MCP, gates, backlog.
+> **Cervello operativo del progetto.** Claude Code lo legge per primo: mondo, regole, stato reale del codice, comandi, cosa è storico, cosa aspetta Alberto.
 >
-> **Riscritto 2026-06-30** per riflettere la direzione reale **GOLDEN HOUR**, letta dal codice (non dai doc). **Supersede** la vecchia versione "ocean + cinematica frame-WebP" e tutti i file in `docs/` (storici, direzione abbandonata).
+> **Riscritto il 2026-11-17** dalla lane DOCS dell'ondata 5 sul codice del worktree (`feat/water-viva` con l'ondata 5, che il direttore ha poi committato per argomento in `f5c8e77` … `3868582`: il volo, il suono, le figure dei casi), ogni frase controllata nel codice o lanciando il comando. **Corretto il 2026-11-20** dalla lane DOCS dell'ondata 6 sul codice del worktree con l'ondata 6 sul disco (il volo, il vetro, il suono, le stanze, i titoli, il rilascio; la committa il direttore). Il sito vivo è il **prototipo statico** `public/proto/rivista/` (`rv/`): due edizioni (inglese alla radice, italiano in `it/`), sei pagine più nove casi e un 404 per edizione (32 pagine), un **palco WebGPU** scritto a mano sopra le pagine. Le stesse 32 pagine le costruisce anche un progetto **Astro** in `web/`, dove il palco resta acceso fra una pagina e l'altra: è la build che va online (`web/scripts/release.mjs`, alla radice di https://portfolio-jet-eta-24.vercel.app).
 >
-> **Companion VIVI:** [`HANDOFF.md`](./HANDOFF.md) (continua-da-qui) · [`PLAN.md`](./PLAN.md) (backlog prioritizzato P0→P2) · [`WATER-WAVE-PLAN.md`](./WATER-WAVE-PLAN.md) (fisica/render del fluido).
-> **STORICI (non fidarsi del contenuto, ma vale ciò che è riportato qui):** `IMPLEMENTATION-PLAN.md` — la prosa "ocean" è obsoleta, **ma le sue librerie-sorgente, le istruzioni di estrazione e il metodo restano validi e sono riportati nella §6 di questo file**. `DESIGN-SYSTEM.md` (vedi §0). `docs/*`.
+> **Companion:** [`DESIGN.md`](./DESIGN.md) (sistema visivo) · [`PRODUCT.md`](./PRODUCT.md) (i fatti) · [`HANDOFF.md`](./HANDOFF.md) (in testa il diario del direttore; il corpo §1–§9 descrive ancora il giro 10) · [`PLAN.md`](./PLAN.md) · [`docs/redesign/rivista-story/60-as-built.md`](./docs/redesign/rivista-story/60-as-built.md) (dove la build si è staccata dalla spec 50 e dal piano 70).
 
 ---
 
-## 0. FONTE DI VERITÀ — leggi questo prima di qualsiasi `.md`
+## 0. Fonte di verità
 
-Il **codice** è la verità su design e architettura. In caso di conflitto doc-vs-codice **vince il codice**, poi `HANDOFF.md` / `PLAN.md`, poi questo file. I `.md` storici NON sono autorevoli.
+Il **codice** vince su ogni documento, questo incluso. Poi `DESIGN.md`, poi la spec 50 e il piano 70, poi gli appunti delle lane.
 
-| Cosa | Fonte di verità autorevole |
+| Cosa | Dove |
 |---|---|
-| Design system (colore, tipografia, motion, primitive) | **Claude Design** (progetto canonico, vedi sotto) → mirrorato nel codice: `src/app/globals.css` (`@theme`) + `src/content/tokens.ts` + route **`/styleguide`** (contratto vivo) |
-| Architettura / flusso pagina | `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/_providers/Smooth.tsx`, `src/store/ui.ts` |
-| Copy EN/IT | `src/content/dict.ts` (`useDict()`, validato zod) |
-| Stack / versioni / package manager | `package.json` (è **npm**, non bun) |
-| Stato + backlog narrativo | `HANDOFF.md` + `PLAN.md` |
-
-**Il design system canonico vive in Claude Design** (system design), non in un `.md` locale:
-> 🎨 **Claude Design — "Alberto Tuveri — Golden Hour Portfolio"** · id `d5833b7a-0744-4bb8-bec0-367ce50698e8`
-> https://claude.ai/design/p/d5833b7a-0744-4bb8-bec0-367ce50698e8 (privato; le card HTML del sistema vivono anche in `design-system/**`)
-
-Da lì il sistema è stato **tradotto nel codice** (`globals.css` @theme + `tokens.ts`) — quella è la copia operativa. Per cambiare il sistema: aggiorna Claude Design, poi rispecchialo nei token (e in `/styleguide`).
-
-⚠ **DRIFT noto:** il vecchio `DESIGN-SYSTEM.md` "Ocean v1" è stato **archiviato** in `docs/DESIGN-SYSTEM-ocean-v1.md` con banner storico (housekeeping D1, 2026-08-07) — non esiste più un design-system `.md` a root: la verità è Claude Design → token (§0). Il commento "Fraunces/Hanken" in `layout.tsx` è residuo: i font realmente caricati sono **Bricolage Grotesque + DM Sans**. La chiave `localStorage` dello store è `"ocean-ui"`: nome legacy ma funzionante, **non rinominare** senza migrazione.
+| Pagine, markup | `rv/parts/*` → **due build dagli stessi parziali**: `rv/assemble.mjs` scrive le sei pagine, nove `case-<slug>.html` e `404.html`, le stesse in `it/`, e `fx.css`; `web/` (Astro) scrive le stesse pagine in una cartella di uscita. **Le pagine e `fx.css` sono generati: non si editano a mano.** |
+| Copy, EN e IT fianco a fianco | `rv/parts/strings.mjs` (ogni parola dei template) e `rv/parts/cases.json` (i nove lavori, ogni campo un gemello `{ "en", "it" }`) |
+| Fatti e numeri | `PRODUCT.md` **§3** (prove), **§9** (CV trascritto), **§10** (Consulenza), **§11** (Obla). Gate: `node scripts/check-claims-proto.mjs` |
+| Sistema visivo | `DESIGN.md` + `.impeccable/design.json`; i token in `rv/css/tokens.css`, il tipo in `rv/css/type.css` |
+| I contratti | `docs/redesign/rivista-story/50-from-zero-spec.md` (**spec 50**: la notte, uno sciame, lastre di vetro, Sofia Sans, le scene, l'alba) e `70-continuous-world-plan.md` (**piano 70**: §7 le quattro scelte di Alberto, §8 Astro, Gaussian splatting, Anime.js). Dove la build se n'è staccata: `60-as-built.md` |
+| Appunti di build per lane | `docs/redesign/rivista-story/build/`, un prefisso per catena: `z-` (da zero) · `y-` (catena 7) · `x-` (8) · `w-boot`, `w-phone`, `w-case`, `w-integrate`, `w-docs` (9) · `v-` (giro 10) · `u-`, `t-field` (11) · `s-` (12, la sala illuminata) · `w-kit`, `w-work`, `w-night`, `w-motion`, `w-critic`, `w-fix2d`, `w-fix3d`, `w1-integrate` (ondata 1) · `r-` (2) · `q-` (LIGHT3) · `p-` (3: Astro, prisma, portale) · `o-` (4: il router, `o-router.md`) · `n-` (5: volo, suono, casi, critico, tre fix, integrazione, documenti) · `m-` (6: `m-fly`, `m-glass`, `m-sound`, `m-rooms`, `m-titles`, `m-release`, l'integrazione, `m-docs`) |
+| Il palco (API) | l'intestazione di `rv/stage/stage.js` («THE API», «THE FREE CAMERA», «A FORMATION»), quella di `rv/fx-stage.js` e `rv/stage/scenes/README.md` (l'API di una scena) |
+| Stato | `HANDOFF.md` · `PLAN.md`; gli aperti dell'ondata 6: §8 e gli appunti `build/m-*.md` (le misure e le cause; l'ondata 5: `build/n-integrate.md`, `build/n-critic.md`) |
 
 ---
 
-## 1. Identità & Visione
+## 1. Identità e mondo
 
-Portfolio personale di **Alberto Tuveri** — Software Engineer, Full-stack + AI Integration. Sito **immersivo, single-page, scroll-driven**. Obiettivo di qualità: **Awwwards Site of the Day** (nord assoluto: `lusion.co`, Awwwards SOTD, l'art-direction system di `https://getdesign.md/bmw-m/design-md`).
+Portfolio personale di **Alberto Tuveri**, Software & AI Engineer · Creative Lead in SerSan. Parole sue: «3d camera motion world lights immersive», «tutto dev essere immersivo 3d», «non voglio che sia tutta una spa , ma che ci siano pagine diverse», «Make it beautiful».
 
-**Direzione = GOLDEN HOUR.** Pagina **light, warm-white**, illuminata da un tramonto: accento **ember** (arancio `#ee5b23`) come gioiello, con calore coral/amber/rose e un contrappunto freddo **dusk**; una sola banda **night** scura per il dramma (Contact/Footer). Tipo a volume pieno (**Bricolage Grotesque**) su **DM Sans** pulito; motion che frena come la marea.
+**Lo studio di notte.** Ogni pagina è una stanza dello stesso studio, illuminata, vista da **un occhio che viaggia**: una ripresa continua lungo lo scroll, mai una vista ferma. Il fondo è un nero blu (`#0c0e14`); il tipo è bianco caldo (`#f4f1ea`) in **una sola superfamiglia, Sofia Sans**. La stanza è **il campo** (`stage/field/`): la parete di fondo come griglia in rilievo, schegge di vetro tagliate come la **A** e il **marchio SerSan** a ogni profondità, **lame** di luce sulla parete; `stage/scenes/lib/room.js` mette una scena nella stanza con una chiamata. Dentro: **uno sciame di punti** (cobalto dove è sottile, bianco dove si addensa; gli stessi punti diventano ogni figura) e **lastre di vetro tagliato**, chiaro e spesso, a spigoli dritti, che tengono dentro il lavoro vero e piegano luce e tipo dietro di loro; all'indice, e sotto «More work» in ogni caso, un **prisma** di vetro pieno. Il 2D è la sequenza dei titoli di un film (l'intestazione porta il nome della scena in vista, al telefono sotto il nome). Una grana fine toglie le bande ai gradienti scuri; quando l'occhio corre (un volo) il rosso e il blu si separano appena verso gli angoli del quadro, a riposo mai; su uno schermo HDR le luci salgono sopra il bianco carta. Il sito ha un **suono** sintetizzato, acceso di default. Ogni pagina **finisce all'alba**: un bordo dritto oltre il quale il fondo è bianco (`#f3f4f6`), i punti sono inchiostro cobalto, e c'è l'indirizzo. Contact è tutta alba.
 
-**Visione in una frame:** l'utente arriva su una **lettera "A" d'acqua viva** — un fluido a griglia **MLS-MPM su WebGPU raw** (solver vendorizzato da `matsuoka-601/WaterBall`, in `src/webgl/waterball/**`), reso **Screen-Space-Fluid translucido** che **riflette un cielo di tramonto** (cubemap sunset, Narrow-Range depth filter, rifrazione che campiona l'environment). Il colore dell'acqua resta teal **per scelta**: il calore arriva dal riflesso, non da un tint. La 'A' è riempita proceduralmente (nessun GLB a runtime). Sotto l'hero, contenuto editoriale su `bg-paper`: About → Works (depth gallery) → Tech sphere → poi la banda night Contact → Footer.
-
-**Mood richiesto dal committente:** ULTRA-animato, alto livello, creativo — **NON minimale**. Poche feature MEDIOCRI = fallimento; pochi momenti **ECCEZIONALI** + micro-polish ovunque = vittoria. Ogni animazione è intenzionale e ingegnerizzata. Il sito è bilingue **EN/IT**.
-
----
-
-## 2. REGOLE D'ORO (vincolanti)
-
-- **Voce.** La PROSA delle direttive (doc, commenti di processo) è in **italiano**. Codice, identificatori, nomi file/componenti, token di design e **copy del sito** sono in **inglese**.
-- **Mai dichiarare "fatto" senza PROVA VISIVA.** È la lezione che ha prodotto gli obbrobri: costruire alla cieca è vietato. Ogni task si chiude solo dopo aver **avviato il sito** (`npm run dev`) e **guardato il risultato con `claude-in-chrome`**: screenshot **desktop (1440) + mobile (390)** + **console pulita** (`read_console_messages`, zero errori/warning rilevanti) + verifica del comportamento atteso. Niente screenshot = niente "done". Vale anche per ogni sub-agente delegato.
-- **Bilingue EN/IT.** Ogni stringa visibile passa per `src/content/dict.ts` (`useDict()`, shape `en`≡`it` validata zod in dev). **Mai** hardcodare copy nei componenti.
-- **Context7 prima del codice** su librerie versionate (Next 16, React 19, Tailwind v4, GSAP 3.15, Lenis 1.3, three 0.184, drei, postprocessing, zustand 5, zod 4). Le API cambiano tra versioni — non andare a memoria.
-- **Performance budget non negoziabile.** 60fps desktop recente; **degrado elegante** su mobile e `prefers-reduced-motion`; **Lighthouse mobile ≥ 80** (raggiungibile solo sul tier degradato: una canvas, DPR ≤1.5, FX pesanti off). Animare **solo `transform`/`opacity`**; `IntersectionObserver` per gate del rAF; **un solo ticker** (Lenis↔GSAP già condiviso in `Smooth.tsx`); pausa/dispose offscreen delle scene 3D. Scaling del fluido = `NUM_PARTICLES` + **DPR cap (~1.5)**.
-- **Accessibilità AA.** 3D/decorativo `aria-hidden`; `focus-visible` (outline ember) preservato; contrasto ≥4.5:1; `prefers-reduced-motion` = versione **statica e leggibile** per OGNI effetto; navigazione tastiera; reading order corretto.
-- **Una sola banda light-inversion.** Il sito è light; la banda `night` (Contact/Footer) è l'unica inversione e va usata **una volta sola** — è il payoff drammatico.
-- **Due accenti max** per vista: ember (primario) + un secondario (amber/coral/rose/dusk) come gioiello raro. Niente neon, niente gradienti SaaS (l'unico gradiente sanzionato è `--gradient-sunset`).
-- **Commit piccoli e atomici** su feature branch (un Work Package per branch, es. `feat/wp4-icon-cloud`). Branch prima di toccare `main`.
-- **Non inventare contenuti.** Bio/progetti/metriche solo da fonti confermate (`docs/07-PROJECTS.md` per la bio; 3 Works confermati in `works.ts`, i 2 SerSan sono **provvisori** — vedi §11). Se manca un dato, segnalalo come buco aperto.
-- **Niente regressioni.** Prima di sostituire qualcosa di "tenuto" (§3), screenshot before/after.
-- **Non installare MCP/skill inutili** (consumano context). Usa solo gli essenziali del routing (§7).
-
----
-
-## 3. Stato attuale & mappa file (Golden Hour)
-
-**HOME** `src/app/page.tsx` → **Nav** (+ `MenuOverlay`) → `HeroScrollSettle` → `#hero` (sezione `h-dvh` vuota: il fluido WebGPU fisso di `CanvasHost` + il gradiente sunset si leggono attraverso questa banda) → layer opaco `bg-paper`: **About** → **WorksGallery** (depth fly-through, `#works`) → **Tech sphere** (`TechCloud`) → poi la banda **night**: **Contact** → **Footer**.
-
-**ROUTE aggiuntive** (oltre alla home): **`/work`** (`app/work/page.tsx` → `WorkIndex` → **galleria orizzontale scroll-driven** `WorkHorizontal`: runway sticky n·100vh, lo scroll verticale scrubba il track laterale, ogni slide apre il suo case study; ha sostituito il carosello 3D `WorkCarousel` — eliminato — su richiesta di Alberto, 2026-07-02) · **`/work/[slug]`** (case study SSG dei 3 progetti confermati, PARC + metriche, bilingue) · **`/about`** (`AboutJourney`: bio lunga + education + experience + thesis) · **`/styleguide`** (contratto vivo del design system). **Transizione di rotta:** `app/template.tsx` → `RouteTransition` (sunset-curtain ad ogni navigazione client, gated sul Preloader, reduced-motion-safe). ⚠ **Works su DUE superfici, entrambe → `/work/[slug]`:** la **depth gallery** vive sulla home (`#works`), la **galleria orizzontale** vive su `/work` — coesistono *per scelta* (la gallery era stata rimossa per errore e ripristinata: NON eliminarne nessuna delle due).
-
-| Area | File | Note |
+| Pagina | Scene (`data-stage`) | Che cosa tiene |
 |---|---|---|
-| Token (verità design) | `src/app/globals.css` (`@theme`) + `src/content/tokens.ts` | `palette`, `sunsetStops`, `Mood`. Mirror 1:1 |
-| Tipografia / utility | `globals.css` `@layer components` | `.t-hero/.t-display/.t-title/.t-lead/.t-body(.--mute)/.t-eyebrow/.t-meta/.t-index`, `.container-edit`, `.grid-edit` (+`.col-meta/.col-read/.col-wide/.col-half-r`), `.bleed`, `.glass`, `.hairline`, `.eyebrow-tick`, `.rule-node`, scope `.night` |
-| Styleguide vivo | `src/app/styleguide/page.tsx` → **`/styleguide`** | Contratto visivo del design system |
-| Scroll backbone | `src/app/_providers/Smooth.tsx` | Lenis guidato da `gsap.ticker` (un loop), guard reduced-motion, espone `window.__lenis` |
-| GSAP | `src/lib/gsap.ts` | Punto unico di registrazione (ScrollTrigger + SplitText + useGSAP) |
-| State | `src/store/ui.ts` (zustand) | `locale`, `soundEnabled`, `reducedMotion`, `activeWork`, `loaded`, `menuOpen`; persist (`locale`+`sound`) chiave `ocean-ui` |
-| Copy EN/IT | `src/content/dict.ts` | `useDict()`, zod-validated. Sezioni: nav/hero/about/works/tech/contact/footer |
-| Button (CVA) | `src/components/ui/button.tsx` | `primary/secondary/ghost/night`, sheen su hover (non loop) |
-| Reveal / motion primitives | `src/components/reveal/{Reveal,ScrollText,WordGenerate,FlipText,ShimmerText}.tsx` + `src/components/motion/{Parallax,Magnetic,Appear,Marquee,BorderBeam}.tsx` + `src/lib/scroll-choreo.ts` | Re-tematizzati dalle reference §6 sullo stack GSAP/Lenis (no Framer) |
-| Nav + Menu | `src/components/nav/Nav.tsx`, `src/components/nav/MenuOverlay.tsx` | Fluid-island pill: scroll hide/reveal + reveal-on-pointer-top + active-section indicator. Cursore custom **rimosso** (`Cursor.tsx` dead code) |
-| Sezioni | `src/components/sections/About.tsx`, `Tech.tsx`, `Contact.tsx`; `src/components/footer/Footer.tsx`; `src/components/Preloader.tsx`; `src/components/hero/HeroScrollSettle.tsx` | |
-| Works — home (gallery) | `src/components/works/WorksGallery.tsx` | R3F depth fly-through + mood ramp per progetto + caption con link **Open case →** / **All work ↗** + fallback list reduced-motion |
-| Works — index `/work` (orizzontale) | `src/components/work/WorkIndex.tsx` (shell `/work`) + `src/components/work/WorkHorizontal.tsx` (runway sticky + scrub GSAP, drift contrapposto di titolo/numerale, click slide → `/work/[slug]`, skip-pill focus-visible, fallback list reduced-motion) | |
-| Works — case study | `src/components/work/WorkCaseStudy.tsx` + `src/app/work/[slug]/page.tsx` (SSG, `generateStaticParams` sui 3 slug confermati) | |
-| Works — dati | `src/content/works.ts` | ✅ progetti **REALI**: `badante24h`, `doit-voice-ai-agent`, `agricultural-supply-chain` (confermati, PARC EN/IT) + `sersan-project-1/2` (**provisional**, WIP, no case-study page). Still WebP via `Work.textureSrc` ancora da fornire (oggi gradienti duotone) |
-| About | `src/components/about/AboutJourney.tsx` + `src/app/about/page.tsx` | bio/education/experience/thesis da `dict.journey` |
-| Route transition | `src/components/transition/RouteTransition.tsx` + `src/app/template.tsx` | sunset-curtain reveal client-nav |
-| SEO | `src/app/{icon,opengraph-image,sitemap,robots}.tsx/ts` + `layout.tsx` (metadata, OG/Twitter, canonical) + Person JSON-LD | `NEXT_PUBLIC_SITE_URL` da settare in deploy |
-| **Hero fluido (GATE G4)** | `src/webgl/waterball/**` + `src/webgl/CanvasHost.tsx` (gated a `/`) + `src/webgl/store/heroStore.ts` | Render upgrade già applicati: `render/bilateral.wgsl.ts` (Narrow-Range), `render/fluid.wgsl.ts` (refract env + edge/foam), `render/fluidRender.ts`. Solver in `mls-mpm/*` |
-| Sunset cubemap | `public/cubemap/*.png` (gen: `scripts/gen_sunset_cubemap.py`) | Riflessi golden-hour |
-| Tech sphere | `src/components/tech-cloud.tsx` + `src/data/skill-icons.ts` | Engine tenuto; da elevare a vero 3D icon cloud (WP-4) |
-| Claude Design (system design **canonico**) | progetto claude.ai/design "Alberto Tuveri — Golden Hour Portfolio" (id `d5833b7a-0744-4bb8-bec0-367ce50698e8`) + `design-system/**` (card HTML locali) | Vedi §0 — qui nasce il sistema, i token lo rispecchiano |
+| Copertina `index.html` | `hero` · `now` · `index` · `dawn` | **La sala illuminata** (`stage/scenes/cover/world.js`): il nome è luce dal primo paint (l'`h1`, il nome accessibile, è trasparente finché il palco è atteso; torna tipo stampato se il palco muore o non disegna entro 6 s). Le lettere si accendono una dopo l'altra mentre la camera si assesta (2,6 s; a freddo il nome si scrive da 1,3 a 2,4 s dopo la navigazione: una cattura con «ALBE» a metà è il disegno, non un guasto), poi sale il piede. Attorno: parete, schegge, due lame, due lastre con catture. A riposo l'occhio deriva e la mano lo fa orbitare; lo scroll (hero alta 190svh) vola attraverso il nome fino alla lastra di Now (sersan.io). Indice: quattro righe e **il prisma**, un solido di vetro tagliato: la lama della stanza entra nella faccia sinistra vicino allo spigolo in alto, attraversa il vetro come un fascio (piegato dalle facce, con la sottile separazione rosso/blu all'uscita) ed esce dalla faccia destra come il raggio verso la riga sotto la mano, con l'emblema di luce di quella pagina alla sua stazione; ogni faccia prende il tono della stanza che guarda, gli spigoli si accendono solo vicino alla luce |
+| Work `work.html` | `gallery` (testa + 9) · `evidence` (3) · `dawn` | Una sola ripresa (`gallery.js` `workEye`): nove lastre, quella del passo vicina e nitida (sei con la cattura, tre con le parole chiave incise); poi «Measured before and after.»: barre di luce lunghe come i numeri |
+| About `about.html` | `stack` (testa + 8) · `path` (testa + 5) · `dawn` | «Capabilities»: la pila; solo lo strato del passo e i vicini sono vetro, gli altri contorni di luce. Poi il percorso: l'occhio vola lungo una linea di luce fra cinque lastre con mese e anno; su schermo largo la linea si incurva e una guardia tiene le date delle lastre sempre separate (`path.js`); accanto al testo gli anni del passo scattano al loro valore quando va a fuoco |
+| Consulting `consulting.html` | `consult` (6 blocchi) · `dawn` | Quattro figure di luce (`gen`, `cut`, `code`, `agents`), ognuna al suo posto nella profondità della stanza: l'occhio cammina dall'una all'altra. Il marchio fatto di `gen` è un blocco di gaussiane (`stage/splat/`) |
+| Obla `obla.html` | `obla` (7 blocchi) · `dawn` | Cinque stati con il personaggio di Obla in luce, due campi. Obla si descrive come prodotto finito, senza riga di stato |
+| Contact `contact.html` | `contact` | Tutta alba: «WRITE TO ME.», una frase, l'indirizzo con la copia, LinkedIn, GitHub; tratti d'inchiostro dritti e quasi paralleli; nessun vetro |
+| Nove casi `case-<slug>.html` | `case` (2 passi) · `mist` su `main[data-case]` · `dawn` | L'apertura: la lastra del lavoro, la stessa del suo passo nella galleria. Sotto, **ogni capitolo ha la sua figura di luce** (`stage/scenes/case/figures.js`, per tipo `section[data-ch]`): la lastra del lavoro (what), il conteggio in unità di luce (facts), barre (measured, teaser), una lastra per nodo unite da una linea (schematic), una pila di lastre sottili (list), di nuovo la lastra in fondo alla stanza (il record; al telefono nella sua fascia, più piccola e più lontana). Al telefono measured, teaser e facts portano la luce sulle righe, e dopo la loro fascia le righe di list e schematic hanno un filo di luce lungo la colonna dei numeri. **«More work»** ha la figura dell'indice: un prisma di vetro nel terzo libero, la lama della stanza che vi entra dall'alto e un raggio verso la riga sotto la mano (al telefono il prisma da solo, piccolo, fra il titolo e il verbo della riga che si legge). Nel record i conteggi contano da zero una volta e gli anni scattano; il class diagram della Supply Chain traccia le sue linee mentre entra |
+| 404 `404.html` | nessun palco (`data-nogl`) | Il tipo da solo, l'elenco delle pagine e dei lavori, la chiusura all'alba con la sua riga del motore (`nf.engine`) |
 
-**Tenere (verificato a schermo):** hero water "A" che riflette il tramonto; nav + menu overlay; About (split-text); Works depth gallery (fly-through + cross-fade + mood ramp per progetto + caption sincronizzata + fallback list reduced-motion); Contact (night) + Footer; design system + `/styleguide`.
+**Da pagina a pagina.** Un clic emette `fx:nav:start {to, side, dawn, back, ms, door, glass, day}` (`day`, dall'ondata 6: l'alba nella vista che si lascia, 0 nessuna, 1 la chiusura all'alba sullo schermo, 2 tutta la vista, cioè Contact), poi `fx:nav:covered {to}` quando la pagina cambia e `fx:nav:arrived {}` quando la stanza nuova sta in piedi (più `fx:nav:uncovered` e `fx:nav:reset`; nessuno li rinomina). Sulla **build Astro** un router (`web/src/router/rv-router.js`, sulla navigazione client di Astro) tiene vivi canvas, device, sciame e occhio, e il taglio è **un volo** (`stage.fly`): il testo esce da dietro una maschera e la pagina cambia 200 ms dopo il clic (`SWAP_MS` in `fx-nav.js`), mentre l'occhio accelera ancora nella stanza che lascia; l'host della pagina nuova prepara le sue scene nell'ombra (`fx-stage.js`, `shadow`) e la stanza nuova prende il palco al primo fotogramma in cui il vetro della **porta** copre tutto il quadro (`stage.flyState.cover`). La porta è un blocco di vetro tagliato nella parete: dal primo fotogramma in cui riempie il quadro all'ultimo, dentro si vede la stanza nuova, piegata dal vetro, con la sottile separazione spettrale sulle due giunture accese; mai un vetro grigio piatto, mai un vuoto. L'occhio rallenta nella stanza nuova. Indietro è lo stesso percorso al contrario; da o verso il mattino si vola sempre in avanti. Verso Contact il mattino arriva come un bordo dritto di giorno che attraversa il quadro dietro il vetro (`DAY_MS`), mai un foglio bianco; anche da una vista già all'alba (Contact, una chiusura all'alba) si vola: la porta è la notte in piedi sulla carta e si apre come una fessura dritta che si allarga. Il primo clic di una visita vola subito e muto (§2, il suono). Le pagine restano documenti separati (indirizzi, Indietro, Avanti, link diretti); un errore nello scambio diventa una navigazione normale. Sulle **pagine assemblate** (che non vanno online) ogni taglio è un documento nuovo: la camera spinge, l'occhio entra in un portale di vetro (`stage.portal`), un foglio dal bordo dritto copre, e la pagina che arriva esce dal vetro.
+
+**Mondi rifiutati, da non riportare:** Golden Hour (tramonto, mare, drone), The job order (giallo di sicurezza, timbri, Archivo), «Carta corrente», la A d'acqua in ogni forma, **la rivista bianca** in ogni tratto (carta crema come fondo, Cormorant Garamond, Figtree, filetti e titoli a scalinata, «Fig. NN», il lessico issue / in print / colophon / plate / In this issue / Read) e **ogni corpo di vetro che si legge come liquido**. In un sito più vecchio Alberto ha odiato le **card fluttuanti**: nessuna figura è un rettangolo che porta un numero.
 
 ---
 
-## 4. Stack (one-liner)
+## 2. Regole d'oro
 
-Next.js **16.2.6** (App Router) · React **19.2.4** · TypeScript strict · **npm** (no bun in questo env; esiste `bun.lock` ma si usa npm) · Tailwind CSS **v4** (CSS-first `@theme`) · **WebGPU raw** (MLS-MPM SSF hero, `navigator.gpu`-only; fallback = sunset gradient CSS) · **wgpu-matrix 3** · three **0.184** + @react-three/fiber **9.6** + drei **10.7** + @react-three/postprocessing **3** / postprocessing **6.39** (per la Works gallery R3F) · gsap **3.15** + @gsap/react · lenis **1.3** · zustand **5** · zod **4** · class-variance-authority + clsx + tailwind-merge · simple-icons **16** · leva (dev) · playwright (dev). Deploy su **Vercel**.
-
-**Confine renderer:** l'hero è **raw WebGPU** sulla propria canvas (non condivide context né postprocessing pmndrs); la gallery/sfera sono R3F/WebGL. **Un renderer pesante per regione di scroll**; `IntersectionObserver` fa da gate e *dispone* (non solo pausa) all'handoff, con fallback poster su `device.lost`/`webglcontextlost`.
-
----
-
-## 5. Design system (Golden Hour) — token REALI
-
-Token in **un solo `@theme`** in `globals.css` (`--color-*` → auto `bg-*/text-*/border-*/ring-*`), mirror in `src/content/tokens.ts`. (Per AA pairs e specimen vivi: `/styleguide`.)
-
-| Token | Hex | Uso |
-|---|---|---|
-| `paper` | `#fbf6ef` | Ground pagina (warm white) |
-| `paper-deep` | `#f1e4d3` | Superfici, card, hairline |
-| `ink` | `#2a1a14` | Testo primario (espresso caldo) |
-| `ink-mute` | `#6e5447` | Testo muted — AA su paper (≈6.5:1) |
-| `amber` | `#f2a33c` | Golden hour — fill, grandi accenti |
-| `coral` | `#ff8a4c` | Peach-coral — fill, mid del gradiente |
-| `ember` | `#ee5b23` | **Accento PRIMARIO** — CTA (testo ink), display |
-| `ember-ink` | `#bc410f` | Arancio più scuro per **testo** arancio AA su paper (≈5:1) |
-| `rose` | `#e15d6b` | Rose-red del tramonto — accento, gradiente |
-| `dusk` | `#5e4b7e` | Viola crepuscolare freddo — contrappunto/profondità |
-| `night` | `#2a1820` | L'unica sezione scura / footer (testo = paper) |
-| `rule` / `rule-strong` | `rgb(42 26 20 / .14)` / `/ .28` | Hairline |
-
-- **Gradiente unico sanzionato:** `--gradient-sunset` (golden → dusk, `118deg`). Niente altri gradienti SaaS.
-- **Tipografia:** `--font-display` = **Bricolage Grotesque** (variable, display), `--font-sans` = **DM Sans** (variable, testo/label). Peso guidato da `font-weight` + `font-optical-sizing:auto` (niente micro-gestione di assi — quello era il vecchio sistema Fraunces). Classi: `.t-hero/.t-display/.t-title/.t-lead/.t-body/.t-eyebrow/.t-meta/.t-index`.
-- **Motion (tidal easings):** `--ease-tide` `cubic-bezier(.16,1,.3,1)` (primario), `--ease-dive` `(.65,0,.35,1)` (transizioni), `--ease-drift` `(.33,0,.67,1)` (ambient). Reveal split-text gated su `document.fonts.ready`.
-- **Componenti:** `.glass` (fill solido di default; blur reale solo sotto `@supports`/`prefers-reduced-transparency`), Button CVA, cursore custom (no `mix-blend screen` sul fluido), marks (`.eyebrow-tick`, `.hairline`, `.rule-node`).
-- **Quality bar UI** (skill `ui-ux-pro-max`, in ordine di priorità): ① Accessibilità (contrasto, focus, keyboard) ② Touch/interazione (target ≥44px, feedback) ③ Performance (CLS, lazy, transform-only) ④ Coerenza di stile/icone (SVG, no emoji) ⑤ Layout responsive ⑥ Typography & color tokens ⑦ Animazione (150–300ms micro, reduced-motion). Usa la **Pre-Delivery Checklist** della skill prima di chiudere ogni task UI.
+- **Voce.** La prosa delle direttive è in italiano. Codice, identificatori, nomi di file e copy del sito sono in inglese; l'italiano del sito vive nei due file di stringhe.
+- **Nessun contenuto inventato.** Ogni numero stampato deve esistere in `PRODUCT.md` §3/§9 (§10–§11 per Consulting e Obla). Gate: `node scripts/check-claims-proto.mjs` e `node public/proto/rivista/assemble.mjs --check`. Un buco si stampa come campo, mai come segnaposto.
+- **Due lingue, una sorgente.** Ogni parola visibile è una voce di `parts/strings.mjs` (`{{t:id}}` nei parziali) o un gemello di `parts/cases.json`. **Mai una stringa scritta in un parziale o in uno script.** Le poche parole che scrive uno script arrivano da `FX.t()` / `FX.num()` (`fx-core.js`).
+- **Niente acqua, né all'occhio né all'orecchio; niente rivista bianca.** Nessuna goccia, perla, pozza, colatura, increspatura, onda, bordo bagnato, pavimento che riflette o linea d'orizzonte; nessuna risacca, goccia o bolla nel suono. Nessun disco tondo grande e morbido, nessun cerchio o anello di luce, nessuna riga che sembri pioggia. **La luce non disegna mai una figura** (niente X, V, croci: le lame sono fasci paralleli). Colore: il fondo notte, il bianco carta, il cobalto e la sottile separazione spettrale che il vetro ha sulle smussature; nessun arcobaleno. `assemble.mjs` rifiuta i marcatori della vecchia macchina (`WATER`).
+- **Il testo è sacro.** Il canvas è disegnato SOPRA la pagina: nessuna luce, scheggia, foschia, raggio o lastra sopra un blocco di testo a riposo. Una scena tiene libero il suo testo (`c.textRects()`, i keep-out, `keepDim` della stanza); una lastra che incontra un blocco sparisce finché è passato. Si prova con ritagli 1:1, col palco acceso e con `?stage=0`.
+- **Niente di piccolo nel tipo** (Alberto: «Le scritte piccole non mi piacciono , sopratutto nei bottoni e nel menu»). Pavimento: 15 px al telefono, 16 px su desktop, 18 px a 1920. La scala è in `css/tokens.css` (al telefono etichette 16 px, bottoni e menu 18 px, testo 18 px; da 1024 px cresce con lo schermo). Una misura nuova sta sulla scala, mai scritta a mano.
+- **Nessun CSS che finge la luce.** Angoli quadrati; nessuna ombra, bagliore, gradiente o backdrop blur nel DOM: ogni bagliore è del canvas (`bloom` nel ritorno di una scena; l'alba non brilla mai). Il cobalto non è mai testo sulla notte (2,43:1). **Niente nel DOM segue il puntatore**: sul palco la mano fa orbitare l'occhio, sposta le luci sulle lastre e punta una lama; al telefono un trascinamento orizzontale fa orbitare l'occhio, lo scroll verticale resta del browser.
+- **Il palco dorme.** Un solo canvas WebGPU per pagina (`--z-stage: 40`, sotto menu e intestazione). Si muove solo nella finestra di riposo dopo un input (5 s di default; le scene notturne chiedono `rest: 14`), poi rallenta in 1 s e non invia più frame, anche col mouse sulla pagina. Ciò che si muove a riposo segue l'orologio del palco (`c.clock.time`), mai l'ora vera, e si assesta esattamente.
+- **Il movimento 2D** (`fx-motion.js`, `css/motion.css`, `css/type.css`): i titoli salgono da dietro una maschera dritta, lettera per lettera; il tipo `data-refract` che il vetro piega non si sposta mai (ha solo una tendina); nessun testo entra scivolando da un lato. Gira sul compositore (WAAPI attraverso Anime.js: trasformazioni, opacità, clip dritti).
+- **Il suono** (`fx-sound.js`; Alberto: «acceso di default.»): tutto sintetizzato, nessun file. **L'`AudioContext` nasce alla prima attivazione vera** (clic, tocco o tasto; lo scroll non conta), **mai leggendo i dispositivi multimediali del visitatore per scaldare il servizio audio** (decisione del direttore). Se la prima attivazione della visita è un link verso un'altra pagina, lì non nasce nulla: il volo parte subito, muto; sulla build Astro il contesto nasce dopo l'arrivo, in un momento libero, sull'attivazione che il documento ha già, e la stanza entra piano (sulle pagine assemblate alla prima attivazione della pagina nuova). L'interruttore nell'intestazione lo spegne subito e la scelta resta. Nessuno l'ha ancora ascoltato: il giudizio è di Alberto, a orecchio.
+- **Le stampe complete.** Con `?stage=0`, `?gl=0`, movimento ridotto, `?failfield=1`, `?failsplat=1`, un palco morto, senza script e in stampa ogni scena è flusso semplice: i suoi blocchi in ordine, con le immagini vere (`[data-stage-poster]`). Nulla del movimento gira con movimento ridotto.
+- **Prova guardando, prima di dire "fatto".** Dopo una modifica: `assemble.mjs`, i gate delle due build, poi **si guardano le pagine** (catture aperte con Read, a 1440×900 e 390×844 DPR 2, 1920×1080 DPR 1; il moto su strisce di fotogrammi, 50 ms per un taglio; nessuna immagine oltre 16.000 px di device pixel per lato).
+- **Sonde sempre headless: una sonda non apre mai una finestra sul desktop di Alberto.** Si lancia con `launch()` di `scripts/lib/headless.mjs` o con `scripts/visual-gate.mjs` (`RV_HEADED=1` riapre le finestre solo se lo chiede lui). Dal 13 novembre `launch()` annulla i clic sui link `mailto:` e `tel:` in ogni contesto che apre (`RV_MAILTO=1` li lascia passare): il 12 novembre un tocco headless su «Write to me» della copertina ha aperto una finestra di Outlook sul suo desktop. Un tocco di prova va su un punto vuoto (`emptyPoint` in `.shots/n-sound/_scripts/safe.mjs`); `page.evaluate` porta con sé un gesto dell'utente: `navigator.userActivation` va letto da uno script di init.
+- **Push, merge e deploy solo con il sì esplicito di Alberto.** Lo stesso per la generazione di asset a pagamento (Higgsfield, modelli 3D, video) e per le chiamate a pagamento dei connettori (`get_component` di 21st.dev). Nulla si scarica dalla rete e nessun file audio, immagine o modello entra nel repo senza che lo chieda lui.
+- **Commit piccoli, uno per argomento**, media prima della build. Il commit lo fa il direttore, non le lane. **Nei messaggi di commit nessuna riga di attribuzione** (`Co-Authored-By`, «Generated with», `Claude-Session`); l'autore è quello di `git config`.
+- **Context7 prima di scrivere codice** contro GSAP, Lenis, Anime.js o Astro. Prima di scrivere a mano un componente o un effetto, una lane cerca nei connettori (21st.dev `search`, Magic UI, ui-layouts, OriginKit, Vengeance UI) e scrive in una riga che cosa prende e che cosa rifiuta.
+- **Hook "Fact-Forcing Gate".** Può bloccare la prima chiamata Bash e il primo Write/Edit di un file: si scrivono in chiaro i fatti che chiede, poi si ripete la **stessa** chiamata.
+- **Su Windows:** `git <comando> -h`, mai `--help` (apre il browser). Chi avvia un server lo ferma prima di restituire, per pid, e solo il suo.
 
 ---
 
-## 6. Librerie sorgente → cosa prendere + come ESTRARRE il codice  *(da `IMPLEMENTATION-PLAN.md` §4 — riportato qui)*
+## 3. Proporzione
 
-Le tecniche di queste librerie sono i **riferimenti da cui prendere il codice**, **NON** da importare 1:1: lo stack qui è **GSAP + Lenis (non Framer Motion)** e **three (non R3F per l'hero)** → **riscrivere le tecniche con GSAP/three**, ri-tematizzate Golden Hour (colori dai token, texture `colorSpace = SRGB`).
+Alberto, 2026-10-11: **«stiamo costruendo un sito portfolio, non un jet aerospaziale»**.
 
-| Libreria | URL | Cosa prendere |
-|---|---|---|
-| **GSAP** | https://gsap.com/ | ScrollTrigger (pin/scrub), ScrollSmoother, **Observer**, **Flip**, **SplitText**, **MotionPath**, CustomEase — il motore di tutto |
-| **Codrops / Tympanus** | https://tympanus.net/codrops/hub/ · https://tympanus.net/ | tecniche WebGL (caustics, particle fields, displacement/refraction su immagini, transizioni a tendina), scroll-driven camera |
-| **Magic UI** | https://magicui.design/docs/components/icon-cloud · https://magicui.design/ | **Icon Cloud** (sfera 3D di loghi, cobe-style) → tech stack; marquee, border-beam, particles, text-reveal |
-| **Aceternity UI** | https://ui.aceternity.com/components/focus-cards | Focus Cards (focus uno/sfoca gli altri) → progetti |
-| **ui-layouts** | https://www.ui-layouts.com/components/scroll-text | Scroll Text (reveal parola-per-parola scrubbato) |
-| **Skiper UI** | https://skiper-ui.com/v1/skiper19 | Skiper19 = SVG-follow-scroll (path che si disegna allo scroll) |
-| **vengenceUI** | https://www.vengenceui.com/components/flip-fade-text | Flip Fade Text (flip per-carattere) |
-| **Uiverse** | https://uiverse.io/elements | bottoni/cursori/micro-elementi (cherry-pick raffinati) |
-| **anim master lib** | https://animmasterlib.dev/scroll | ricette scroll-animation pronte |
-| **Dribbble** | https://dribbble.com/ | moodboard / direzione (studiare, non copiare) |
+- Un lavoro si chiude con **i gate che esistono già più uno sguardo** alle pagine. Poi si committa.
+- **Nessun nuovo script di misura nel repo**: quelli usa e getta stanno in `.shots/<lane>/_scripts/` (fuori da git). Le misure del palco si leggono da `window.__stageHost` con `?debug=1`.
+- **Workflow piccoli**, detti in una riga prima di lanciarli. Nessun agente che ri-verifica tutto.
+- **Carta bianca vuol dire decidere** («Hai il pieno controllo per creare elementi , e per gesture la timeline e il flusso di tutto quello che vuoi»): non gli si chiede di scegliere di nuovo una direzione.
+- **Limiti che le ondate 4–6 si sono date** (dai brief delle lane; nel codice il budget è `TIER_BUDGET_MS`: A 3,5 · B 6 · C 9 ms): GPU 2,6 ms a riposo e 3,3 al picco a 1440×900 DPR 2 fascia A, 2,4 a 1920 DPR 1, 1,5 al telefono (fascia B); lo sciame mai dimezzato a riposo; primi frame non più tardi di HEAD; nessun task lungo oltre 50 ms dopo il primo frame. Si misura due volte, a macchina quieta.
 
-**Come estrarre il codice (istruzioni operative):**
-- Usa **`WebFetch`** sulle doc-page. Magic UI e Aceternity espongono il **sorgente via registry JSON**:
-  - Magic UI: `https://magicui.design/r/<name>.json` — es. `https://magicui.design/r/icon-cloud.json`
-  - Aceternity: `https://ui.aceternity.com/registry/<name>.json` — es. `https://ui.aceternity.com/registry/focus-cards.json`
-- Per i **loghi tech** usa `simple-icons` (già in `package.json`, bundle — **no CDN a runtime**), non fetch esterni.
-- Studia, NON incolla: prendi il *meccanismo* (es. Fibonacci-sphere + matrice di rotazione per l'icon cloud; mask-reveal scrubbato per lo scroll-text) e riscrivilo sullo stack del progetto. Per librerie versionate, valida le API con **Context7** prima di scrivere.
+**La lezione dei limiti d'uso** (9–20 novembre):
+
+- **La regola di Alberto del 12 novembre, 23:05:** «usa sempre fable 5.2 max , anche per i sottoagenti , team di agenti , e sessioni nuove». Ogni lane, subagente, team di agenti e sessione nuova gira su **Fable 5.2 a effort max finché Fable ha crediti**; quando non ne ha, sul **modello che Alberto imposta per la sessione**; l'effort è max sempre. (Il 13 novembre il limite settimanale di Fable è arrivato al 100 %: quella notte tre lane insieme su Fable erano state tagliate tre volte da «out of usage credits». Alberto ha passato la sessione a Opus 5.5 con `/model` scrivendo «Riprova», e il resto dell'ondata 5 è girato su Opus 5.5 a effort max; alle 08:03 è finito anche il limite settimanale di tutti i modelli, che ha tagliato INTEGRATE. Le due finestre si sono azzerate il 17 novembre alle 17:00 e le ultime due lane sono ripartite su Fable 5.2 max: la settimanale di Fable è passata dall'1 % delle 17:28 al 100 % entro le 19:55, spesa da INTEGRATE (1 h 40 min) e da 40 minuti dei documenti, finiti su Opus 5.5 a effort max.)
+- **Le ondate lunghe girano una lane per volta**, e **l'uso si legge prima di lanciare** (lo strumento `get_usage` dell'app desktop: «Weekly · Fable» e «Weekly · all models»). Su Fable i limiti arrivano prima: quello delle cinque ore, e il 17 novembre la settimana in due ore e mezza. Una finestra di cinque ore ha retto circa un milione e mezzo di token di lane Opus.
+- **Lane piccole**, ognuna con i suoi file. **Appunti su disco dal primo passo** (`build/<lane>.md`, cinque righe prima di tutto, tenuti aggiornati): una lane tagliata riparte dai suoi appunti, da `git status` e `git diff`. Contano più di prima, come un workflow che si può riprendere.
+- **Riprendere un workflow.** L'id di un run vale solo nella sessione che l'ha lanciato: da un'altra sessione lo script si rilancia per percorso e le lane continuano dai loro appunti. La chiave di cache di una chiamata `agent()` dipende dal suo posto nello script oltre che da prompt e opzioni: le chiamate già risposte non si riordinano né si rimodellano; quando la forma deve cambiare, i loro ritorni entrano in uno script nuovo come dati.
+- **Il 20 novembre:** un run aspetta al massimo due azzeramenti di un limite d'uso. Al terzo (`wf_85707e3b-28a`, alle 08:48) ogni lane ancora da lanciare è fallita subito e il run si è chiuso con dei null: un'ondata lunga tiene come dati i ritorni arrivati e continua in un run nuovo. L'ondata 6 è ripresa così da una sessione nuova, su Opus 5.5 a effort max, perché il limite settimanale di Fable è speso fino al 25 novembre.
+- **Il direttore spende pochi turni**: lancia, legge gli appunti, guarda le catture, committa.
 
 ---
 
-## 7. Routing SKILL + MCP
+## 4. Stato e mappa dei file
 
-> Riconciliato con le skill **realmente disponibili**. La colonna *intent* riporta i nomi citati da `IMPLEMENTATION-PLAN.md` (indicano l'intento); la colonna *Skill reale* dice cosa usare davvero. **L'utente ha chiesto esplicitamente di usare `ui-ux-pro-max`** come skill UI/UX di riferimento.
->
-> **Aggiornato 2026-06-30 — skill installate in `.claude/skills/` (project-level):** `webgpu-threejs-tsl` (Dan Greenheck, MIT — repo: **https://github.com/dgreenheck/webgpu-claude-skill**) + un **set curato** da `sickn33/antigravity-awesome-skills` (repo: **https://github.com/sickn33/antigravity-awesome-skills** · indice plugin: `docs/users/plugins.md` — la repo ha ~1700 skill: installato solo il pertinente, NON tutto — regola d'oro): `high-end-visual-design`, `frontend-design`, `design-taste-frontend`, `editorial-design`, `gradient-design`, `duotone-design`, `swiss-design`, `animejs-animation`, `fixing-motion-performance`, `3d-web-experience`, `frontend-lighthouse`, `application-performance-performance-optimization`, `accessibility-compliance-accessibility-audit`, `fixing-accessibility`, `fixing-metadata`. Più i preinstallati `awwwards-loop`, `docs-driven-build`. La skill UI/UX primaria **`ui-ux-pro-max`** è user-level (`C:\Users\alber\.claude\skills\ui-ux-pro-max`).
+**Branch `feat/water-viva`** (worktree `C:\Users\alber\Desktop\PortfolioAlbertoTuveri-viva`), **locale, senza upstream**, sopra `feat/water-hero` (`00f4fa5`, il checkout principale `C:\Users\alber\Desktop\PortfolioAlbertoTuveri`). L'ondata 4 è committata (`034494d` … `054daa7`); l'ondata 5 anche, il 17 novembre, per argomento: `f5c8e77` il volo, `7468c96` il suono, `1d4a53e` i casi, `580673a` le pagine generate, `3868582` gli appunti, poi i documenti e il diario; la sua serie finale (cinque fogli e cinque film, guardati) è in `.shots/n-final/`. **L'ondata 6** (19–20 novembre: il volo, il vetro, il suono, le stanze, i titoli, il rilascio, poi l'integrazione e i documenti) è sul disco e la committa il direttore per argomento; la sua serie finale è di INTEGRATE, in `.shots/m-final/`. La vecchia app Next.js non è più nel tree (103 file tolti: `src/**`, `next.config.ts`, `tsconfig.json`, `postcss.config.mjs`, `public/bench/`, `public/cubemap/`). **Il sito va online** come un solo commit con l'albero finale sopra `881f68c` (il `main` di GitHub), pushato su `main` (Alberto ha detto sì il 19 novembre; mai il push di `feat/water-viva`, la cui storia tiene `47e914d`): Vercel costruisce il rilascio (`vercel.json`, `web/scripts/release.mjs`) e lo serve alla radice di https://portfolio-jet-eta-24.vercel.app. Prima del commit e del push: i gate delle due build e il rilascio sull'albero finale (§6).
 
-| Ambito / task | **Skill reale da usare** | Intent citato nel piano | MCP / connettore |
-|---|---|---|---|
-| Gusto, art-direction, design system, UI, token, review visuale | **`ui-ux-pro-max`** (primaria) + (installate) `high-end-visual-design`, `frontend-design`, `design-taste-frontend`, `editorial-design`, `gradient-design`, `duotone-design`, `swiss-design` + `design`, `design-system`, `ui-styling` | ui-tokens, tailwind-design-system, radix-ui-design-system | shadcn MCP (componenti) |
-| Componenti UI / pattern / "magic-ui-style" | **`ui-ux-pro-max`**, `ui-styling` | magic-ui-generator, react-ui-patterns | shadcn MCP |
-| Scroll-driven / GSAP / parallax / camera / motion | (installate) **`animejs-animation`**, **`fixing-motion-performance`** + `ui-ux-pro-max` (regole animazione) | scroll-experience | **Context7** (gsap 3.15, lenis 1.3) |
-| WebGL / shader / three / postprocessing / icon cloud 3D / TSL / WGSL | (installate) **`webgpu-threejs-tsl`** (three.js WebGPU + TSL, node materials, compute, post-processing, WGSL integration, device-loss — utile per gallery R3F, icon cloud, e come reference WGSL per l'hero raw-WebGPU) + **`3d-web-experience`** (R3F/Spline/configuratori 3D) + `ui-ux-pro-max` per il giudizio visivo | threejs-shaders, shader-programming-glsl, threejs-postprocessing, threejs-skills, threejs-interaction | **Context7** (three 0.184) |
-| Next.js App Router / React / TS qualità & perf | *(usa Context7)* | nextjs-app-router-patterns, react-best-practices, react-component-performance, typescript-pro, zustand-store-ts | **Context7**, Vercel docs |
-| Performance / a11y / SEO hardening | (installate) perf: **`frontend-lighthouse`** (CI gate Core Web Vitals), **`application-performance-performance-optimization`**, **`fixing-motion-performance`** · a11y: **`accessibility-compliance-accessibility-audit`**, **`fixing-accessibility`** · SEO/OG: **`fixing-metadata`** · + `ui-ux-pro-max` priority rules §1–3 | web-performance-optimization, wcag-audit-patterns | claude-in-chrome (audit) |
-| **QA VISIVO (obbligatorio)** | **`claude-in-chrome`**, **`verify`** | ui-visual-validator, ui-review, verification-before-completion | **claude-in-chrome** (screenshot desktop+mobile, console) |
-| Code review / cleanup / sicurezza | **`code-review`**, **`simplify`**, **`security-review`** | — | — |
-| Loop autonomo verso SOTD | **`awwwards-loop`** (jury 8 critici → backlog → optimizer → verifier) | — | — |
-| Build docs-driven a gate | **`docs-driven-build`** | — | — |
-| Ricerca riferimenti / tecniche | **`deep-research`** | — | WebFetch / WebSearch |
-| Copy EN/IT (hand-author in `dict.ts`) | *(nessuna skill)* | copywriting, ux-copy, avoid-ai-writing | — |
-| Gen asset (img/video/3D) — **GATE G5 a pagamento** | — | remotion | **Higgsfield MCP** (img/video/3D), Blender (manuale) |
-| Deploy / preview / log | *(usa Vercel MCP)* | vercel-deployment | **Vercel MCP** |
-| AI integration / Claude API | **`claude-api`** | — | — |
+| Area | File (sotto `public/proto/rivista/` salvo dove indicato) |
+|---|---|
+| Parziali | `parts/head.html` (lo script di boot: le classi su `<html>` come funzione `window.__rvHead`, che il router richiama; l'adapter chiesto prima del primo paint e `stage/boot.js`; il caricatore differito delle librerie e dei sei `fx-*.js`) · `a-header.html` (intestazione: nome, scena in vista, voci, lingua, **interruttore del suono**, menu) · `a-overlays.html` (il foglio del taglio) · `b-hero.html` · `c-main.{index,work,about,consult,obla,contact}.html` · `c-main.case.mjs` (il template dei casi; `data-ch` su ogni capitolo) · `c-main.404.mjs` · `c-footer.html`, `c-footer.contact.html`, `c-footer.404.html` |
+| Stringhe e dati | `parts/strings.mjs` · `parts/cases.json` |
+| Build 1 | `assemble.mjs` (nessuna dipendenza; le due edizioni; `--check`; asserzioni: la galleria, «More work», un `h1`, la chiusura all'alba, l'apertura e i `data-ch` dei casi, la grammatica delle scene, niente della vecchia macchina, le share card, la parità EN/IT, la tipografia italiana) |
+| Build 2 | `web/` (Astro 7.3.8, uscita statica): `src/pages/proto/rivista/` (`index.astro`, `it/index.astro`, `[...page].astro`, `fx.css.js`), `src/components/*.astro` (stampano gli stessi parziali), `src/lib/site.mjs`, `src/router/rv-router.js` + `components/Router.astro`, `integrations/shared.mjs` (copia nell'uscita, intatti, gli `fx-*.js`, `stage/`, `icons/`, `og/`, il manifest e `/captures/`), `scripts/build.mjs`, `parity.mjs`, `asserts.mjs`. **Astro non è ancora l'unica build:** le pagine assemblate restano la sorgente del confronto e ciò che serve la 5178, ma online va solo Astro |
+| Il rilascio | `web/scripts/release.mjs` (la build Astro con l'indirizzo del sito, `ORIGIN`, e la sua riga robots, poi `asserts.mjs` e i claim su di essa; scrive `web/release/`, ignorato da git: il contenuto di `proto/rivista/` alla radice, `/captures/`, `robots.txt`, `sitemap.xml`, senza ciò che un visitatore non carica, `LEFT_OUT`; poi controlla sé stesso: ogni indirizzo è un file del rilascio con le stesse maiuscole, nessuno nomina `/proto/rivista`) · `vercel.json` alla radice (route, redirect, intestazioni, i due 404) |
+| Stili (sorgenti di `fx.css`, in quest'ordine) | `css/fonts.css` · `tokens.css` · `base.css` · `type.css` · `chrome.css` · `scene.css` · `blocks.css` · `dawn.css` · `case.css` · `cuts.css` · `motion.css` · `page-cover.css` · `page-work.css` · `page-about.css` · `page-night.css` · `page-contact.css` · `print.css` |
+| Script delle pagine | `fx-core.js` (FX: flag, eventi, Lenis sul ticker di GSAP, lock, `FX.t`, `FX.num`, `FX.leave` per il router) · `fx-scroll.js` (il passo attivo, `fx:step {scene, step, of}`, le righe, i numeri che contano, i conteggi del record, la lettura in anticipo del disegno che si traccia) · `fx-nav.js` (intestazione, menu, copia, il taglio e i suoi eventi; `SWAP_MS`) · `fx-motion.js` (il 2D: aperture, passi di scena, cartello del taglio, menu, pressioni, il nome della scena anche al telefono, gli anni che scattano `snap`, il disegno che si traccia `traceLoad` / `trace`) · **`fx-stage.js`** (l'host del palco: scene, misure, texture, keep-out, la miscela delle camere, volo e portale, la consegna del palco al router `window.__rvKeep`, la pagina nuova preparata nell'ombra e il passaggio del palco alla porta, il bordo del giorno verso Contact) · **`fx-sound.js`** (il motore audio e l'interruttore; la stanza dovuta dopo un primo clic che vola, `window.__rvSoundLate`) · `sound/render.mjs` (uno strumento: rende una lista di cue in WAV senza finestra; non è una pagina) |
+| Il palco | `stage/boot.js` · `stage/stage.js` (API, simulazione, disegno, camera libera, bloom, `cut`, `portal`, `fly`, `reset`, `registerPass`, `prepare` e `reserve` per la pagina preparata nell'ombra, «THE POST»: grana, aberrazione in velocità, canvas HDR) · `stage/gpu.js` (l'adapter; `canvasSetup`: il canvas a 8 bit o float16 HDR), `tier.js`, `helpers.js` · `stage/wgsl/` (`frame.wgsl.js`: `stageGrain`, `stageGrainLight`) · `stage/plates/` (lastre, prisma col fascio dentro: `PRISM_BEAM`; porta) · `stage/field/` (parete, schegge, lame) · `stage/splat/` (Gaussian splatting: il passo, i lettori `.ply` / `.splat`, i generatori) · `stage/glass/backdrop.js` · `stage/scenes/` (una per `data-stage` e `mist`; `cover/`, `case/` (`figures.js`, `etch.js`, `glow.js`, `lift.js`), `lib/` (`room.js`, `camera.js`, `page.js`, `prism.js`, `portal.js`, `raster.js`), `README.md`) · `stage/night/` (le figure di luce, `shot.js`) · `stage/day/threads.js` |
+| Media | `/captures/*` (= `public/captures/`, con `PROVENANCE.md` e sidecar `.webp.json`, che il rilascio non pubblica; dei due `.svg` pubblica solo `agricultural-supply-chain-detail.svg`, che il disegno che si traccia legge) · `og/*.jpg`, `og/it/*.jpg`, `og/og-manifest.json` · `icons/*` + `site.webmanifest` |
 
-**Regola MCP:** Context7 **prima** di scrivere codice su lib versionate; claude-in-chrome per OGNI prova visiva; Higgsfield/Blender solo dietro sblocco G5.
+**Gli interruttori** (cercati nel codice):
 
----
+| URL | Cosa fa |
+|---|---|
+| nessuno | il palco acceso dove la pagina ha scene e WebGPU c'è; il suono pronto al primo gesto |
+| `?stage=0` | palco spento e scene come flusso semplice: la pagina stampata |
+| `?gl=0` | come senza WebGPU (`html.gl-off`) |
+| `?debug=1` | `window.__stageHost` (`info()`, `stage`, `measure()`, `last`; `stage.stats().hdr` e `.aber`), righe `[stage]` in console, `window.__rvSoundDbg`, le righe del router |
+| `?hdr=0` · `?hdr=1` | il canvas a 8 bit di prima anche su uno schermo HDR · il canvas float16 HDR forzato anche su uno schermo normale (per le sonde). Senza, float16 solo dove lo schermo (`dynamic-range: high`) e il browser lo mostrano (`stage/gpu.js` `canvasSetup`). Non viaggia con i link: sulla build Astro il canvas si decide una volta per la visita |
+| `?tier=A\|B\|C` | forza la fascia del palco (160k / 80k / 40k punti) |
+| `?fx=core,…` | solo i moduli elencati fra `scroll`, `nav`, `motion`, `stage`, `sound` (`core` sempre); senza `sound` la pagina è muta e l'interruttore sparisce |
+| `?sound=0` | il suono spento per la visita (la scheda) finché non si preme l'interruttore: per sonde e film |
+| `?name=splat` | la copertina con il nome fatto di blocchi di gaussiane (`cover/splatname.js`; `&nsdbg=` per il banco); senza, il nome di oggi |
+| `?failsplat=1` · `?failfield=1` · `?failbloom=1` | rompono apposta il passo splat, il campo, il bloom: il palco deve disegnare senza |
 
-## 8. Metodo di lavoro (loop per ogni unità) + Work Packages
+Viaggiano con i link interni `fx`, `gl`, `stage`, `debug`, `tier` (`KEEP` in `fx-core.js`, che porta anche `blocks` ed `exit`: nessuno li legge più). Il banco del palco: `stage/dev.html?view=cover|gallery|stack|dawn|fly|plain|field|room|splat` (parametri nel commento in testa al file); il banco delle scene: `stage/scenes/bench.html?scenes=NAME&debug=1`.
 
-**Loop obbligatorio per ogni unità di lavoro:**
-```
-① Context7 (API lib) + se serve estrai il codice dalla libreria sorgente (WebFetch / registry JSON, §6)
-② Costruisci/adatta al mood Golden Hour, usando la skill assegnata (§7) — token, EN/IT via dict.ts
-③ npm run dev → claude-in-chrome: screenshot desktop(1440)+mobile(390), console pulita
-④ Giudica con gusto (ui-ux-pro-max + Pre-Delivery Checklist): è SOTD-level? se no → ②
-⑤ npm run typecheck + next build verdi → commit atomico → prossimo WP
-```
-Per fan-out su file disgiunti: sub-agenti / workflow — **ma ogni sub-agente passa comunque il gate visivo** (delegare senza verifica visiva è l'errore da non ripetere).
-
-**Work Packages** (spec completa Goal/Wow/Source/Skills/Files/Acceptance in `IMPLEMENTATION-PLAN.md` §5; backlog prioritizzato vivo in `PLAN.md`):
-
-| WP | Obiettivo | File chiave (attuali) |
-|---|---|---|
-| WP-1 | Art-direction system & color-grade della discesa (già impostato nei token) | `globals.css`, `tokens.ts` |
-| WP-2 | Preloader cinematografico (gated su `document.fonts.ready` + first frame) | nuovo `src/components/preloader.tsx`, `layout.tsx` |
-| WP-3 | GSAP scroll choreography + parallax multi-layer (pin/scrub/Observer) | `Smooth.tsx`, nuovo `src/lib/scroll-choreo.ts`, sezioni |
-| **WP-4 ⭐** | **Tech stack = vero 3D Icon Cloud WebGL** (loghi simple-icons, draggable, glow) — **priorità #1** | `src/components/tech-cloud.tsx`, `src/data/skill-icons.ts` |
-| WP-5 | Galleria progetti cinematografica (tilt/refraction, focus + DoF, horizontal) | `WorksGallery.tsx`, `works.ts` |
-| WP-6 | Hero camera scroll-driven + profondità (NON toccare il solver — **G4**) | `CanvasHost.tsx`, overlay |
-| WP-7 | Reveal di testo premium (SplitText mask-reveal scrubbato; no jitter cheap) | `Reveal.tsx`, sezioni |
-| WP-8 | Transizioni di sezione & ambient WebGL (sotto il contenuto, mai sotto AA) | nuovo `section-transition.tsx` |
-| WP-9 | Identità d'interazione: cursore + magnetismo + micro-detail | `button.tsx`, `Nav.tsx`, cursore |
-| WP-10 | Performance & A11y hardening (tier-scaling, lazy-mount, no leva in prod) | trasversale, `next.config.ts` |
-| WP-11 | QA finale & consegna (desktop+mobile, console, EN/IT, fallback WebGPU) | trasversale |
-
-**Sequenza consigliata** (da `PLAN.md`/`IMPLEMENTATION-PLAN.md`): WP-1 → WP-3 → **WP-4 ⭐** → (WP-5 + WP-7 in parallelo) → (WP-9 + WP-8) → WP-6 → WP-2 → WP-10 + WP-11.
-
-**Backlog immediato (P0 da `PLAN.md`):** ① Works reali (serve input Alberto) ② Hero scroll-settle ③ Componenti dalle reference re-tematizzati (marquee skills, shimmer CTA, text-animation hero).
+**I server.** `5178`: del direttore, `python scripts/serve-static.py 5178 public` (il tree vivo, le pagine assemblate). `5180`: del direttore, `python scripts/serve-static.py 5180 web/dist` (un'istantanea della build Astro, ricostruita a mano da `web/` con `npm run build`: dal 17 novembre quella dell'ondata 5). `5179`: la vista di Alberto («viva-5179» in `.claude/launch.json`, non tracciato), spenta finché non la chiede. Una lane non tocca mai queste tre porte e **non scrive mai in `web/dist`**: costruisce nella sua cartella e serve sulla sua porta (§6).
 
 ---
 
-## 9. Gates & conferme con Alberto (🔵 = stop & confirm)
+## 5. Stack, com'è davvero
 
-- **G3 — Merge su `main` / deploy produzione:** 🔵 solo con ok esplicito di Alberto.
-- **G4 — Hero FLUID** (`src/webgl/waterball/**`, physics/feel hand-tuned): **NON toccare** params/solver senza sblocco esplicito. La *resa* (shading/edge/foam) si migliora solo se Alberto sblocca.
-- **G5 — Generazione asset a pagamento** (Higgsfield/Blender): 🔵 conferma prima di spendere crediti.
-- **Contenuti:** Works/progetti e voci SerSan sono provvisori → 🔵 conferma copy prima di pubblicare claim.
-- Ad ogni gate vale la regola: **niente "fatto" senza prova visiva** + console pulita.
+HTML, CSS e JavaScript scritti a mano. A runtime, da jsDelivr dopo il primo frame: **GSAP 3.15.0** (core e ScrollTrigger), **Lenis 1.3.26**, **Anime.js 4.5.0** (i moduli ES `animejs/waapi` e `animejs/text`); **Sofia Sans** da Google Fonts; **WebGPU raw** con WGSL scritto a mano (punti in un compute pass, dischi con profondità di campo, lastre e prisma tracciati analiticamente, il campo, il passo splat, il bloom; la grana e l'aberrazione in velocità dentro i passi che ci sono già; il canvas a 8 bit, o `rgba16float` con tone mapping esteso dove lo schermo è HDR), senza three.js; **Web Audio API** per il suono. Build: **Node** (`assemble.mjs`) e **Astro 7.3.8** (`web/`, `node_modules` già installato; Node ≥ 22.12). Strumenti: Playwright su Chrome reale (headless), `sharp`, Python (il server statico), ffmpeg. Su questa macchina: Node 22, Python 3.14, Windows.
+
+**Niente Next.js:** la vecchia app è tolta (§7). `package.json` alla radice tiene solo `playwright` e `sharp` (devDependencies, per le sonde e i media), `engines.node` 22.x e lo script `build`, che è il rilascio; il suo `package-lock.json` è tracciato (fatto offline: quasi tutte le voci senza `resolved` / `integrity`; Vercel non lo installa). **Vercel** legge `vercel.json`: `framework: null`, installa solo `web/` (`cd web && npm ci`), costruisce con `node web/scripts/release.mjs`, serve `web/release/`, costruisce sempre (`ignoreCommand: "exit 1"`). Le route: `/it` → 308 a `/it/`; il nome di una pagina senza `.html` (le due lingue) e i vecchi `/work/<slug>` → 307 alla pagina; `nosniff` e `Referrer-Policy` ovunque; cache immutabile su `/_astro/*`; poi i file, e per il resto `it/404.html` sotto `/it/` e `404.html`, con stato 404.
 
 ---
 
-## 10. Comandi & verifica
+## 6. Comandi
 
 ```bash
-npm run dev          # http://localhost:3000  (apri in Chrome per WebGPU)
-npm run typecheck    # tsc --noEmit
-npm run build        # next build (gate prima del commit)
-# /styleguide        # contratto vivo del design system
+# build 1 e gate (dalla radice del worktree)
+node public/proto/rivista/assemble.mjs                # rigenera le 32 pagine e fx.css
+node public/proto/rivista/assemble.mjs --check        # exit 1 se qualcosa è stantio o un'asserzione fallisce (non scrive)
+node scripts/check-claims-proto.mjs                   # i numeri (--selftest: tre errori seminati; --dir=<cartella> su un'altra build)
 
-# Verifier dello skill docs-driven-build (se usato):
-bash .claude/skills/docs-driven-build/verifier.sh        # typecheck + build
-node .claude/skills/docs-driven-build/verify-visual.mjs  # console-clean + screenshot
+# build 2, Astro: sempre nella PROPRIA cartella, mai in web/dist (da web/)
+node scripts/build.mjs --outDir ../.shots/<lane>/dist
+node scripts/parity.mjs --built=../.shots/<lane>/dist/proto/rivista      # PARITY OK: ammesse solo le differenze del router
+node scripts/asserts.mjs --built=../.shots/<lane>/dist/proto/rivista
+node ../scripts/check-claims-proto.mjs --dir=../.shots/<lane>/dist/proto/rivista
 
-# Asset:
-node scripts/gen-mobile-frames.mjs   # (se servono frame mobile)
-python scripts/gen_sunset_cubemap.py # rigenera la cubemap sunset dell'hero
+# server (mai "python -m http.server"; mai le porte 5178, 5179, 5180)
+python scripts/serve-static.py <porta> public                       # le pagine assemblate → /proto/rivista/  (italiano: …/it/)
+python scripts/serve-static.py <porta> .shots/<lane>/dist public    # le pagine Astro; script e palco vivi da public/
+
+# guardare (catture in .shots/<tag>/, fuori da git; si aprono con Read)
+GATE_MAX_STEPS=30 node scripts/visual-gate.mjs <tag> proto/rivista/index.html proto/rivista/work.html --base=http://127.0.0.1:<porta>
+#   --reduce (movimento ridotto) · --nogpu · italiano: proto/rivista/it/…
+#   scene a metà scroll, tagli, film: script usa e getta su launch() di scripts/lib/headless.mjs; si riusano quelli di
+#   .shots/o-integrate/_scripts/ e .shots/n-integrate/_scripts/ (walk, pstrip, gpu, gpuflight, firstQ, clickgap, load, floor, film)
+
+# il suono senza finestra (uno strumento, non una pagina)
+node public/proto/rivista/sound/render.mjs "" out.wav        # la demo di 30 s; con cues.json: una lista di cue
+
+# il rilascio: la build Astro da servire dalla radice (è il buildCommand di Vercel e "npm run build" alla radice; ~2 s)
+VERCEL_ENV=production node web/scripts/release.mjs     # finisce con tre righe [release]; senza VERCEL_ENV=production: noindex e robots.txt Disallow
+python scripts/serve-static.py <porta> web/release      # guardarlo (server semplice: niente pagina 404 né redirect, che sono di vercel.json)
+#   RV_ORIGIN=https://<dominio> per un altro indirizzo (mai con una cartella: exit 1) · RV_ROBOTS="index, follow" forza la riga robots
+#   un errore a qualunque passo toglie web/release intera: un host non prende mai mezzo rilascio
 ```
+
+**Il deploy** (push, merge e deploy solo col sì di Alberto: dato il 19 novembre per l'ondata 6). Prima del push, il rilascio qui sopra sull'albero finale. Poi un solo commit con l'albero finale sopra il `main` di GitHub (`git commit-tree HEAD^{tree} -p 881f68c -m "…"`, l'autore di `git config`, nessuna riga di attribuzione) e il push di quello sha su `main`, un fast-forward finché `main` è `881f68c`: mai `feat/water-viva` (la sua storia tiene `47e914d`), mai `git merge --squash` (`main` ha 40 commit sulla vecchia app). Vercel lo costruisce da sé. Dopo: lo stato del commit su GitHub (verde online; rosso la build è fallita e resta il sito vecchio; assente il progetto non è collegato o l'autore è rifiutato) e cinque indirizzi: `/` è lo studio di notte con `x-content-type-options: nosniff`; `/robots.txt` dice `Allow: /` e nomina la sitemap; `/it` risponde 308; `/it/nope` 404 in italiano; `/work/badante24h` 307 a `/case-badante24h.html` (`build/m-release.md`, «For the director»).
+
+**Pipeline dei media** (headless; quelle che rendono una pagina vogliono un server su `public/`):
+
+```bash
+node scripts/capture-sites.mjs <sito> [--dry]         # catture dei siti reali → public/captures/
+node scripts/media/og-cards.mjs [home|<slug>|it/home|it/<slug>|it/]   # share card nella notte
+python scripts/media/icon-glyph.py && node scripts/media/chrome-icons.mjs   # il set di favicon
+node scripts/media/vpp-plate.mjs                      # il class diagram della Supply Chain (RV_FONTS per un'altra porta)
+~/.claude/skills/impeccable/scripts/impeccable embed-prompt --scan public/captures public/proto/rivista/og public/proto/rivista/icons
+```
+
+**Axe.** `node scripts/probes/a11y-gate.mjs --base=http://127.0.0.1:<porta> --routes=proto/rivista/consulting.html,proto/rivista/it/obla.html` (nato per la vecchia app; con base e route gira sul sito; mai rilanciato sulle pagine nuove; mentre gira inietta axe-core da cdnjs nella pagina della sonda: la rete serve alla sonda, nel repo non entra nulla).
+
+**Dopo aver toccato** un `css/*.css`, un parziale, `strings.mjs` o `cases.json`: `assemble.mjs`, `--check`, i claim, poi la build Astro con i suoi tre controlli. Dopo una cattura o una stringa che entra in una share card: `og-cards.mjs` per quella pagina. Dopo un `fx-*.js` o `stage/**`: niente da assemblare, ma si guardano le pagine col palco acceso, su entrambe le build. Un file nuovo che una pagina carica: il controllo del rilascio dice se manca o se ha le maiuscole sbagliate (il disco di Vercel le distingue); uno che nessun visitatore carica va in `LEFT_OUT` di `web/scripts/release.mjs`.
 
 ---
 
-## 11. Nota su contenuti
+## 7. Storico: non fidarsi
 
-- **Works = REALI (3 confermati) + SerSan provvisori.** `src/content/works.ts` ha 3 progetti **confermati** con PARC EN/IT completo + `/work/[slug]`: `badante24h`, `doit-voice-ai-agent`, `agricultural-supply-chain`. Mancano gli **still WebP** via `Work.textureSrc` (sia la depth gallery sia la galleria orizzontale `/work` rendono gradienti duotone; serve un branch texture).
-- **SerSan ×2 = PROVVISORI.** `sersan-project-1/2` hanno `status: "provisional"`, badge WIP, **niente** pagina `/work/[slug]` (sulla galleria orizzontale/depth gallery mostrano "WIP" invece di aprire). Dettagli/metriche da confermare con Alberto — non pubblicare claim non verificati. Il CV PDF non è aggiornato su SerSan: la verità sulla bio è `docs/07-PROJECTS.md`.
-- **Email contatto (pubblica):** `albertotuveri@gmail.com` (in `dict.ts`, en+it). *(L'email aziendale `alberto.t@sersan.dev` NON va usata sul sito.)*
+Memoria dei mondi precedenti. **Non descrive il sito vivo.**
+
+- **L'app Next.js 16 "The job order"** (`src/**`, `next.config.ts`, `tsconfig.json`, `postcss.config.mjs`, `public/bench/`, `public/cubemap/`): tolta dal tree nell'ondata 6 (nella storia git fino a `4000240`; l'elenco in `.shots/m-release/deleted-files.txt`). Restano, senza più un'app su cui girare: `scripts/check-claims.mjs`, `scripts/capture-bench.mjs`, `scripts/gen_workshop_cubemap.py`, le sonde `scripts/probes/_*.mjs` e le route di default di `a11y-gate.mjs`.
+- **La rivista bianca** (9–10 novembre): fogli, corpi di vetro e figure del giorno sono cancellati (nella storia git fino a `8f12d86`). Le sonde `scripts/probes/rivista-motion/*`, le spec 10, 20, 30 e `40-as-built.md` di `docs/redesign/rivista-story/`, `docs/redesign/rivista-motion/` e `rivista-next/` descrivono quel mondo (valgono solo dove la spec 50 le richiama: l'edizione italiana, i casi come dati). In testa ad `assemble.mjs` e a `fx-core.js` restano note di allora.
+- **La A d'acqua**: cancellata il 10 novembre (nella storia git fino a `ac7e83f`); `docs/redesign/water-hero/**` descrive quel mondo.
+- **`REDESIGN-SPEC.md`, `ANIMATION_PLAN.md`, `CODEDROPSPLAN.md`, `IDEAS.md`, `docs/archive/**`, `loops/**`**: mondi eliminati. (`README.md` invece è stato riscritto nell'ondata 6 per il sito vivo.)
+- **Dentro il sito vivo, superato:** le intestazioni di alcuni file raccontano più versioni una sopra l'altra (`cover/world.js`, `gallery.js`, `index.js`): vale l'ultima nota e il codice sotto. `.impeccable/surfaces/public-proto-rivista-index-html.md` descrive la copertina del giro 10.
+
+---
+
+## 8. Aperti
+
+**Dell'ondata 6** (`build/m-*.md`; le misure finali in `build/m-integrate.md`, la serie finale guardata in `.shots/m-final/`). Chiusi dall'ondata: il primo clic di una visita vola dopo 3 ms, muto, e la stanza entra dopo l'arrivo; dentro la porta la stanza nuova dal primo fotogramma all'ultimo; verso Contact il mattino come un bordo di giorno; da Contact e da ogni vista all'alba si vola (build Astro); la copertina raggiunta in volo ha un nome solo, fermo; alla prima visita nessun buco di frame alla porta e Work in piedi a 976–980 ms (budget 1200); «More work» e il record al telefono hanno la loro figura; le date di About non si toccano; il prisma di vetro pieno; grana, aberrazione in velocità, canvas HDR; i resti del 2D; il rilascio. Aperti:
+
+- **Il GPU** (INTEGRATE sull'albero finale, il 20 novembre fra le 16:00 e le 16:11, contro la build Astro di HEAD pagina per pagina; la tabella in `build/m-integrate.md`): sopra i limiti su questa GPU, mai sopra HEAD salvo due arrivi entro 0,15 ms. A 1440×900 DPR 2 cinque voli su sei stanno fra 3,48 e 4,24 ms contro 3,3 (HEAD 3,14–5,47); a riposo la pila di About fa 2,69–2,76 e l'apertura di un caso 2,71–2,76 contro 2,6 (HEAD 2,91 e 2,81); i picchi: indice 3,62 (HEAD 3,62), pila 3,55 (HEAD 4,09), apertura di un caso 3,39 (HEAD 3,55). A 1920 DPR 1 da Work ad About 3,04 / 2,79 contro 2,4 (HEAD 4,83 / 2,83). Al telefono il volo da Work ad About fa 1,00 / 1,12. **Lo sciame si dimezza** (da 160.000 a 80.000) durante la lettura in due posti e resta dimezzato per il resto della pagina: l'indice della copertina con la mano su una riga (i punti dell'emblema che arrivano) e la pila di About; HEAD si dimezza negli stessi posti, su About due volte (40.000). Nei voli lo sciame non si dimezza mai. Costano di più (FLY): l'uscita da Work (7–8 lastre della galleria che passano la lente, 2,7–3,1 ms di lastre: un pre-passo di profondità delle catture opache lo taglierebbe), gli ultimi fotogrammi della porta all'arrivo (la porta sul quadro, la sua ricerca, lo sciame davanti), About a riposo (parete 0,5 ms, sciame 1,3). L'indice con Work sotto la mano dimezza ancora lo sciame nei giri rumorosi, come HEAD: i punti dell'emblema che arrivano (leve: meno nebbia a riposo in `index.js`, o il budget delle scie dello sciame).
+- **Da guardare** (Alberto): da 400 a 500 ms le due giunture accese della porta corrono per tutta l'altezza del quadro come due linee chiare verticali (FLY le ha giudicate i bordi del vetro, non righe di griglia); verso Contact, da 650 a 800 ms dopo il clic, il quadro mostra solo la carta di Contact e i suoi tratti d'inchiostro prima che salga «WRITE TO ME.» (il bordo del giorno è giusto, ma per 150 ms si legge quasi come un foglio vuoto); da Contact alla copertina un buco di rAF di 35 ms (a 366 ms) e uno di 42 ms fra i fotogrammi presentati (a 540 ms), negli altri sei voli nessuno sopra 34 e 40 ms; nella galleria la lastra di Maintech OMA incide «9 / roles, default-deny on every table», l'unica lastra del sito che porta un numero (disegno dell'ondata 5, contro la regola delle card del §1). Nessuno schermo HDR vero è stato provato: il float16 forzato (`?hdr=1`) si configura e disegna l'immagine di oggi; quanto salgono i mucchi dello sciame (il nome della copertina) su un display HDR lo dice l'occhio di Alberto (`?hdr=0` lo spegne). L'aberrazione tocca la stanza dietro e dentro il vetro, non le facce delle lastre né lo sciame davanti (servirebbe un passo suo).
+- **Il suono**: nessuno l'ha ascoltato, ogni livello è una misura. Il task del browser che crea il contesto (38–46 ms qui, 50–160 a freddo o a macchina carica) ora cade a riposo, circa 1,3 s dopo che la stanza sta in piedi (2,4 s dopo il clic; sulla copertina circa 3 s dopo l'arrivo). Sulle pagine assemblate il primo clic su un link della seconda pagina crea ancora il contesto nella pressione. Agli altoparlanti di un telefono (sopra 500 Hz) la stanza è 7,5 dB più bassa: c'è, ma debole. SOUND ha provato contro il volo mentre FLY lo cambiava ancora: va riguardato una volta sul volo finale (`node .shots/m-sound/_scripts/first.mjs --fresh 3` e `matrix.mjs`).
+- **Il 2D**: al telefono (390 px) circa 10 dei 63 nomi di scena italiani (i titoli di capitolo più lunghi) finiscono coi puntini; il class diagram che si traccia, in modalità scena a 1440, è largo circa 585 px e le etichette delle classi sono alte circa 3 px: le linee si vedono disegnare, il testo dentro non si legge (c'era già).
+- **Mai provati**: Safari, Firefox, un telefono vero, uno schermo HDR, una GPU lenta (il browser che rifiuta un contesto audio è imitato in Chrome).
+- **Le pagine assemblate** non vanno online e non volano: tengono portale e foglio, anche da Contact (deciso per l'ondata 6). Togliere `assemble.mjs` e restare su Astro solo si decide dopo lo sguardo di Alberto (`PLAN.md`).
+
+**Per il deploy.** Il rilascio e `vercel.json` hanno chiuso: l'indirizzo (`ORIGIN` in testa a `web/scripts/release.mjs`, o `RV_ORIGIN`), l'indicizzazione (`index, follow` solo con `VERCEL_ENV=production`; `robots.txt` e `sitemap.xml` seguono), lo stato 404 dei due 404, che cosa non servire (`LEFT_OUT`: le note `.md`, i banchi `stage/*.html`, `sound/`, i sidecar `.webp.json`, gli `.svg` delle catture tranne quello della Supply Chain, `og/og-manifest.json`), quale build si pubblica (Astro), la vecchia app (tolta). Restano: il push su `main` (§6; `47e914d`, con una vecchia cattura del volto e del nome di una persona, resta solo nella storia di `feat/water-viva`, che non si pusha); ciò che il pannello di Vercel può ancora fare e da qui non si vede (una Root Directory messa su una cartella salta `vercel.json`; le variabili d'ambiente di sistema non esposte fanno una produzione `noindex`, e allora il buildCommand è `RV_ROBOTS="index, follow" node web/scripts/release.mjs`; una Production Branch diversa da `main` fa del push un'anteprima); `handle: filesystem` in `vercel.json`, che la documentazione di Vercel dice deprecato (solo così il 404 italiano ha lo stato 404; se smettesse di valere resterebbe il 404 inglese); `/index.html`, un secondo indirizzo della copertina (il canonical dice `/`); un dominio vero (`albertotuveri.dev` non esiste nel DNS): `ORIGIN` o `RV_ORIGIN`.
+
+**Contenuti e CV** (`PLAN.md` §3): la lettura da madrelingua dell'italiano e dei testi di Consulting e Obla; le note sul CV.
+
+---
+
+## 9. Skill e MCP
+
+Per ogni lavoro di UI o di palco: la skill **`impeccable`** (su altre macchine `ui-design:impeccable`) e `DESIGN.md` prima di scrivere; `verification-before-completion` con uno sguardo alle catture per chiudere. Per `DESIGN.md` e `.impeccable/design.json`: `impeccable document`. I connettori di componenti si caricano con ToolSearch. Niente MCP o skill in più se il lavoro non li chiede.

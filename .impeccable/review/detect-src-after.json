@@ -1,0 +1,12 @@
+﻿[
+  {
+    "antipattern": "broken-image",
+    "name": "Broken or placeholder image",
+    "description": "<img> tags with empty src, missing src, or placeholder values ship as broken-image boxes. Use real images, generated assets, or remove the tag.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "C:\\Users\\alber\\Portfolio\\src\\components\\bench\\TestBench.tsx",
+    "line": 103,
+    "snippet": "<img>"
+  }
+]

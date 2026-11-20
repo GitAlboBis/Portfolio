@@ -1,0 +1,131 @@
+/* ==========================================================================
+   css/blocks.css · the working baseline of every page's blocks (spec 50 §4), in the scene grammar
+   The page lanes of wave 2 compose each page finely in css/page-*.css; this file keeps every page legible and whole
+   on its own: the cover (hero, now, index), the gallery steps, the measured rows, the steps of About, Consulting and
+   Obla, the 404. Rhythm: tight inside a group (s2–s3), generous between groups (s4–s6), more above a title than below.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- the flow inside a text column */
+.sc-in > * + * { margin-top: var(--s3); }
+.sc-in > .t-d1 + *, .sc-in > .t-d2 + *, .sc-in > .t-mega + * { margin-top: var(--s4); }
+.sc-in > * + .t-d1, .sc-in > * + .t-d2, .sc-in > * + .t-mega { margin-top: var(--s3); }
+.sc-in > .t-lead + .t-body { margin-top: var(--s4); }
+.sc-in em { color: var(--accent); }
+
+/* ---------------------------------------------------------------- the cover: first viewport */
+.hero-in {
+  position: relative;
+  min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: calc(var(--hdr) + var(--s5)) var(--gut) clamp(var(--s6), 9vh, var(--s7));
+}
+/* one line across the measure at every width: the mega size, never wider than the measure allows (the name is 5.2 em
+   wide in Sofia Sans Extra Condensed 800 capitals, measured in Chrome) */
+.hero-name { margin-left: -0.035em; font-size: min(var(--t-mega), calc((100vw - 2 * var(--gut)) / 5.2)); }
+.hero-foot {
+  display: grid; gap: var(--s5);
+  margin-top: clamp(var(--s4), 4.5vh, var(--s6));
+}
+.hero-role { color: var(--accent); }
+.hero-line { margin-top: var(--s2); max-width: 30em; }
+.hero-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s5); }
+.hero-instr { position: absolute; right: var(--gut); bottom: var(--s4); color: var(--mute); }
+@media (min-width: 1024px) {
+  .hero-foot { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .hero-act { justify-content: flex-end; }
+}
+@media (max-width: 1023.98px) {
+  .hero-in { padding-bottom: var(--s6); }
+}
+
+/* ---------------------------------------------------------------- the cover: now */
+.now-when { color: var(--accent); }
+.now-fig img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.now-fig { margin-top: var(--s5); }
+@media (min-width: 1024px) {
+  .now .sc-step { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s6); align-items: center; }
+  .now-fig { margin-top: 0; }
+}
+
+/* ---------------------------------------------------------------- the cover: the index (also the 404's) */
+.ix-in { padding: var(--s7) var(--gut); }
+.ix-h { margin-bottom: var(--s4); }
+.ix-a {
+  display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; column-gap: var(--s3); row-gap: var(--s2);
+  align-items: baseline;
+  padding-block: var(--s4);
+}
+.ix-n { color: var(--accent); }
+.ix-k { grid-column: 2; }
+.ix-v { grid-column: 3; grid-row: 1; align-self: center; }
+@media (max-width: 767.98px) {
+  .ix-a { grid-template-columns: 2rem minmax(0, 1fr); }
+  .ix-v { grid-column: 2; grid-row: auto; margin-top: var(--s2); }
+}
+.ix-a:hover .ix-t, .ix-a:focus-visible .ix-t { color: var(--accent); }
+.ix-a:hover .ix-v, .ix-a:focus-visible .ix-v { color: var(--accent); text-decoration-color: currentColor; }
+@media (min-width: 1024px) {
+  html.sc-on:not(.gl-off) .ix-in { max-width: min(62rem, 60vw); padding-block: calc(var(--hdr) + var(--s6)) var(--s7); }
+  .ix-k { max-width: 30em; }
+}
+
+/* ---------------------------------------------------------------- Work: the gallery steps */
+.gal-list { counter-reset: none; }
+.wk-n { color: var(--mute); }
+.wk-kind { color: var(--body); }
+.wk-name { margin-top: var(--s2) !important; }
+.wk-line { color: var(--body); }
+.wk-go { margin-top: var(--s4) !important; }
+.wk-pic { margin-top: var(--s5); }
+.wk-pic img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: 50% 0; background: var(--night-2); }
+.wk-words { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: var(--s5); }
+.wk-words-fig { font: 800 clamp(4rem, 9vw, 9rem)/0.86 var(--f-display); text-transform: uppercase; color: var(--ink); }
+.wk-words-line { margin-top: var(--s3); max-width: 28em; }
+@media (min-width: 1024px) {
+  .wk { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--s6); align-items: center; }
+  .wk-pic { margin-top: 0; }
+}
+
+/* ---------------------------------------------------------------- Work: measured before and after */
+.ev-h em, .ev-set em { color: var(--accent); }
+.ev-note { color: var(--body); }
+.mx { margin-top: var(--s4) !important; }
+.metric { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--s4); row-gap: var(--s2); align-items: baseline; padding-block: var(--s3); }
+.mx-l { font: 500 calc(var(--t-small) + 0.0625rem)/1.35 var(--f-text); color: var(--ink); }
+.mx-low { display: block; margin-top: 0.2em; font: 600 var(--t-label)/1.3 var(--f-label); letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--mute); }
+.mx-n { font: 800 clamp(1.75rem, 2.6vw, 2.5rem)/1 var(--f-display); color: var(--ink); white-space: nowrap; text-align: right; }
+.mx-n .from { color: var(--mute); }
+.mx-n .arr { color: var(--accent); margin-inline: 0.25em; }
+.mx-bars { grid-column: 1 / -1; display: grid; gap: 3px; }
+.mx-bars i { display: block; height: 3px; width: var(--w); min-width: 1px; background: var(--mute); }
+.mx-bars i.is-after { background: var(--accent); }
+.mx-tiny { grid-column: 1 / -1; font: 400 var(--t-small)/1.4 var(--f-text); color: var(--mute); }
+
+/* ---------------------------------------------------------------- About, Consulting, Obla: the steps */
+.stp-n { color: var(--accent); }
+.stp-t { margin-top: var(--s2) !important; }
+.stp-line { color: var(--body); }
+.tools { display: flex; flex-wrap: wrap; gap: 0.35em 1.25em; font: 500 calc(var(--t-small) + 0.125rem)/1.45 var(--f-text); color: var(--ink); }
+.stp-proof { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.75em; margin-top: var(--s4) !important; }
+.stp-when { display: flex; flex-wrap: wrap; gap: 0.75em; }
+.stp-where { color: var(--body); }
+.stp-thesis cite { color: var(--ink); }
+.co-close { max-width: 16ch; }
+.co-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s4) var(--s5); margin-top: var(--s5) !important; }
+.ob-kind { color: var(--accent); }
+.ob-still { margin-top: var(--s5); max-width: 26rem; }
+.ob-still svg { width: 100%; height: auto; }
+.ob-fields > div { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: var(--s3); padding-block: var(--s3); }
+@media (min-width: 1024px) {
+  .ob .sc-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); gap: var(--s6); align-items: center; }
+  .ob-still { margin-top: 0; }
+}
+
+/* ---------------------------------------------------------------- the 404 */
+.nf { padding: calc(var(--hdr) + var(--s7)) var(--gut) var(--s6); }
+.nf-h { margin-top: var(--s3); white-space: normal; }
+.nf-lead { margin-top: var(--s4); }
+.nf-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s4) var(--s5); margin-top: var(--s5); }
+.nf-ix { padding: var(--s6) var(--gut) var(--s7); }
+.nf-ix > .t-label { margin-bottom: var(--s3); }
+.nf-works { margin: var(--s6) 0 var(--s3); }

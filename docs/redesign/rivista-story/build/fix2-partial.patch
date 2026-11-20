@@ -1,0 +1,805 @@
+diff --git a/public/proto/rivista/fx-scroll.css b/public/proto/rivista/fx-scroll.css
+index 47f72ef..c2fa683 100644
+--- a/public/proto/rivista/fx-scroll.css
++++ b/public/proto/rivista/fx-scroll.css
+@@ -1014,13 +1014,50 @@ html.stage-on .st-still, html.stage-on [data-stage-poster] { display: none; }
+ /* 13c · Consulting's foot: a ghost link on to Obla, the next night page */
+ .st-on { margin-top: clamp(2.5rem, 6vh, 4rem); }
+ 
+-/* 13d · 08 · Contact, the page: the band itself, full height; the address, the copy control, LinkedIn and GitHub */
++/* 13d · 08 · Contact, the page: the band itself, one screen tall, composed like the cover (FIX2-PAGE, verdict ceiling:
++   no more half a screen of paper above the copy). The copy is in the flow, a grid of four rows: the eyebrow, the line,
++   a room of paper (1fr) and the foot. The line is set at the cover's name scale (fx-hero.css §1, --t-hero), capped by
++   the measure (--tw: its widest line in em, from the partial), stepped like TUVERI. The foot is the cover's too: the
++   sentence on the left, the address, its copy control, LinkedIn and GitHub on the right edge; on a phone they stack.
++   The stage's lens rests on the line, near its right end (fx-stage.js, the pool on .band-page): up to 260 px, so on
++   a phone the eyebrow stands well above the line and the sentence well below it, both out of the glass's reach; the
++   sentence and the address are the settling ink's keep-outs */
+ .band-page { aspect-ratio: auto; min-height: 100svh; }
+-.band-copy h1 { max-width: calc(var(--ch-d) * 18); }
++.band-page.pg-open { padding-top: 0; }
++.band-page .band-copy {
++  position: relative; left: auto; right: auto; bottom: auto;
++  display: grid; grid-template-columns: minmax(0, 1fr);
++  grid-template-rows: auto auto minmax(clamp(4.5rem, 10vh, 7rem), 1fr) auto;
++  min-height: 100svh;
++  padding: calc(var(--hdr) + clamp(1rem, 3vh, 2.5rem)) var(--pad) clamp(2rem, 5vh, 3.5rem);
++}
++.band-page .eyebrow { grid-row: 1; }
++.ct-h {
++  grid-row: 2; max-width: none; margin-top: clamp(1rem, 3vh, 2rem);
++  --t-ct: min(max(3.1rem, min(18vw, 25svh)), calc((100vw - 2 * var(--pad)) / var(--tw, 5)));
++  font-size: var(--t-ct); font-weight: var(--w-hero); line-height: 0.9; letter-spacing: var(--tr-hero);
++}
++/* the step: TUVERI's 0.95 em. The held last two words (the partial's no-break span, the line's only span) are the
++   second line, set as a block: the break never depends on the width or on SplitText's line count, and the split line
++   (one masked block) and the printed one look the same. A one-word line ("Scrivimi.") has no span and stays one line */
++.ct-h span { display: block; padding-left: 0.95em; }
++.ct-lead { grid-row: 4; max-width: 30ch; margin: 0; color: var(--graphite); }
++.ct-reach { grid-row: 5; margin-top: clamp(1.5rem, 4vh, 2.5rem); }
++.ct-reach .sc-email { margin-top: 0; }
+ .band-else { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; margin: 1.5rem 0 0; padding: 0; list-style: none; font: 500 1rem/1.4 var(--f-text); text-transform: uppercase; letter-spacing: 0.08em; }
+ .band-else a { color: var(--ink); text-decoration: none; }
+ @media (pointer: coarse) { .band-else a { display: inline-block; padding-block: 0.75rem; } }
+-@media (max-width: 767.98px) { .band-page { min-height: 100svh; } }
++@media (max-width: 1023.98px) {
++  .ct-h { --t-ct: min(max(3.1rem, min(19.5vw, 28svh)), calc((100vw - 2 * var(--pad)) / var(--tw, 5))); margin-top: clamp(4.5rem, 10svh, 6rem); }
++  .band-page .band-copy { grid-template-rows: auto auto minmax(4.5rem, 1fr) auto auto; }
++}
++@media (min-width: 1024px) {
++  .band-page .band-copy { grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--gut); }
++  .band-page .eyebrow, .ct-h { grid-column: 1 / -1; }
++  .ct-lead { grid-row: 4; grid-column: 1; align-self: end; }
++  .ct-reach { grid-row: 4; grid-column: 2; align-self: end; margin-top: 0; text-align: right; }
++  .ct-reach .band-else { justify-content: flex-end; }
++}
+ 
+ @media print {
+   .ix-dusk { --paper: #ffffff; --paper-deep: #ffffff; --ink: #24211e; --graphite: #48443e; --stone: #6b665d; --line: #dcd5c8; --accent: #2340c9; }
+diff --git a/public/proto/rivista/fx-stage.js b/public/proto/rivista/fx-stage.js
+index 532b4e6..00c09a1 100644
+--- a/public/proto/rivista/fx-stage.js
++++ b/public/proto/rivista/fx-stage.js
+@@ -134,6 +134,11 @@
+     const rowLines = [...new Set(qa('[data-refract="row"], [data-stage="contents"] [data-block="row"] [data-refract]'))];
+     const rowBoxes = rowLines.map((l) => l.closest("li, a, [data-row]") || l);
+     const rowLabels = rowBoxes.map((b) => b.querySelector(".label"));
++    // the rest of a row's printed text (its sentence): the drop crosses it on its way to the dusk strip, so it goes to the
++    // backdrop with the row and is bent, never painted over (fix2). The rolling "Read" is left out (two copies, one
++    // clipped): the drop never reaches it.
++    const rowText = rowBoxes.map((b, i) => [...b.querySelectorAll("[data-reveal]")].filter((el) => el !== rowLines[i] && el !== rowLabels[i]
++      && !el.contains(rowLines[i]) && !el.querySelector(".sc-roll-a") && !el.classList.contains("sc-roll") && (el.textContent || "").trim()));
+     const beadRows = qa('[data-stage="caps"] [data-block="row"], [data-stage="path"] [data-block="row"]')
+       .map((row) => ({ row, rule: row.querySelector("[data-rule]"), name: row.querySelector(".d2, .d3, h3") }))
+       .filter((b) => b.rule && b.name);
+@@ -144,7 +149,7 @@
+     const keepEls = qa('.frame, .btn, [data-rail], [data-stage-keepout], [data-stage="now"] figcaption, [data-band-copy] .sc-email').filter((el) =>
+       !el.classList.contains("frame") || !!el.querySelector("img, video, canvas"));
+     const all = new Set([...secs.map((s) => s.el), ...Object.values(anchors), ...steps.consult, ...steps.obla, ...keepEls,
+-      ...medias, ...rowLines, ...rowBoxes, ...beadRows.flatMap((b) => [/** @type {Element} */ (b.rule), /** @type {Element} */ (b.name)])]);
++      ...medias, ...rowLines, ...rowBoxes, ...rowText.flat(), ...beadRows.flatMap((b) => [/** @type {Element} */ (b.rule), /** @type {Element} */ (b.name)])]);
+     for (const el of [night, nightNext, band, rail, lockup, heroName, bandTitle, band && band.querySelector("[data-band-copy]"), ...rowLabels]) if (el) all.add(el);
+     // the sticky boxes, flattened while the natural rects are read (in flow either way: nothing else moves)
+     const sticky = new Set();
+@@ -215,7 +220,8 @@
+       keep: keepEls.map(rec).filter((r) => r && r.nat.w > 1 && r.nat.h > 1),
+       track, tx0, tiles: medias.map((m, i) => ({ media: m, tile: tiles[i], r: rec(m) })),
+       lockup: rec(lockup), heroName, orn,
+-      rows: rowLines.map((l, i) => ({ line: l, box: rowBoxes[i], label: rowLabels[i], r: recG(l, rectOf(rowBoxes[i])), rb: rec(rowBoxes[i]), lb: recG(rowLabels[i]) })).filter((x) => x.r && x.r.nat.w > 4),
++      rows: rowLines.map((l, i) => ({ line: l, box: rowBoxes[i], label: rowLabels[i], r: recG(l, rectOf(rowBoxes[i])), rb: rec(rowBoxes[i]), lb: recG(rowLabels[i]),
++        tx: rowText[i], txr: rowText[i].map((el) => recG(el)) })).filter((x) => x.r && x.r.nat.w > 4),
+       beads: beadRows.map((b) => ({ rule: b.rule, name: b.name, rr: rec(b.rule), nr: recG(b.name), fs: parseFloat(getComputedStyle(/** @type {Element} */ (b.name)).fontSize) || 0 })).filter((b) => b.nr && b.nr.nat.w > 4),
+       bandTitle, bandTitleR: recG(bandTitle), bandCopy: band ? rec(band.querySelector("[data-band-copy]")) : null,
+       // the Contact page is its band (.band-page): there the drop rests on the display line itself
+@@ -228,7 +234,7 @@
+     const row = q("main .row") || q(".row");
+     out.pad = row ? Math.max(8, parseFloat(getComputedStyle(row).paddingLeft) || 0) : 24;
+     M = out;
+-    BD.key = ""; BD.t = 0;   // the layout moved: the backdrop is rasterised again
++    BD.key = ""; BD.t = 0; BD.ok = null;   // the layout moved: the backdrop is rasterised again, and trusted only then
+     if (stage) stage.resize(out.cw, out.ch, window.devicePixelRatio || 1);
+     log(`[stage] measured ${all.size} boxes (${sticky.size} sticky) in ${(performance.now() - t0).toFixed(1)} ms`);
+   }
+@@ -251,19 +257,29 @@
+      names the nodes (from the last measure); the raster runs in its own task, and again 0.45 s and 1.3 s later so the
+      type it caught mid-reveal is redrawn printed. The rail's lens rasterises its tile alone and moves that raster with
+      the track's GSAP x every tick (an upload of one tile while the rail runs). */
+-  const BD = { key: "", t: 0, busy: false, /** @type {any} */ next: null, /** @type {any} */ lens: null, timers: /** @type {number[]} */ ([]) };
+-
+-  /** @param {{ key: string, nodes: Element[], rect: Rect } | null} want */
++  /* BD.ok: what the backdrop on the GPU can be trusted for: the parts (name, r<i>, b<i>, band) whose nodes were
++     rasterised at rest, and the rect it covers. A part caught before or inside its reveal (a row rasterised from
++     below the fold while it still waits for its fade) is not in it, and is rasterised again until it is: a figure
++     over a node that is not in BD.ok waits or is not drawn (gate()). Glass bends a word; it never deletes one. */
++  const BD = { key: "", t: 0, busy: false, /** @type {any} */ next: null, /** @type {any} */ lens: null, timers: /** @type {number[]} */ ([]),
++    /** @type {{ keys: Set<string>, rect: Rect, lens: boolean } | null} */ ok: null, tries: 0 };
++
++  /** @param {{ key: string, nodes: Element[], rect: Rect, parts?: Record<string, Element[]> } | null} want */
+   function backdrop(want) {
+     if (!want) return;
+     if (want.key === BD.key) return;
+     BD.key = want.key;
+-    BD.lens = null;
++    BD.lens = null; BD.tries = 0;   // BD.ok still describes the raster on the GPU until the next one lands
+     BD.timers.forEach((t) => clearTimeout(t));
+     const go = () => { BD.next = want; if (!BD.busy) rasterNext(); };
+     go();
+     BD.timers = [setTimeout(go, 450), setTimeout(go, 1300)];
+   }
++  /** a part came out unsettled: rasterise the same set again shortly (every 0.3 s, then every second) */
++  function retry(/** @type {any} */ w) {
++    BD.tries++;
++    BD.timers.push(setTimeout(() => { if (BD.key === w.key) { BD.next = w; if (!BD.busy) rasterNext(); } }, BD.tries < 12 ? 300 : 1000));
++  }
+   async function rasterNext() {
+     const w = BD.next; BD.next = null;
+     if (!w || !stage || !bdMod) return;
+@@ -280,11 +296,20 @@
+         const rect = { x: x0 + scrollX, y: y0 + scrollY, w: x1 - x0, h: y1 - y0 };
+         const tx = gx(M && M.track);
+         const bd = await bdMod.rasteriseBackdrop({ nodes: els, rect, scale, pad: 0 });
+-        if (g === gen && stage && BD.key === w.key) { BD.lens = { canvas: bd.canvas, rect, tx, dx: 0, t: performance.now() }; stage.setBackdrop(bd.canvas, rect); }
++        if (g === gen && stage && BD.key === w.key) {
++          BD.lens = { canvas: bd.canvas, rect, tx, dx: 0, t: performance.now() }; stage.setBackdrop(bd.canvas, rect);
++          BD.ok = { keys: new Set([w.key]), rect, lens: true };
++        }
+       } else if (w.nodes.length) {
+         const bd = await bdMod.rasteriseBackdrop({ nodes: w.nodes, rect: w.rect, scale });
+-        if (g === gen && stage && BD.key === w.key) stage.setBackdrop(bd.canvas, bd.rect);
+-        log(`[stage] backdrop ${w.key}: ${bd.canvas.width}x${bd.canvas.height} in ${bd.ms.toFixed(1)} ms`);
++        if (g === gen && stage && BD.key === w.key) {
++          stage.setBackdrop(bd.canvas, bd.rect);
++          const parts = w.parts || {}, keys = new Set();
++          for (const k in parts) if (parts[k].every((el) => !bd.unsettled || !bd.unsettled.has(el))) keys.add(k);
++          BD.ok = { keys, rect: { ...bd.rect }, lens: false };
++          if (keys.size < Object.keys(parts).length) retry(w);
++          log(`[stage] backdrop ${w.key}: ${bd.canvas.width}x${bd.canvas.height} in ${bd.ms.toFixed(1)} ms, at rest: ${[...keys].join(",") || "-"}`);
++        }
+       }
+     } catch (e) { log("[stage] backdrop failed: " + (e && /** @type {any} */ (e).message || e)); }
+     BD.busy = false;
+@@ -298,6 +323,7 @@
+     if (Math.abs(dx - L.dx) < 0.25) return;
+     L.dx = dx;
+     stage.setBackdrop(L.canvas, { x: L.rect.x + dx, y: L.rect.y, w: L.rect.w, h: L.rect.h });
++    if (BD.ok && BD.ok.lens) BD.ok.rect = { x: L.rect.x + dx, y: L.rect.y, w: L.rect.w, h: L.rect.h };
+     // the captures pan inside their frames as the rail runs: draw the tile again now and then
+     if (performance.now() - L.t > 600 && BD.key.startsWith("lens:")) { L.t = performance.now(); BD.key = ""; }   // the next tick rasterises it
+   }
+@@ -317,6 +343,11 @@
+    */
+   function glassTick(y, vw, vh, dt, S, eTop, eBot) {
+     const P = page.glass, list = [], nodes = new Set(), keys = [];
++    /** @type {Record<string, Element[]>} */ const parts = {};
++    const part = (/** @type {string} */ k, /** @type {(Element | null | undefined)[]} */ els) => {
++      const e = /** @type {Element[]} */ (els.filter(Boolean));
++      e.forEach((el) => nodes.add(el)); keys.push(k); parts[k] = e;
++    };
+     const phone = vw < 760;
+     let lensWant = null, zSum = 0, wSum = 0;
+ 
+@@ -350,6 +381,8 @@
+           const dist = i === hover.row && dm < vh * 0.3 ? 0 : dm;
+           if (dist < best) { best = dist; rowI = i; }
+         });
++        // the lens goes to a row only once the backdrop holds that row at rest: until then the drop waits in the margin
++        if (rowI >= 0 && !partOk("r" + rowI, at(M.rows[rowI].r, y))) rowI = -1;
+         if (rowI >= 0) {
+           const lr = /** @type {Rect} */ (at(M.rows[rowI].r, y));
+           lensT = rowI === hover.row && best === 0 ? 1 : 1 - sstep(vh * 0.2, vh * 0.34, best);
+@@ -361,7 +394,7 @@
+         // the rows near the reader go to the backdrop (with their numbers), so the lens bends what is there
+         M.rows.forEach((/** @type {any} */ row, /** @type {number} */ i) => {
+           const lr = at(row.r, y);
+-          if (lr && lr.y < y + vh * 1.4 && lr.y + lr.h > y - vh * 0.4) { nodes.add(row.line); if (row.label) nodes.add(row.label); keys.push("r" + i); }
++          if (lr && lr.y < y + vh * 1.4 && lr.y + lr.h > y - vh * 0.4) part("r" + i, [row.line, row.label, ...(row.tx || [])]);
+         });
+       }
+       // the dusk strip: the drop goes to its edge and sinks into it
+@@ -381,11 +414,15 @@
+       Object.assign(P.drop, { R: s / 2, r, morph: d.morph, lens: d.lens, pw: d.pw || r * 3, ph: d.ph || r * 2, sink: d.sink });
+       const wgt = 1 - sstep(0.75, 1, d.sink);
+       if (wgt > 0.002 && d.y > y - vh * 0.5 && d.y < y + vh * 1.5) {
+-        list.push({ id: "drop", weight: +wgt.toFixed(4), rect: { x: Math.round(d.x - 50), y: Math.round(d.y - 50), w: 100, h: 100 } });
++        // its footprint: the body over the name, the bead in the margin, the pill over a row
++        const hb = lerp(s / 2, r, d.morph) * 1.15;
++        const hx = lerp(hb, (d.pw || r * 3) / 2, d.lens), hy = lerp(hb, (d.ph || r * 2) / 2, d.lens);
++        const vis = gate("drop", clearUnder({ x: d.x - hx, y: d.y - hy, w: 2 * hx, h: 2 * hy }, y), dt);
++        list.push({ id: "drop", weight: +wgt.toFixed(4), vis, rect: { x: Math.round(d.x - 50), y: Math.round(d.y - 50), w: 100, h: 100 } });
+         zSum += wgt * lerp(s * 0.25, r * 0.5, d.morph); wSum += wgt;
+       }
+       // the name goes to the backdrop while the body is over it or crossing it
+-      if (leave < 0.999 && lk.y + lk.h > y - 40) { nodes.add(/** @type {Element} */ (M.heroName)); if (M.orn) nodes.add(M.orn); keys.push("name"); }
++      if (leave < 0.999 && lk.y + lk.h > y - 40) part("name", [M.heroName, M.orn]);
+       // page.a: where the plume leaves (the body's foot, in viewport px)
+       const A = page.a;
+       A.ok = true; A.L = s; A.cx = hx; A.cy = hy - y;
+@@ -412,7 +449,9 @@
+         L.x = damp(L.x, tx, 0.14, dt); L.y = damp(L.y, ty, 0.14, dt); L.r = damp(L.r, rL, 0.3, dt);
+         L.w = damp(L.w, vis, 0.25, dt);
+         if (L.w > 0.01) {
+-          list.push({ id: "lens", weight: +L.w.toFixed(4), rect: { x: Math.round(L.x - L.r), y: Math.round(L.y - L.r), w: Math.round(L.r * 2), h: Math.round(L.r * 2) } });
++          const okR = BD.ok && BD.ok.lens ? BD.ok.rect : null;
++          const vis = gate("lens", !!okR && L.x - L.r >= okR.x - 1 && L.x + L.r <= okR.x + okR.w + 1 && L.y - L.r >= okR.y - 1 && L.y + L.r <= okR.y + okR.h + 1, dt);
++          list.push({ id: "lens", weight: +L.w.toFixed(4), vis, rect: { x: Math.round(L.x - L.r), y: Math.round(L.y - L.r), w: Math.round(L.r * 2), h: Math.round(L.r * 2) } });
+           zSum += L.w * L.r * 0.2; wSum += L.w;
+           lensWant = { key: "lens:" + k, nodes: [], rect: tr, lensOf: [k - 1, k, k + 1].filter((i) => i >= 0 && i < M.tiles.length).map((i) => M.tiles[i].media) };
+         }
+@@ -438,9 +477,10 @@
+         const b = P.beads[id];
+         if (s.w > 0.01 && b) {
+           const rect = { x: b.name.x - 6, y: b.rule.y, w: b.name.w + 12, h: b.name.y + b.name.h - b.rule.y };
+-          list.push({ id, weight: +s.w.toFixed(4), rect: { x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.w), h: Math.round(rect.h) } });
++          const vis = gate(id, clearUnder({ x: rect.x, y: rect.y - 12, w: rect.w, h: 24 }, y), dt);
++          list.push({ id, weight: +s.w.toFixed(4), vis, rect: { x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.w), h: Math.round(rect.h) } });
+           const bm = M.beads[s.i];
+-          if (bm) { nodes.add(bm.rule); nodes.add(bm.name); keys.push("b" + s.i); }
++          if (bm) part("b" + s.i, [bm.rule, bm.name]);
+           zSum += s.w * 12; wSum += s.w;
+         }
+       }
+@@ -471,8 +511,9 @@
+         } else if (bc && bc.y > ba.y) py = Math.min(py, bc.y - ps * 0.62 - 16);   // the box above the copy (phone)
+         if (!P.pool.over) px = Math.min(px, ba.x + ba.w - ps * 0.55);
+         GS.pool.rect = { x: Math.round(px - ps / 2), y: Math.round(py - ps / 2), w: Math.round(ps), h: Math.round(ps) };
+-        list.push({ id: "pool", weight: +GS.pool.w.toFixed(4), rect: GS.pool.rect });
+-        if (M.bandTitle) { nodes.add(M.bandTitle); keys.push("band"); }
++        const vis = gate("pool", clearUnder(GS.pool.rect, y), dt);
++        list.push({ id: "pool", weight: +GS.pool.w.toFixed(4), vis, rect: GS.pool.rect });
++        if (M.bandTitle) part("band", [M.bandTitle]);
+         zSum += GS.pool.w * 30; wSum += GS.pool.w;
+       }
+     }
+@@ -485,16 +526,50 @@
+       let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+       const recOf = (/** @type {Element} */ el) => findRec(el, y);
+       for (const el of nodes) { const r = recOf(el); if (!r) continue; x0 = Math.min(x0, r.x); y0 = Math.min(y0, r.y); x1 = Math.max(x1, r.x + r.w); y1 = Math.max(y1, r.y + r.h); }
+-      if (x1 > x0) want = { key: keys.join(","), nodes: [...nodes], rect: { x: Math.max(0, x0 - 48), y: Math.max(0, y0 - 48), w: Math.min(vw, x1 + 48) - Math.max(0, x0 - 48), h: y1 - y0 + 96 } };
++      if (x1 > x0) want = { key: keys.join(","), nodes: [...nodes], parts, rect: { x: Math.max(0, x0 - 48), y: Math.max(0, y0 - 48), w: Math.min(vw, x1 + 48) - Math.max(0, x0 - 48), h: y1 - y0 + 96 } };
+     }
+     return { list: list.slice(0, 3), want, z: wSum > 0 ? zSum / wSum : 0 };
+   }
++  /* ---- the gate: a figure is drawn only over what the backdrop holds at rest */
++  /** @type {Record<string, number>} */ const VIS = {};
++  /** shown: fades in over ~0.1 s; not shown: gone at once (a word is never painted over for a single frame)
++   *  @param {string} id @param {boolean} ok @param {number} dt */
++  function gate(id, ok, dt) { const v = ok ? damp(VIS[id] || 0, 1, 0.1, dt) : 0; VIS[id] = v > 0.995 ? 1 : v; return +VIS[id].toFixed(3); }
++  /** @param {Rect} r @param {Rect} R */
++  const inside = (r, R) => r.x >= R.x - 1 && r.y >= R.y - 1 && r.x + r.w <= R.x + R.w + 1 && r.y + r.h <= R.y + R.h + 1;
++  /** is a part (name, r<i>, b<i>, band) in the backdrop at rest, where it is now? @param {string} k @param {Rect | null} [r] */
++  function partOk(k, r) { return !!BD.ok && !BD.ok.lens && BD.ok.keys.has(k) && (!r || inside(r, BD.ok.rect)); }
++  /** every node glass may bend, as { key, r } at this scroll @param {number} y */
++  function bendables(y) {
++    const out = [];
++    if (M.lockup) { out.push({ k: "name", r: findRec(/** @type {Element} */ (M.heroName), y) }); if (M.orn) out.push({ k: "name", r: findRec(M.orn, y) }); }
++    M.rows.forEach((/** @type {any} */ row, /** @type {number} */ i) => {
++      out.push({ k: "r" + i, r: at(row.r, y) }); if (row.lb) out.push({ k: "r" + i, r: at(row.lb, y) });
++      for (const t of row.txr || []) if (t) out.push({ k: "r" + i, r: at(t, y) });
++    });
++    M.beads.forEach((/** @type {any} */ b, /** @type {number} */ i) => { out.push({ k: "b" + i, r: at(b.rr, y) }); out.push({ k: "b" + i, r: at(b.nr, y) }); });
++    if (M.bandTitleR) out.push({ k: "band", r: at(M.bandTitleR, y) });
++    return out;
++  }
++  /** may a figure whose footprint is fp (document px) be drawn: every node it overlaps is in the backdrop, at rest
++   *  @param {Rect} fp @param {number} y */
++  function clearUnder(fp, y) {
++    for (const p of bendables(y)) {
++      const r = p.r;
++      if (!r || r.w <= 0 || r.x > fp.x + fp.w + 4 || r.x + r.w < fp.x - 4 || r.y > fp.y + fp.h + 4 || r.y + r.h < fp.y - 4) continue;
++      if (!partOk(p.k, r)) return false;
++    }
++    return true;
++  }
+   /** the measured document rect of one of the glass's nodes @param {Element} el @param {number} y */
+   function findRec(el, y) {
+     if (el === M.heroName) { const l = at(M.lockup, y); return l ? { x: l.x, y: l.y - l.h * 0.1, w: l.w, h: l.h * 1.45 } : null; }
+     if (el === M.orn) { const l = at(M.lockup, y); return l ? { x: l.x, y: l.y + l.h, w: l.w, h: l.h * 0.4 } : null; }
+     if (el === M.bandTitle) return at(M.bandTitleR, y);
+-    for (const r of M.rows) { if (r.line === el) return at(r.r, y); if (r.label === el) return at(r.lb, y); }
++    for (const r of M.rows) {
++      if (r.line === el) return at(r.r, y); if (r.label === el) return at(r.lb, y);
++      const j = (r.tx || []).indexOf(el); if (j >= 0) return at(r.txr[j], y);
++    }
+     for (const b of M.beads) { if (b.rule === el) return at(b.rr, y); if (b.name === el) return at(b.nr, y); }
+     return null;
+   }
+@@ -633,7 +708,9 @@
+ 
+     // ---------------------------------------------------------------- keep-outs (viewport px, up to 16, on screen only)
+     const keepouts = [];
+-    for (const k of M.keep) {
++    // the band's display line is a keep-out by its glyphs (fix2: the rings settling round the band's drop crossed the O
++    // of TO and ME.): no ink lies over a letter there; the drop that rests on it bends the letters, never the ink
++    for (const k of M.bandTitleR ? [M.bandTitleR, ...M.keep] : M.keep) {
+       const r = at(k, y);
+       if (!r || r.y + r.h < y - 40 || r.y > y + vh + 40 || r.x + r.w < 0 || r.x > vw) continue;
+       keepouts.push({ x: Math.round(r.x), y: Math.round(r.y - y), w: Math.round(r.w), h: Math.round(r.h) });
+@@ -714,7 +791,7 @@
+     log("[stage] off: " + why);
+     try { if (stage) stage.destroy(); } catch (e) { /* the device may be gone */ }
+     stage = null; on = false; building = false;
+-    BD.key = ""; BD.lens = null; BD.timers.forEach((t) => clearTimeout(t));
++    BD.key = ""; BD.lens = null; BD.ok = null; BD.timers.forEach((t) => clearTimeout(t));
+     D.classList.remove("stage-on");
+     instrText = "";
+     for (const el of instrEls) el.textContent = "";
+diff --git a/public/proto/rivista/parts/c-main.case.mjs b/public/proto/rivista/parts/c-main.case.mjs
+index 1741b15..8decc1e 100644
+--- a/public/proto/rivista/parts/c-main.case.mjs
++++ b/public/proto/rivista/parts/c-main.case.mjs
+@@ -73,20 +73,34 @@ export function band(lang = "en") {
+ 
+ /* 08 · Contact, the page (spec rivista-story 20 §2): the band as the page itself, full height, its title the page's h1,
+    with the address, the copy control, LinkedIn and GitHub. Its own markup (assemble assert 5 compares the shared band on
+-   every other page); it opens with the case's arrival film (.pg-open). The folio "08 ·" is the band's, from CSS. */
++   every other page); it opens with the case's arrival film (.pg-open). The folio "08 ·" is the band's, from CSS.
++   FIX2-PAGE (verdict, ceiling): the first viewport is a composed page, not paper above a band. The line is set at the
++   cover's name scale across the measure (fx-scroll.css §13d). Like the name it is two lines, the second stepped in like
++   TUVERI: its last two words are held together (the titles' no-break device, H(): "Write / to me."; "Scrivimi." is
++   one line), and fx-scroll.css §13d sets that held span as the stepped second line, so it breaks the same way at every
++   width, with no markup that differs by language. --tw is its widest line in em, the step (0.95 em) included, as on a case title. At the page's foot, one
++   sentence on what to write about (a keep-out of the ink) and the address with its controls. The stage rests its lens
++   on the line (data-refract) and settles ink in the room beside the step. */
+ export function bandPage(lang = "en") {
+   const s = (id) => T(STR[id], lang);
++  const words = tx(STR["band.h"], lang).split(" ");
++  const held = words.length > 2 ? words.slice(-2).join(" ") : "";
++  const line = held ? words.slice(0, -2).join(" ") + " " + words.slice(-2).join(" ") : words.join(" ");
++  const tw = held ? Math.max(titleWidth([words.slice(0, -2).join(" ")], lang), titleWidth([held], lang) + 0.97) : titleWidth([line], lang);
+   return `  <section id="contact" class="band band-page pg-open" aria-labelledby="ct-h" data-band data-stage="contact">
+   <div class="band-box" data-stage-anchor="band" aria-hidden="true"></div>
+   <div class="band-copy" data-band-copy>
+     <p class="eyebrow label" data-reveal="hero" data-delay="0">${s("sec.contact")}</p>
+-    <h1 id="ct-h" class="d1" data-lines="hero" data-refract="title" style="margin-top:1.5rem">${s("band.h")}</h1>
+-    <a class="sc-email" href="mailto:albertotuveri@gmail.com"><span class="sc-email-t">albertotuveri@gmail.com</span><i class="sc-email-l l1"></i><i class="sc-email-l l2"></i></a>
+-    <p class="nv-copy-row" data-reveal="hero" data-delay="350"><button class="ghost nv-copy" type="button" data-nv-copy="albertotuveri@gmail.com" data-nv-copied="${s("copy.done.msg")}" data-nv-failed="${s("copy.fail.msg")}"><span class="sr-only">${s("copy.label")}</span><span class="nv-copy-roll" aria-hidden="true"><span>${s("copy.label")}</span><span data-nv-copy-done>${s("copy.done")}</span><span data-nv-copy-fail>${s("copy.fail")}</span></span></button><span class="sr-only" role="status" data-nv-copy-status></span></p>
+-    <ul class="band-else" data-reveal="hero" data-delay="430">
+-      <li><a class="sc-draw" href="https://www.linkedin.com/in/albertotuveri" rel="noopener">LinkedIn</a></li>
+-      <li><a class="sc-draw" href="https://github.com/GitAlboBis" rel="noopener">GitHub</a></li>
+-    </ul>
++    <h1 id="ct-h" class="d1 ct-h" data-lines="hero" data-refract="title" style="--tw:${Math.ceil(tw * 100) / 100}">${H(line, lang)}</h1>
++    <p class="lead ct-lead" data-reveal="hero" data-delay="250" data-stage-keepout>${s("band.lead")}</p>
++    <div class="ct-reach">
++      <a class="sc-email" href="mailto:albertotuveri@gmail.com"><span class="sc-email-t">albertotuveri@gmail.com</span><i class="sc-email-l l1"></i><i class="sc-email-l l2"></i></a>
++      <p class="nv-copy-row" data-reveal="hero" data-delay="350"><button class="ghost nv-copy" type="button" data-nv-copy="albertotuveri@gmail.com" data-nv-copied="${s("copy.done.msg")}" data-nv-failed="${s("copy.fail.msg")}"><span class="sr-only">${s("copy.label")}</span><span class="nv-copy-roll" aria-hidden="true"><span>${s("copy.label")}</span><span data-nv-copy-done>${s("copy.done")}</span><span data-nv-copy-fail>${s("copy.fail")}</span></span></button><span class="sr-only" role="status" data-nv-copy-status></span></p>
++      <ul class="band-else" data-reveal="hero" data-delay="430">
++        <li><a class="sc-draw" href="https://www.linkedin.com/in/albertotuveri" rel="noopener">LinkedIn</a></li>
++        <li><a class="sc-draw" href="https://github.com/GitAlboBis" rel="noopener">GitHub</a></li>
++      </ul>
++    </div>
+   </div>
+ </section>
+ `;
+diff --git a/public/proto/rivista/parts/strings.mjs b/public/proto/rivista/parts/strings.mjs
+index a6935e3..1a708b7 100644
+--- a/public/proto/rivista/parts/strings.mjs
++++ b/public/proto/rivista/parts/strings.mjs
+@@ -285,6 +285,11 @@ const S = {
+ 
+   /* ---------------------------------------------------------------- the closing band (home and every case) */
+   "band.h": { en: "Write to me.", it: "Scrivimi." },
++  /* 08 · Contact, the page: what to write about, from what the issue already says (the works, the consulting offer) */
++  "band.lead": {
++    en: "Tell me about a project like the ones in Work, or ask about consulting, for a company or for yourself.",
++    it: "Raccontami un progetto come quelli in Lavori, o chiedimi una consulenza, per un’azienda o per te.",
++  },
+ 
+   /* ---------------------------------------------------------------- footer */
+   "foot.short": { en: "In short", it: "In breve" },
+diff --git a/public/proto/rivista/stage/day/dawn.js b/public/proto/rivista/stage/day/dawn.js
+index d53f013..4c5cdb4 100644
+--- a/public/proto/rivista/stage/day/dawn.js
++++ b/public/proto/rivista/stage/day/dawn.js
+@@ -32,7 +32,8 @@ function build(H, vw, phone) {
+     for (let i = 0; i <= 30; i++) {
+       const f = i / 30, y = -10 + (L + 10) * f;
+       // short and thin: each drip gets as many particles as a whole stratum, so little ink each; ink past the edge
+-      pts.push([x + 1.5 * Math.sin(y / 20 + ph) * f, y, z, (y < 0 ? 0.5 : 0.05) * (1 - 0.75 * f)]);   // fix-stage: past the edge a trace, not a pale streak
++      // fix2: past the edge nothing (a trace there read as a pale tail on the paper): the drip ends on the edge
++      pts.push([x + 1.5 * Math.sin(y / 20 + ph) * f, Math.min(y, -2), z, (y < 0 ? 0.5 : 0) * (1 - 0.75 * f)]);
+     }
+     out.push(pts);
+   }
+diff --git a/public/proto/rivista/stage/day/drop.js b/public/proto/rivista/stage/day/drop.js
+index cacac41..1325013 100644
+--- a/public/proto/rivista/stage/day/drop.js
++++ b/public/proto/rivista/stage/day/drop.js
+@@ -17,11 +17,13 @@ import { page } from "./page.js";
+  *  (z = 0) and cut by it, so the body is a dome standing on the paper: a plano-convex magnifier with a full round
+  *  crown. A heavy oval and a smaller lobe up to the right, its waist filled, read as one pebble of water; the fourth
+  *  volume sits deep inside the oval (it only lives in the drop it becomes) */
++// fix2 (verdict regression 3: the body had gone quiet): the dome is a little higher again (0.56 -> 0.74 of its radius;
++// the review's was 1.05), so it magnifies the name more without the letters swimming out of the crown
+ const BODY = [
+-  [-0.22, 0.08, 0, 0.82, 1.1, 0.94, 0.56],
+-  [0.66, -0.22, 0, 0.5, 1.04, 0.98, 0.6],
+-  [0.24, -0.08, 0, 0.46, 1.06, 1.0, 0.58],
+-  [-0.5, 0.2, 0, 0.3, 1, 1, 0.4],
++  [-0.22, 0.08, 0, 0.82, 1.1, 0.94, 0.74],
++  [0.66, -0.22, 0, 0.5, 1.04, 0.98, 0.78],
++  [0.24, -0.08, 0, 0.46, 1.06, 1.0, 0.76],
++  [-0.5, 0.2, 0, 0.3, 1, 1, 0.5],
+ ];
+ /** the drop, in units of r: one round volume, three smaller ones inside it so it stays alive */
+ const DROP = [
+@@ -68,7 +70,9 @@ export default {
+     return {
+       blobs: out,
+       scale: k,
+-      look: { dispersion: mix(0.011, 0.02, l), shadow: mix(mix(0.18, 0.13, m), 0.16, l), caustic: mix(mix(1.1, 0.12, m), 0.2, l), soft: mix(mix(0.55, 1.3, m), 0.8, l), reach: mix(0.5, 0.55, Math.max(m, l)), edge: mix(1.0, 0.8, Math.max(m, l)) },
++      // (fix2: the body's spectral rim and studio come back: a wider split at the rim, the soft boxes and the key's rim
++      // line brighter; the drop and the lens keep theirs)
++      look: { dispersion: mix(mix(0.017, 0.011, m), 0.02, l), reflect: mix(1.35, 1, Math.max(m, l)), key: mix(1.3, 1, Math.max(m, l)), rim: mix(2.1, 1.4, Math.max(m, l)), shadow: mix(mix(0.18, 0.13, m), 0.16, l), caustic: mix(mix(1.1, 0.12, m), 0.2, l), soft: mix(mix(0.55, 1.3, m), 0.8, l), reach: mix(0.5, 0.55, Math.max(m, l)), edge: mix(1.0, 0.8, Math.max(m, l)) },
+       // the body leans and turns; the drop barely; the lens on a row stays level
+       motion: { lean: mix(mix(0.16 * R, 0.3 * r, m), 0.06 * ph, l), noise: mix(0.05, 0.035, Math.max(m, l)), turn: mix(0.5, 0, Math.max(l, m * 0.6)) },
+       opacity: 1 - s * s,
+diff --git a/public/proto/rivista/stage/day/fall.js b/public/proto/rivista/stage/day/fall.js
+index 806de0e..87c4363 100644
+--- a/public/proto/rivista/stage/day/fall.js
++++ b/public/proto/rivista/stage/day/fall.js
+@@ -24,8 +24,10 @@ import { page, lines, clamp } from "./page.js";
+ const POOL = 5, DRIPS = 40, N = 120;
+ const LIGHT = 4.2;         // a drip's ink per particle against the pool's (light on the night ground)
+ 
+-/** @param {any} H @param {number} vw @param {number} vh @param {number} pad @param {boolean} phone @param {number} q */
+-function build(H, vw, vh, pad, phone, q) {
++/** @param {any} H @param {number} vw @param {number} vh @param {number} pad @param {boolean} phone @param {number} q
++ *  @param {number} [room] px of night below the edge: no drip reaches past it (fix2: past the night's foot a drip was a
++ *  pale tail on the paper under the dusk strip) */
++function build(H, vw, vh, pad, phone, q, room = 1e9) {
+   const r = H.rng(97), out = [];
+   // the drips first (their x feed the pool's beads)
+   const drips = [];
+@@ -41,7 +43,7 @@ function build(H, vw, vh, pad, phone, q) {
+     else { x = vw - pad * (0.1 + 0.62 * r()); maxL = vh * (phone ? 0.38 : 0.6) * (0.45 + 0.55 * r()); }              // the right margin
+     const delay = 0.5 * Math.pow(r(), 1.2);
+     const grow = Math.pow(clamp((q - delay) / (1 - delay), 0, 1), 0.8);
+-    const L = Math.max(3, maxL * grow);
++    const L = Math.max(3, Math.min(maxL * grow, room));
+     drips.push({ x: x - vw / 2, L, z: -70 + 120 * r(), sw: 1 + 3 * r(), ph: r() * 6.28, drift: (r() - 0.5) * 18,
+       ink: idle ? 0 : (0.7 + 0.3 * r()) * clamp(L / Lref, 0.03, 1) * (phone ? 0.6 : 1) });
+   }
+@@ -92,8 +94,10 @@ export default {
+     // the pour: from the edge at 0.95 of the viewport's height to 0.15 (c.sectionProgress = 1 - edge)
+     const e = 1 - c.sectionProgress, q = clamp((0.95 - e) / 0.8, 0, 1);
+     const qq = Math.round(q * 64) / 64;
+-    const key = [vw, vh, pad, page.phone, qq].join(",");
+-    if (st.key !== key) { st.key = key; c.setTargets(build(c.H, vw, vh, pad, page.phone, qq)); }
++    // the night under the edge (its visible foot): a drip stops 48 px short of it, so none hangs on the paper below
++    const ed = page.edge, room = ed.bottom < 8 && ed.top < 8 ? Math.max(0, Math.floor(((ed.bottom - ed.top) * vh - 48) / 16) * 16) : 1e9;
++    const key = [vw, vh, pad, page.phone, qq, room].join(",");
++    if (st.key !== key) { st.key = key; c.setTargets(build(c.H, vw, vh, pad, page.phone, qq, room)); }
+     return { ink: page.inkK };
+   },
+ };
+diff --git a/public/proto/rivista/stage/day/mist.js b/public/proto/rivista/stage/day/mist.js
+index 1e845b9..9293ce0 100644
+--- a/public/proto/rivista/stage/day/mist.js
++++ b/public/proto/rivista/stage/day/mist.js
+@@ -76,6 +76,10 @@ export default {
+     if (st.key !== key) { st.key = key; c.setTargets(build(c.H, st.P, w, pad, cy, c.rect.y, c.rect.y + c.rect.h, y0, wh)); }
+     // the manifesto takes the ink while it inks
+     const m = page.manifesto, thin = sstep(0.05, 0.35, m) * (1 - sstep(0.85, 1, m));
+-    return { ink: page.inkK * (page.phone ? 0.6 : 1) * (1 - 0.6 * thin), tails: page.phone ? { share: 0.015 } : undefined };
++    // a small weight gives the threads a few particles along their whole length: a dotted column of specks in the
++    // margins, not a thread (fix2: the cover's contents, where the fall takes the particles). There the mist is not
++    // drawn; it inks once it holds enough particles to be lines.
++    const whole = sstep(0.22, 0.5, c.weight);
++    return { ink: page.inkK * (page.phone ? 0.6 : 1) * (1 - 0.6 * thin) * whole, tails: page.phone ? { share: 0.015 } : undefined };
+   },
+ };
+diff --git a/public/proto/rivista/stage/day/pool.js b/public/proto/rivista/stage/day/pool.js
+index acc2611..22c4a67 100644
+--- a/public/proto/rivista/stage/day/pool.js
++++ b/public/proto/rivista/stage/day/pool.js
+@@ -31,7 +31,10 @@ export default {
+   fit: "contain",
+   blobs: BESIDE,
+   smooth: 0.36,
+-  look: { ior: 1.5, dispersion: 0.014, absorb: 0.00001, shadow: 0.16, caustic: 0.22, key: 0.55, reflect: 0.8, edge: 0.85 },
++  // fix2 (verdict: "an opaque milky pebble"): the cover body's glass. The dark band inside the rim was as wide as on
++  // the body, on a drop a fifth of its size: a grey ring round a blank face, plastic. Now a thin band, the body's
++  // spectral rim and its key, and ink under it to bend (settle.js lays two rings under the drop)
++  look: { ior: 1.5, dispersion: 0.02, absorb: 0.00001, shadow: 0.14, caustic: 0.3, key: 0.95, reflect: 1.0, edge: 0.42, rim: 1.8 },
+   motion: { noise: 0.03, noiseSpeed: 0.26, lean: 0.08, turn: 0.2 },
+   update() {
+     const over = !!(page.glass.pool && page.glass.pool.over);
+diff --git a/public/proto/rivista/stage/day/settle.js b/public/proto/rivista/stage/day/settle.js
+index af9bc87..955fe97 100644
+--- a/public/proto/rivista/stage/day/settle.js
++++ b/public/proto/rivista/stage/day/settle.js
+@@ -13,15 +13,30 @@
+  */
+ import { page, lines } from "./page.js";
+ 
+-const RINGS = 5, N = 360;
++const RINGS = 5, INNER = 2, N = 360;
+ 
++/* fix2 (verdict: "an opaque milky pebble that bends nothing"): the drop rests on the paper with nothing under it, so it
++   showed nothing to bend. Two rings of ink now lie under it, inside its rim, as the ink it settled on; the glass bends
++   and magnifies them like the cover's body bends the name. Every ring lies a little behind the page's plane (z < 0),
++   so the glass sees it (the ink behind the glass is what the glass bends; ink in front of it would be drawn over it). */
+ /** @param {any} H */
+ function build(H) {
+   const r = H.rng(23), out = [];
++  for (let k = 0; k < INNER; k++) {
++    const rx = 0.42 + 0.22 * k + 0.03 * r(), ry = 0.26 + 0.14 * k + 0.02 * r();
++    const ph = r() * 6.283, arcs = 2 + k, z = -5 - 4 * r(), ink = 0.9 + 0.1 * r();
++    const pts = [];
++    for (let i = 0; i < 160; i++) {
++      const a = (i / 160) * Math.PI * 2;
++      const gap = Math.pow(Math.max(0, Math.sin(arcs * a + ph)), 1.2);
++      pts.push([rx * Math.cos(a), ry * Math.sin(a), z / 100, ink * gap]);
++    }
++    out.push(pts);
++  }
+   for (let k = 0; k < RINGS; k++) {
+     const f = k / (RINGS - 1);
+     const rx = 1.12 + 0.85 * f + 0.06 * r(), ry = 0.62 + 0.26 * f + 0.04 * r();
+-    const ph = r() * 6.283, arcs = 2 + Math.floor(r() * 3), z = -6 + 12 * r(), ink = (1 - 0.5 * f) * (0.7 + 0.3 * r());
++    const ph = r() * 6.283, arcs = 2 + Math.floor(r() * 3), z = -3 - 8 * r(), ink = (1 - 0.5 * f) * (0.7 + 0.3 * r());
+     const pts = [];
+     for (let i = 0; i < 160; i++) {
+       const a = (i / 160) * Math.PI * 2;
+@@ -36,7 +51,7 @@ function build(H) {
+ }
+ 
+ export default {
+-  share: 0.35, fill: 0.9, fit: "contain", emit: -1, capacity: RINGS * N,
++  share: 0.35, fill: 0.9, fit: "contain", emit: -1, capacity: (RINGS + INNER) * N,
+   targets: (/** @type {any} */ H) => build(H),
+   look: { ink: 0.05, size: 0.72, mistInk: 0, mistSize: 1.1 },
+   motion: { spring: 3, speed: 1500, inertia: 0.22, fuzz: 0.3 },
+diff --git a/public/proto/rivista/stage/glass/backdrop.js b/public/proto/rivista/stage/glass/backdrop.js
+index 349ab62..8c7ebef 100644
+--- a/public/proto/rivista/stage/glass/backdrop.js
++++ b/public/proto/rivista/stage/glass/backdrop.js
+@@ -73,13 +73,52 @@ export async function rasteriseBackdrop(o) {
+     g.fillStyle = bg; g.fillRect(r.x, r.y, r.w, r.h);
+   }
+ 
++  // a node caught before or inside its reveal (a pending [data-reveal], a running transition or animation, a
++  // transform still on its glyphs, a fade not yet begun) is painted as it is but reported: what glass bends must be
++  // the printed page, so the host gives a figure only the nodes that came out settled, and rasterises the rest again
++  /** @type {Set<Element>} */ const unsettled = new Set();
++  /** @type {Map<Element, boolean>} */ const chainCache = new Map();
+   for (const el of nodes) {
+     paintBox(g, el);
+     const imgs = el instanceof HTMLImageElement ? [el] : [...el.querySelectorAll("img")];
+     for (const img of imgs) await paintImage(g, img);
+-    paintText(g, el);
++    if (!paintText(g, el, chainCache) || !settledChain(el, chainCache)) unsettled.add(el);
+   }
+-  return { canvas, rect: R, scale, ms: performance.now() - t0 };
++  return { canvas, rect: R, scale, ms: performance.now() - t0, unsettled };
++}
++
++/** @param {string} t a computed transform @returns {boolean} true for none or an identity (sub-pixel translation) */
++function identity(t) {
++  if (!t || t === "none") return true;
++  const m = t.match(/^matrix(3d)?\(([^)]*)\)$/);
++  if (!m) return false;
++  const v = m[2].split(",").map(Number);
++  if (m[1]) {
++    const id = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0];
++    return id.every((x, i) => Math.abs(v[i] - x) < 1e-3) && Math.abs(v[12]) < 0.5 && Math.abs(v[13]) < 0.5 && Math.abs(v[14]) < 0.5 && Math.abs(v[15] - 1) < 1e-3;
++  }
++  return Math.abs(v[0] - 1) < 1e-3 && Math.abs(v[1]) < 1e-3 && Math.abs(v[2]) < 1e-3 && Math.abs(v[3] - 1) < 1e-3 && Math.abs(v[4]) < 0.5 && Math.abs(v[5]) < 0.5;
++}
++
++/** is an element, and every ancestor up to the body, at rest as printed? @param {Element} el @param {Map<Element, boolean>} cache */
++function settledChain(el, cache) {
++  for (let n = /** @type {Element | null} */ (el); n && n !== document.body && n !== document.documentElement; n = n.parentElement) {
++    let ok = cache.get(n);
++    if (ok === undefined) {
++      const cs = getComputedStyle(n);
++      ok = !(n.matches("[data-reveal]:not(.is-in)") || n.classList.contains("sc-wait"))
++        && identity(cs.transform)
++        && (cs.translate === "none" || !cs.translate || /^0(px)?( 0(px)?)?( 0(px)?)?$/.test(cs.translate))
++        && (cs.scale === "none" || !cs.scale || cs.scale === "1")
++        && parseFloat(cs.opacity) > 0.05
++        // a finite animation or transition still running (a loop that never ends is not a reveal)
++        && !n.getAnimations().some((a) => (a.playState === "running" || a.pending)
++          && Number.isFinite(Number(a.effect && a.effect.getComputedTiming().endTime)));
++      cache.set(n, ok);
++    }
++    if (!ok) return false;
++  }
++  return true;
+ }
+ 
+ /** background colour and borders of an element's own box @param {CanvasRenderingContext2D} g @param {Element} el */
+@@ -127,10 +166,13 @@ async function paintImage(g, img) {
+   if (src !== img && "close" in src) /** @type {ImageBitmap} */ (src).close();
+ }
+ 
+-/** every visible glyph of an element's text, at its own rect @param {CanvasRenderingContext2D} g @param {Element} root */
+-function paintText(g, root) {
++/** every visible glyph of an element's text, at its own rect; false when a glyph's box was not at rest (it is
++ *  painted where it was caught, and the host does not trust it)
++ *  @param {CanvasRenderingContext2D} g @param {Element} root @param {Map<Element, boolean>} cache */
++function paintText(g, root, cache) {
+   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+   const range = document.createRange();
++  let settled = true;
+   /** @type {Text | null} */ let node;
+   while ((node = /** @type {Text | null} */ (walker.nextNode()))) {
+     const text = node.data;
+@@ -138,7 +180,9 @@ function paintText(g, root) {
+     const parent = /** @type {Element} */ (node.parentElement);
+     if (!parent || parent.closest(".sr-only, [hidden]")) continue;
+     const cs = getComputedStyle(parent);
+-    if (cs.visibility === "hidden" || cs.display === "none" || parseFloat(cs.opacity) === 0) continue;
++    if (cs.visibility === "hidden" || cs.display === "none") continue;
++    if (!settledChain(parent, cache)) settled = false;
++    if (parseFloat(cs.opacity) === 0) continue;
+     g.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+     g.fillStyle = cs.color;
+     g.textBaseline = "alphabetic";
+@@ -158,4 +202,5 @@ function paintText(g, root) {
+       i += len - 1;
+     }
+   }
++  return settled;
+ }
+diff --git a/public/proto/rivista/stage/glass/glass.js b/public/proto/rivista/stage/glass/glass.js
+index 1e24d5b..8ef933a 100644
+--- a/public/proto/rivista/stage/glass/glass.js
++++ b/public/proto/rivista/stage/glass/glass.js
+@@ -215,7 +215,9 @@ export async function createGlass(o) {
+     const ux = fit === "stretch" ? rect.w / 2 : u, uy = fit === "stretch" ? rect.h / 2 : u;
+     const w = Math.max(0, Math.min(1, a.weight));
+     const grow = (0.55 + 0.45 * smooth01(w)) * (typeof out.scale === "number" ? out.scale : 1);
+-    const opacity = smooth01(w * 2.5) * (out.opacity ?? 1);
++    // a.vis: the host's gate (0 while the backdrop under the figure is missing or stale: glass never paints the
++    // ground over a word it cannot see); it fades the figure, never resizes it
++    const opacity = smooth01(w * 2.5) * (out.opacity ?? 1) * Math.max(0, Math.min(1, a.vis ?? 1));
+     const off = out.offset || [0, 0, 0];
+     const cx = rect.x + rect.w / 2 + off[0], cy = rect.y + rect.h / 2 + off[1];
+     const t = f.time, dt = f.dt;
+diff --git a/public/proto/rivista/stage/glass/glass.wgsl.js b/public/proto/rivista/stage/glass/glass.wgsl.js
+index a9d9b6e..3c79c77 100644
+--- a/public/proto/rivista/stage/glass/glass.wgsl.js
++++ b/public/proto/rivista/stage/glass/glass.wgsl.js
+@@ -230,8 +230,18 @@ fn shadowAt(doc : vec2f, nk : f32) -> vec4f {
+   return vec4f(add, a);
+ }
+ 
++// by day the stage draws ink or nothing: what the discs add up to is kept where it is ink (a thread, a bead, a
++// ring), and a faint wash (a lone disc far from the page, the skirt of a thread) goes, since cobalt at a low alpha on
++// the warm paper reads as a pale grey-lavender speck, never as ink. Premultiplied: rgb and alpha scale together.
++// Night (inside the band) is light and is kept as it is. (fix2: the dust in the cover's margins and round the dusk)
++fn dayInk(k : vec4f, nk : f32) -> vec4f {
++  return k * mix(smoothstep(0.2, 0.36, k.a), 1.0, nk);
++}
++
+ @fragment fn fsBlit(i : GO) -> @location(0) vec4f {
+-  return textureLoad(inkTex, vec2i(i.pos.xy), 0);
++  let k = dayInk(textureLoad(inkTex, vec2i(i.pos.xy), 0), stageNight(i.pos.xy));
++  if (k.a <= 0.0 && max(k.r, max(k.g, k.b)) <= 0.0) { discard; }
++  return k;
+ }
+ 
+ // ---------------------------------------------------------------- what the glass sees on the page
+@@ -247,7 +257,7 @@ fn pageAt(doc : vec2f, nkFrag : f32) -> vec3f {
+   if (gs.flags.x > 0.5) {
+     let iu = v / frame.view.xy;
+     if (all(iu >= vec2f(0.0)) && all(iu <= vec2f(1.0))) {
+-      let k = textureSampleLevel(inkTex, smp, iu, 0.0);
++      let k = dayInk(textureSampleLevel(inkTex, smp, iu, 0.0), select(0.0, 1.0, bandOn));
+       g = g * (1.0 - k.a) + k.rgb;
+     }
+   }
+diff --git a/public/proto/rivista/stage/night/gen.js b/public/proto/rivista/stage/night/gen.js
+index 416cd95..704d73e 100644
+--- a/public/proto/rivista/stage/night/gen.js
++++ b/public/proto/rivista/stage/night/gen.js
+@@ -11,6 +11,7 @@
+  * the sampling steps.
+  */
+ import { Sets, plate, rng, clamp, smooth, mix, stepProgress, rackFocus, hurry } from "./lib.js";
++import { page } from "../day/page.js";
+ 
+ const N_IMG = 15000;
+ const HALF = 0.8;            // the frame's half side (local units: half the box's smaller side)
+@@ -91,6 +92,7 @@ export default {
+     const u = Math.min(c.rect.w, c.rect.h) / 2;
+     return {
+       scale: mix(1, 0.47, leaving),
++      ink: page.inkK,   // the tier's ink multiplier (fix2, as inkFor)
+       offset: [0, -0.5 * u * leaving, c.scene.step > 1 ? 0 : rackFocus(c, 1)],
+       rotate: [0.04 * sg, -0.2 * sg, 0],
+       flow: { amp: mix(12, 1.2, calm), wavelength: mix(70, 220, calm), evolution: mix(0.5, 0.04, calm), z: 1 },
+diff --git a/public/proto/rivista/stage/night/lib.js b/public/proto/rivista/stage/night/lib.js
+index afef504..6e286d9 100644
+--- a/public/proto/rivista/stage/night/lib.js
++++ b/public/proto/rivista/stage/night/lib.js
+@@ -12,6 +12,8 @@
+  * Every figure lives on the night ground (light, not ink). No text is ever drawn in the canvas.
+  */
+ 
++import { page } from "../day/page.js";
++
+ export const clamp = (/** @type {number} */ x, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, x));
+ export const smooth = (/** @type {number} */ e0, /** @type {number} */ e1, /** @type {number} */ x) => { const t = clamp((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
+ export const mix = (/** @type {number} */ a, /** @type {number} */ b, /** @type {number} */ t) => a + (b - a) * t;
+@@ -25,7 +27,9 @@ export const approach = (/** @type {number} */ cur, /** @type {number} */ to, /*
+  * figure of filled areas, 0.5 for one of thin lines, in between for a mix.
+  * @param {{ w: number, h: number }} rect @param {number} inkArea @param {number} [p]
+  */
+-export const inkFor = (rect, inkArea, p = 0.5) => Math.pow(clamp((rect.w * rect.h) / inkArea, 0.25, 4), p - 1);
++export const inkFor = (rect, inkArea, p = 0.5) => Math.pow(clamp((rect.w * rect.h) / inkArea, 0.25, 4), p - 1) * page.inkK;
++// (fix2: times the tier's ink multiplier, as the day's formations do: on tier B, a phone's, a figure has half the
++// particles, and without it its light was half as bright and read as unresolved two seconds after the reader stopped)
+ 
+ /**
+  * The scene's progress through one step: 0 before it, local inside it, 1 after it.
+diff --git a/public/proto/rivista/stage/stage.js b/public/proto/rivista/stage/stage.js
+index 8a122ee..27afff1 100644
+--- a/public/proto/rivista/stage/stage.js
++++ b/public/proto/rivista/stage/stage.js
+@@ -715,12 +715,18 @@ export async function createStage(o) {
+       const clear = { r: 0, g: 0, b: 0, a: 0 };
+       const view = context.getCurrentTexture().createView();
+       if (!st.glassOn) {
+-        // the frame as it always was: one pass, every particle
++        // every particle into the ink texture, then the blit: by day it keeps what the discs add up to as ink and
++        // drops a faint wash (fix2: on paper the stage draws ink or nothing; a lone faint disc, or the skirt of a
++        // thread, is a pale grey-lavender speck on warm paper, never cobalt). Night is copied as it is.
++        const ra = enc.beginRenderPass({ label: "stage.ink", colorAttachments: [{ view: glass.inkView, loadOp: "clear", storeOp: "store", clearValue: clear }], timestampWrites: tsW(1) });
++        ra.setBindGroup(0, res.frameGroup);
++        bodies(ra, "under");
++        particles(ra, 0);
++        bodies(ra, "over");
++        ra.end();
+         const rp = enc.beginRenderPass({ label: "stage.draw", colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: clear }], timestampWrites: tsW(2) });
+         rp.setBindGroup(0, res.frameGroup);
+-        bodies(rp, "under");
+-        particles(rp, 0);
+-        bodies(rp, "over");
++        glass.encodeBlit(rp);
+         rp.end();
+       } else {
+         // A: what the glass bends — the bodies under, the ink behind the glass — into the ink texture
+@@ -729,15 +735,28 @@ export async function createStage(o) {
+         bodies(ra, "under");
+         particles(ra, 1);
+         ra.end();
+-        // B: the canvas — shadow and caustic on the paper, that ink, the glass, the ink in front, the bodies over
+-        const rb = enc.beginRenderPass({ label: "stage.draw", colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: clear }], timestampWrites: tsW(2) });
++        // B: the canvas — shadow and caustic on the paper, that ink, the glass
++        const w2 = tsW(2);
++        const rb = enc.beginRenderPass({ label: "stage.draw", colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: clear }],
++          timestampWrites: w2 ? { querySet: w2.querySet, beginningOfPassWriteIndex: w2.beginningOfPassWriteIndex } : undefined });
+         rb.setBindGroup(0, res.frameGroup);
+         glass.encodeShadow(rb);
+         glass.encodeBlit(rb);
+         glass.encodeGlass(rb);
+-        particles(rb, 2);
+-        bodies(rb, "over");
+         rb.end();
++        // C, D: the ink in front of the glass and the bodies over, through the ink texture again (its first content is
++        // spent: B has blitted it and the glass has read it), then blitted over the canvas with the same day rule
++        // (fix2: the near discs, the softest of all, went straight to the canvas and were the pale dust round a lens)
++        const rc = enc.beginRenderPass({ label: "stage.front", colorAttachments: [{ view: glass.inkView, loadOp: "clear", storeOp: "store", clearValue: clear }] });
++        rc.setBindGroup(0, res.frameGroup);
++        particles(rc, 2);
++        bodies(rc, "over");
++        rc.end();
++        const rd = enc.beginRenderPass({ label: "stage.front.blit", colorAttachments: [{ view, loadOp: "load", storeOp: "store" }],
++          timestampWrites: w2 ? { querySet: w2.querySet, endOfPassWriteIndex: w2.endOfPassWriteIndex } : undefined });
++        rd.setBindGroup(0, res.frameGroup);
++        glass.encodeBlit(rd);
++        rd.end();
+       }
+     }
+     if (tsSlot >= 0) {
+@@ -750,7 +769,7 @@ export async function createStage(o) {
+     st.submits++;
+     st.frameIndex++;
+     if (tsSlot >= 0) {
+-      const sb = ts.staging[ts.stIdx], sim = simulate, gl = st.glassOn;
++      const sb = ts.staging[ts.stIdx], sim = simulate, gl = true;   // the ink pass runs on every drawn frame (fix2)
+       sb.buf.mapAsync(GPUMapMode.READ).then(() => {
+         const v = new BigUint64Array(sb.buf.getMappedRange().slice(0));
+         sb.buf.unmap(); sb.busy = false;

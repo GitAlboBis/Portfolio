@@ -1,0 +1,7 @@
+---
+/* The 404's main: parts/c-main.404.mjs render404() (no stage: html[data-nogl]) */
+import { notFoundMain, literal } from "../lib/site.mjs";
+const { page } = Astro.props;
+const html = literal('<main id="main" data-page="404">') + notFoundMain(page) + literal("</main>");
+---
+<Fragment set:html={html} />

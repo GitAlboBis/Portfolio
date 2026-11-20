@@ -1,0 +1,32 @@
+  <!-- THE COVER, first viewport (spec 50 §1, §4; round 11): the name, the page's h1; under it, left, the role line and
+       the sentence; right, the filled button and two quiet links; bottom right, the instrument line the stage writes;
+       bottom middle, the scroll cue. With the stage on (scene "hero", stage/scenes/cover/world.js) the name exists only
+       as light: the h1 is transparent from the first paint (css/page-cover.css) and stays the accessible name; the
+       letters ignite in a lit hall, with blades of light and two lit plates of glass holding his work (Now's
+       sersan.io plate is the fourth window), chips of cut glass and a back wall in the air. The two
+       captures in .hero-works are the plates' textures: decoration (alt empty, hidden), never in the printed states. -->
+  <section class="sc hero" data-stage="hero" aria-labelledby="hero-h1">
+    <div class="sc-view" data-stage-anchor="hero" aria-hidden="true"></div>
+    <div class="sc-track">
+      <div class="hero-in">
+        <h1 id="hero-h1" class="t-mega hero-name" data-focus="load"><span class="ln">Alberto</span> <span class="ln">Tuveri</span></h1>
+        <div class="hero-foot">
+          <div class="hero-said" data-focus="load" style="--fd:140ms">
+            <p class="t-label hero-role"{{EN}}>Software &amp; AI Engineer<span class="hero-dot" aria-hidden="true"> · </span>Creative Lead</p>
+            <p class="t-lead hero-line">{{t:hero.h1}}</p>
+          </div>
+          <div class="hero-act" data-focus="load" style="--fd:220ms">
+            <a class="btn" href="mailto:albertotuveri@gmail.com">{{t:cta.write}} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+            <a class="q" {{LINK:work}}>{{t:sec.work}} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
+            <a class="q" {{LINK:about}}>{{t:sec.about}}</a>
+          </div>
+        </div>
+        <div class="t-label hero-cue" aria-hidden="true"><span class="hero-cue-t">{{t:hero.scroll}}</span><span class="hero-cue-l"><i></i></span></div>
+        <p class="t-label hero-instr" data-stage-instr="hero"></p>
+      </div>
+    </div>
+    <div class="hero-works" hidden aria-hidden="true">
+      <img data-slab="w1" src="/captures/spherenode-800.webp" width="800" height="500" alt="" hidden loading="lazy" decoding="async">
+      <img data-slab="w2" src="/captures/sphere-ai-800.webp" width="800" height="500" alt="" hidden loading="lazy" decoding="async">
+    </div>
+  </section>

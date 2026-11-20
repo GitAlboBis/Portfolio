@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" data-ground="night" data-page="obla">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Obla — Alberto Tuveri</title>
+<meta name="description" content="Obla, Alberto Tuveri's personal agent: one voice that listens, thinks, works, asks for his yes and reports every morning at 08:00.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="obla.html">
+<link rel="alternate" hreflang="en" href="obla.html">
+<link rel="alternate" hreflang="it" href="it/obla.html">
+<link rel="alternate" hreflang="x-default" href="obla.html">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0c0e14">
+<link rel="icon" href="icons/icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Alberto Tuveri">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="it_IT">
+<meta property="og:title" content="Obla — Alberto Tuveri">
+<meta property="og:description" content="Obla, Alberto Tuveri's personal agent: one voice that listens, thinks, works, asks for his yes and reports every morning at 08:00.">
+<meta property="og:image" content="og/og-home.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Alberto Tuveri, Software &amp; AI Engineer and Creative Lead: the name across the card in white condensed capitals on a near-black ground, and the line: from database schema to real-time WebGPU rendering and motion design.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Obla — Alberto Tuveri">
+<meta name="twitter:description" content="Obla, Alberto Tuveri's personal agent: one voice that listens, thinks, works, asks for his yes and reports every morning at 08:00.">
+<meta name="twitter:image" content="og/og-home.jpg">
+<meta name="twitter:image:alt" content="Alberto Tuveri, Software &amp; AI Engineer and Creative Lead: the name across the card in white condensed capitals on a near-black ground, and the line: from database schema to real-time WebGPU rendering and motion design.">
+<script type="application/json" id="rv-i18n">{"instr.gpu":"{ms} ms GPU","stage.points":"{n} points"}</script>
+<script>
+(function(){
+  var d=document.documentElement, q=null;
+  try{ q=new URLSearchParams(location.search); }catch(e){}
+  if(d.hasAttribute('data-home') && location.hash){
+    var OLD={work:'work.html',measured:'work.html#evidence',evidence:'work.html#evidence',capabilities:'about.html',stack:'about.html',path:'about.html#path',consult:'consulting.html',obla:'obla.html',contact:'contact.html'},
+        go=OLD[location.hash.slice(1)];
+    if(go){ var gp=go.split('#'); try{ location.replace(gp[0]+location.search+(gp[1] ? '#'+gp[1] : '')); return; }catch(e){} }
+  }
+  var rm=false; try{ rm=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  var head=window.__rvHead=function(arr){
+    var q=null; try{ q=new URLSearchParams(location.search); }catch(e){}
+    d.classList.add('rv-js'); if(!rm) d.classList.add('rv-motion');
+    if(!rm && !(q && q.get('fx') && q.get('fx').split(',').indexOf('motion')<0)) d.classList.add('mo-wait');
+    if(q && q.get('gl')==='0') d.classList.add('gl-off');
+    if(!navigator.gpu) d.classList.add('gl-off');
+    if(d.hasAttribute('data-nogl')) d.classList.add('gl-off');
+    if(!rm && !d.classList.contains('gl-off') && !(q && q.get('stage')==='0')) d.classList.add('sc-on');
+    window.__rvArrive=null;
+    if(arr && !rm){
+      d.setAttribute('data-arrive', 'cut'); d.classList.add('mo-arr'); window.__rvArrive=arr;
+      if(arr.dawn) d.setAttribute('data-cut-dawn','');
+    }
+    return arr;
+  };
+  var arr=null;
+  try{ var s=JSON.parse(sessionStorage.getItem('rv-pt')||'null'); sessionStorage.removeItem('rv-pt');
+    if(s && Date.now()-s.t<8000 && s.to===location.pathname) arr=s; }catch(e){}
+  head(arr);
+  var gpuOn=!rm && !d.classList.contains('gl-off') && !(q && q.get('stage')==='0') && !(q && q.get('fx') && q.get('fx').split(',').indexOf('stage')<0);
+  if(gpuOn){ try{
+    var nu=navigator.userAgentData, gw=/Windows/i.test((nu && nu.platform) || navigator.userAgent || ''),
+        gk=window.__rvGpu={t:performance.now(), used:false, p:navigator.gpu.requestAdapter(gw ? {} : {powerPreference:'high-performance'})};
+    gk.p.catch(function(){}); }catch(e){ gpuOn=false; } }
+  var G='https://fonts.gstatic.com/s/', F=['sofiasansextracondensed/v6/raxoHjafvdAIOju4GcIfJH0i7zi50X3zRtuLNiMS0fSuJk4.woff2','sofiasans/v20/Yq6R-LCVXSLy9uPBwlATrOF6kg.woff2','sofiasanscondensed/v6/r05EGKVS5aVKd567NYXawnFKJaTtoAuLnIcIptE.woff2'];
+  try{ F.forEach(function(u){ var l=document.createElement('link'); l.rel='preload'; l.as='font'; l.type='font/woff2'; l.crossOrigin='anonymous'; l.href=G+u; document.head.appendChild(l); }); }catch(e){}
+  var J=window.__rvJs={done:false,boot:null,t0:0,t1:0}, jf=false,
+      JS=['https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js','https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js',
+          'https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js','fx-core.js','fx-scroll.js','fx-nav.js','fx-motion.js','fx-stage.js','fx-sound.js'];
+  J.list=JS;
+  var AN='https://cdn.jsdelivr.net/npm/animejs@4.5.0/', anim=function(){
+    if(rm || window.__rvAnime) return;
+    try{ var im=new Function('u','return import(u)'); window.__rvAnime=Promise.all([im(AN+'waapi/+esm'), im(AN+'text/+esm')]); window.__rvAnime.catch(function(){}); }catch(e){}
+  };
+  if(gpuOn){ try{
+    var su=new URL('stage/boot.js', new URL(JS[JS.length-1], location.href)).href;
+    window.__rvStage={used:false, p:new Function('u','return import(u)')(su).then(function(m){ return m.boot(); }).catch(function(){ return null; })};
+  }catch(e){} }
+  var jgo=function(){
+    if(J.t0 || !jf || document.readyState==='loading') return;
+    J.t0=performance.now(); var left=JS.length; anim();
+    var end=function(){ if(--left) return; J.done=true; J.t1=performance.now(); if(typeof J.boot==='function') J.boot(); };
+    JS.forEach(function(u){ var s=document.createElement('script'); s.src=u; s.async=false; s.onload=s.onerror=end; document.head.appendChild(s); });
+  };
+  var jarm=function(){ if(!jf){ jf=true; jgo(); } };
+  try{ requestAnimationFrame(function(){ setTimeout(jarm,0); }); }catch(e){ jf=true; }
+  document.addEventListener('DOMContentLoaded', jgo);
+  addEventListener('load', function(){ if(document.visibilityState!=='visible') jarm(); jgo(); });
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState!=='visible') jarm(); });
+})();
+</script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="fx.css">
+</head>
+<body id="top">
+<a class="skip" href="#main">Skip to content</a>
+<header class="hdr" data-hdr>
+  <a class="hdr-name" href="index.html" data-back data-pt-label="Index" data-pt-sub="Alberto Tuveri" aria-label="Alberto Tuveri, home">Alberto Tuveri</a>
+  <span class="hdr-scene" aria-hidden="true" data-hdr-scene data-empty><span class="hdr-scene-r"></span><span class="hdr-scene-t"></span></span>
+  <nav class="hdr-nav" aria-label="Primary">
+    <a href="work.html" data-back data-pt-label="Work" data-pt-sub="01">Work</a>
+    <a href="about.html" data-back data-pt-label="About" data-pt-sub="02">About</a>
+    <a href="consulting.html" data-back data-pt-label="Consulting" data-pt-sub="03">Consulting</a>
+    <a href="obla.html" data-pt-label="Obla" data-pt-sub="04" aria-current="page">Obla</a>
+    <a href="contact.html" data-pt-label="Contact" data-pt-sub="05" data-pt-dawn>Contact</a>
+    <span class="lang" role="group" aria-label="Language"><span class="lang-now" aria-current="true"><b aria-hidden="true">EN</b><span class="sr-only">English, current language</span></span><span class="lang-sep" aria-hidden="true"> / </span><a class="lang-alt" href="it/obla.html" hreflang="it" lang="it" data-lang="it" data-pt-label="Italiano" data-pt-sub="Edizione italiana">IT<span class="sr-only"> · Italiano</span></a></span>
+    <span class="hdr-rule is-idle" aria-hidden="true" data-hdr-rule></span>
+  </nav>
+  <button class="hdr-snd" type="button" aria-pressed="true" aria-label="Sound" title="Sound" data-snd data-snd-state="armed"><span class="snd-bars" aria-hidden="true"><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span></span></button>
+  <button class="hdr-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open the menu" data-nv-open="Open the menu" data-nv-close="Close the menu" data-menu-btn><span class="m-open" aria-hidden="true">Menu</span><span class="m-close" aria-hidden="true">Close</span></button>
+  <span class="hdr-read" aria-hidden="true"></span>
+</header>
+<div class="menu" id="menu" data-menu role="dialog" aria-modal="true" aria-label="Menu" hidden>
+  <div class="menu-in">
+    <ol class="menu-list">
+      <li><a class="menu-a" href="work.html" data-back data-pt-label="Work" data-pt-sub="01"><span class="t-label menu-n" aria-hidden="true">01</span><span class="t-d1">Work</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+      <li><a class="menu-a" href="about.html" data-back data-pt-label="About" data-pt-sub="02"><span class="t-label menu-n" aria-hidden="true">02</span><span class="t-d1">About</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+      <li><a class="menu-a" href="consulting.html" data-back data-pt-label="Consulting" data-pt-sub="03"><span class="t-label menu-n" aria-hidden="true">03</span><span class="t-d1">Consulting</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+      <li><a class="menu-a" href="obla.html" data-pt-label="Obla" data-pt-sub="04" aria-current="page"><span class="t-label menu-n" aria-hidden="true">04</span><span class="t-d1">Obla</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+      <li><a class="menu-a" href="contact.html" data-pt-label="Contact" data-pt-sub="05" data-pt-dawn><span class="t-label menu-n" aria-hidden="true">05</span><span class="t-d1">Contact</span><span class="menu-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><span class="menu-hl" aria-hidden="true"></span></a></li>
+    </ol>
+    <div class="menu-foot">
+      <a class="menu-mail" href="mailto:albertotuveri@gmail.com">albertotuveri@gmail.com</a>
+      <p><button class="q copy" type="button" data-nv-copy="albertotuveri@gmail.com" data-nv-copied="Address copied." data-nv-failed="The address is selected: copy it from your keyboard or menu."><span data-copy-label>Copy address</span><span data-copy-done aria-hidden="true">Copied</span><span data-copy-fail aria-hidden="true">Selected</span></button><span class="sr-only" role="status" data-nv-copy-status></span></p>
+      <ul class="menu-else">
+        <li><a class="q" href="https://www.linkedin.com/in/albertotuveri" rel="noopener">LinkedIn</a></li>
+        <li><a class="q" href="https://github.com/GitAlboBis" rel="noopener">GitHub</a></li>
+        <li class="lang" role="group" aria-label="Language"><span class="lang-now" aria-current="true"><b aria-hidden="true">EN</b><span class="sr-only">English, current language</span></span><span class="lang-sep" aria-hidden="true"> / </span><a class="lang-alt" href="it/obla.html" hreflang="it" lang="it" data-lang="it" data-pt-label="Italiano" data-pt-sub="Edizione italiana">IT<span class="sr-only"> · Italiano</span></a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<main id="main">
+  <section class="sc sc-right ob" id="obla" data-stage="obla" style="--steps:7" aria-labelledby="obla-h">
+    <div class="sc-view" data-stage-anchor="obla" aria-hidden="true"></div>
+    <div class="sc-track">
+      <div class="sc-step sc-intro" data-stage-step="0">
+        <div class="sc-in">
+          <h1 id="obla-h" class="t-mega ob-h" data-refract="title" data-focus="load">Obla</h1>
+          <p class="t-lead" data-focus="load" style="--fd:140ms">Obla is my personal agent: one voice I talk to instead of opening sessions, writing prompts and checking on things by hand. It lives on my desktop, runs on my own machine and answers to me alone.</p>
+          <p class="t-label ob-kind" data-focus="load" style="--fd:220ms">Personal project</p>
+        </div>
+        <figure class="ob-still" data-stage-poster><svg class="ob-poster" role="img" aria-label="Obla's character: a pale pillow with a scalloped lower edge and two tall oval eyes." viewBox="-230 -200 460 400"><path fill="#e4ecef" d="M114 0L114 5.9L113.9 9.9L113.7 13.4L113.5 16.7L113.3 19.8L113 22.9L112.6 25.9L112.1 28.8L111.7 31.7L111.1 34.5L110.5 37.1L109.8 39.6L109.1 42L108.3 44.2L107.5 46.3L106.6 48.3L105.7 50.2L104.7 52L103.6 53.6L102.5 55.2L101.3 56.6L100.1 58L98.8 59.3L97.4 60.6L96 61.8L94.6 63.1L93.1 64.3L91.5 65.5L89.9 66.8L88.2 68.1L86.5 69.4L84.7 70.8L82.8 72.2L80.9 73.7L78.9 75.2L76.9 76.8L74.8 78.3L72.7 79.8L70.5 81.3L68.2 82.8L65.9 84.1L63.5 85.4L61.1 86.5L58.5 87.5L56 88.4L53.3 89.1L50.6 89.6L47.8 89.9L44.9 90.1L41.9 90.2L38.8 90.1L35.6 90L32.3 89.7L28.8 89.4L25.2 89.1L21.4 88.7L17.3 88.4L12.8 88.2L7.7 88.1L0 88L-7.7 88.1L-12.8 88.2L-17.3 88.4L-21.4 88.7L-25.2 89.1L-28.8 89.4L-32.3 89.7L-35.6 90L-38.8 90.1L-41.9 90.2L-44.9 90.1L-47.8 89.9L-50.6 89.6L-53.3 89.1L-56 88.4L-58.5 87.5L-61.1 86.5L-63.5 85.4L-65.9 84.1L-68.2 82.8L-70.5 81.3L-72.7 79.8L-74.8 78.3L-76.9 76.8L-78.9 75.2L-80.9 73.7L-82.8 72.2L-84.7 70.8L-86.5 69.4L-88.2 68.1L-89.9 66.8L-91.5 65.5L-93.1 64.3L-94.6 63.1L-96 61.8L-97.4 60.6L-98.8 59.3L-100.1 58L-101.3 56.6L-102.5 55.2L-103.6 53.6L-104.7 52L-105.7 50.2L-106.6 48.3L-107.5 46.3L-108.3 44.2L-109.1 42L-109.8 39.6L-110.5 37.1L-111.1 34.5L-111.7 31.7L-112.1 28.8L-112.6 25.9L-113 22.9L-113.3 19.8L-113.5 16.7L-113.7 13.4L-113.9 9.9L-114 5.9L-114 0L-114 -5.9L-113.9 -9.9L-113.7 -13.4L-113.5 -16.5L-113.3 -19.5L-113 -22.3L-112.6 -24.9L-112.1 -27.5L-111.7 -30L-111.1 -32.3L-110.5 -34.6L-109.8 -36.9L-109.1 -39L-108.3 -41.1L-107.5 -43.2L-106.6 -45.2L-105.7 -47.1L-104.7 -49L-103.6 -50.9L-102.5 -52.7L-101.3 -54.4L-100.1 -56.1L-98.8 -57.8L-97.4 -59.4L-96 -60.9L-94.6 -62.4L-93.1 -63.9L-91.5 -65.3L-89.9 -66.7L-88.2 -68.1L-86.5 -69.4L-84.7 -70.6L-82.8 -71.8L-80.9 -73L-78.9 -74.1L-76.9 -75.2L-74.8 -76.3L-72.7 -77.2L-70.5 -78.2L-68.2 -79.1L-65.9 -80L-63.5 -80.8L-61.1 -81.6L-58.5 -82.3L-56 -83L-53.3 -83.6L-50.6 -84.2L-47.8 -84.8L-44.9 -85.3L-41.9 -85.8L-38.8 -86.2L-35.6 -86.6L-32.3 -86.9L-28.8 -87.2L-25.2 -87.4L-21.4 -87.6L-17.3 -87.8L-12.8 -87.9L-7.7 -88L0 -88L7.7 -88L12.8 -87.9L17.3 -87.8L21.4 -87.6L25.2 -87.4L28.8 -87.2L32.3 -86.9L35.6 -86.6L38.8 -86.2L41.9 -85.8L44.9 -85.3L47.8 -84.8L50.6 -84.2L53.3 -83.6L56 -83L58.5 -82.3L61.1 -81.6L63.5 -80.8L65.9 -80L68.2 -79.1L70.5 -78.2L72.7 -77.2L74.8 -76.3L76.9 -75.2L78.9 -74.1L80.9 -73L82.8 -71.8L84.7 -70.6L86.5 -69.4L88.2 -68.1L89.9 -66.7L91.5 -65.3L93.1 -63.9L94.6 -62.4L96 -60.9L97.4 -59.4L98.8 -57.8L100.1 -56.1L101.3 -54.4L102.5 -52.7L103.6 -50.9L104.7 -49L105.7 -47.1L106.6 -45.2L107.5 -43.2L108.3 -41.1L109.1 -39L109.8 -36.9L110.5 -34.6L111.1 -32.3L111.7 -30L112.1 -27.5L112.6 -24.9L113 -22.3L113.3 -19.5L113.5 -16.5L113.7 -13.4L113.9 -9.9L114 -5.9Z"/><ellipse fill="#16202b" cx="-40.9" cy="10.5" rx="7.5" ry="17"/><ellipse fill="#16202b" cx="40.9" cy="10.5" rx="7.5" ry="17"/></svg></figure>
+      </div>
+      <ol class="ob-list">
+        <li class="sc-step" data-stage-step="1"><div class="sc-in"><p class="t-label t-acc stp-n">01</p><h2 class="t-d2 stp-t">It listens</h2><p class="t-lead stp-line">I say its name, or hold a key, and speak. The wake word and the voice chain run locally.</p></div></li>
+        <li class="sc-step" data-stage-step="2"><div class="sc-in"><p class="t-label t-acc stp-n">02</p><h2 class="t-d2 stp-t">It thinks</h2><p class="t-lead stp-line">A small local model judges the request, a second one holds the conversation, and only real work goes to Claude Code.</p></div></li>
+        <li class="sc-step" data-stage-step="3"><div class="sc-in"><p class="t-label t-acc stp-n">03</p><h2 class="t-d2 stp-t">It works</h2><p class="t-lead stp-line">It opens the right Claude Code session on the right repository with the brief already written, and the character flies to the window where the work is happening.</p></div></li>
+        <li class="sc-step" data-stage-step="4"><div class="sc-in"><p class="t-label t-acc stp-n">04</p><h2 class="t-d2 stp-t">It asks</h2><p class="t-lead stp-line">Anything that leaves the machine, a message, a push, a deploy, a deletion, waits for my yes on an approval card.</p></div></li>
+        <li class="sc-step" data-stage-step="5"><div class="sc-in"><p class="t-label t-acc stp-n">05</p><h2 class="t-d2 stp-t">It reports</h2><p class="t-lead stp-line">Every morning at 08:00: projects, jobs and sessions, spoken or written. What it remembers is kept in Markdown notes I can read and edit.</p></div></li>
+      </ol>
+      <div class="sc-step sc-outro">
+        <div class="sc-in">
+          <dl class="ob-fields rows">
+            <div><dt class="t-label">Runs on</dt><dd class="t-body t-ink">Windows, Tauri, Rust, local models, Claude Code</dd></div>
+            <div><dt class="t-label">For</dt><dd class="t-body t-ink">One person. Not distributed.</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="dawn" id="write" data-dawn data-stage="dawn" aria-labelledby="dawn-h">
+  <div class="dawn-view" data-stage-anchor="dawn" aria-hidden="true"></div>
+  <div class="dawn-in">
+    <h2 id="dawn-h" class="t-d1 dawn-h" data-focus>Write to me.</h2>
+    <p class="dawn-mail"><a href="mailto:albertotuveri@gmail.com">albertotuveri@gmail.com</a></p>
+    <p class="dawn-act"><button class="q copy" type="button" data-nv-copy="albertotuveri@gmail.com" data-nv-copied="Address copied." data-nv-failed="The address is selected: copy it from your keyboard or menu."><span data-copy-label>Copy address</span><span data-copy-done aria-hidden="true">Copied</span><span data-copy-fail aria-hidden="true">Selected</span></button><span class="sr-only" role="status" data-nv-copy-status></span><a class="q" href="https://www.linkedin.com/in/albertotuveri" rel="noopener">LinkedIn</a><a class="q" href="https://github.com/GitAlboBis" rel="noopener">GitHub</a></p>
+  </div>
+  <div class="legal">
+    <p class="t-label">© 2026 Alberto Tuveri</p>
+    <p class="legal-line">The light and the glass are drawn live by an engine written directly against the GPU API, in WebGPU.</p>
+    <a class="q" href="#top">Back to top <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></a>
+  </div>
+</footer>
+<div class="cut" data-cut aria-hidden="true">
+  <p class="t-label cut-sub" data-cut-sub></p>
+  <span class="cut-rule"></span>
+  <p class="t-d1 cut-name" data-cut-label></p>
+</div>
+<script>
+(function(){
+  var a=window.__rvArrive; if(!a) return;
+  var l=document.querySelector('[data-cut-label]');
+  if(l){ l.textContent=''; String(a.label||'').split(/\s+/).filter(Boolean).forEach(function(w,i){
+    if(i) l.appendChild(document.createTextNode(' '));
+    var e=document.createElement('span'); e.className='w'; e.textContent=w; l.appendChild(e); }); }
+  var s=document.querySelector('[data-cut-sub]'); if(s) s.textContent=a.sub||'';
+})();
+</script>
+</body>
+</html>

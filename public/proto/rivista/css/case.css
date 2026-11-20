@@ -1,0 +1,160 @@
+/* ==========================================================================
+   css/case.css · the nine cases on the night ground (spec 50 §4). The opener is the scene "case" (two blocks: the
+   text beside the work's plate, then the plate turned to the reader with its caption); below it the chapters with
+   their index in the margin, the record, More work, with the swarm as mist behind them.
+   In plain flow the opener prints as the page always did: the text across, then the picture as a plain image (or its
+   key words); the scene grammar's step chrome is zeroed here so nothing moves.
+   ========================================================================== */
+.cs-sc .sc-in { max-width: none; }
+.cs-sc .cs-hero { padding: calc(var(--hdr) + var(--s7)) var(--gut) var(--s6); border-top: 0; }
+.cs-sc .cs-look { padding: 0; border-top: 0; }
+.cs-sc .sc-in > .cs-intro { margin-top: var(--s5); }
+.cs-over { margin-bottom: var(--s4); }
+.cs-intro { display: grid; gap: var(--s5); margin-top: var(--s5); }
+.cs-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s5); }
+.cs-fields { display: grid; gap: var(--s2); margin-top: var(--s4); }
+.cs-fields > div { display: flex; flex-wrap: wrap; gap: 0.6em; }
+@media (min-width: 1024px) { .cs-intro { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; gap: var(--s6); } }
+
+/* the picture */
+.cs-pic { padding: 0 var(--gut) var(--s7); }
+.cs-pic img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--night-2); }
+.cs-pic.is-contain img { object-fit: contain; }
+.cs-cap { display: block; margin-top: var(--s3); color: var(--mute); }
+.cs-cap span { color: var(--body); text-transform: none; letter-spacing: 0; font: 400 var(--t-small)/1.45 var(--f-text); }
+.cs-cap .q { margin-left: var(--s3); }
+/* a caption with its link: the words and the link are two boxes; a link that wraps starts at the caption's left edge */
+.cs-cap.has-q { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s3); row-gap: var(--s1); }
+.cs-cap.has-q .q { margin-left: 0; }
+.cs-cap .cs-cap-t { color: inherit; font: inherit; text-transform: inherit; letter-spacing: inherit; }
+.cs-cap .cs-cap-t span { color: var(--body); text-transform: none; letter-spacing: 0; font: 400 var(--t-small)/1.45 var(--f-text); }
+.cs-plate { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: var(--s6); }
+.cs-plate-fig { font: 800 clamp(5rem, 16vw, 16rem)/0.86 var(--f-display); text-transform: uppercase; color: var(--ink); }
+.cs-plate-line { margin-top: var(--s3); }
+
+/* ---------------------------------------------------------------- the opener in scene mode: the stage draws the plate
+   in the figure's half (step 1) and then large before the reader (step 2); the DOM holds only the text */
+html.sc-on:not(.gl-off) .cs-sc .cs-hero .sc-in { max-width: min(42rem, 44vw); }
+html.sc-on:not(.gl-off) .cs-sc .cs-title { font-size: min(var(--t-d1), 6.4vw); }
+html.sc-on:not(.gl-off) .cs-sc .cs-intro { grid-template-columns: minmax(0, 1fr); gap: var(--s4); }
+/* "look at it" holds for most of a screen of scroll: the block is taller than the screen (the sticky view of a
+   two-block scene would otherwise let go the moment the block arrived) and its caption stays at the foot of the view */
+html.sc-on:not(.gl-off) .cs-sc .cs-look { align-items: flex-end; min-height: 175svh; padding-bottom: var(--s6); }
+html.sc-on:not(.gl-off) .cs-sc .cs-look .sc-in { max-width: min(30rem, 40vw); position: sticky; bottom: var(--s6); }
+html.sc-on:not(.gl-off) .cs-sc .cs-pic { padding: 0; }
+html.sc-on:not(.gl-off) .cs-sc .cs-pic .cs-cap { margin-top: 0; }
+@media (max-width: 1023.98px) {
+  /* the plate takes the upper part of the first screen; the text starts under it and scrolls on */
+  html.sc-on:not(.gl-off) .cs-sc .cs-hero { align-items: flex-start; padding-top: calc(var(--hdr) + 36svh); }
+  html.sc-on:not(.gl-off) .cs-sc .cs-hero .sc-in { max-width: 40rem; }
+  html.sc-on:not(.gl-off) .cs-sc .cs-title { font-size: min(var(--t-d1), 15vw); }
+  /* "look at it" on a phone: the caption is lifted so the plate (drawn standing right on it) and the caption sit
+     together at the optical centre of the screen, not a plate in the middle and a caption at the foot */
+  html.sc-on:not(.gl-off) .cs-sc .cs-look .sc-in { max-width: 40rem; bottom: max(26svh, env(safe-area-inset-bottom)); }
+  html.sc-on:not(.gl-off) .cs-sc .cs-look { padding-bottom: max(var(--s5), env(safe-area-inset-bottom)); }
+}
+
+/* the chapters: the index in the margin, the matter in the measure */
+.cs-ch { display: grid; gap: var(--s4); padding: var(--s7) var(--gut); border-top: 1px solid var(--line); }
+.cs-folio { color: var(--mute); }
+.cs-body > * + * { margin-top: var(--s4); }
+.cs-body > .cs-h + * { margin-top: var(--s5); }
+.cs-h { max-width: 16ch; }
+.cs-lead2, .cs-body > .t-lead { max-width: 36em; }
+@media (min-width: 1024px) {
+  .cs-ch { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); gap: var(--s6); }
+  .cs-folio { position: sticky; top: calc(var(--hdr) + var(--s4)); align-self: start; }
+  /* (wave 6, ROOMS) More work's label stands above its rows, not in a margin: held there it slid over the titles */
+  .cs-more > .cs-folio { position: static; }
+}
+.cs-rep { display: flex; flex-wrap: wrap; gap: 0.4em 1.2em; font: 500 calc(var(--t-small) + 0.125rem)/1.4 var(--f-text); color: var(--mute); }
+.cs-rep s { text-decoration-color: var(--accent); }
+.cs-by { color: var(--ink); }
+.cs-stack .tools { margin-top: var(--s2); }
+.cs-basis { margin-top: var(--s5) !important; }
+.cs-body .mx { max-width: 46rem; }
+.cs-more-go { margin-top: var(--s5) !important; }
+.cs-facts > li { display: grid; grid-template-columns: minmax(5.5rem, 2fr) minmax(0, 5fr); gap: var(--s4); padding-block: var(--s4); }
+.cs-fact-n { font: 800 clamp(2.25rem, 4.6vw, 4.25rem)/0.9 var(--f-display); text-transform: uppercase; color: var(--ink); overflow-wrap: anywhere; }
+.cs-fact-t { font-weight: 500; }
+.cs-after { max-width: 36em; }
+.cs-list > li { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--s3); padding-block: var(--s3); }
+.cs-stills { display: grid; gap: var(--s5) var(--s4); }
+.cs-stills > .t-label { grid-column: 1 / -1; }
+.cs-still img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--night-2); }
+@media (min-width: 768px) { .cs-stills { grid-template-columns: 1fr 1fr; } .cs-still.is-lead { grid-column: 1 / -1; } }
+
+/* a flow: ruled boxes joined by a cool line */
+.cs-flow { display: grid; gap: var(--s4); max-width: 40rem; }
+.cs-node { position: relative; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--s1) var(--s3); padding: var(--s3) var(--s4); border: 1px solid var(--line); }
+.cs-node + .cs-node::before { content: ""; position: absolute; left: calc(var(--s4) + 0.5rem); top: calc(-1 * var(--s4) - 1px); width: 1px; height: var(--s4); background: var(--accent); }
+.cs-node-t { font: 500 calc(var(--t-small) + 0.125rem)/1.4 var(--f-text); color: var(--ink); }
+.cs-node-sub { grid-column: 2; }
+.cs-node-ph { grid-column: 2; display: flex; flex-wrap: wrap; gap: 0.35em; }
+.cs-node-ph i { font: 600 var(--t-label)/1 var(--f-label); letter-spacing: 0.04em; color: var(--mute); padding: 0.3em 0.45em; border: 1px solid var(--line); }
+.cs-out-l { display: grid; gap: var(--s2); margin-top: var(--s2); }
+
+/* ---------------------------------------------------------------- the chapters in scene mode (lane CASES): each chapter
+   has its figure of light in the room (stage/scenes/case/figures.js). On a wide screen the text keeps the index and a
+   measure and leaves the last third of the row to the figure; on a phone each chapter opens with a free band above its
+   index where the figure stands (the measured rows draw their bars in their own strips, so they need none). The bars
+   the stage draws replace the printed ones while it draws. In plain flow nothing here applies.
+   (wave 6, ROOMS) More work's rows keep two thirds on a wide screen (the prism stands in the last); a phone's record
+   opens with its band. */
+@media (min-width: 1024px) {
+  /* (lane FIXCASES) the record too: its figure (the work's plate, far back in the room) stands in the free third */
+  html.sc-on:not(.gl-off) main[data-case] .cs-ch[data-ch],
+  html.sc-on:not(.gl-off) main[data-case] .cs-rec { grid-template-columns: minmax(0, 2fr) minmax(0, 5.4fr) minmax(0, 4.6fr); }
+  /* on the narrower measure a fact's figure keeps room for the longest number on one line ("48,000" broke in two) */
+  html.sc-on:not(.gl-off) main[data-case] .cs-ch[data-ch] .cs-facts > li { grid-template-columns: minmax(5.5rem, 3fr) minmax(0, 5fr); }
+  /* (wave 6, ROOMS) More work too: its rows keep the chapters' two thirds; its figure (the prism and its ray to the row
+     under the hand) stands in the free third */
+  html.sc-on:not(.gl-off) main[data-case] .cs-more > .cs-more-list { max-width: 61.6%; }
+}
+@media (max-width: 1023.98px) {
+  /* (lane FIXCASES) the band only where the figure is a plate (what it is, a flow, a list): the measured rows, a
+     teaser's row and the facts carry their light on the rows themselves (the bars in their strips, the counts under
+     their numbers) */
+  html.sc-on:not(.gl-off) main[data-case] .cs-ch:is([data-ch="what"], [data-ch="schematic"], [data-ch="list"]) { padding-top: calc(var(--s7) + 40svh); }
+  /* (wave 6, ROOMS) the record too: the work's plate again in its band, turned the other way (the shot ends on the
+     plate it opened with, as on a wide screen) */
+  html.sc-on:not(.gl-off) main[data-case] .cs-rec { padding-top: calc(var(--s7) + 36svh); }
+}
+html.sc-on.stage-on:not(.gl-off) main[data-case] .cs-ch:is([data-ch="measured"], [data-ch="teaser"]) .mx-bars i { visibility: hidden; }
+
+/* ---------------------------------------------------------------- the drawing that traces itself (wave 6, TITLES;
+   fx-motion.js trace, figure.cs-still[data-trace]). In the live state the drawing is set over the picture in the same
+   box (.tr) with its connectors held back; small boxes over it (.tr-ink > svg) draw each straight segment under a
+   straight clip, then the drawing's own connectors show and the boxes go. Hidden until the trace plays; the picture's
+   entrance (css/type.css .rv-pic) is the drawing's. Never printed: every printed state shows the picture. */
+.tr-host { position: relative; }
+.tr { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 16 / 10; visibility: hidden; pointer-events: none; background: var(--night-2); }
+.tr > .tr-base { display: block; width: 100%; height: 100%; }
+.tr-base.is-tracing :is(.umld-cn, .umld-arr, .umld-tri, .umld-dia-c, .umld-dia-s, .umld-verb, .umld-end) { visibility: hidden; }
+.tr-ink { position: absolute; inset: 0; }
+.tr-ink > svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.tr-host.tr-on > .tr { visibility: visible; }
+.tr-host.tr-on > img { visibility: hidden; }
+html.rv-motion .rv-pic > .tr { transform: scale(1.06); clip-path: inset(100% 3% 3% 3%); }
+html.rv-motion .rv-pic.st-on > .tr { transform: none; clip-path: inset(0 0 0 0); transition: clip-path 1.05s var(--ease-rise), transform 1.4s var(--ease-rise); }
+@media print { .tr { display: none !important; } .tr-host > img { visibility: visible !important; } }
+
+/* the record */
+.cs-dl > div { display: grid; grid-template-columns: minmax(7rem, 3fr) minmax(0, 7fr); gap: var(--s4); padding-block: var(--s3); }
+.cs-dl .is-gap dd { color: var(--mute); }
+
+/* More work */
+.cs-more { padding: var(--s7) var(--gut); border-top: 1px solid var(--line); }
+.cs-more > .cs-folio { margin-bottom: var(--s4); }
+.cs-more-a { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; column-gap: var(--s3); row-gap: var(--s1); align-items: baseline; padding-block: var(--s3); }
+.cs-more-k { grid-column: 2; color: var(--body); }
+.cs-more-v { grid-column: 3; grid-row: 1; text-align: right; }
+a.cs-more-a:hover .cs-more-t, a.cs-more-a:focus-visible .cs-more-t, a.cs-more-a:hover .cs-more-v { color: var(--accent); }
+.cs-next .cs-more-v { color: var(--accent); }
+.is-here .cs-more-t { color: var(--mute); }
+@media (min-width: 1024px) {
+  /* the last column holds "Questo caso" on one line at every label size (7.5 labels: 120 px at 16 px, 165 at 22) */
+  .cs-more-a { grid-template-columns: 3rem minmax(0, 1.1fr) minmax(0, 1fr) calc(var(--t-label) * 7.5); }
+  .cs-more-k { grid-column: 3; grid-row: 1; }
+  .cs-more-v { grid-column: 4; }
+}

@@ -1,0 +1,1013 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-20T12:30:00Z",
+  "title": "Design System: Lo studio di notte — Alberto Tuveri",
+  "extensions": {
+    "provenance": "Regenerated 2026-11-17 by the DOCS lane of wave 5 from the code of public/proto/rivista/ and web/ (feat/water-viva with wave 5: the flight, the sound, the cases' figures, committed by the director in f5c8e77 … 3868582), together with DESIGN.md, by .shots/n-docs/_scripts/design-json.mjs. colorMeta, contrast, forbiddenPairs and z are carried from the sidecar of 2026-11-11 (the palette and the layers have not changed since the build from zero, 2026-11-10); everything else was rewritten from the files named in each entry. The narrative is DESIGN.md's own text. Extensions beyond the schema's five (contrast, forbiddenPairs, elevation, z, geometry, stage, sound, budget) are this project's. Corrected in place on 2026-11-20 by the DOCS lane of wave 6, from the code on disk (wave 6 uncommitted: the flight's door and the page that changes at 200 ms, the prism as full glass, the post (grain, aberration in speed, HDR canvas), the first press that flies silent, More work's prism and the phone's record, the years that snap, the record's counts, the diagram that traces itself, the release), with the same entries edited and three added (stage.post, motion.years-snap, motion.trace); not regenerated. The code wins over this file.",
+    "colorMeta": {
+      "night": {
+        "role": "neutral",
+        "displayName": "Night",
+        "canonical": "#0c0e14",
+        "oklch": "oklch(16.5% 0.013 270.5)",
+        "tonalRamp": [
+          "#020203",
+          "#050608",
+          "#080a0e",
+          "#0c0e14",
+          "#55565b",
+          "#929395",
+          "#c2c3c4",
+          "#ececec"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "The ground of every page but Contact; the html and body background; the ground the stage's light is drawn over."
+      },
+      "night-2": {
+        "role": "neutral",
+        "displayName": "Night, raised",
+        "canonical": "#12151d",
+        "oklch": "oklch(19.6% 0.017 268.8)",
+        "tonalRamp": [
+          "#030304",
+          "#07080c",
+          "#0d0f14",
+          "#12151d",
+          "#595b61",
+          "#949699",
+          "#c4c5c7",
+          "#ececed"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "The header once scrolled, the menu sheet, the cut's sheet, the well behind a picture. The only surface step in the DOM."
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Warm white",
+        "canonical": "#f4f1ea",
+        "oklch": "oklch(95.9% 0.010 87.5)",
+        "tonalRamp": [
+          "#252423",
+          "#62605e",
+          "#aba9a4",
+          "#f4f1ea",
+          "#f7f5f0",
+          "#faf9f6",
+          "#fcfcfa",
+          "#fefefd"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Display type, values, the filled button's label, the current page and language in the header."
+      },
+      "body": {
+        "role": "neutral",
+        "displayName": "Body",
+        "canonical": "#cfcabf",
+        "oklch": "oklch(84.0% 0.016 86.4)",
+        "tonalRamp": [
+          "#1f1e1d",
+          "#53514c",
+          "#918d86",
+          "#cfcabf",
+          "#dddad2",
+          "#e9e7e2",
+          "#f3f2ef",
+          "#fbfbfa"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Running text, the header's other pages."
+      },
+      "mute": {
+        "role": "neutral",
+        "displayName": "Mute",
+        "canonical": "#9a958a",
+        "oklch": "oklch(67.1% 0.017 86.4)",
+        "tonalRamp": [
+          "#171615",
+          "#3e3c37",
+          "#6c6861",
+          "#9a958a",
+          "#b8b5ad",
+          "#d2cfca",
+          "#e6e5e2",
+          "#f7f7f6"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Labels, meta, the 'before' of a figure, the printed before-bar, the instrument line, the other language."
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#262a36",
+        "oklch": "oklch(28.6% 0.023 270.5)",
+        "tonalRamp": [
+          "#060608",
+          "#0f1116",
+          "#1b1d26",
+          "#262a36",
+          "#676a72",
+          "#9d9fa5",
+          "#c9cacd",
+          "#eeeeef"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Every 1 px rule; the scrollbar thumb. Never type."
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Periwinkle",
+        "canonical": "#8fa2ff",
+        "oklch": "oklch(73.6% 0.136 273.8)",
+        "tonalRamp": [
+          "#151826",
+          "#394166",
+          "#6471b3",
+          "#8fa2ff",
+          "#b1beff",
+          "#cdd5ff",
+          "#e3e8ff",
+          "#f6f8ff"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Marks on the night: indices, the role line, the date label, hovered links, focus rings, selection, the arrow between before and after, the printed after-bar."
+      },
+      "cobalt": {
+        "role": "primary",
+        "displayName": "Cobalt",
+        "canonical": "#2340c9",
+        "oklch": "oklch(45.1% 0.213 267.0)",
+        "tonalRamp": [
+          "#050a1e",
+          "#0e1a50",
+          "#192d8d",
+          "#2340c9",
+          "#6579d9",
+          "#9ca9e7",
+          "#c8cff2",
+          "#edf0fb"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "The filled button (the one cobalt surface of the night); at dawn the address, hovered links and focus; on the stage the colour of every point as ink at dawn and as thin light at night. Never text on the night (2.43)."
+      },
+      "dawn": {
+        "role": "neutral",
+        "displayName": "Dawn",
+        "canonical": "#f3f4f6",
+        "oklch": "oklch(96.7% 0.003 264.5)",
+        "tonalRamp": [
+          "#242525",
+          "#616262",
+          "#aaabac",
+          "#f3f4f6",
+          "#f7f7f9",
+          "#fafafb",
+          "#fcfcfd",
+          "#fefefe"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "The morning's ground: the dawn close of every page, the whole Contact page, the dawn cut sheet."
+      },
+      "dawn-ink": {
+        "role": "neutral",
+        "displayName": "Dawn ink",
+        "canonical": "#0c0e14",
+        "oklch": "oklch(16.5% 0.013 270.5)",
+        "tonalRamp": [
+          "#020203",
+          "#050608",
+          "#080a0e",
+          "#0c0e14",
+          "#55565b",
+          "#929395",
+          "#c2c3c4",
+          "#ececec"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Display type at dawn (remaps --ink inside .dawn and on Contact)."
+      },
+      "dawn-body": {
+        "role": "neutral",
+        "displayName": "Dawn body",
+        "canonical": "#3a3f4b",
+        "oklch": "oklch(36.8% 0.022 267.4)",
+        "tonalRamp": [
+          "#09090b",
+          "#17191e",
+          "#292c35",
+          "#3a3f4b",
+          "#757981",
+          "#a6a9ae",
+          "#cecfd2",
+          "#eff0f1"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Running text at dawn (remaps --body)."
+      },
+      "dawn-mute": {
+        "role": "neutral",
+        "displayName": "Dawn mute",
+        "canonical": "#5d6270",
+        "oklch": "oklch(49.7% 0.023 269.9)",
+        "tonalRamp": [
+          "#0e0f11",
+          "#25272d",
+          "#41454e",
+          "#5d6270",
+          "#8e919b",
+          "#b6b8bf",
+          "#d7d8db",
+          "#f2f2f4"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Labels at dawn (remaps --mute)."
+      },
+      "dawn-line": {
+        "role": "neutral",
+        "displayName": "Dawn rule",
+        "canonical": "#d6d9e0",
+        "oklch": "oklch(88.5% 0.010 267.4)",
+        "tonalRamp": [
+          "#202122",
+          "#56575a",
+          "#96989d",
+          "#d6d9e0",
+          "#e2e4e9",
+          "#edeef1",
+          "#f5f6f7",
+          "#fcfcfd"
+        ],
+        "source": "public/proto/rivista/css/tokens.css",
+        "use": "Rules at dawn (remaps --line). Never type."
+      }
+    },
+    "typographyMeta": {
+      "mega": {
+        "displayName": "Mega",
+        "purpose": "The name on the cover (the accessible name; in scene mode it is transparent and the stage draws the name as light; one line across the measure, capped at measure / 5.2; two lines under 760 px), WRITE TO ME. on Contact (Italian: measure / 3.13, at most 24rem), the Obla title, the 404's line.",
+        "source": "public/proto/rivista/css/type.css"
+      },
+      "d1": {
+        "displayName": "Display 1",
+        "purpose": "Page titles, the index rows' titles, the menu's page names at clamp(2.25rem, min(15vw, 10.5svh), 6.5rem).",
+        "source": "public/proto/rivista/css/type.css"
+      },
+      "d2": {
+        "displayName": "Display 2",
+        "purpose": "Step titles, line-height 0.9.",
+        "source": "public/proto/rivista/css/type.css"
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "The first paragraph under a title: clamp(1.375rem, min(1.9vw, 1.07rem + 0.714vw), 2.125rem) / 1.38 (27 / 31 / 34 px at 1440 / 1920 / 2560); measure 32em.",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text: 1.125rem on a phone, clamp(1.25rem, 0.78125rem + 0.5208vw, 1.5rem) from 1024 px (20 / 22.5 / 24 px at 1440 / 1920 / 2560), line-height 1.55; measure 36em.",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "The rows' secondary lines, the tool lists' notes, the legal line: 1rem on a phone, clamp(1.0625rem, 0.5625rem + 0.625vw, 1.4375rem) from 1024 px (18 / 21 / 23 px).",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Overlines, fields, counters, captions, meta, the role line, the instrument line, the scene's name in the header: Sofia Sans Condensed 600 capitals tracked 0.06em, 1rem on a phone, clamp(1rem, 0.5rem + 0.625vw, 1.375rem) from 1024 px (17 / 20 / 22 px).",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      "action": {
+        "displayName": "Action",
+        "purpose": "The filled button and the quiet links beside it, the cut's index line: Sofia Sans Condensed 700 capitals tracked 0.04em, 1.125rem on a phone, clamp(1.25rem, 0.6875rem + 0.625vw, 1.625rem) from 1024 px (20 / 23 / 26 px).",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      "nav": {
+        "displayName": "Navigation",
+        "purpose": "The header's items, the phone's MENU, the sound toggle: Sofia Sans Condensed 700 capitals tracked 0.06em, 1.125rem on a phone, clamp(1.125rem, 0.5rem + 0.8333vw, 1.75rem) from 1024 px (20 / 24 / 28 px); the name 1.12 x that at 0.04em; EN / IT at --t-lang (18 / 22 / 24 px).",
+        "source": "public/proto/rivista/css/chrome.css"
+      },
+      "metric": {
+        "displayName": "Metric",
+        "purpose": "The figures of Evidence and of a case's measured rows: before (mute) -> after (ink), right-aligned, tabular.",
+        "source": "public/proto/rivista/css/blocks.css"
+      },
+      "address": {
+        "displayName": "Address",
+        "purpose": "The email address at dawn and on Contact, in cobalt: a 1 px rule rests under it and a 2 px rule is drawn over it from the left on hover.",
+        "source": "public/proto/rivista/css/dawn.css"
+      }
+    },
+    "contrast": [
+      {
+        "fg": "#f4f1ea",
+        "bg": "#0c0e14",
+        "ratio": 17.1,
+        "use": "display type and values on the night"
+      },
+      {
+        "fg": "#cfcabf",
+        "bg": "#0c0e14",
+        "ratio": 11.81,
+        "use": "running text on the night"
+      },
+      {
+        "fg": "#9a958a",
+        "bg": "#0c0e14",
+        "ratio": 6.47,
+        "use": "labels on the night"
+      },
+      {
+        "fg": "#8fa2ff",
+        "bg": "#0c0e14",
+        "ratio": 8.07,
+        "use": "marks and hovered links on the night"
+      },
+      {
+        "fg": "#f4f1ea",
+        "bg": "#12151d",
+        "ratio": 16.18,
+        "use": "type in the header, menu and cut sheet"
+      },
+      {
+        "fg": "#cfcabf",
+        "bg": "#12151d",
+        "ratio": 11.17,
+        "use": "text in the menu"
+      },
+      {
+        "fg": "#9a958a",
+        "bg": "#12151d",
+        "ratio": 6.12,
+        "use": "labels on night-2"
+      },
+      {
+        "fg": "#8fa2ff",
+        "bg": "#12151d",
+        "ratio": 7.63,
+        "use": "indices in the menu and on the cut sheet"
+      },
+      {
+        "fg": "#f4f1ea",
+        "bg": "#2340c9",
+        "ratio": 7.03,
+        "use": "the filled button's label"
+      },
+      {
+        "fg": "#0c0e14",
+        "bg": "#f3f4f6",
+        "ratio": 17.53,
+        "use": "display type at dawn"
+      },
+      {
+        "fg": "#3a3f4b",
+        "bg": "#f3f4f6",
+        "ratio": 9.58,
+        "use": "running text at dawn"
+      },
+      {
+        "fg": "#5d6270",
+        "bg": "#f3f4f6",
+        "ratio": 5.54,
+        "use": "labels at dawn"
+      },
+      {
+        "fg": "#2340c9",
+        "bg": "#f3f4f6",
+        "ratio": 7.21,
+        "use": "the address and links at dawn"
+      }
+    ],
+    "forbiddenPairs": [
+      {
+        "fg": "#2340c9",
+        "bg": "#0c0e14",
+        "ratio": 2.43,
+        "why": "cobalt is never text on the night"
+      },
+      {
+        "fg": "#262a36",
+        "bg": "#0c0e14",
+        "ratio": 1.35,
+        "why": "the rule colour is never type"
+      },
+      {
+        "fg": "#d6d9e0",
+        "bg": "#f3f4f6",
+        "ratio": 1.28,
+        "why": "the dawn rule colour is never type"
+      }
+    ],
+    "shadows": [],
+    "elevation": [
+      {
+        "name": "ground",
+        "value": "--night",
+        "purpose": "Every page but Contact.",
+        "source": "public/proto/rivista/css/base.css"
+      },
+      {
+        "name": "raised",
+        "value": "--night-2",
+        "purpose": "The header once scrolled, the menu, the cut's sheet: the only surface step.",
+        "source": "public/proto/rivista/css/chrome.css"
+      },
+      {
+        "name": "rule",
+        "value": "1px solid var(--line)",
+        "purpose": "Every rule: rows, the header's bottom edge once solid, steps in plain flow.",
+        "source": "public/proto/rivista/css/type.css"
+      },
+      {
+        "name": "morning",
+        "value": "--dawn under a straight edge",
+        "purpose": "The dawn close of every page; Contact whole.",
+        "source": "public/proto/rivista/css/dawn.css"
+      },
+      {
+        "name": "stage",
+        "value": "one canvas, z 40; the eye D = clamp(1.25 x the viewport's diagonal, 1100, 2600) px in front of the page plane; the room's wall behind the page plane (the kit's default -0.6 D), chips between the wall and the eye, plates at their own depths, a free camera with depth of field, focus and fog",
+        "purpose": "All depth lives on the stage; the DOM has none.",
+        "source": "public/proto/rivista/stage/stage.js; public/proto/rivista/stage/scenes/lib/room.js"
+      },
+      {
+        "name": "text-is-sacred",
+        "value": "no light, chip, haze, ray or plate over a block of DOM text at rest",
+        "purpose": "The canvas is drawn over the page: a scene keeps its text clear (c.textRects, keep-outs, the room's dimmed wall) and a plate that meets a block of text fades out.",
+        "source": "public/proto/rivista/fx-stage.js; public/proto/rivista/stage/scenes/case/figures.js"
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Every arrival."
+      },
+      {
+        "name": "ease-io",
+        "value": "cubic-bezier(0.66, 0, 0.22, 1)",
+        "purpose": "The cut's sheet, the anchor glide."
+      },
+      {
+        "name": "ease-in",
+        "value": "cubic-bezier(0.5, 0, 0.75, 0)",
+        "purpose": "Every departure."
+      },
+      {
+        "name": "ease-rise",
+        "value": "cubic-bezier(0.19, 1, 0.22, 1)",
+        "purpose": "Every rise, the button's fill, the header's rule."
+      },
+      {
+        "name": "focus-in",
+        "value": "0.7s",
+        "purpose": "Text coming into focus (opacity 0 -> 1, blur 10px -> 0)."
+      },
+      {
+        "name": "focus-out",
+        "value": "0.233s",
+        "purpose": "Text leaving focus."
+      },
+      {
+        "name": "focus-blur",
+        "value": "10px",
+        "purpose": "The blur a text leaves from."
+      },
+      {
+        "name": "line-gap",
+        "value": "60ms",
+        "purpose": "Between the lines of a title."
+      },
+      {
+        "name": "d-hover",
+        "value": "0.18s in / 0.12s out (d-hover-out); press 0.1s (d-press)",
+        "purpose": "Hover in; a hover leaves faster; a press sinks."
+      },
+      {
+        "name": "d-rise",
+        "value": "0.82s in / 0.26s out (d-rise-out)",
+        "purpose": "A display line rising from behind its straight mask; leaving."
+      },
+      {
+        "name": "rows",
+        "value": "row-gap 55ms, d-row 0.6s",
+        "purpose": "Rows in stagger."
+      },
+      {
+        "name": "d-hdr",
+        "value": "0.42s",
+        "purpose": "The header coming back; its travelling rule."
+      },
+      {
+        "name": "menu-sheet",
+        "value": "d-sheet 0.46s open / d-sheet-out 0.28s close",
+        "purpose": "The phone menu's straight sheet."
+      },
+      {
+        "name": "d-cut",
+        "value": "0.42s rise (d-cut) / 0.1s the card clears (d-cut-clear) / 0.28s leave (d-cut-out)",
+        "purpose": "The assembled pages' cut: the sheet, its card, the way out."
+      },
+      {
+        "name": "mo-safe",
+        "value": "0.5s (0.3s when a cut is landing)",
+        "purpose": "How long the first screen's CSS entrances wait for the title sequence to claim them (css/motion.css)."
+      },
+      {
+        "name": "title-sequence",
+        "value": "Anime.js 4.5.0 through its WAAPI module: transform, opacity and straight clip-paths only",
+        "purpose": "fx-motion.js: the opening of every page, each scene step, the cut's card, the menu's rows, the press of every control, the scene's name in the header (below 1024 px under the header's name), the years that snap, the diagram that traces itself. Without the library the CSS entrances play and the page is whole by about 2.5 s."
+      },
+      {
+        "name": "years-snap",
+        "value": "each digit's column from 0 to its digit, 45 ms apart, 520 ms, --ease-io",
+        "purpose": "A year never counts up: it snaps (fx-motion.js snap). About's path, each time its step comes into focus (.stp-when); a case's record, once, in scene mode, where a count (161, circa 50) counts up from zero instead (fx-scroll.js record)."
+      },
+      {
+        "name": "trace",
+        "value": "the pen at 1.25 drawing units per ms (about 720 px/s at 1440); the grey connectors first, starts spread over 0.6 s, then the accent thread as one line",
+        "purpose": "The Supply Chain's class diagram draws its lines once as it enters (figure.cs-still[data-trace], fx-motion.js traceLoad / trace, .tr in css/case.css): straight clips and opacities on the compositor; live scene mode only, every printed state shows the picture."
+      },
+      {
+        "name": "step-focus",
+        "value": "inactive steps opacity 0.12, blur 6px",
+        "purpose": "In scene mode the step nearest the middle of the viewport is sharp; fx:step { scene, step, of } is sent when it changes."
+      },
+      {
+        "name": "flight",
+        "value": "520 ms out / 520 ms in on a desktop, 430 / 400 under 768 px; the page changes 200 ms after the click (fx-nav.js SWAP_MS) and the new room takes the stage when the door's glass hides the whole frame; the door 0.55 D behind the page plane, falling away in 0.22 s; toward Contact the morning crosses the frame as a straight edge in 200 ms (DAY_MS)",
+        "purpose": "The cut on the Astro build (stage.fly): one dolly of the eye through a door of cut glass, the new room seen through it from its first full frame to its last. The old page's text leaves by a masked exit in at most 190 ms. A view with the morning in it flies too, always forward, through the night's door opening as a straight slit."
+      },
+      {
+        "name": "push-and-portal",
+        "value": "push 0.24 D in 0.34 s; the portal 300 ms in, 350 ms out",
+        "purpose": "The cut on the assembled pages: the camera pushes toward the subject and the eye flies into a plate of glass under the rising sheet; arriving, it comes out of the glass."
+      },
+      {
+        "name": "rest",
+        "value": "5 s window after an input (a scene may ask 1..60 s with rest; every night scene asks 14 s), 1 s stop",
+        "purpose": "The stage moves only in this window, then submits nothing; whatever moves at rest runs on the stage's clock."
+      },
+      {
+        "name": "d-travel",
+        "value": "1.1s",
+        "purpose": "The anchor glide."
+      },
+      {
+        "name": "d-media",
+        "value": "1.4s",
+        "purpose": "The anchor glide's cap."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "no stage, no sticky steps, no blur, no rise, no title sequence, no count, no header step-away, no menu sheet, no cut",
+        "purpose": "Every page complete and in order; the sound toggle's bars stand still."
+      }
+    ],
+    "z": [
+      {
+        "name": "stage",
+        "value": "40",
+        "purpose": "The canvas: over the page, under the chrome (--z-stage).",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      {
+        "name": "menu",
+        "value": "45",
+        "purpose": "The phone menu sheet.",
+        "source": "public/proto/rivista/css/chrome.css"
+      },
+      {
+        "name": "header",
+        "value": "50",
+        "purpose": "The header.",
+        "source": "public/proto/rivista/css/chrome.css"
+      },
+      {
+        "name": "cut",
+        "value": "90",
+        "purpose": "The cut's sheet.",
+        "source": "public/proto/rivista/css/cuts.css"
+      },
+      {
+        "name": "skip",
+        "value": "100",
+        "purpose": "The skip link.",
+        "source": "public/proto/rivista/css/base.css"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "desktop",
+        "value": "1024px",
+        "purpose": "Header nav, EN / IT, the scene's name and the sound toggle after the language; scenes side by side; the reading sizes turn fluid; a case's chapter leaves its last third to its figure."
+      },
+      {
+        "name": "stacked",
+        "value": "1023.98px",
+        "purpose": "Menu sheet; the sound toggle beside MENU; the scene's name under the header's name, which rises 0.6em; scenes stack the figure over the text; a case's plate chapters open with a band of 40svh, the record with one of 36svh."
+      },
+      {
+        "name": "narrow",
+        "value": "767.98px",
+        "purpose": "The stage takes tier B under 768 px; a flight is 430 ms out and 400 in."
+      },
+      {
+        "name": "phone-name",
+        "value": "759.98px",
+        "purpose": "The cover's name breaks into two lines; a scene's ctx.phone is true under 760 px."
+      }
+    ],
+    "geometry": [
+      {
+        "name": "gut",
+        "value": "clamp(1rem, 3vw, 3rem)",
+        "purpose": "The one page gutter.",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      {
+        "name": "space",
+        "value": "s1 0.25 · s2 0.5 · s3 1 · s4 1.5 · s5 2.5 · s6 4 · s7 6.5 · s8 10 (rem)",
+        "purpose": "One rhythm on a 4 px base.",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      {
+        "name": "col",
+        "value": "34rem on a phone; calc(var(--t-body) * 27.2) from 1024 px",
+        "purpose": "The scene's text column.",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      {
+        "name": "hdr",
+        "value": "4rem on a phone; clamp(4.5rem, 1.8rem + 3vw, 6rem) from 1024 px",
+        "purpose": "The header's height.",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      {
+        "name": "btn-h",
+        "value": "3.5rem on a phone; clamp(4rem, 2.2rem + 2vw, 5.25rem) from 1024 px",
+        "purpose": "The filled button's height.",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      {
+        "name": "target",
+        "value": "2.75rem",
+        "purpose": "The smallest touch target (the sound toggle, the links).",
+        "source": "public/proto/rivista/css/chrome.css"
+      },
+      {
+        "name": "type-floor",
+        "value": "15 px on a phone, 16 px on a desktop, 18 px from 1900 px wide",
+        "purpose": "No rendered text under it; the tokens sit above it (16 px the smallest on a phone).",
+        "source": "public/proto/rivista/css/tokens.css"
+      },
+      {
+        "name": "scene",
+        "value": "--steps x 100svh; a sticky empty view of 100svh; one step a screen",
+        "purpose": "The scene grammar in scene mode (html.sc-on:not(.gl-off)).",
+        "source": "public/proto/rivista/css/scene.css"
+      },
+      {
+        "name": "hero",
+        "value": "190svh in scene mode",
+        "purpose": "The cover's flight through the name.",
+        "source": "public/proto/rivista/css/page-cover.css"
+      },
+      {
+        "name": "case-chapter",
+        "value": "2fr 5.4fr 4.6fr from 1024 px in scene mode; a band of 40svh above a plate chapter below 1024 px",
+        "purpose": "The free third (or band) where a chapter's figure of light stands.",
+        "source": "public/proto/rivista/css/case.css"
+      },
+      {
+        "name": "corners",
+        "value": "0",
+        "purpose": "Every corner is square.",
+        "source": "public/proto/rivista/css/base.css"
+      }
+    ],
+    "stage": [
+      {
+        "name": "what",
+        "value": "one fixed, transparent WebGPU canvas above the pages: a lit room (a ruled wall, chips of cut glass, blades of light), one swarm of light (ink at dawn), plates of clear cut glass, a prism, a door",
+        "purpose": "The one living thing of the site.",
+        "source": "public/proto/rivista/fx-stage.js; public/proto/rivista/stage/stage.js"
+      },
+      {
+        "name": "start",
+        "value": "the head script asks for the adapter before the first paint and imports stage/boot.js (device and every pipeline while the page loads); the room draws from the frame its pipelines are in, the swarm joins when its two are; the canvas comes up in 250 ms",
+        "purpose": "A page opens lit.",
+        "source": "public/proto/rivista/parts/head.html; public/proto/rivista/stage/boot.js"
+      },
+      {
+        "name": "between-pages",
+        "value": "under the Astro build's router the stage outlives the page: stage.reset() lets go of the page's formations, slabs and keep-outs; device, pipelines, swarm, eye and clock stay (window.__rvKeep); in a flight the next page's host comes up in the shadow (stage.prepare, stage.reserve, its scenes' first frame run undrawn, the first screen's captures uploaded) and takes the stage in one task when the door hides the frame",
+        "purpose": "Separate pages with the 3D kept alive between them.",
+        "source": "web/src/router/rv-router.js; public/proto/rivista/fx-stage.js"
+      },
+      {
+        "name": "field",
+        "value": "opt-in { lights, chips, wall }: a wall as an analytic ruled plane; up to 16,000 chips (tier B half, C a quarter) shaped as the A, the SerSan mark, a facet or a scene's mask; up to 4 blades with straight sides and haze",
+        "purpose": "The room. Nothing of it draws in the dawn or over a keep-out; a failure leaves the stage drawing without it (?failfield=1).",
+        "source": "public/proto/rivista/stage/field/field.js"
+      },
+      {
+        "name": "room-kit",
+        "value": "room(c, o): the wall, chips (4,000 desktop / 2,600 phone at tier A), two travelling blades leaning alike, the hand's blade, a subject's light, the text kept clear by a dimmed wall; temp cool -> warm down the page",
+        "purpose": "Any scene stands in the cover's hall with one call.",
+        "source": "public/proto/rivista/stage/scenes/lib/room.js"
+      },
+      {
+        "name": "swarm",
+        "value": "one compute pass, instanced soft discs with depth of field; tiers A 160,000 / B 80,000 / C 40,000 points",
+        "purpose": "The same points become every figure; formations share the population by weight.",
+        "source": "public/proto/rivista/stage/stage.js"
+      },
+      {
+        "name": "plates",
+        "value": "up to 12 boxes of clear glass traced analytically (ior 1.5, a spectral split on tier A, a rounded arris, studio reflections, an image at mid-thickness or frosted etched type); shape 'prism' a triangular prism with a beam drawn inside its glass (PRISM_BEAM; its light in inset as -(1 + k)), at the index and under More work; the door of a flight a deep block that carries every ray through to the room beyond",
+        "purpose": "The stage's only objects; they bend the room, the swarm and the display type behind them.",
+        "source": "public/proto/rivista/stage/plates/plates.js"
+      },
+      {
+        "name": "eye",
+        "value": "a free camera (pos, target, roll, lens, focus, aperture, near fade, fog, the hand's orbit) or the older orbiting camera; one function of the scroll per page (workEye, caseEye, coverCamera)",
+        "purpose": "Every page is one continuous shot.",
+        "source": "public/proto/rivista/stage/stage.js; public/proto/rivista/stage/scenes/lib/camera.js; public/proto/rivista/stage/scenes/lib/page.js"
+      },
+      {
+        "name": "bloom",
+        "value": "threshold, a mip chain, an additive composite; A half size and 5 levels, B a quarter and 4, C a quarter and 3",
+        "purpose": "The canvas's own glow; every night scene asks for it; the dawn never glows.",
+        "source": "public/proto/rivista/stage/wgsl/bloom.wgsl.js"
+      },
+      {
+        "name": "post",
+        "value": "the grain (one 8-bit step, triangular, before the write, only where there is light, seeded from the stage's clock; 0 on HDR) · the aberration in speed (red and blue part toward the corners, up to 3 css px at a corner while the eye travels fast, exactly 0 at rest; stats().aber) · the HDR canvas (rgba16float with extended tone mapping where the screen and the browser show more than paper white; the light up to 1.6 as written; elsewhere and with ?hdr=0 the 8-bit canvas of before; ?hdr=1 forces it; stats().hdr)",
+        "purpose": "Plan 70 phase 4, inside the passes the stage already runs (no pass of its own): no bands in the dark gradients, speed felt in the lens, lights brighter than paper white on a screen that can show them. Bokeh, the pointer's trail and chips on other pages are not built.",
+        "source": "public/proto/rivista/stage/stage.js; public/proto/rivista/stage/wgsl/frame.wgsl.js; public/proto/rivista/stage/gpu.js"
+      },
+      {
+        "name": "passes",
+        "value": "registerPass: 'rays' (up to 8 straight rays of light; the index's prism) and 'splat' (Gaussian splatting; cap A 400,000 / B 150,000 / C 60,000)",
+        "purpose": "Opt-in drawn layers a scene switches on with passes: { id: cfg }.",
+        "source": "public/proto/rivista/stage/scenes/lib/prism.js; public/proto/rivista/stage/splat/splat.js"
+      },
+      {
+        "name": "cut",
+        "value": "stage.cut (the push), stage.portal (a plate of glass pinned to the eye), stage.fly (one dolly through a door of glass; LOOK.flyDoor 0.55, flyLen 1.5, flyGlow 0.22)",
+        "purpose": "The cut between pages as a move of the eye.",
+        "source": "public/proto/rivista/stage/stage.js"
+      },
+      {
+        "name": "dawn",
+        "value": "up to two day rectangles; inside them a point is cobalt ink",
+        "purpose": "The close of every page; Contact whole.",
+        "source": "public/proto/rivista/stage/stage.js"
+      },
+      {
+        "name": "states",
+        "value": "html.stage-on while it draws; html.stage-lit once the subject is lit; html.stage-dead when it stops (the scenes return to the printed page)",
+        "purpose": "What the page's CSS and the 2D layer read.",
+        "source": "public/proto/rivista/fx-stage.js"
+      },
+      {
+        "name": "switches",
+        "value": "?stage=0 · ?gl=0 · ?debug=1 · ?tier=A|B|C · ?fx=core,… · ?sound=0 · ?hdr=0 · ?hdr=1 · ?name=splat · ?failsplat=1 · ?failfield=1 · ?failbloom=1",
+        "purpose": "Printed pages, debugging, forced tiers and failures.",
+        "source": "public/proto/rivista/parts/head.html; public/proto/rivista/fx-stage.js; public/proto/rivista/fx-sound.js"
+      }
+    ],
+    "sound": [
+      {
+        "name": "what",
+        "value": "one Web Audio engine, everything synthesized, no audio file",
+        "purpose": "The room's sound, on by default (Alberto: «acceso di default.»).",
+        "source": "public/proto/rivista/fx-sound.js"
+      },
+      {
+        "name": "start",
+        "value": "no AudioContext before the first click, touch or key press; never made by reading the visitor's media devices; a key that only moves the focus (Tab) makes the engine and leaves it silent; at a press or a key that acts the room fades in over 1.5 s",
+        "purpose": "No autoplay warning; nothing asked of the visitor. A first press of a visit on a link to another page makes nothing: the flight starts at once and silent (3 ms after the press); under the router the context is made after the arrival, in an idle moment, on the activation the page already has, and the room fades in over 2.4 s (a browser that refuses waits, silently, for the next gesture); on the assembled pages the next page starts at its first gesture (build/m-sound.md).",
+        "source": "public/proto/rivista/fx-sound.js"
+      },
+      {
+        "name": "roles",
+        "value": "room (a chord of up to four pure tones, each page its own, over a soft air) · eye (the scroll) · glass (a scene's step) · index (the cover's rows) · cut (a rush and the door) · hand (press, copy, menu) · Obla (five motifs)",
+        "purpose": "What plays.",
+        "source": "public/proto/rivista/fx-sound.js"
+      },
+      {
+        "name": "toggle",
+        "value": "localStorage 'rv-sound' (default on); ?sound=0 off for the visit; a ?fx= list without 'sound' leaves the module out",
+        "purpose": "The header's button and the probes' switch.",
+        "source": "public/proto/rivista/fx-sound.js; public/proto/rivista/parts/a-header.html"
+      },
+      {
+        "name": "unheard",
+        "value": "every level is a measure or a spectrogram",
+        "purpose": "Whether it sounds right is Alberto's to judge by ear.",
+        "source": "docs/redesign/rivista-story/build/n-fix-sound.md"
+      }
+    ],
+    "budget": [
+      {
+        "name": "renderers",
+        "value": "1 per page: the stage",
+        "purpose": "Everything else is DOM and CSS, plus Obla's inline SVG still in plain flow."
+      },
+      {
+        "name": "gpu-budget",
+        "value": "A 3.5 ms / B 6 ms / C 9 ms (median of 30 frames)",
+        "purpose": "Over budget the drawn count halves (floor 20,000) and the ink per point doubles."
+      },
+      {
+        "name": "wave-limits",
+        "value": "2.6 ms at rest and 3.3 ms at peak at 1440x900 DPR 2 tier A; 2.4 ms at 1920x1080 DPR 1; 1.5 ms on a phone (tier B); the swarm never halved at rest; no long task over 50 ms after the first frame",
+        "purpose": "The limits the lanes of waves 4 to 6 were given (their briefs). Certified on a quiet machine, each at least twice: the case opener (2.26-2.43 ms), sphere-ai's fast passes with no halving, first frames not later than HEAD on both builds (wave 5). Wave 6: the gallery at rest 2.57-2.58 ms at 1440 DPR 2 with the whole swarm and 1.92-1.96 at 1920 DPR 1; a first visit to Work standing at 976-980 ms. Open after wave 6, each under HEAD at the same hour on a slower GPU: the flights' peaks, 3.5-4.5 ms at 1440 DPR 2 and 2.9-3.05 at 1920 DPR 1, the swarm never halved; About at rest 2.66 ms; the index with Work under the hand halving the swarm in noisy rounds (build/m-fly.md, build/m-glass.md). The final stills and films of wave 5: .shots/n-final/."
+      },
+      {
+        "name": "rest",
+        "value": "0 frames in 3 s after 19 s of quiet, with a mouse on the page",
+        "purpose": "The stage sleeps."
+      },
+      {
+        "name": "libraries",
+        "value": "GSAP 3.15.0 with ScrollTrigger, Lenis 1.3.26, Anime.js 4.5.0 (waapi, text), from jsDelivr after the first frame; Sofia Sans from Google Fonts",
+        "purpose": "Everything else is hand-written; no 3D library."
+      },
+      {
+        "name": "builds",
+        "value": "assemble.mjs (no dependency) and web/ (Astro 7.3.8), 32 pages each, byte parity but for the router; web/scripts/release.mjs makes the Astro build a folder served from the root (web/release/, robots.txt, sitemap.xml), which Vercel builds and serves (vercel.json)",
+        "purpose": "Two builds from the same parts; the Astro build is the one that goes online, at https://portfolio-jet-eta-24.vercel.app."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Filled button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one cobalt surface of the night: 'Write to me' on the cover, the close of Consulting. Label in the action face at --t-btn (18 px on a phone, fluid from 1024 px: 20 / 23 / 26 px at 1440 / 1920 / 2560), --btn-h tall. On hover an ink ground fills in from the left edge and the type turns night; it leaves faster; pressed, it sinks 1 px.",
+      "html": "<a class=\"ds-btn\" href=\"mailto:albertotuveri@gmail.com\">Write to me <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" aria-hidden=\"true\"><path d=\"M7 17 17 7M8 7h9v9\"/></svg></a>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.75em; min-height: var(--btn-h, 3.5rem); padding: 0 1.6em 0 1.5em; position: relative; isolation: isolate; background: #2340c9; color: #f4f1ea; font: 700 var(--t-btn, 1.125rem)/1 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; text-decoration: none; border-radius: 0; transition: color 0.12s cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn::before { content: ''; position: absolute; inset: 0; z-index: -1; background: #f4f1ea; transform: scaleX(0); transform-origin: 100% 50%; transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn:hover { color: #0c0e14; transition-duration: 0.18s; } .ds-btn:hover::before { transform: scaleX(1); transform-origin: 0 50%; transition: transform 0.34s cubic-bezier(0.19, 1, 0.22, 1); } .ds-btn:active { transform: translateY(1px) scale(0.985); } .ds-btn:focus-visible { outline: 2px solid #f4f1ea; outline-offset: 4px; } .ds-btn svg { width: 1.1em; height: 1.1em; flex: none; }"
+    },
+    {
+      "name": "Quiet link",
+      "kind": "link",
+      "refersTo": "quiet-link",
+      "description": "A label in ink at the button's size and weight; hover turns it accent, draws a 2 px rule under it from the left (0.32 s) and moves its arrow; pressed, it sinks 1 px.",
+      "html": "<a class=\"ds-q\" href=\"work.html\">Work <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a>",
+      "css": ".ds-q { position: relative; display: inline-flex; align-items: center; gap: 0.6em; min-height: 2.75rem; font: 700 var(--t-btn, 1.125rem)/1.2 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: #f4f1ea; text-decoration: none; } .ds-q::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0.3rem; height: 2px; background: currentColor; transform: scaleX(0); transform-origin: 100% 50%; transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1); } .ds-q:hover, .ds-q:focus-visible { color: #8fa2ff; } .ds-q:hover::after, .ds-q:focus-visible::after { transform: scaleX(1); transform-origin: 0 50%; transition: transform 0.32s cubic-bezier(0.19, 1, 0.22, 1); } .ds-q svg { width: 1em; height: 1em; }"
+    },
+    {
+      "name": "Header",
+      "kind": "navigation",
+      "refersTo": "header",
+      "description": "The name as a label at left; from 1024 px the name of the scene in view after it (a label in mute behind a short rule, changing behind a straight mask; below 1024 px it stands under the header's name, which rises 0.6em, clear of the sound toggle and MENU, hidden while the menu is open), then the five pages, EN / IT and the sound toggle at right. No ground until the page scrolls, then --night-2 with a bottom rule; over the morning it takes the dawn ground as a straight cut (html[data-ground='dawn'] or html[data-hdr-ground='dawn']). Items at --t-nav (18 px on a phone, 20 / 24 / 28 px at 1440 / 1920 / 2560), --hdr tall. It steps away on scroll down and comes back on scroll up (html.hdr-away); one 2 px accent rule travels between the items; a 1 px accent reading line along its foot follows the scroll where the browser links animations to the scroll.",
+      "html": "<header class=\"ds-hdr\"><a class=\"ds-hdr-name\" href=\"index.html\">Alberto Tuveri</a><span class=\"ds-hdr-scene\" aria-hidden=\"true\"><span class=\"ds-hdr-scene-r\"></span>Nine works</span><nav class=\"ds-hdr-nav\"><a href=\"work.html\" aria-current=\"page\">Work</a><a href=\"about.html\">About</a><a href=\"consulting.html\">Consulting</a><a href=\"obla.html\">Obla</a><a href=\"contact.html\">Contact</a><span class=\"ds-hdr-lang\"><span>EN</span> <a href=\"it/work.html\">IT</a></span></nav><button class=\"ds-snd ds-hdr-snd\" type=\"button\" aria-pressed=\"true\" aria-label=\"Sound\" title=\"Sound\"><span class=\"ds-snd-bars\" aria-hidden=\"true\"><span></span><span></span><span></span><span></span></span></button></header>",
+      "css": ".ds-hdr { height: var(--hdr, 4rem); display: flex; align-items: center; gap: 1.5rem; padding-inline: clamp(1rem, 3vw, 3rem); background: #12151d; border-bottom: 1px solid #262a36; color: #f4f1ea; } .ds-hdr-name, .ds-hdr-nav a, .ds-hdr-lang { font: 700 var(--t-nav, 1.125rem)/1 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; } .ds-hdr-name { color: #f4f1ea; font-size: calc(var(--t-nav, 1.125rem) * 1.12); letter-spacing: 0.04em; white-space: nowrap; } .ds-hdr-scene { display: flex; align-items: center; gap: 1rem; flex: 1 1 auto; min-width: 0; font: 600 var(--t-label, 1rem)/1.35 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: #9a958a; white-space: nowrap; overflow: clip; } .ds-hdr-scene-r { display: block; width: 1.5rem; height: 1px; background: #262a36; flex: none; } .ds-hdr-nav { display: flex; align-items: center; gap: clamp(1.25rem, 2.2vw, 2.25rem); margin-left: auto; } .ds-hdr-nav a { color: #cfcabf; text-decoration: underline 2px transparent; text-underline-offset: 0.55em; transition: color 0.12s cubic-bezier(0.16, 1, 0.3, 1); } .ds-hdr-nav a:hover { color: #f4f1ea; transition-duration: 0.18s; } .ds-hdr-nav a[aria-current='page'] { color: #f4f1ea; text-decoration-color: currentColor; } .ds-hdr-nav a:focus-visible { outline: 2px solid #8fa2ff; outline-offset: 4px; } .ds-hdr-lang { padding-left: 1.5rem; border-left: 1px solid #262a36; font-size: var(--t-lang, 1.125rem); color: #f4f1ea; } .ds-hdr-lang a { color: #9a958a; } .ds-hdr-lang a:hover { color: #8fa2ff; } .ds-hdr-snd { padding-left: 1.5rem; border-left: 1px solid #262a36; } .ds-snd { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; padding: 0 0.5rem; background: none; border: 0; border-radius: 0; cursor: pointer; font: 700 var(--t-nav, 1.125rem)/1 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; color: #cfcabf; transition: color 0.12s cubic-bezier(0.16, 1, 0.3, 1); } .ds-snd:hover { color: #f4f1ea; transition-duration: 0.18s; } .ds-snd:focus-visible { outline: 2px solid #8fa2ff; outline-offset: 2px; } .ds-snd-bars { display: flex; align-items: flex-end; gap: 0.16em; height: 0.72em; } .ds-snd-bars span { display: block; width: 0.16em; height: 100%; background: currentColor; transform-origin: 50% 100%; transform: scale(var(--sx, 1), var(--sb, 1)); transition: transform 0.24s cubic-bezier(0.19, 1, 0.22, 1); } .ds-snd-bars span:nth-child(1) { --sb: 0.5; } .ds-snd-bars span:nth-child(2) { --sb: 1; } .ds-snd-bars span:nth-child(3) { --sb: 0.7; } .ds-snd-bars span:nth-child(4) { --sb: 0.85; } .ds-snd[aria-pressed='false'] { color: #9a958a; } .ds-snd[aria-pressed='false'] .ds-snd-bars span { --sb: 0.14; --sx: 2.04; }"
+    },
+    {
+      "name": "Sound toggle",
+      "kind": "custom",
+      "refersTo": "sound-toggle",
+      "description": "The header's switch for the site's synthesized sound (fx-sound.js), on by default from the visitor's first press. A real button with aria-pressed and the same word as title; four straight bars as tall as the header's capitals, square, no glow. Armed (before the first gesture): the bars stand still at their heights; running: they move (transform only; still under reduced motion); off: they lie down as one flat rule and the button turns mute. The choice is remembered.",
+      "html": "<button class=\"ds-snd\" type=\"button\" aria-pressed=\"true\" aria-label=\"Sound\" title=\"Sound\"><span class=\"ds-snd-bars\" aria-hidden=\"true\"><span></span><span></span><span></span><span></span></span></button>",
+      "css": ".ds-snd { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; padding: 0 0.5rem; background: none; border: 0; border-radius: 0; cursor: pointer; font: 700 var(--t-nav, 1.125rem)/1 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; color: #cfcabf; transition: color 0.12s cubic-bezier(0.16, 1, 0.3, 1); } .ds-snd:hover { color: #f4f1ea; transition-duration: 0.18s; } .ds-snd:focus-visible { outline: 2px solid #8fa2ff; outline-offset: 2px; } .ds-snd-bars { display: flex; align-items: flex-end; gap: 0.16em; height: 0.72em; } .ds-snd-bars span { display: block; width: 0.16em; height: 100%; background: currentColor; transform-origin: 50% 100%; transform: scale(var(--sx, 1), var(--sb, 1)); transition: transform 0.24s cubic-bezier(0.19, 1, 0.22, 1); } .ds-snd-bars span:nth-child(1) { --sb: 0.5; } .ds-snd-bars span:nth-child(2) { --sb: 1; } .ds-snd-bars span:nth-child(3) { --sb: 0.7; } .ds-snd-bars span:nth-child(4) { --sb: 0.85; } .ds-snd[aria-pressed='false'] { color: #9a958a; } .ds-snd[aria-pressed='false'] .ds-snd-bars span { --sb: 0.14; --sx: 2.04; }"
+    },
+    {
+      "name": "Display title",
+      "kind": "type",
+      "refersTo": "d1",
+      "description": "A page title in the film-title face: Sofia Sans Extra Condensed 800 capitals, 0.86, untracked. It rises from behind a straight mask, letter by letter (fx-motion.js); display type the stage bends ([data-refract]) never moves and gets a curtain only.",
+      "html": "<h1 class=\"ds-d1\"><span>Nine</span> <span>works</span></h1>",
+      "css": ".ds-d1 { font: 800 clamp(3.5rem, 9vw, 9.5rem)/0.86 'Sofia Sans Extra Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: 0; color: #f4f1ea; margin: 0; text-wrap: balance; }"
+    },
+    {
+      "name": "Index row",
+      "kind": "list-item",
+      "refersTo": "index-row",
+      "description": "A cover index row: its index in accent, the page name in the display face at --t-d1, one sentence, 'Open'. Under the hand the stage swings the prism's one ray to the row and gathers its emblem of light at the ray's station; the other rows dim to mute. The prism is a solid of cut glass: the room's shaft enters its left face near the apex, crosses the glass as a beam bent by the faces and leaves by the right face as the row's ray.",
+      "html": "<a class=\"ds-ix\" href=\"work.html\"><span class=\"ds-ix-n\">01</span><span class=\"ds-ix-t\">Work</span><span class=\"ds-ix-k\">Nine works, and two sets of figures measured before and after.</span><span class=\"ds-ix-v\">Open</span></a>",
+      "css": ".ds-ix { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; column-gap: 1rem; row-gap: 0.5rem; align-items: baseline; padding-block: 1.5rem; border-top: 1px solid #262a36; color: #f4f1ea; text-decoration: none; } .ds-ix-n { color: #8fa2ff; font: 600 var(--t-label, 1rem)/1 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; } .ds-ix-t { font: 800 clamp(3.5rem, 9vw, 9.5rem)/0.86 'Sofia Sans Extra Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; transition: color 0.18s cubic-bezier(0.16, 1, 0.3, 1); } .ds-ix-k { grid-column: 2; font: 400 var(--t-body, 1.125rem)/1.55 'Sofia Sans', 'Barlow', system-ui, sans-serif; color: #cfcabf; max-width: 30em; } .ds-ix-v { grid-column: 3; grid-row: 1; align-self: center; font: 700 var(--t-btn, 1.125rem)/1 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; } .ds-ix:hover .ds-ix-t, .ds-ix:focus-visible .ds-ix-t, .ds-ix:hover .ds-ix-v { color: #8fa2ff; } .ds-ix:focus-visible { outline: 2px solid #8fa2ff; outline-offset: 4px; }"
+    },
+    {
+      "name": "Metric row",
+      "kind": "data",
+      "refersTo": "metric-row",
+      "description": "One measured figure: its label, before (mute) -> after (ink) with the arrow in accent, tabular. While the stage draws, its bars are the swarm's; printed, two 3 px bars. Round 10: the rows come up in a stagger and the figures count up once to the printed value.",
+      "html": "<li class=\"ds-mx\"><span class=\"ds-mx-l\">Over-answering</span><span class=\"ds-mx-n\"><span class=\"from\">56%</span><span class=\"arr\">→</span>16%</span><span class=\"ds-mx-bars\"><i style=\"--w:56%\"></i><i class=\"is-after\" style=\"--w:16%\"></i></span></li>",
+      "css": ".ds-mx { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 1.5rem; row-gap: 0.5rem; align-items: baseline; padding-block: 1rem; border-top: 1px solid #262a36; list-style: none; } .ds-mx-l { font: 500 var(--t-small, 1rem)/1.35 'Sofia Sans', 'Barlow', system-ui, sans-serif; color: #f4f1ea; } .ds-mx-n { font: 800 clamp(1.75rem, 2.6vw, 2.5rem)/1 'Sofia Sans Extra Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; color: #f4f1ea; font-variant-numeric: tabular-nums lining-nums; } .ds-mx-n .from { color: #9a958a; } .ds-mx-n .arr { color: #8fa2ff; margin-inline: 0.25em; } .ds-mx-bars { grid-column: 1 / -1; display: grid; gap: 3px; } .ds-mx-bars i { display: block; height: 3px; width: var(--w); background: #9a958a; } .ds-mx-bars i.is-after { background: #8fa2ff; }"
+    },
+    {
+      "name": "Scene",
+      "kind": "layout",
+      "refersTo": "scene",
+      "description": "A scene: a sticky, empty 100svh view the stage fills, and a track of steps, one screen each, with the text in a 34rem column on one side. Never boxed. Without scene mode, plain flow.",
+      "html": "<section class=\"sc sc-left\" data-stage=\"gallery\" style=\"--steps:10\"><div class=\"sc-view\" data-stage-anchor=\"gallery\" aria-hidden=\"true\"></div><div class=\"sc-track\"><div class=\"sc-step\" data-stage-step=\"1\"><div class=\"sc-in\">…</div></div></div></section>",
+      "css": "html.sc-on:not(.gl-off) .sc { min-height: calc(var(--steps) * 100svh); } html.sc-on:not(.gl-off) .sc-view { display: block; position: sticky; top: 0; height: 100svh; margin-bottom: -100svh; pointer-events: none; } html.sc-on:not(.gl-off) .sc-step { min-height: 100svh; display: flex; align-items: center; } html.sc-on:not(.gl-off) .sc-in { max-width: var(--col, 34rem); }"
+    },
+    {
+      "name": "Dawn close",
+      "kind": "section",
+      "refersTo": "dawn-close",
+      "description": "The end of every page but Contact: a full screen of --dawn under a straight edge, WRITE TO ME., the address in cobalt with its copy control, LinkedIn and GitHub, the legal line. A 1 px rule rests under the address; on hover a 2 px rule is drawn over it from the left. On the stage, five straight ruled strokes of ink (four on a phone) lie across the edge; the dawn never glows.",
+      "html": "<footer class=\"ds-dawn\"><h2 class=\"ds-dawn-h\">Write to me.</h2><p class=\"ds-dawn-mail\"><a href=\"mailto:albertotuveri@gmail.com\">albertotuveri@gmail.com</a></p></footer>",
+      "css": ".ds-dawn { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: clamp(4rem, 14vh, 10rem) clamp(1rem, 3vw, 3rem) 1.5rem; background: #f3f4f6; color: #3a3f4b; } .ds-dawn-h { font: 800 clamp(4.5rem, 15vw, 17rem)/0.86 'Sofia Sans Extra Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; color: #0c0e14; white-space: nowrap; margin: 0; } .ds-dawn-mail { margin-top: 2.5rem; } .ds-dawn-mail a { font: 500 clamp(1.5rem, 3.6vw, 3.25rem)/1.1 'Sofia Sans', 'Barlow', system-ui, sans-serif; color: #2340c9; position: relative; text-decoration: underline 1px #d6d9e0; text-underline-offset: 0.22em; } .ds-dawn-mail a::after { content: ''; position: absolute; left: 0; right: 0; bottom: -0.12em; height: 2px; background: currentColor; transform: scaleX(0); transform-origin: 100% 50%; transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1); } .ds-dawn-mail a:hover, .ds-dawn-mail a:focus-visible { text-decoration-color: transparent; } .ds-dawn-mail a:hover::after, .ds-dawn-mail a:focus-visible::after { transform: scaleX(1); transform-origin: 0 50%; transition: transform 0.32s cubic-bezier(0.19, 1, 0.22, 1); }"
+    },
+    {
+      "name": "Cut card",
+      "kind": "overlay",
+      "refersTo": "cut-sheet",
+      "description": "Page to page. The card: the destination's index line in accent (its numeral counts from the page being read to the destination), a rule across, and the destination's name in the display face rising letter by letter. On the assembled pages it plays on a straight-edged sheet of --night-2 (--dawn toward Contact) that floods in once the stage's portal of glass fills the frame; arriving, the card clears first, then the sheet leaves upward. On the Astro build the cut is a flight: the sheet stays clear (html.cut-soft / cut-fly), the card is light type over the room, read while the door of glass is ahead and gone before the eye is through; no card over a view with the morning in it. Reduced motion: none of it.",
+      "html": "<div class=\"ds-cut\"><p class=\"ds-cut-sub\">01 — Work</p><span class=\"ds-cut-rule\"></span><p class=\"ds-cut-name\">Work</p></div>",
+      "css": ".ds-cut { display: flex; flex-direction: column; justify-content: flex-end; gap: 1rem; min-height: 22rem; padding: 4rem clamp(1rem, 3vw, 3rem) clamp(2.5rem, 9vh, 6.5rem); background: #12151d; border-top: 1px solid #262a36; color: #f4f1ea; } .ds-cut-name { font: 800 clamp(4.5rem, 15vw, 16rem)/0.84 'Sofia Sans Extra Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; margin: 0; } .ds-cut-rule { display: block; height: 2px; background: #262a36; } .ds-cut-sub { font: 600 var(--t-btn, 1.125rem)/1 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: #8fa2ff; margin: 0; font-variant-numeric: tabular-nums lining-nums; }"
+    },
+    {
+      "name": "Label",
+      "kind": "type",
+      "refersTo": "label",
+      "description": "Labels and meta: Sofia Sans Condensed 600 capitals tracked 0.06em, --t-label (16 px on a phone, fluid from 1024 px: 17 / 20 / 22 px at 1440 / 1920 / 2560); the role line and the date labels in accent, the rest in mute.",
+      "html": "<p class=\"ds-label\">Software &amp; AI Engineer · Creative Lead</p>",
+      "css": ".ds-label { font: 600 var(--t-label, 1rem)/1.35 'Sofia Sans Condensed', 'Barlow Condensed', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: #8fa2ff; margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "One lit studio at night, one travelling eye",
+    "overview": "Every page is a room of the same studio at night, and the reader's scroll moves one eye through it in a single continuous shot. The room is near-black blue and it is lit: a back wall ruled as a grid in relief, chips of cut glass shaped as the letter A and as the SerSan mark hanging at every depth, blades of light that travel across the wall. In the room, one swarm of points with a memory becomes every figure the story needs (a name, a line through the room, bars of measured figures, the agents of a system, Obla's outline), and thick plates of clear cut glass with straight edges hold the real work and bend the light and the display type behind them. The type is warm white, one condensed grotesk family set in capitals like the titles of a film, and the page's 2D layer moves like a title sequence. Between pages the eye flies through a door of glass. The room has a sound. Every page ends at a straight edge where the night becomes morning: a white ground, the same points as cobalt ink, and the address to write to.\n\nWith all content removed: a dark room with a faintly ruled wall, chips of glass in the air, two slanted shafts of light, and standing plates catching the studio's lights.",
+    "keyCharacteristics": [
+      "One ground (`--night`) on every page but Contact, which is the morning whole (`--dawn`).",
+      "One superfamily, Sofia Sans, in three widths and three roles: display, text, labels. No serif, no mono.",
+      "Structure in the DOM is a 1 px rule (`--line`) and the step from `--night` to `--night-2`. Square corners. No CSS shadow, glow, gradient or backdrop blur anywhere: every glow is the canvas's.",
+      "One accent for marks (`--accent`, a light periwinkle) and one cobalt surface (`--cobalt`, the filled button; the ink at dawn).",
+      "Every page is one continuous shot: a scene never swaps a figure in place, the eye travels from one to the next.",
+      "The motion verbs are **focus** (text comes into focus, steps pull focus) and **the rise** (display type comes up from behind a straight mask, letter by letter). No text slides in from a side.",
+      "Text is sacred: the canvas is drawn over the page, and nothing of it stands over a block of text at rest.",
+      "Nothing a visitor reads is small: the floor is 15 px on a phone, 16 px on a desktop, 18 px at 1920.",
+      "Separate pages. On the Astro build, the one that goes online, the stage stays alive between them and the cut is a flight through a door of cut glass; on the assembled pages it is a push into a portal of glass under a rising sheet.",
+      "A synthesized sound, on by default from the visitor's first press, with a toggle in the header; a first press on a link flies at once and silent, and the room comes in after the arrival."
+    ],
+    "rules": [
+      {
+        "name": "The One Light Rule",
+        "body": "On the night the only light is the canvas's. The DOM has no glow, no gradient, no shadow and no blur behind anything; colour in the DOM is type, a 1 px rule, the step to `--night-2`, or the cobalt button.",
+        "section": "colors"
+      },
+      {
+        "name": "The Remap Rule",
+        "body": "The morning is the night's tokens remapped, never a parallel set of components. A component that needs its own dawn variant is wrong; a dawn value outside `rv/css/tokens.css` and `rv/css/dawn.css` is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Four Colours Rule",
+        "body": "Night, paper white, cobalt, the accent. Light on the stage is tinted between paper white and cobalt (a room's `temp` runs cool at the top of a page and warm toward its dawn); nothing else is a colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Sofia Sans in three widths is the only type, on the page, on the cut's card, in the share cards, in the favicon and in the etched words on the glass. A serif, a monospace or a second family is out of the system.",
+        "section": "typography"
+      },
+      {
+        "name": "The Film Title Rule",
+        "body": "Every display line is capitals in the extra-condensed face, tight (0.86), untracked, set to fill its measure. Lowercase display does not exist.",
+        "section": "typography"
+      },
+      {
+        "name": "The Floor Rule",
+        "body": "15 px on a phone, 16 px on a desktop, 18 px at 1920, for everything a visitor reads; buttons and the menu first. A new size sits on the scale tokens, never written by hand.",
+        "section": "typography"
+      },
+      {
+        "name": "The Text Is Sacred Rule",
+        "body": "The canvas is drawn over the page. No light, chip, haze, ray or plate stands over a block of DOM text at rest: a scene keeps its text clear (`c.textRects()`, keep-outs, the room's dimmed wall round a block), and a plate whose box meets a block of text fades out until the text has passed. Proof: 1:1 crops with the stage on and with `?stage=0`.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** set every display line in Sofia Sans Extra Condensed 800 capitals at the scale tokens, filling its measure.",
+      "**Do** keep the ground `--night` on every page but Contact, and end every page at the dawn edge.",
+      "**Do** put a new scene in the room (`room(c, o)`) and give its page one continuous shot: one function of the scroll for the eye, shared by the page's scenes.",
+      "**Do** keep text clear of the canvas: `c.textRects()` as keep-outs, the room's dimmed wall, plates that fade where a block of text meets them; prove it with 1:1 crops, stage on and `?stage=0`.",
+      "**Do** put the real work inside the glass (the captures as textures) and keep the same pictures in the DOM for every printed state.",
+      "**Do** write every visible word in `parts/strings.mjs` or `parts/cases.json`, in both languages, and print only numbers that exist in `PRODUCT.md`.",
+      "**Do** keep everything a visitor reads at 15 px or more on a phone, 16 px on a desktop, 18 px at 1920, on the scale tokens; buttons and the header first.",
+      "**Do** drive anything that moves at rest with the stage's clock, and let it settle exactly, so the stage sleeps.",
+      "**Do** move the DOM on the compositor only (transform, opacity, straight clips), through `fx-motion.js`.",
+      "**Do** look at 1440×900 and 390×844 at DPR 2, 1920×1080 at DPR 1, both editions and both builds before calling a change done; judge motion on strips of frames (50 ms for a cut)."
+    ],
+    "donts": [
+      "**Don't** bring back anything that reads as water, to the eye or to the ear: a drop, bead, pool, drip, ripple, wave, wet edge, reflecting floor or horizon line; surf, a drip or a bubble in the sound.",
+      "**Don't** draw large soft round discs, round spots or rings of light, or rain-like lines; **don't** let light draw a figure (an X, a V, a cross); no rainbow.",
+      "**Don't** bring back the white magazine: cream paper as a ground, Cormorant, Figtree, staircase titles, \"Fig. NN\", issue / in print / colophon / plate / In this issue / Read.",
+      "**Don't** add a CSS shadow, glow, gradient, backdrop blur or rounded corner; **don't** use the bloom on a dawn scene.",
+      "**Don't** use cobalt as text on the night, or a rule colour as type.",
+      "**Don't** make a figure a floating card: no rectangle of glass carrying a number the page already prints.",
+      "**Don't** box a scene's view (no border, frame or caption inside it).",
+      "**Don't** slide text in from a side; **don't** move display type the stage bends (`[data-refract]`).",
+      "**Don't** let anything in the DOM follow the pointer.",
+      "**Don't** make the `AudioContext` before a real activation, add an audio file, or warm the audio service by reading the visitor's media devices.",
+      "**Don't** add a second canvas, a 3D library or a second family."
+    ]
+  }
+}

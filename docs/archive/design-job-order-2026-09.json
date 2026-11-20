@@ -1,0 +1,257 @@
+{
+  "_archived": "HISTORIC. Superseded on 2026-10-09 by the rivista V1 world \"Carta e cobalto\" (public/proto/rivista/); the live sidecar is .impeccable/design.json. Do not build from this file.",
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-17T00:00:00.000Z",
+  "title": "Design System: The Job Order — Alberto Tuveri",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Workshop Paper",
+        "canonical": "#f5f4ef",
+        "tonalRamp": ["#262523", "#3d3b38", "#55524d", "#6f6b65", "#918c84", "#b6b1a8", "#d8d4cb", "#f5f4ef"]
+      },
+      "paper-field": {
+        "role": "neutral",
+        "displayName": "Field Fill",
+        "canonical": "#ebe9e1",
+        "tonalRamp": ["#232220", "#393733", "#504d47", "#69655d", "#8a857b", "#aea89c", "#cdc8bd", "#ebe9e1"]
+      },
+      "paper-carbon": {
+        "role": "neutral",
+        "displayName": "Carbon Copy",
+        "canonical": "#dcd9cf",
+        "tonalRamp": ["#211f1d", "#35332f", "#4b4843", "#635f58", "#827d74", "#a49e93", "#c3bdb1", "#dcd9cf"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#141414",
+        "tonalRamp": ["#141414", "#2b2b2b", "#434343", "#5d5d5d", "#818181", "#a8a8a8", "#cfcfcf", "#f0f0f0"]
+      },
+      "graphite": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "#5a5a57",
+        "tonalRamp": ["#1e1e1d", "#31312f", "#454543", "#5a5a57", "#7c7c78", "#a0a09b", "#c4c4be", "#e6e6e1"]
+      },
+      "graphite-deep": {
+        "role": "neutral",
+        "displayName": "Graphite Deep",
+        "canonical": "#4a4a47",
+        "tonalRamp": ["#191918", "#2a2a28", "#3a3a38", "#4a4a47", "#6b6b67", "#8f8f8a", "#b5b5af", "#dcdcd6"]
+      },
+      "stamp": {
+        "role": "primary",
+        "displayName": "Stamp Red",
+        "canonical": "#b40f29",
+        "tonalRamp": ["#2c040a", "#4a0611", "#6a0918", "#8a0a1f", "#b40f29", "#d8253f", "#ea6b7c", "#f7c3cb"]
+      },
+      "stamp-deep": {
+        "role": "secondary",
+        "displayName": "Stamp Deep",
+        "canonical": "#8a0a1f",
+        "tonalRamp": ["#230308", "#3d050d", "#570714", "#71081a", "#8a0a1f", "#b71430", "#dd5567", "#f2b6bf"]
+      },
+      "safety": {
+        "role": "primary",
+        "displayName": "Safety Yellow",
+        "canonical": "#ffc400",
+        "tonalRamp": ["#3a2c00", "#5c4600", "#7e6000", "#a17a00", "#c59500", "#e8b000", "#ffc400", "#ffe08a"]
+      },
+      "oil": {
+        "role": "tertiary",
+        "displayName": "Oil (fluid diffuse reference — WGSL constant, never text)",
+        "canonical": "#c98a2a",
+        "tonalRamp": ["#2e1f09", "#4a3210", "#674618", "#855b20", "#a47029", "#c98a2a", "#e0ad64", "#f2d5a8"]
+      },
+      "rule-soft": {
+        "role": "neutral",
+        "displayName": "Rule Soft (hairline between table rows)",
+        "canonical": "rgb(20 20 20 / 0.22)",
+        "tonalRamp": ["rgb(20 20 20 / 1)", "rgb(20 20 20 / 0.86)", "rgb(20 20 20 / 0.72)", "rgb(20 20 20 / 0.58)", "rgb(20 20 20 / 0.44)", "rgb(20 20 20 / 0.30)", "rgb(20 20 20 / 0.22)", "rgb(20 20 20 / 0.12)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Name", "purpose": "The owner's name — one per site, printed, never assembled. .f-name" },
+      "headline": { "displayName": "Headline", "purpose": "The Release ask, sub-form and styleguide headings. .f-headline" },
+      "lead": { "displayName": "Lead", "purpose": "The positioning sentence in the Owner field, measure 58ch. .f-lead" },
+      "title": { "displayName": "Role line", "purpose": "Role lines, group headings, the signature ask. .f-role" },
+      "body": { "displayName": "Body", "purpose": "Prose in Findings and the sub-forms, measure 68ch. .f-body" },
+      "cell": { "displayName": "Cell", "purpose": "Every table cell and readout value; tabular lining numerals, wrap 44ch. .f-cell" },
+      "label": { "displayName": "Field caption", "purpose": "The printed caption of every field and column; uppercase, condensed. .f-caption" },
+      "meta": { "displayName": "Meta", "purpose": "Provenance, units, capture labels. .f-meta" },
+      "stamp": { "displayName": "Stamp", "purpose": "LIVE · STILL · RELEASED · VOID. .f-stamp" },
+      "strip": { "displayName": "Strip", "purpose": "Header strip cells and readout labels. .f-strip" }
+    },
+    "shadows": [],
+    "elevation": [
+      {
+        "name": "rule",
+        "value": "1px solid #141414",
+        "purpose": "The ONLY elevation in the system. Fields, tables, the bench frame and every yellow region are separated by a shared 1px ink rule; there is no shadow anywhere in the build."
+      },
+      {
+        "name": "rule-soft",
+        "value": "1px solid rgb(20 20 20 / 0.22)",
+        "purpose": "Hairline between rows inside one table."
+      },
+      {
+        "name": "carbon-offset",
+        "value": "paper sheet offset 8px on a paper-carbon ground",
+        "purpose": "The only physical depth gesture: the /work/[slug] sub-form as a carbon copy. Position and colour, never a shadow."
+      }
+    ],
+    "motion": [
+      { "name": "ease-rule", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "RULE-IN — a rule draws itself scaleX 0→1 from the left, then the type appears." },
+      { "name": "ease-stamp", "value": "cubic-bezier(0.2, 0.9, 0.25, 1.03)", "purpose": "STAMP — the rubber stamp landing, with a hair of overshoot." },
+      { "name": "ease-sheet", "value": "cubic-bezier(0.65, 0, 0.35, 1)", "purpose": "The route cover: a flat paper sheet rising 100%→0." },
+      { "name": "ease-hover", "value": "linear", "purpose": "Hover fills, underline thickening, the readout wipe." },
+      { "name": "dur-hover", "value": "120ms", "purpose": "Row hover fill; link underline 1px→2px." },
+      { "name": "dur-swap", "value": "150ms", "purpose": "Text-state swap — a CLIP WIPE (75ms out, print, 75ms in), never an opacity fade." },
+      { "name": "dur-text", "value": "180ms", "purpose": "Type appearing 90ms after its rule; opacity only, no translation." },
+      { "name": "dur-stamp", "value": "220ms", "purpose": "STAMP impact, plus a 60ms translateY(1px) settle." },
+      { "name": "dur-rule", "value": "320ms", "purpose": "RULE-IN; table rows stagger 40ms under one ScrollTrigger, once:true." },
+      { "name": "dur-sheet", "value": "420ms", "purpose": "Route cover; total handoff ≤ 600ms." },
+      { "name": "dur-print", "value": "500ms", "purpose": "Preloader — the form printing itself; no counter, no mark." },
+      { "name": "stagger-rows", "value": "40ms", "purpose": "Table rows under RULE-IN." },
+      { "name": "bench-settle", "value": "4200ms of rendered time", "purpose": "The bench holds its captured still until the sample has settled, then cross-fades to the live frame over 320ms and stamps LIVE." },
+      { "name": "never-animated", "value": "numbers · body copy · the bench canvas · the yellow regions", "purpose": "A printed value is final at first paint: no count-up, no reel, no transform on the canvas." },
+      { "name": "reduced-motion", "value": "--dur-stamp/rule/sheet/print → 0ms", "purpose": "Rules born drawn, all six stamps already impressed, cover replaced by a 150ms swap, bench = labelled still. Local feedback swaps stay." }
+    ],
+    "z": [
+      { "name": "z-sheet", "value": 0, "purpose": "Sheet content." },
+      { "name": "z-bench", "value": 1, "purpose": "The canvas inside the bench frame." },
+      { "name": "z-band", "value": 20, "purpose": "Sticky phase band and header strip." },
+      { "name": "z-loupe", "value": 30, "purpose": "Inspection glass and its rim." },
+      { "name": "z-cover", "value": 40, "purpose": "Route transition sheet." },
+      { "name": "z-preloader", "value": 50, "purpose": "Preloader." },
+      { "name": "z-skip", "value": 60, "purpose": "Skip link when focused." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "xl", "value": "1280px" }
+    ],
+    "geometry": [
+      { "name": "bench", "value": "760×540 desktop · 350×230 below 768px", "purpose": "Unitless aspect-ratio so the box reserves its space: CLS 0." },
+      { "name": "readout-column", "value": "112px", "purpose": "The yellow instrument column beside the bench; a full-width strip below it on mobile." },
+      { "name": "perforation", "value": "1px dotted ink + two 6px punched holes at the margins", "purpose": "Between sections; drawn in CSS, the only radial-gradient in the stylesheet." }
+    ],
+    "budget": [
+      { "name": "renderers", "value": "1", "purpose": "The bench on / is the only heavy renderer on the site." },
+      { "name": "particles", "value": "120,000 desktop · 60,000 mobile tier", "purpose": "The readout prints the real count after tiering." },
+      { "name": "dpr-cap", "value": "1.5 desktop · 1.0 mobile", "purpose": "Applied to the canvas backing store; the readout prints what was applied." },
+      { "name": "lighthouse-mobile-home", "value": "≥ 80", "purpose": "Measured 85–86 after the WP-10 fixes." },
+      { "name": "lighthouse-mobile-subroutes", "value": "≥ 90", "purpose": "Measured 91 on /work/sersan-io and /about." },
+      { "name": "axe", "value": "0 serious / 0 critical", "purpose": "7 routes × 2 viewports, plus the reduced-motion and no-WebGPU variants." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Field",
+      "kind": "card",
+      "refersTo": "field",
+      "description": "The captioned ruled box every element of the sheet is made of. Draws top and left only; the grid closes right and bottom, so touching fields never double a line.",
+      "html": "<div class=\"ds-field\"><span class=\"ds-field-caption\">Job order</span><p class=\"ds-field-value\">Alberto Tuveri</p></div>",
+      "css": ".ds-field { background: var(--color-paper, #f5f4ef); color: var(--color-ink, #141414); border-top: 1px solid var(--color-ink, #141414); border-left: 1px solid var(--color-ink, #141414); padding: 16px 20px; min-width: 0; } .ds-field-caption { display: block; min-height: 24px; color: var(--color-graphite, #5a5a57); font-size: .8125rem; font-weight: 600; line-height: 1.2; letter-spacing: .06em; text-transform: uppercase; font-variation-settings: 'wdth' 75; } .ds-field-value { margin: 4px 0 0; font-size: 1.125rem; font-weight: 500; line-height: 1.3; font-variation-settings: 'wdth' 100; }"
+    },
+    {
+      "name": "Phase cell (stamped)",
+      "kind": "nav",
+      "refersTo": "phase-cell",
+      "description": "One of the six cells of the sticky yellow band. Stamped on entry with the STAMP verb; the role tag prints in ink beneath it.",
+      "html": "<a class=\"ds-phase\" href=\"#phase-intake\" aria-current=\"step\"><span class=\"ds-stamp\">INTAKE</span><span class=\"ds-phase-tag\">Engineer</span></a>",
+      "css": ".ds-phase { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; padding: 0 12px; background: var(--color-safety, #ffc400); color: var(--color-ink, #141414); border-right: 1px solid var(--color-ink, #141414); text-decoration: none; font-size: .8125rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-variation-settings: 'wdth' 75; } .ds-phase:focus-visible { outline: 2px solid var(--color-ink, #141414); outline-offset: 1px; box-shadow: 0 0 0 1px var(--color-paper, #f5f4ef); border-radius: 0; } .ds-stamp { display: inline-block; padding: .35em .6em; border: 2px solid var(--color-stamp, #b40f29); background: var(--color-stamp, #b40f29); color: var(--color-paper, #f5f4ef); transform: rotate(-3.5deg); white-space: nowrap; font-weight: 700; letter-spacing: .04em; } .ds-phase-tag { font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; font-variation-settings: 'wdth' 87; }"
+    },
+    {
+      "name": "Line-item row",
+      "kind": "custom",
+      "refersTo": "table-row",
+      "description": "One row of Work performed: item, measured figure with its label, role, client and period. The whole row is clickable and fills with the field tone on hover.",
+      "html": "<table class=\"ds-table\"><tbody><tr class=\"ds-row\"><th scope=\"row\"><span class=\"ds-item\">sersan.io</span><span class=\"ds-meta\">capture · Sep 2026</span></th><td><span class=\"ds-fig\">17</span> <span class=\"ds-meta\">scroll-locked scenes</span></td><td class=\"ds-open\">Open &rarr;</td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; font-size: .9375rem; line-height: 1.4; font-variant-numeric: tabular-nums lining-nums; } .ds-row { border-top: 1px solid rgb(20 20 20 / .22); cursor: pointer; transition: background-color 120ms linear; } .ds-row:hover { background: var(--color-paper-field, #ebe9e1); } .ds-row > * { padding: 12px 16px; text-align: left; vertical-align: top; font-weight: 400; min-height: 56px; } .ds-item { display: block; font-size: 1.125rem; font-weight: 600; font-variation-settings: 'wdth' 100; } .ds-meta { color: var(--color-graphite, #5a5a57); font-size: .8125rem; font-variation-settings: 'wdth' 87; } .ds-fig { font-variant-numeric: tabular-nums lining-nums; } .ds-open { color: var(--color-stamp, #b40f29); text-align: right; white-space: nowrap; }"
+    },
+    {
+      "name": "Measured row with double bar",
+      "kind": "custom",
+      "refersTo": "table-row",
+      "description": "A before→after pair printed with two proportional ink bars and a drawn stamp-red arrow. The numbers never animate and direction is never said by colour.",
+      "html": "<div class=\"ds-measured\"><div><span class=\"ds-m-label\">mobile largest-contentful-paint</span><span class=\"ds-bars\"><i style=\"width:100%\"></i><i style=\"width:37%\"></i></span></div><div class=\"ds-m-val\"><span>4.75 s</span><svg width=\"22\" height=\"10\" viewBox=\"0 0 22 10\" fill=\"none\" aria-hidden=\"true\"><path d=\"M0.75 5H20.25M15.5 1L20.5 5L15.5 9\" stroke=\"#b40f29\" stroke-width=\"1.5\" stroke-linecap=\"square\"/></svg><span>1.74 s</span></div></div>",
+      "css": ".ds-measured { display: flex; justify-content: space-between; gap: 24px; border-top: 1px solid rgb(20 20 20 / .22); padding: 12px 0; font-size: .9375rem; line-height: 1.4; font-variant-numeric: tabular-nums lining-nums; color: var(--color-ink, #141414); } .ds-m-label { display: block; max-width: 44ch; } .ds-bars { display: block; width: 160px; max-width: 100%; margin-top: 8px; } .ds-bars i { display: block; height: 6px; background: var(--color-ink, #141414); } .ds-bars i + i { margin-top: 4px; } .ds-m-val { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }"
+    },
+    {
+      "name": "Bench readout",
+      "kind": "custom",
+      "refersTo": "phase-cell",
+      "description": "One row of the yellow instrument column. Every value is read from the engine; a value it has not produced prints an em dash. The 500ms refresh is a 150ms clip wipe, never an opacity fade.",
+      "html": "<dl class=\"ds-readouts\"><div><dt>Particles</dt><dd>74,403</dd></div><div class=\"ds-rule\"><dt>Frame</dt><dd>16.7 ms</dd></div><div class=\"ds-rule\"><dt>State</dt><dd>Running</dd></div></dl>",
+      "css": ".ds-readouts { display: flex; flex-direction: column; width: 112px; min-width: 112px; margin: 0; background: var(--color-safety, #ffc400); color: var(--color-ink, #141414); border: 1px solid var(--color-ink, #141414); border-left: 0; } .ds-readouts > div { padding: 8px 12px; } .ds-readouts .ds-rule { border-top: 1px solid rgb(20 20 20 / .22); } .ds-readouts dt { font-size: .75rem; font-weight: 500; line-height: 24px; font-variation-settings: 'wdth' 87; } .ds-readouts dd { margin: 0; font-size: .9375rem; line-height: 24px; font-variant-numeric: tabular-nums lining-nums; font-variation-settings: 'wdth' 87; clip-path: inset(-12% var(--wr, 0%) -12% var(--wl, 0%)); }"
+    },
+    {
+      "name": "Signature cell (Release box)",
+      "kind": "card",
+      "refersTo": "release-panel",
+      "description": "The primary action, on screen in the first viewport: the caption, the ask, and the address as a large ruled ink link with a 56px target. It sizes to its content — a stretched yellow cell with empty middle is the defect this replaced.",
+      "html": "<div class=\"ds-release\"><span class=\"ds-release-cap\">Release</span><p class=\"ds-release-ask\">Hiring, or building something with WebGPU, motion or AI? Write to me.</p><a class=\"ds-release-cta\" href=\"mailto:albertotuveri@gmail.com\">Email albertotuveri@gmail.com</a></div>",
+      "css": ".ds-release { display: flex; flex-direction: column; gap: 12px; background: var(--color-safety, #ffc400); color: var(--color-ink, #141414); border: 1px solid var(--color-ink, #141414); padding: 20px; } .ds-release-cap { font-size: .8125rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-variation-settings: 'wdth' 75; } .ds-release-ask { margin: 0; max-width: 34ch; font-size: 1.125rem; font-weight: 500; line-height: 1.3; } .ds-release-cta { display: block; min-height: 56px; padding: 12px 0; color: inherit; overflow-wrap: anywhere; font-size: 1.125rem; font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 8px; transition: text-decoration-thickness 120ms linear; } .ds-release-cta:hover, .ds-release-cta:focus-visible { text-decoration-thickness: 2px; } .ds-release-cta:focus-visible { outline: 2px solid var(--color-ink, #141414); outline-offset: 1px; box-shadow: 0 0 0 1px var(--color-paper, #f5f4ef); border-radius: 0; }"
+    },
+    {
+      "name": "Link",
+      "kind": "custom",
+      "refersTo": "field",
+      "description": "The only link treatment on paper: stamp red, 1px underline at 3px offset thickening to 2px in 120ms. There is no button component in this world.",
+      "html": "<a class=\"ds-link\" href=\"/work\">4 more line items &darr;</a>",
+      "css": ".ds-link { color: var(--color-stamp, #b40f29); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; font-size: .9375rem; transition: text-decoration-thickness 120ms linear; } .ds-link:hover, .ds-link:focus-visible { text-decoration-thickness: 2px; } .ds-link:focus-visible { outline: 2px solid var(--color-safety, #ffc400); outline-offset: 1px; box-shadow: 0 0 0 1px var(--color-ink, #141414); border-radius: 0; }"
+    },
+    {
+      "name": "Perforation",
+      "kind": "custom",
+      "refersTo": "field",
+      "description": "The tear line between sections: a dotted ink rule with a 6px punched hole at each margin. Pure CSS, the only radial-gradient in the stylesheet.",
+      "html": "<div class=\"ds-perf\" aria-hidden=\"true\"></div>",
+      "css": ".ds-perf { position: relative; height: 8px; margin-block: 8px; border-top: 1px dotted var(--color-ink, #141414); } .ds-perf::before, .ds-perf::after { content: ''; position: absolute; top: -4px; width: 6px; height: 6px; border-radius: 50%; background: radial-gradient(circle at center, var(--color-paper-carbon, #dcd9cf) 0 1.6px, var(--color-ink, #141414) 1.8px 3px, transparent 3.2px); } .ds-perf::before { left: 0; } .ds-perf::after { right: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Workshop Job Order",
+    "overview": "The site is one printed job order on workshop paper. Everything on it is a field with a stamped caption, a measured value and a provenance cell — employer, date, link — and the only thing alive on the sheet is the engineer's own GPU fluid, running inside a framed test bench with the frame time printed in the margin beside it. The form is not a costume: it comes from Maintech OMA, the workshop ERP the owner founded, whose six-phase state machine — Intake · Diagnosis · Estimate · Work · Test · Release — is also the visitor's path down the page. The sticky yellow phase band accumulates rubber stamps as you scroll, one per region, counting 1 / 6 to 6 / 6, and it never un-stamps: a job card only fills up.\n\nThe density is documentary, not editorial. Fields share their rules instead of repeating them, tables are hairlines, numerals are tabular everywhere a figure appears, and structure — rows, rules, perforations, stamps — is the page's only ornament. There is one typeface at four widths, no shadow anywhere, no gradient, no glass, no monospace costume, no dark section. Yellow is a region, never a stripe: the band, the instrument column and the signature panel together are about a third of the surface, and that commitment is what makes the page recognisable with every word removed.\n\nWhat this world refuses is as load-bearing as what it does: the near-black hero with a giant name and a blob on the cursor, the logo bento, the 'Selected Works' grid with hover-reveal, and the white typographic list that is its mirror image. Nothing here is decorative, and nothing is claimed that is not measured.",
+    "keyCharacteristics": [
+      "Workshop paper and safety yellow, with stamp red reserved for stamps, links and arrows.",
+      "One family — Archivo variable — read at four widths: 125 / 112 / 100 / 87 / 75.",
+      "Flat by direction: a single 1px ink rule is the only elevation in the system.",
+      "Every fact carries a provenance cell; every hole is printed as a field, never as a placeholder.",
+      "Two motion verbs, RULE-IN and STAMP, and numbers that never animate."
+    ],
+    "rules": [
+      { "name": "The Region Rule", "body": "Yellow is only ever a whole region with its own 1px ink border — band, instrument column, signature cell, Release panel. If a yellow shape is thinner than the thing it contains, it is wrong.", "section": "colors" },
+      { "name": "The Ink-On-Yellow Rule", "body": "Secondary text on yellow is ink, never graphite: #5a5a57 on #ffc400 is 4.33:1 and is a forbidden pair. /styleguide prints both forbidden pairs with their computed ratio and a FAIL verdict, at large-text scale so the specimen itself is not a violation.", "section": "colors" },
+      { "name": "The Filled Stamp Rule", "body": "A stamp on the yellow band is filled red with paper lettering. There is no outlined red stamp anywhere in the build.", "section": "colors" },
+      { "name": "The One Material Rule", "body": "Never add a second family or a monospace. If a run of text needs to read differently, move it on the width axis (125 / 112 / 100 / 87 / 75), not to another typeface.", "section": "typography" },
+      { "name": "The Printed Name Rule", "body": "The name is printed, not assembled: no SplitText, no per-character reveal, no count-up. The rule above it draws, and the type is simply there.", "section": "typography" },
+      { "name": "The Measure Rule", "body": "Prose caps at var(--measure) (68ch), cells at 44ch, the lead at 58ch. A scan list may take the sheet measure but never exceed it.", "section": "typography" },
+      { "name": "The Shared Rule Rule", "body": "Two touching fields share one 1px line. If you can see a 2px line anywhere, a field is drawing a border the grid already closed.", "section": "layout" },
+      { "name": "The One Renderer Rule", "body": "One heavy renderer exists on the whole site — the bench on /. Every other route mounts no canvas at all.", "section": "layout" },
+      { "name": "The Flat Rule", "body": "No shadow, no blur, no glass, no gradient — the only radial-gradient in the stylesheet draws the 6px perforation punch-hole. If a surface needs to read as lifted, give it a rule, not a shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do print every fact with a provenance cell — employer · date · link — and every hole as a field ('no photograph on file', 'URL: pending', 'not in the catalogue').",
+      "Do keep yellow as a whole region with its own ink border, at roughly a third of the surface.",
+      "Do read text from src/content/dict.ts (zod-validated, EN ≡ IT). No visible string is ever written in a component.",
+      "Do use tabular-nums lining-nums wherever a figure appears, and let the arrow — never a colour — say the direction of a delta.",
+      "Do move on the width axis (125 / 112 / 100 / 87 / 75) when text needs to read differently.",
+      "Do keep the two motion verbs. A new interaction is expressed as a rule drawing or a stamp landing, or it is not expressed.",
+      "Do give every degraded state a printed reason on a known ground ('Renderer not available on this device'), and label the still frame it shows."
+    ],
+    "donts": [
+      "Don't add a shadow, gradient, glass, blur, dark section, monospace face, icon card, kicker over a heading that is not a real field caption, or a gradient-filled letterform.",
+      "Don't animate a number, the body copy, the canvas, or a yellow region.",
+      "Don't put text over the fluid; the caption is above the frame and the readouts are beside it.",
+      "Don't cross-fade text through opacity on a coloured ground — wipe it.",
+      "Don't put graphite on yellow (4.33:1) or an outlined red stamp on yellow (3.68:1).",
+      "Don't add a z-index that is not one of the seven in the scale, or a colour that is not one of the eleven.",
+      "Don't mount a second heavy renderer; the bench on / is the only one.",
+      "Don't print a figure that is not in PRODUCT.md §3/§9 — node scripts/check-claims.mjs is the gate.",
+      "Don't ship a raster without embedded provenance (impeccable embed-prompt --scan public/...)."
+    ]
+  }
+}

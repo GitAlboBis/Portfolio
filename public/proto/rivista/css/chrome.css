@@ -1,0 +1,203 @@
+/* ==========================================================================
+   css/chrome.css · the header, the language control, the phone menu, the copy control
+   Header (spec 50 §4): the name as a label at left; Work, About, Consulting, Obla, Contact and EN / IT at right; no
+   ground until the reader scrolls (html.is-scrolled, fx-nav.js), then --night-2. Below 1024 px the five pages live in
+   the menu, a full sheet of --night-2.
+   ========================================================================== */
+.hdr {
+  position: fixed; inset: 0 0 auto 0; z-index: 50;
+  height: var(--hdr);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding-inline: var(--gut);
+  color: var(--ink);
+  border-bottom: 1px solid transparent;
+  transition: transform var(--d-hdr) var(--ease-rise);
+}
+html.is-scrolled .hdr, html.menu-open .hdr { background: var(--night-2); border-bottom-color: var(--line); }
+/* round 10: on a long page the header steps away while the reader goes down and comes back the moment they go up
+   (html.hdr-away, fx-nav.js); never while the menu is open or a control in it holds the focus */
+html.hdr-away:not(.menu-open) .hdr:not(:focus-within) { transform: translate3d(0, calc(-100% - 2px), 0); transition-duration: var(--d-sheet-out); transition-timing-function: var(--ease-in); }
+/* round 10: the name, the items, the language, MENU: no word in the header under 18 px; round 11: from about 1200 px
+   wide they grow with the screen (--t-nav 20 px at 1440, 24 at 1920, 28 at 2560; css/tokens.css) */
+.hdr-name, .hdr-nav a, .hdr-menu, .lang {
+  font: 700 var(--t-nav)/1 var(--f-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+}
+.hdr-name { font-size: calc(var(--t-nav) * 1.12); letter-spacing: 0.04em; color: var(--ink); white-space: nowrap; padding-block: var(--s3); transition: color var(--d-hover-out) var(--ease-out); }
+.hdr-name:hover { color: var(--accent); transition-duration: var(--d-hover); }
+.hdr-nav { position: relative; display: none; align-items: center; gap: clamp(1.25rem, 2.1vw, 2.25rem); }
+.hdr-nav a { position: relative; color: var(--body); padding-block: var(--s3); text-decoration: underline 2px transparent; text-underline-offset: 0.55em; transition: color var(--d-hover-out) var(--ease-out); }
+.hdr-nav a:hover { color: var(--ink); transition-duration: var(--d-hover); }
+.hdr-nav a[aria-current="page"] { color: var(--ink); text-decoration-color: currentColor; }
+/* the one rule under the header's items: it stands under the page being read and travels to the item under the hand
+   (or the focus), and back (fx-nav.js writes its place; html.nv-rule says it runs, and then the underline of the
+   current item gives way to it). Transform only. */
+.hdr-rule {
+  position: absolute; left: 0; bottom: 0.55rem; width: 100px; height: 2px;
+  background: var(--accent);
+  transform-origin: 0 50%;
+  transform: translate3d(var(--rx, 0px), 0, 0) scaleX(var(--rw, 0));
+  opacity: 0;
+  pointer-events: none;
+}
+html.nv-rule .hdr-rule { opacity: 1; transition: transform 0.42s var(--ease-rise), opacity var(--d-hover) var(--ease-out); }
+html.nv-rule .hdr-rule.is-idle { opacity: 0; }
+html.nv-rule .hdr-rule.is-cold { transition: none; }
+html.nv-rule .hdr-nav a[aria-current="page"] { text-decoration-color: transparent; }
+.hdr-menu { color: var(--ink); padding: var(--s2) 0 var(--s2) var(--s3); min-height: 2.75rem; transition: color var(--d-hover-out) var(--ease-out); }
+.hdr-menu:hover { color: var(--accent); transition-duration: var(--d-hover); }
+/* the header enters on load: its words come down into place, the name first, a breath apart (held under a cut's
+   sheet like the first screen) */
+html.rv-motion .hdr-name, html.rv-motion .hdr-nav > a, html.rv-motion .hdr-nav > .lang, html.rv-motion .hdr-menu, html.rv-motion .hdr-snd {
+  animation: hdr-in 0.7s var(--ease-rise) both;
+}
+html.rv-motion .hdr-nav > a:nth-of-type(1) { animation-delay: 80ms; }
+html.rv-motion .hdr-nav > a:nth-of-type(2) { animation-delay: 125ms; }
+html.rv-motion .hdr-nav > a:nth-of-type(3) { animation-delay: 170ms; }
+html.rv-motion .hdr-nav > a:nth-of-type(4) { animation-delay: 215ms; }
+html.rv-motion .hdr-nav > a:nth-of-type(5) { animation-delay: 260ms; }
+html.rv-motion .hdr-nav > .lang { animation-delay: 305ms; }
+html.rv-motion .hdr-menu { animation-delay: 120ms; }
+html.rv-motion .hdr-snd { animation-delay: 345ms; }
+html.rv-motion[data-arrive] :is(.hdr-name, .hdr-nav > a, .hdr-nav > .lang, .hdr-menu, .hdr-snd) { animation-play-state: paused; }
+@keyframes hdr-in {
+  from { opacity: 0; transform: translate3d(0, -0.9em, 0); }
+  to { opacity: 1; transform: none; }
+}
+/* (wave 6, TITLES) below 1024 px the scene's name stands under the header's name (css/motion.css .hdr-scene); while
+   it is there (.hdr.has-scene, fx-motion.js) the name rises to make room, by the translate property (the header's
+   entrance owns transform); the open menu brings it back */
+@media (max-width: 1023.98px) {
+  .hdr-name { transition: color var(--d-hover-out) var(--ease-out), translate var(--d-hdr) var(--ease-rise); }
+  .hdr.has-scene .hdr-name { translate: 0 -0.6em; }
+  html.menu-open .hdr.has-scene .hdr-name { translate: none; }
+}
+.hdr-menu .m-close { display: none; }
+html.menu-open .hdr-menu .m-open { display: none; }
+html.menu-open .hdr-menu .m-close { display: inline; }
+@media (min-width: 1024px) {
+  .hdr-nav { display: flex; }
+  .hdr-menu { display: none; }
+}
+
+/* (lane n-sound) the sound's toggle (fx-sound.js): four straight bars as tall as the header's capitals and standing
+   on their baseline (sizes in em of the header's own face, on whole pixels); square, no glow. They move (WAAPI,
+   transform only) while the sound plays; before the first gesture they stand still at their heights; off, they lie
+   flat as one rule. A real button with aria-pressed, 44 px and more to touch. Shown only with script (rv-js) and only
+   while the sound's module runs. On a phone it sits beside MENU (margin-left: auto takes the free space); from
+   1024 px after the language group, behind a rule like the language's own. */
+.hdr-snd {
+  display: none; position: relative; flex: none;
+  align-items: center; justify-content: center;
+  min-width: 2.75rem; min-height: 2.75rem; padding: 0 var(--s2);
+  margin-left: auto;
+  font: 700 var(--t-nav)/1 var(--f-label);
+  color: var(--body);
+  transition: color var(--d-hover-out) var(--ease-out);
+}
+html.rv-js .hdr-snd { display: inline-flex; }
+.hdr-snd[hidden], html:is(.fx-off-sound, .fx-fail-sound) .hdr-snd { display: none !important; }
+.hdr-snd:hover { color: var(--ink); transition-duration: var(--d-hover); }
+.snd-bars { display: flex; align-items: flex-end; gap: 3px; gap: round(0.16em, 1px); height: 0.8125rem; height: round(0.72em, 1px); margin-bottom: 2px; margin-bottom: round(0.1em, 1px); }
+.snd-b { display: block; width: 3px; width: round(0.16em, 1px); height: 100%; background: currentColor; transform-origin: 50% 100%; transform: scale(var(--sx, 1), var(--sb, 1)); transition: transform 0.24s var(--ease-rise); }
+.snd-b:nth-child(1) { --sb: 0.5; }
+.snd-b:nth-child(2) { --sb: 1; }
+.snd-b:nth-child(3) { --sb: 0.7; }
+.snd-b:nth-child(4) { --sb: 0.85; }
+/* off: every bar lies down and reaches its neighbour, one flat rule two pixels thick */
+.hdr-snd[aria-pressed="false"] .snd-b { --sb: 0.14; --sx: 2.04; }
+.hdr-snd[aria-pressed="false"] { color: var(--mute); }
+.hdr-snd[aria-pressed="false"]:hover { color: var(--ink); }
+@media (min-width: 1024px) {
+  .hdr-nav { margin-left: auto; }
+  .hdr-snd { margin-left: calc(var(--s2) - var(--s4)); padding-left: var(--s4); border-left: 1px solid var(--line); min-height: 2.75rem; }
+}
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-snd { color: var(--dawn-body); border-color: var(--dawn-line); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-snd[aria-pressed="false"] { color: var(--dawn-mute); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-snd:hover { color: var(--cobalt); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).menu-open .hdr-snd { color: var(--body); border-color: var(--line); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).menu-open .hdr-snd[aria-pressed="false"] { color: var(--mute); }
+@media (prefers-reduced-motion: reduce) { .snd-b { transition: none; } }
+@media print { .hdr-snd { display: none !important; } }
+
+/* EN / IT: the edition being read in ink, the other a link */
+.lang { display: inline-flex; align-items: center; gap: 0.4em; color: var(--mute); }
+.lang-now { color: var(--ink); }
+.lang-alt { color: var(--mute); padding-block: var(--s3); transition: color var(--d-hover-out) var(--ease-out); }
+.lang-alt:hover { color: var(--accent); transition-duration: var(--d-hover); }
+.lang-sep { color: var(--line); }
+.hdr-nav .lang { margin-left: var(--s2); padding-left: var(--s4); border-left: 1px solid var(--line); font-size: var(--t-lang); }
+.hdr-nav .lang-alt { padding-block: var(--s2); }
+
+/* the header over the morning: on the dawn page (Contact, html[data-ground="dawn"]) and, on every other page, while
+   the dawn close is under it (html[data-hdr-ground="dawn"], fx-nav.js). The header takes the ground that is under it:
+   the morning's ground, ink and rules, a straight cut with no fade; the open menu keeps it night. Without script the
+   header stays night. */
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr { color: var(--dawn-ink); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr-name, .hdr-menu, .hdr .lang-now, .hdr-nav a[aria-current="page"]) { color: var(--dawn-ink); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr-nav a, .hdr .lang-alt) { color: var(--dawn-body); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr-nav a:hover, .hdr .lang-alt:hover, .hdr-name:hover, .hdr-menu:hover) { color: var(--cobalt); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr .lang-sep, .hdr-nav .lang) { color: var(--dawn-line); border-color: var(--dawn-line); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr :focus-visible { outline-color: var(--cobalt); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-rule { background: var(--cobalt); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).is-scrolled .hdr { background: var(--dawn); border-bottom-color: var(--dawn-line); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).menu-open .hdr { background: var(--night-2); border-bottom-color: var(--line); color: var(--ink); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).menu-open .hdr :is(.hdr-name, .hdr-menu) { color: var(--ink); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).menu-open .hdr :is(.hdr-name:hover, .hdr-menu:hover) { color: var(--accent); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).menu-open .hdr :focus-visible,
+html[data-ground="dawn"] .menu :focus-visible { outline-color: var(--accent); }
+
+/* ---------------------------------------------------------------- the menu: a full sheet of --night-2 */
+.menu {
+  position: fixed; inset: 0; z-index: 45;
+  background: var(--night-2);
+  color: var(--body);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(var(--hdr) + var(--s5)) var(--gut) var(--s5);
+}
+.menu-in { min-height: 100%; display: flex; flex-direction: column; gap: var(--s6); }
+.menu-list { counter-reset: none; }
+.menu-a { display: flex; align-items: baseline; gap: var(--s3); padding-block: 0.15em; color: var(--ink); }
+/* the height caps it too: a phone turned to landscape (844 × 390) kept 104 px lines, five of them taller than the screen */
+.menu-a .t-d1 { font-size: clamp(2.25rem, min(15vw, 10.5svh), 6.5rem); transition: color var(--d-hover-out) var(--ease-out); }
+.menu-a:hover .t-d1, .menu-a[aria-current="page"] .t-d1 { color: var(--accent); }
+.menu-n { min-width: 2.2em; color: var(--accent); font-size: var(--t-small); }
+.menu-foot { margin-top: auto; display: grid; gap: var(--s3); }
+.menu-mail { font: 500 clamp(1.25rem, 5vw, 1.75rem)/1.2 var(--f-text); color: var(--ink); overflow-wrap: anywhere; }
+.menu-mail:hover { color: var(--accent); }
+.menu-else { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s5); }
+/* round 10: the small lines of the menu (language, links, copy) at the button's label size, 18 px */
+.menu .lang { font-size: var(--t-btn); }
+.menu .lang-alt { min-height: 2.75rem; display: inline-flex; align-items: center; }
+
+/* round 10: the menu opens as a straight sheet. Its bottom edge comes down from the header (a clip, the sheet itself
+   never moves), the big lines rise from behind their own masks 50 ms apart, the foot follows; it closes faster, the
+   edge going back up (html.menu-closing, fx-nav.js, holds it on screen for --d-sheet-out). */
+html.rv-motion .menu:not([hidden]) { animation: menu-open var(--d-sheet) var(--ease-rise) both; }
+html.rv-motion.menu-closing .menu { animation: menu-shut var(--d-sheet-out) var(--ease-in) both; pointer-events: none; }
+@keyframes menu-open { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes menu-shut { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 100% 0); } }
+html.rv-motion .menu:not([hidden]) .menu-a .t-d1 { animation: rv-rise var(--d-rise) var(--ease-rise) both; }
+html.rv-motion .menu:not([hidden]) .menu-a .menu-n,
+html.rv-motion .menu:not([hidden]) .menu-foot { animation: menu-row var(--d-row) var(--ease-rise) both; }
+html.rv-motion .menu:not([hidden]) li:nth-child(1) .menu-a > * { animation-delay: 90ms; }
+html.rv-motion .menu:not([hidden]) li:nth-child(2) .menu-a > * { animation-delay: 140ms; }
+html.rv-motion .menu:not([hidden]) li:nth-child(3) .menu-a > * { animation-delay: 190ms; }
+html.rv-motion .menu:not([hidden]) li:nth-child(4) .menu-a > * { animation-delay: 240ms; }
+html.rv-motion .menu:not([hidden]) li:nth-child(5) .menu-a > * { animation-delay: 290ms; }
+html.rv-motion .menu:not([hidden]) .menu-foot { animation-delay: 360ms; }
+@keyframes menu-row { from { opacity: 0; transform: translate3d(0, 0.9rem, 0); } to { opacity: 1; transform: none; } }
+@media (min-width: 1024px) { .menu { display: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  .hdr, .hdr-rule, .hdr-name, .hdr-nav > *, .hdr-menu, .hdr-snd, .menu, .menu * { animation: none !important; transition: none !important; }
+  html.hdr-away .hdr { transform: none !important; }
+}
+
+/* ---------------------------------------------------------------- the copy control: one word at a time */
+.copy { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.copy [data-copy-done], .copy [data-copy-fail] { display: none; }
+.copy[data-state="done"] [data-copy-label], .copy[data-state="fail"] [data-copy-label] { display: none; }
+.copy[data-state="done"] [data-copy-done], .copy[data-state="fail"] [data-copy-fail] { display: inline; }
+.copy[data-state="done"] { color: var(--accent); }

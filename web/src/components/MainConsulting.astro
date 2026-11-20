@@ -1,0 +1,6 @@
+---
+/* Consulting's main: parts/c-main.consult.html. */
+import { partial, literal } from "../lib/site.mjs";
+const html = literal('<main id="main">') + partial("c-main.consult.html") + literal("</main>");
+---
+<Fragment set:html={html} />

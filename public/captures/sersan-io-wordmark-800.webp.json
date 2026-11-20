@@ -1,0 +1,4 @@
+{
+  "prompt": "ORIGIN (pre-existing raster, not generated): frame of the live public site https://sersan.io/, taken 2026-10-09T09:05:22.232Z with Playwright (Chrome 155.0.8059.39, channel chrome, headless, --enable-unsafe-webgpu) on a hardware WebGPU adapter (amd rdna-3, fallback refused), viewport 1600x1000 @ DPR 2, 5793 ms after navigation, scrollY 0; the wordmark intro, its particles mid-assembly (HeroTextParticles). Cropped 16:10 at source pixels left 300, top 140, 2176x1360; nothing drawn or altered. By scripts/media/sersan-scenes.mjs (raw frame wordmark-005793ms.png). Site and scene designed and built by Alberto Tuveri for SerSan (sersan.io); used as evidence of his own work. Encoded to WebP q86 effort 6 with sharp 0.34.5 (800x500). Full record: public/captures/PROVENANCE.md",
+  "createdAt": "2026-10-09T09:08:56.926Z"
+}

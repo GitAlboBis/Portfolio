@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<!-- Alberto Tuveri, favicon: the initials AT in Sofia Sans Extra Condensed 800 (SIL OFL 1.1), the display face of the site, outlines read with fontTools from the Google Fonts file the pages load (wght 800). Written by scripts/media/icon-glyph.py, 2026-11-10. -->
+<rect fill="#0c0e14" width="64" height="64"/>
+<path fill="#f4f1ea" d="M8.49 51.84Q7.86 51.84 7.99 51.06L16.14 12.72Q16.27 12.16 16.86 12.16H24.96Q25.55 12.16 25.68 12.72L33.83 51.02Q33.99 51.84 33.36 51.84H26.42Q25.88 51.84 25.76 51.3L22.11 27.74Q21.79 25.65 21.5 23.58Q21.22 21.51 20.95 19.42H20.83Q20.56 21.51 20.3 23.58Q20.03 25.65 19.68 27.76L15.93 51.27Q15.87 51.84 15.26 51.84ZM16.04 43.63 17.08 37.5H24.52L25.68 43.63ZM42.27 51.84Q41.67 51.84 41.67 51.12V18.89H35.34Q34.72 18.89 34.72 18.17V12.88Q34.72 12.16 35.34 12.16H55.44Q56.04 12.16 56.04 12.88V18.17Q56.04 18.89 55.44 18.89H49.15V51.12Q49.15 51.84 48.52 51.84Z"/>
+</svg>

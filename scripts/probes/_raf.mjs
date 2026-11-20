@@ -1,0 +1,10 @@
+import { chromium } from "playwright";
+const b = await chromium.launch({ channel:"chrome", headless:true, args:["--enable-unsafe-webgpu"] });
+const p = await b.newPage();
+await p.goto("http://localhost:3000/about", { waitUntil:"domcontentloaded" });
+const r = await p.evaluate(() => new Promise((res)=>{ const d=[]; let last=0; let n=0;
+  const step=(t)=>{ if(last) d.push(t-last); last=t; if(++n<90) requestAnimationFrame(step); else res(d); };
+  requestAnimationFrame(step); }));
+const avg = r.reduce((s,x)=>s+x,0)/r.length;
+console.log("idle rAF avg ms:", avg.toFixed(2), " min:", Math.min(...r).toFixed(1), " max:", Math.max(...r).toFixed(1));
+await b.close();

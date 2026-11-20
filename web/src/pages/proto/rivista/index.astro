@@ -1,0 +1,7 @@
+---
+/* The cover, English (index.html) */
+import Site from "../../../components/Site.astro";
+import { pages } from "../../../lib/site.mjs";
+const page = pages().find((p) => p.out === "index.html");
+---
+<Site page={page} />

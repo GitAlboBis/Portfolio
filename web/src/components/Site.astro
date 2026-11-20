@@ -1,0 +1,27 @@
+---
+/* One page of the site: assemble.mjs's shell (head, <body id="top">, header, the page's main, its close (Contact's legal
+   line, the 404's own, else the dawn), the overlays, </body></html>) for the page lib/site.mjs pages() describes. */
+import Page from "../layouts/Page.astro";
+import Raw from "./Raw.astro";
+import Head from "./Head.astro";
+import Header from "./Header.astro";
+import Overlays from "./Overlays.astro";
+import Router from "./Router.astro";
+import Footer from "./Footer.astro";
+import FooterContact from "./FooterContact.astro";
+import Footer404 from "./Footer404.astro";
+import MainCover from "./MainCover.astro";
+import MainWork from "./MainWork.astro";
+import MainAbout from "./MainAbout.astro";
+import MainConsulting from "./MainConsulting.astro";
+import MainObla from "./MainObla.astro";
+import MainContact from "./MainContact.astro";
+import Case from "./Case.astro";
+import NotFound from "./NotFound.astro";
+
+const { page } = Astro.props;
+const MAIN = { home: MainCover, work: MainWork, about: MainAbout, consult: MainConsulting, obla: MainObla, contact: MainContact, case: Case, "404": NotFound };
+const Main = MAIN[page.key];
+const Close = page.key === "contact" ? FooterContact : page.key === "404" ? Footer404 : Footer;
+---
+<Page page={page}><Head /><Raw html='<body id="top">' /><Header /><Main page={page} /><Close /><Overlays /><Router /><Raw html={"</body>\n</html>"} /></Page>

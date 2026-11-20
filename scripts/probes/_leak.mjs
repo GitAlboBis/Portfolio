@@ -1,0 +1,12 @@
+import { chromium } from "playwright";
+const b = await chromium.launch({ channel:"chrome", headless:true, args:["--enable-unsafe-webgpu"] });
+const c = await b.newContext({ viewport:{width:1440,height:900}, deviceScaleFactor:1 });
+const p = await c.newPage();
+await p.addInitScript(()=>sessionStorage.setItem("at-preloader-seen","1"));
+await p.goto("http://localhost:3000/dev/bench", { waitUntil:"networkidle" });
+await p.waitForTimeout(5000);
+console.log("on bench:", await p.evaluate(()=>[...document.querySelectorAll("canvas")].map(c=>({id:c.id,cls:c.className,parent:c.parentElement?.getAttribute("data-bench-canvas")!==null?"bench":c.parentElement?.className}))));
+await p.click('a[href="/about"]');
+await p.waitForTimeout(3000);
+console.log("on /about:", await p.evaluate(()=>({url:location.pathname, all:[...document.querySelectorAll("canvas")].map(c=>({cls:c.className,par:c.parentElement?.className||c.parentElement?.tagName})), bench:document.querySelectorAll("[data-bench-canvas]").length})));
+await b.close();

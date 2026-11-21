@@ -33,6 +33,9 @@
             of one loop at two speeds) and a low root and fifth for speakers that reach them; Contact's dawn brighter.
             No two tones nearer than a minor third (no beating), no amplitude swell: the drift is in the filters and a
             tenth of each tone. Every page as loud to the ear as the cover. A change of page never slides the chord.
+            (wave 7) The home is one journey through every page's part: its room is the room of the part being read,
+            cross-faded from one bank of tones to a new one as the reader passes into it (crossTo; fx-nav.js fx:part);
+            Contact's part is the morning's room.
      eye    the scroll lights two overtones of the room's chord and a faint weight, as loud as it is fast, silent at
             rest (every scroll event schedules its own decay on the audio clock: no timer). No noise. Not during a cut.
      glass  fx:step {scene, step, of} (fx-scroll.js), when the reader's own scroll brought the step: a short touch of
@@ -216,30 +219,56 @@
     const lowOf = (p) => p.low || [1, 1.5];
     const toneHz = (p, i) => p.root * (p.tones[i] || p.tones[p.tones.length - 1] * 1.5), toneAmp = (p, i) => L.tone * (p.mix[i] || 0) * (p.norm || 1);
     const DRIFT = [0.0113, 0.0167, 0.0229, 0.0191];
-    const tones = [0, 1, 2, 3].map((i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.value = toneHz(P, i); o.detune.value = [0, 3, -4, 5][i]; g.gain.value = toneAmp(P, i);
-      const dr = lfo(DRIFT[i], 0.1 * toneAmp(P, i), g.gain);   // a tenth of the tone: the mix moves, the level stays
-      o.connect(g); g.connect(toneLP); o.start();
-      return { o, g, dr };
-    });
-    const lows = [0, 1].map((i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = i ? "triangle" : "sine"; o.frequency.value = P.root * lowOf(P)[i]; g.gain.value = L.low * (i ? 0.5 : 1);
-      o.connect(g); g.connect(toneG); o.start();
-      return o;
-    });
     /* ---- THE EYE: the scroll lights two of the room's own overtones (the octave of its first two tones) and a faint
        weight under them, as loud as the scroll is fast. (lane n-fix-sound) No noise and no sweep: a small tonal
        movement under the room, never a wash. */
     const eyeG = ctx.createGain(), eyeBodyG = ctx.createGain(); eyeG.gain.value = 0; eyeBodyG.gain.value = 0; eyeG.connect(out); eyeBodyG.connect(out);
     const eyeHz = (p, i) => (i < 2 ? toneHz(p, i) * 2 : p.root * 2);
-    const eyes = [0, 1, 2].map((i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.value = eyeHz(P, i); o.detune.value = [2, -3, 0][i]; g.gain.value = [1, 0.55, 1][i];
-      o.connect(g); g.connect(i < 2 ? eyeG : eyeBodyG); o.start();
-      return o;
-    });
+    /* ---- (wave 7, lane MOTION) THE BANK: the room's pitched voices for one page, behind four gains of their own (1 open,
+       0 shut): its chord (into the colour filter), what is under the chord, and the eye's overtones (into the eye's
+       scroll-driven gains). A change of page steps the bank back and retunes it (setPage); the home's parts cross-fade
+       from one bank to a new one (crossTo), so no tone ever slides and the eye's overtones never jump under a scroll. */
+    let banks = 0;
+    function bankOf(p, open) {
+      const b = { t: ctx.createGain(), l: ctx.createGain(), e: ctx.createGain(), y: ctx.createGain(), srcs: [], nodes: [], stopped: false };
+      [b.t, b.l, b.e, b.y].forEach((n) => { n.gain.value = open ? 1 : 0; b.nodes.push(n); });
+      b.t.connect(toneLP); b.l.connect(toneG); b.e.connect(eyeG); b.y.connect(eyeBodyG);
+      b.tones = [0, 1, 2, 3].map((i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(), lo = ctx.createOscillator(), dr = ctx.createGain();
+        o.frequency.value = toneHz(p, i); o.detune.value = [0, 3, -4, 5][i]; g.gain.value = toneAmp(p, i);
+        lo.frequency.value = DRIFT[i]; dr.gain.value = 0.1 * toneAmp(p, i); lo.connect(dr); dr.connect(g.gain);   // a tenth of the tone: the mix moves, the level stays
+        o.connect(g); g.connect(b.t); o.start(); lo.start();
+        b.srcs.push(o, lo); b.nodes.push(g, dr);
+        return { o, g, dr };
+      });
+      b.lows = [0, 1].map((i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = i ? "triangle" : "sine"; o.frequency.value = p.root * lowOf(p)[i]; g.gain.value = L.low * (i ? 0.5 : 1);
+        o.connect(g); g.connect(b.l); o.start();
+        b.srcs.push(o); b.nodes.push(g);
+        return o;
+      });
+      b.eyes = [0, 1, 2].map((i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = eyeHz(p, i); o.detune.value = [2, -3, 0][i]; g.gain.value = [1, 0.55, 1][i];
+        o.connect(g); g.connect(i < 2 ? b.e : b.y); o.start();
+        b.srcs.push(o); b.nodes.push(g);
+        return o;
+      });
+      banks++;
+      return b;
+    }
+    /** a bank that has gone quiet stops at `at` and lets its nodes go */
+    function bankStop(b, at) {
+      if (b.stopped) return;
+      b.stopped = true;
+      let left = b.srcs.length;
+      b.srcs.forEach((s) => {
+        s.onended = () => { if (--left) return; banks--; b.nodes.concat(b.srcs).forEach((n) => { try { n.disconnect(); } catch (e) { /* gone */ } }); };
+        try { s.stop(at); } catch (e) { /* stopped */ }
+      });
+    }
+    let cur = bankOf(P, true);
     /** v: px/s; each call schedules its own fall to silence 180 ms later (a later call takes it over) */
     function scroll(v, t) {
       t = T(t);
@@ -259,9 +288,27 @@
       const quick = glideS < 0.1, at = quick ? t : openAt > t ? openAt : t + 0.3, tc = Math.max(0.01, glideS / 3);
       const put = (p, v) => { p.cancelScheduledValues(at); p.setValueAtTime(v, at); };
       if (!quick) { glide(toneG.gain, 0, t, openAt > t ? Math.max(0.03, (at - t) / 2.4) : 0.07); toneG.gain.setTargetAtTime(1, at + 0.01, openAt > t ? 0.09 : Math.max(0.05, (glideS - 0.3) / 3)); }
-      tones.forEach((p, i) => { put(p.o.frequency, toneHz(P, i)); put(p.g.gain, toneAmp(P, i)); put(p.dr.gain, 0.1 * toneAmp(P, i)); });
-      lows.forEach((o, i) => put(o.frequency, P.root * lowOf(P)[i]));
-      eyes.forEach((o, i) => put(o.frequency, eyeHz(P, i)));
+      cur.tones.forEach((p, i) => { put(p.o.frequency, toneHz(P, i)); put(p.g.gain, toneAmp(P, i)); put(p.dr.gain, 0.1 * toneAmp(P, i)); });
+      cur.lows.forEach((o, i) => put(o.frequency, P.root * lowOf(P)[i]));
+      cur.eyes.forEach((o, i) => put(o.frequency, eyeHz(P, i)));
+      glide(toneLP.frequency, P.color, t, tc); glide(airLP.frequency, P.air, t, tc); glide(airG.gain, airAmp(P), t, tc);
+      glide(airD1.gain, 0.06 * P.air, t, tc); glide(airD2.gain, 0.04 * P.air, t, tc); glide(colD.gain, 0.08 * P.color, t, tc);
+    }
+    /** (wave 7, lane MOTION) the home's parts: the room becomes page `key`'s by a cross-fade over about s seconds. The
+     *  bank that sounded goes from t (time constant s / 5); a new bank tuned to the page comes in a breath later (from
+     *  t + s / 10, the same constant), so the two chords are never both whole, and the old one stops far under hearing.
+     *  The air's colour and the tones' filter glide as at a change of page. Called again midway, the bank coming in
+     *  goes from where it stands. */
+    function crossTo(key, t, s = 2.4) {
+      const k = PAGES[key] ? key : "home";
+      if (k === pageKey) return;
+      t = T(t); pageKey = k; P = PAGES[k];
+      const old = cur, nb = bankOf(P, false);
+      cur = nb;
+      [old.t, old.l, old.e, old.y].forEach((n) => glide(n.gain, 0, t, s / 5));
+      [nb.t, nb.l, nb.e, nb.y].forEach((n) => { n.gain.setValueAtTime(0, t); n.gain.setTargetAtTime(1, t + s / 10, s / 5); });
+      bankStop(old, t + s * 1.6);
+      const tc = s / 3;
       glide(toneLP.frequency, P.color, t, tc); glide(airLP.frequency, P.air, t, tc); glide(airG.gain, airAmp(P), t, tc);
       glide(airD1.gain, 0.06 * P.air, t, tc); glide(airD2.gain, 0.04 * P.air, t, tc); glide(colD.gain, 0.08 * P.color, t, tc);
     }
@@ -452,6 +499,7 @@
         case "start": return start(t, d.fade);
         case "stop": return silence(d.ms || 60, t);
         case "page": return setPage(d.key, t, d.glide);
+        case "part": return crossTo(d.key, t, d.s);
         case "scroll": return scroll(d.v || 0, t);
         case "step": return step(d, t);
         case "obla": return obla(d.k, t);
@@ -474,7 +522,7 @@
       get page() { return pageKey; }, get on() { return on; },
       /** a probe's ear: an AnalyserNode after the ceiling, the last node before the speakers (made once, on demand) */
       analyser() { if (!tap) { tap = ctx.createAnalyser(); tap.fftSize = 2048; ceil.connect(tap); } return tap; },
-      info() { return { state: ctx.state, live, made, rows: rows.size, page: pageKey, on, out: out.gain.value }; },
+      info() { return { state: ctx.state, live, made, rows: rows.size, page: pageKey, on, out: out.gain.value, banks }; },
     };
   }
   window.RVSound = { createEngine, tableJob, PAGES, version: 1 };
@@ -523,8 +571,13 @@
     return k === "consulting" ? "consult" : (PAGES[k] ? k : "home");
   };
   /* this page's room: what the page says it is (<html data-page>, which follows a soft navigation: the 404 page is
-     served at any address), else its address */
-  const pageKey = () => { const k = d.getAttribute("data-page"); return k && PAGES[k] ? k : keyOf(location.pathname); };
+     served at any address), else its address. (wave 7, lane MOTION) The home is one journey through every page's part:
+     its room is the part being read (fx-nav.js, FX.nav.part), and the cover's own above the first part */
+  const pageKey = () => {
+    const k = d.getAttribute("data-page");
+    if (k === "home") { const N = window.FX && window.FX.nav, p = N && N.part; return p && PAGES[p] ? p : "home"; }
+    return k && PAGES[k] ? k : keyOf(location.pathname);
+  };
   const eng = () => (window.__rvSound && window.__rvSound.eng) || null;
   const running = () => { const e = eng(); return !!(e && e.ctx.state === "running" && e.on); };
   const now = () => (running() ? eng() : null);
@@ -706,6 +759,17 @@
     paint();
   };
 
+  /* (wave 7, lane MOTION) the home's room follows the part being read: a cross-fade from one room to the next while it
+     sounds (the engine's crossTo, about 2.4 s), set at once while it is silent; never in a cut (the cut brings its own
+     room with the door), and after one the part's room is taken up again (fx:nav:arrived) */
+  function partRoom() {
+    const e = eng();
+    if (!e || cutting()) return;
+    const k = pageKey();
+    if (e.page === k) return;
+    if (running()) e.cue("part", { key: k }); else e.setPage(k, undefined, 0.01);
+  }
+
   /* ---------------------------------------------------------------- what the page plays */
   function bind() {
     ["pointerdown", "pointerup", "keydown", "touchend", "click"].forEach((n) => window.addEventListener(n, onGesture, { capture: true, passive: true }));
@@ -760,7 +824,11 @@
          stays wanted, and the next page opens its own door (init, below) */
       else { mark(); e.silence(50); }
     });
-    window.addEventListener("fx:nav:arrived", () => { cutUntil = 0; flight = null; quietUntil = performance.now() + 300; const e = now(); if (e) e.cue("nav:arrived"); lateSoon(); });
+    window.addEventListener("fx:nav:arrived", () => { cutUntil = 0; flight = null; quietUntil = performance.now() + 300; const e = now(); if (e) e.cue("nav:arrived"); partRoom(); lateSoon(); });
+    /* (wave 7, lane MOTION) the home's parts (fx-nav.js fx:part): a reader who flies past several parts at once hears
+       only the one where they slow down */
+    let partT = 0;
+    window.addEventListener("fx:part", () => { clearTimeout(partT); partT = setTimeout(partRoom, 220); });
     window.addEventListener("fx:nav:reset", () => { cutUntil = 0; flight = null; const e = eng(); if (e) { e.cue("nav:reset"); e.setPage(pageKey(), undefined, 0.6); } lateSoon(); });
     /* (lane m-sound) the room owed after a silent first flight: the page stands (a plain swap has no fx:nav:arrived) */
     window.addEventListener("fx:ready", () => lateSoon());

@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * mist — the swarm as mist only (spec 50 §4: the nine cases, and any section that names it): the calm field of
+ * mist — the swarm as mist only (spec 50 §4: the ten cases, and any section that names it): the calm field of
  * night/mist.js over the whole viewport, light on the night, ink inside a day rectangle. The host gives this scene to a
  * case page's main (main[data-case]). The section's pictures are keep-outs: no point lies on a capture.
  *
@@ -13,7 +13,7 @@
  * line of light through the nodes, bars of light, a stack of thin plates; the room's subject light stands behind it and
  * the hand orbits the eye about it.
  *
- * (wave 6, lane ROOMS) More work, the index of the nine, has the index's figure: the prism and its ray (lib/prism.js
+ * (wave 6, lane ROOMS) More work, the index of the works, has the (old) index's figure: the prism and its ray (lib/prism.js
  * registers the pass "rays"; case/figures.js says where).
  */
 import mist from "../night/mist.js";

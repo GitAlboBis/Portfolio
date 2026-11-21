@@ -32,8 +32,10 @@
     io = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (!e.isIntersecting) continue;
-        e.target.classList.add("is-in");
         io.unobserve(e.target);
+        /* (wave 7) the opening of a part of the home, claimed by fx-motion.js (.mo-own): it comes in with its beats */
+        if (e.target.classList.contains("mo-own")) continue;
+        e.target.classList.add("is-in");
       }
     }, { rootMargin: "0px 0px -10% 0px", threshold: 0 });
     els.forEach((el) => io.observe(el));

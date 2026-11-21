@@ -34,12 +34,14 @@
   const cutMs = () => ms(getComputedStyle(d).getPropertyValue("--d-cut"), 620);
 
   /* ---------------------------------------------------------------- the header */
-  /* the header takes the ground under it: while the dawn close's top edge is above the header's bottom edge,
+  /* the header takes the ground under it: while the morning's top edge is above the header's bottom edge,
      html[data-hdr-ground="dawn"] (css/chrome.css gives it the morning's ground, ink and rules); back to night above it. A
-     straight cut, no fade, both ways. Contact is the morning whole (html[data-ground="dawn"]) and needs no switch. */
+     straight cut, no fade, both ways. Contact is the morning whole (html[data-ground="dawn"]) and needs no switch.
+     (wave 7, lane MOTION) The morning is the first [data-dawn] of the page: a page's dawn close, and in the home Contact's
+     part (section.ct#contact), the one crossing of the day's edge there; the legal line under it is the morning too. */
   let scrolled = null, overDawn = null;
   const hdrEl = $("[data-hdr]");
-  const dawnEl = d.getAttribute("data-ground") === "dawn" ? null : $("footer[data-dawn]");
+  const dawnEl = d.getAttribute("data-ground") === "dawn" ? null : $("[data-dawn]");
   /* round 10: on a long page the header steps away while the reader goes down (past the first screen, after 48 px of
      travel in that direction) and comes back as soon as they go up 24 px, at the dawn close, at the top, or when the
      menu or a cut holds the page. html.hdr-away; css/chrome.css draws it (transform only) and keeps it under a focus. */
@@ -71,19 +73,23 @@
   const nav = $(".hdr-nav"), rule = $("[data-hdr-rule]");
   const navLinks = nav ? $$(":scope > a", nav) : [];
   const current = navLinks.find((a) => a.getAttribute("aria-current") === "page") || null;
-  function ruleTo(a, cold) {
+  /* the item the rule rests under: the page being read, or in the home the page of the part being read (below) */
+  const here = () => current || navLinks.find((a) => a.classList.contains("is-here")) || null;
+  /** fade: (wave 7) a rule that was idle is put in place first and then comes in, without travelling there */
+  function ruleTo(a, cold, fade) {
     if (!rule) return;
     rule.classList.toggle("is-cold", !!cold);
     if (!a || !a.offsetWidth) { rule.classList.add("is-idle"); return; }
     rule.style.setProperty("--rx", a.offsetLeft + "px");
     rule.style.setProperty("--rw", String(a.offsetWidth / 100));
     if (cold) void rule.offsetWidth;
+    if (cold && fade) rule.classList.remove("is-cold");
     rule.classList.remove("is-idle");
   }
   function ruleInit() {
     if (!nav || !rule || !FX.flags.motion) return;
     d.classList.add("nv-rule");
-    const home = () => ruleTo(current, false);
+    const home = () => ruleTo(here(), false);
     navLinks.forEach((a) => {
       a.addEventListener("pointerenter", () => ruleTo(a));
       a.addEventListener("focus", () => ruleTo(a));
@@ -91,10 +97,48 @@
     nav.addEventListener("pointerleave", home);
     nav.addEventListener("focusout", (e) => { if (!nav.contains(e.relatedTarget)) home(); });
     /* the header's words enter on load: the rule takes its place once they have settled, and after the fonts */
-    const place = () => { if (!nav.matches(":hover")) ruleTo(current, true); };
+    const place = () => { if (!nav.matches(":hover")) ruleTo(here(), true); };
     setTimeout(place, 760);
     FX.fonts().then(place);
     window.addEventListener("resize", place, { passive: true });
+  }
+
+  /* ---------------------------------------------------------------- the part being read (wave 7, lane MOTION)
+     The home is one continuous scroll through every page's part (section.part[data-part], parts/c-main.home.mjs). The
+     part on the viewport's middle line is the one being read; on the cover (the hero and Now) there is none. The header
+     marks its page quietly (.is-here, css/chrome.css: the item in ink with the travelling rule resting under it, the
+     menu's row with its hairline drawn), FX.nav.part says which, and fx:part { part, from } goes out when it changes
+     (fx-sound.js takes that part's room, fx-motion.js counts the cut's numeral from it). A click on the item still
+     flies to the page. Decoration: no aria-current (the link leads to the page, not to this part of the home). */
+  const FILE = { work: "work", about: "about", consult: "consulting", obla: "obla", contact: "contact" };
+  const parts = d.getAttribute("data-page") === "home" ? $$("main > section.part[data-part]") : [];
+  let part = null;
+  /** the header's item and the menu's row that lead to the page of part `key` */
+  const linksTo = (key) => {
+    const f = key && FILE[key];
+    if (!f) return [];
+    const re = new RegExp("(^|/)" + f + "\\.html$");
+    return $$(".hdr-nav > a, .menu-a").filter((a) => { try { return re.test(new URL(a.href, location.href).pathname); } catch (e) { return false; } });
+  };
+  function setPart(next) {
+    if (next === part) return;
+    const from = part;
+    part = next;
+    $$(".hdr-nav > a.is-here, .menu-a.is-here").forEach((a) => a.classList.remove("is-here"));
+    linksTo(part).forEach((a) => a.classList.add("is-here"));
+    /* the rule goes with it, unless the hand or the focus holds it on an item; from the cover it comes in where it is */
+    if (rule && d.classList.contains("nv-rule") && !(nav.matches(":hover") || nav.contains(document.activeElement))) ruleTo(here(), !from, !from);
+    FX.emit("fx:part", { part, from });
+  }
+  function partsInit() {
+    if (!parts.length || !("IntersectionObserver" in window)) return;
+    const on = new Map();
+    const io = new IntersectionObserver((es) => {
+      for (const e of es) on.set(e.target, e.isIntersecting);
+      const s = parts.find((p) => on.get(p));
+      setPart(s ? s.getAttribute("data-part") : null);
+    }, { rootMargin: "-50% 0px -50% 0px", threshold: 0 });
+    parts.forEach((p) => io.observe(p));
   }
 
   /* ---------------------------------------------------------------- the menu */
@@ -405,6 +449,8 @@
   FX.register("nav", {
     init() {
       FX.nav = { arrive, close: () => setMenu(false), get menuOpen() { return open; },
+        /* (wave 7) the home's part being read: "work", "about", "consult", "obla", "contact", or null (the cover, a page) */
+        get part() { return part; },
         /* (lane o-router) Back / Forward under the router: the same flight, its side given (-1 back, 1 forward), the card
            of a link to that page if one is on this page; returns { arrival, covered } or null (no flight) */
         fly(href, side) {
@@ -416,6 +462,7 @@
         } };
       header();
       ruleInit();
+      partsInit();
       window.addEventListener("scroll", header, { passive: true });
       window.addEventListener("resize", header, { passive: true });
       if (dawnEl && "ResizeObserver" in window) new ResizeObserver(() => header()).observe(document.body);

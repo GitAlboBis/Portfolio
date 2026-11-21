@@ -16,7 +16,8 @@
 // Checks (exit 1 on any miss):
 //   1 every number in scope (digits normalised as check-claims.mjs; number words of the CV count as digits; a digit
 //     glued to a letter on its left is an identifier: ES2024, v4, WebGL2, Badante24h). Whitelist, and only this: the
-//     zero-padded indices 01–09 (a claim is never zero-padded). Years are NOT whitelisted on a case page.
+//     zero-padded indices 01–09 (a claim is never zero-padded) and, since the eleven works of wave 7, a work's tile (or
+//     the works' count) where an index stands (INDEX below). Years are NOT whitelisted on a case page.
 //   2 every measured pair (from → to) matches one PRODUCT pair in scope, units and the decimal comma normalised
 //   3 every number printed in a case's <main> is also in that case's cases.json entry (the template types no digit)
 //   4 each plate tile prints its case's Fig. 01 figure
@@ -87,6 +88,9 @@ const SCOPE_TABLE = {
   badante24h: [6, "ALS MCL Civitanova", "DOIT S.r.l", false],
   "doit-voice-ai-agent": [7, "DOIT S.r.l", "Istituzione Paritaria Scuole Boccaccio Jan 2019", false],
   "agricultural-supply-chain": [8, "Agricultural Supply Chain Platform · Academic", "Personal & open-source work", false],
+  /* (wave 7, lane WORKS) the two systems after the CV: §3 items 10 and 11, and their bullets in §9 «Dopo il CV» */
+  "sersan-agent-os": [10, "SerSan Agent OS — the company's multi-agent system", "Obla — personal multi-agent system", true],
+  obla: [11, "Obla — personal multi-agent system", "Competenze che si aggiungono", false],
 };
 /* one cited extra per capture case: the capture date the caption prints ("captured September 2026"),
    public/captures/PROVENANCE.md (2026-09-16) */
@@ -103,7 +107,7 @@ const WORDS = {
   eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17,
   eighteen: 18, nineteen: 19, twenty: 20, fifty: 50,
   uno: 1, due: 2, tre: 3, quattro: 4, cinque: 5, sei: 6, sette: 7, otto: 8, nove: 9, dieci: 10,
-  quattordici: 14, diciassette: 17, cinquanta: 50,
+  undici: 11, quattordici: 14, diciassette: 17, cinquanta: 50,
 };
 function normalise(tok) {
   let t = tok.replace(/[%$€]/g, "");
@@ -150,11 +154,11 @@ function visible(html, page) {
   const stack = []; // { tag, hidden, region }
   const re = /<(\/?)([a-zA-Z][a-zA-Z0-9-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>|([^<]+)/g;
   let m;
-  const cur = () => stack.length ? stack[stack.length - 1] : { hidden: false, region: { kind: "global" } };
+  const cur = () => stack.length ? stack[stack.length - 1] : { hidden: false, region: { kind: "global" }, cls: "" };
   while ((m = re.exec(body))) {
     if (m[4] != null) {
       const c = cur();
-      if (!c.hidden && m[4].trim()) out.push({ text: DECODE(m[4]), region: c.region, where: c.tag });
+      if (!c.hidden && m[4].trim()) out.push({ text: DECODE(m[4]), region: c.region, where: c.tag, cls: c.cls });
       continue;
     }
     const close = m[1] === "/", tag = m[2].toLowerCase(), attrs = m[3] || "";
@@ -171,9 +175,10 @@ function visible(html, page) {
     else if (tag === "section" && /(^|\s)next(\s|$)/.test(at("class") || "") && region.kind === "case") region = { kind: "next", from: region.slug };
     else if (tag === "section" && at("id") === "contact") region = { kind: "global" };
     else if (tag === "a" && region.kind === "next") { const h = /case-([a-z0-9-]+)\.html/.exec(at("href") || ""); if (h) region = { kind: "case", slug: h[1], next: true }; }
-    if (!hidden) for (const n of ATTRS) { const v = at(n); if (v && v.trim()) out.push({ text: v, region, where: tag + "[" + n + "]" }); }
+    const cls = at("class") || "";
+    if (!hidden) for (const n of ATTRS) { const v = at(n); if (v && v.trim()) out.push({ text: v, region, where: tag + "[" + n + "]", cls }); }
     const selfClose = /\/\s*$/.test(attrs);
-    if (!VOID.has(tag) && !selfClose) stack.push({ tag, hidden, region });
+    if (!VOID.has(tag) && !selfClose) stack.push({ tag, hidden, region, cls });
   }
   return out;
 }
@@ -185,6 +190,20 @@ const bySlug = Object.fromEntries(CASES.map((c) => [c.slug, c]));
 const { barWidths } = await import(pathToFileURL(join(RV, "parts", "c-main.case.mjs")).href);
 const dataNumbers = (obj) => new Set(numbers(JSON.stringify(obj, (k, v) => (k === "src" ? undefined : v))).map((x) => x.n));
 const DATA = Object.fromEntries(CASES.map((c) => [c.slug, dataNumbers(c)]));
+/* (wave 7, lane WORKS) the works' indices. With eleven works an index is 10 or 11 too, so an index is told by where it
+   stands, not by a leading zero: a work's tile alone in its index span (.t-acc: the gallery's counter and More work's
+   rows; .ix-n: the 404's rows), the count of the works after the gallery's counter (" / 11" in .wk-n), and the sheet
+   line of a link to a work ("10 · Work", data-pt-sub). Only a tile of cases.json, or their count, passes as an index */
+const TILES = new Set(CASES.map((c) => c.tile));
+const COUNT = String(CASES.length).padStart(2, "0");
+const INDEX = (x, v) => {
+  if (x.word) return false;
+  if (/\[data-pt-sub\]$/.test(v.where || "")) return x.index === 0 && TILES.has(x.raw) && /^\d\d · /.test(v.text);
+  const cls = " " + (v.cls || "") + " ";
+  if (/ (t-acc|ix-n) /.test(cls) && v.text.trim() === x.raw) return TILES.has(x.raw);
+  if (/ wk-n /.test(cls) && /^\s*\/\s*\d\d\s*$/.test(v.text)) return x.raw === COUNT;
+  return false;
+};
 
 const pages = [];
 const addDir = (dir, prefix) => {
@@ -223,7 +242,7 @@ for (const p of pages) {
     const truth = truthFor(slug);
     for (const x of numbers(v.text)) {
       stats.checked++;
-      if (WHITE(x)) { stats.white++; continue; }
+      if (WHITE(x) || INDEX(x, v)) { stats.white++; continue; }
       /* S2 fix: on the 404 the status code ("Error 404") is the page's name, not a claim */
       if (/(^|\/)404\.html$/.test(p.name) && x.n === "404") { stats.white++; continue; }
       if (!truth.has(x.n)) { MISS(p.name, x.raw, ctxOf(v.text, x.index, x.raw.length), scopeName); continue; }
@@ -264,6 +283,8 @@ for (const p of pages) {
   if (/<li class="sc-step wk"/.test(html)) {
     for (const li of html.matchAll(/<li class="sc-step wk" data-stage-step="\d+" data-tile-id="(\d\d)">[\s\S]*?<\/li>/g)) {
       if (!/data-slab-words=/.test(li[0])) continue;
+      /* (wave 7) a work that is a page of the site already (Obla) has no case page to print its key words again */
+      if (byTile[li[1]] && byTile[li[1]].page) continue;
       const c = byTile[li[1]], fig = /<p class="wk-words-fig">([^<]+)<\/p>/.exec(li[0]);
       const casePage = c && pages.find((q) => q.name === p.name.replace(/[^/]*$/, "case-" + c.slug + ".html"));
       if (!c || !fig || !casePage) { MISS(p.name, "tile " + li[1], "a work's key words without a figure or a case page", "tile"); continue; }

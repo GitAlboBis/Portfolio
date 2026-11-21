@@ -90,7 +90,7 @@
   /**
    * a loaded scene: its module, the global ids of its formations, its scratch state, its blend weight
    * @typedef {{ name: string, el: Element, def: any, ids: Record<string, string>, state: any, w: number, broken: boolean,
-   *   texAsked: boolean, k: number }} Scene
+   *   texAsked: boolean, k: number, ready?: boolean, lazy?: boolean }} Scene
    */
   /** @type {Scene[]} */ let scenes = [];
   /** @type {Record<string, number>} */ const W = {};           // smoothed formation weights by global id
@@ -408,6 +408,14 @@
         const b = e.getBoundingClientRect(), top = e.closest(".hdr") || e;
         return unblock(top, e, { x: b.left, y: b.top, w: b.width, h: b.height });
       }).filter((r) => r.w > 1 && r.h > 1),
+      // (wave 7, COSMOS) where this page is in the cosmos (stage/cosmos/web.js journeyOf): its key, a case's name, the
+      // largest scroll and, on the home, where each page's part begins (document px)
+      cosmos: {
+        key: D.getAttribute("data-page") || "home",
+        slug: (document.querySelector("main[data-case]") || D).getAttribute("data-case") || "",
+        max: Math.max(1, D.scrollHeight - ch),
+        parts: qa(document, "section.part[data-part]").map((e) => ({ key: e.getAttribute("data-part") || "", top: Math.round(rectOf(e).y) })),
+      },
     };
     for (const [h, v, p] of saved) { if (v) h.style.setProperty("position", v, p); else h.style.removeProperty("position"); }
     M = out;
@@ -601,6 +609,38 @@
     if (!stage || typeof stage.look !== "function") return;
     lookKey = k; lookWant = l; stage.look(l);
   }
+  /* (wave 7, STAGE) THE LOOK OF A FRAME, MIXED. A scene asks for its look (ctx.look: far, near, keepFeather, ...) or
+     asks for none (the stage's own LOOK). Before, every ask went to the stage as it came, in DOM order: the last scene
+     near the screen won even unseen (in the home the next part's look took over a screen before it showed), and a key
+     nobody asked for kept whatever the last part had set (the home's gallery drew with the hero's far plane going
+     down and About's coming back up; a page reached by a flight with the page before's). Now every scene in the frame
+     counts by its weight, and a key it does not ask for counts at LOOK's value: one page is one look, as on a load, and
+     the home's parts hand their looks over as their scenes hand over the frame. far, near and keepFeather are always
+     resolved; a key once asked for on this page is resolved from then on (back to LOOK's value when nobody asks). */
+  /* (wave 7, INTEGRATE) far and near join only once a scene of the page asks for them (the hero and Now do: the home
+     mixes them by weight as above). Forced on every page, a flight from the home's hero into Work narrowed the depth
+     range to LOOK's while the swarm still stood in the hall's: for a second the name hung in Work's room and melted
+     into a blue cloud over the plates (3.9 ms GPU, the swarm halved for 8 s; HEAD 1.2 ms). A page reached by a flight
+     keeps the depth range it was flown in with, as in wave 6; a page loaded has LOOK's. */
+  /** @type {Set<string>} */ const lookKeys = new Set(["keepFeather"]);
+  /** @param {Scene[]} inFrame @param {Map<Scene, any>} asks @returns {any} */
+  function lookOf(inFrame, asks) {
+    const L = mod && mod.LOOK;
+    if (!L) return null;
+    let tw = 0;
+    for (const S of inFrame) tw += Math.max(0, S.w);
+    if (tw < 1e-4) return null;
+    // (focus is the stage's focus pull, set by the frame's own focus: never resolved here)
+    for (const a of asks.values()) for (const key of Object.keys(a)) if (key !== "focus" && typeof a[key] === "number" && typeof L[key] === "number") lookKeys.add(key);
+    /** @type {Record<string, number>} */ const out = {};
+    for (const key of lookKeys) {
+      let v = 0;
+      for (const S of inFrame) { const a = asks.get(S), x = a && typeof a[key] === "number" ? a[key] : L[key]; v += Math.max(0, S.w) * x; }
+      v /= tw;
+      out[key] = key === "far" || key === "near" ? Math.round(v) : key === "keepFeather" ? Math.round(v * 2) / 2 : r4(v);
+    }
+    return out;
+  }
   /* the glass signal (stage/scenes/README.md, ctx.glass): the plates can draw from glassT (host seconds); late: the
      stage drew before they could (their pipeline was still compiling), so a plate on screen now ENTERS. A scene with
      glassEntry: true brings its plates in itself; every other scene's plates get the host's short focus pull. */
@@ -716,9 +756,17 @@
     const first = !on;
     const arrival = { cut: ARRIVED, under: sheetUp, age: drawnT < 0 ? 0 : r4(time - drawnT) };
     let subjW = 0, litAsked = false, litSaid = false;
+    /** @type {Map<Scene, any>} */ const lookAsk = new Map();
+    /** @type {Scene[]} */ const lookIn = [];
+    // (wave 7, STAGE) a scene still waiting for its formations: the pump takes it now if the reader comes near
+    if (later.size && !pumping && !priming) {
+      let soon = false;
+      scenes.forEach((S, k) => { const sec = secs[k]; if (later.has(S) && sec && sec.y < y + vh * (1 + AHEAD.down) && sec.y + sec.h > y - vh * AHEAD.up) soon = true; });
+      if (soon) pump(gen);
+    }
     scenes.forEach((S, k) => {
       const m = M.scenes[k], sec = secs[k];
-      if (!m || !sec || S.broken) return;
+      if (!m || !sec || S.broken || S.ready === false) return;
       S.w = first ? share[k] : damp(S.w, share[k], SCENE_S, dt);
       if (S.w < 1e-4 && share[k] === 0) S.w = 0;
       const near = sec.y < y + vh * 1.6 && sec.y + sec.h > y - vh * 0.6;
@@ -747,7 +795,8 @@
         marks, imgs, texts, media, dawn: dawnV, ground: gnd, time, dt, state: S.state, glass, clock,
         etch: (/** @type {string} */ id, /** @type {string[]} */ l, /** @type {any} */ o) => etch(S.name + ":" + id, l, o),
         texture: (/** @type {string} */ id, /** @type {any} */ src) => addTex(S.name + ":" + id, src),
-        look: setLook,
+        // (wave 7, STAGE) a scene's look is an ask, mixed with the other scenes' by weight after the loop (lookOf)
+        look: (/** @type {any} */ l) => { if (l && typeof l === "object") lookAsk.set(S, l); },
         // (wave 1, KIT) the reader's speed 0..1 (smoothed), the hand's orbit input -1..1 (the pointer's place on a
         // desktop, the horizontal drag on a touch screen), and the scene's text, now (README "The room")
         speed: r4(spd),
@@ -764,6 +813,7 @@
       catch (e) { S.broken = true; log(`[stage] scene "${S.name}" frame threw: ${e && /** @type {any} */ (e).message || e}`); return; }
       if (S.def.litSignal === true && S.w > 0.25) { litAsked = true; if (o && o.lit === true) litSaid = true; }
       if (!o) return;
+      lookIn.push(S);
       // the subject the cut pushes toward: the leading scene's own (o.subject, viewport px), else its figure's centre
       if (share[k] > subjW) {
         subjW = share[k];
@@ -819,6 +869,9 @@
         else cur.sum += bw;
       }
     });
+
+    // (wave 7, STAGE) the frame's look: the scenes' asks mixed by weight (lookOf)
+    { const l = lookOf(lookIn, lookAsk); if (l) setLook(l); }
 
     // ------------------------------------------------ formations: damped weights, the heaviest four
     for (const gid of registered) {
@@ -905,6 +958,8 @@
       bloom: bl > 0.001 ? { ...(bloomO || {}), strength: r4(bl) } : 0,
       field: fields.length ? fields : null,
       passes: passesOf(passWant),
+      // (wave 7, COSMOS) the page's place in the cosmos, at this scroll (the home: one journey through every page's)
+      cosmos: M.cosmos ? { ...M.cosmos, y: Math.round(y), vh } : null,
     });
     if (slabs.length && M.refract.length && !flyOut) backdrop(refractWant(y, vh));
 
@@ -1082,7 +1137,7 @@
     log("[stage] off: " + why);
     try { if (stage) stage.destroy(); } catch (e) { /* the device may be gone */ }
     stage = null; on = false; building = false; glassT = -1; glassLate = false; drawnT = -1;
-    registered.clear(); texReady.clear(); texPending.clear();
+    registered.clear(); texReady.clear(); texPending.clear(); later.clear(); idleAsked = false;
     for (const S of scenes) { S.texAsked = false; S.state = {}; }
     BD.key = ""; BD.timers.forEach((t) => clearTimeout(t));
     D.classList.remove("stage-on");
@@ -1200,46 +1255,124 @@
     };
   }
 
-  /** import the scenes of this page (a missing or failing one is skipped) */
-  async function loadScenes() {
+  /** one scene's module (null when missing or failing) @param {string} name */
+  async function importScene(name) {
+    try {
+      const m = await import(BASE + "scenes/" + name + ".js");
+      return m && m.default && typeof m.default === "object" ? m.default : null;
+    } catch (e) { log(`[stage] scene "${name}" not loaded: ${e && /** @type {any} */ (e).message || e}`); return null; }
+  }
+
+  /** import the scenes of this page (a missing or failing one is skipped).
+   *  (wave 7, STAGE) aimY (a cold load): only the scenes within AHEAD screens of the place the reader stands are imported
+   *  before the first frame, when every one of them comes before every other in the page (a load at the top of the
+   *  home: its nine scenes' modules evaluated together held the first frame ~0.06 s later than the cover's); the others
+   *  stay `lazy` (def null, not ready) and the pump imports them, in page order, once the stage is on
+   *  @param {number} [aimY] */
+  async function loadScenes(aimY) {
     const els = sceneEls();
-    const mods = await Promise.all(els.map(async ({ name }) => {
-      try {
-        const m = await import(BASE + "scenes/" + name + ".js");
-        return m && m.default && typeof m.default === "object" ? m.default : null;
-      } catch (e) { log(`[stage] scene "${name}" not loaded: ${e && /** @type {any} */ (e).message || e}`); return null; }
-    }));
+    /** @type {boolean[] | null} */ let near = null;
+    if (typeof aimY === "number" && els.length > 3) {
+      const vh = innerHeight, sy = window.scrollY;
+      near = els.map(({ el }) => { const r = el.getBoundingClientRect(), top = r.top + sy; return top < aimY + vh * (1 + AHEAD.down) && top + r.height > aimY - vh * AHEAD.up; });
+      const firstFar = near.indexOf(false), lastNear = near.lastIndexOf(true);
+      if (firstFar < 0 || lastNear < 0 || firstFar < lastNear) near = null;   // all near, none near, or a far one above a near one
+    }
+    const mods = await Promise.all(els.map(({ name }, k) => (near && !near[k] ? Promise.resolve(null) : importScene(name))));
     /** @type {Scene[]} */ const out = [];
-    els.forEach((s, k) => { if (mods[k]) out.push({ name: s.name, el: s.el, def: mods[k], ids: {}, state: {}, w: 0, broken: false, texAsked: false, k }); });
+    els.forEach((s, k) => {
+      if (near && !near[k]) out.push({ name: s.name, el: s.el, def: null, ids: {}, state: {}, w: 0, broken: false, texAsked: false, k, ready: false, lazy: true });
+      else if (mods[k]) out.push({ name: s.name, el: s.el, def: mods[k], ids: {}, state: {}, w: 0, broken: false, texAsked: false, k });
+    });
     return out;
   }
 
-  /** the scenes' formations, registered in page order, and their init; false when the stage went away meanwhile
-   *  @param {GPUDevice} dev @param {number} g */
-  async function registerScenes(dev, g, staged) {
+  /** (wave 7, STAGE) the lazy scenes' modules, one at a time in page order (small tasks after the first frame), then
+   *  their formations' orders after the scenes before them, as if all had been registered together; false when the
+   *  stage went away meanwhile @param {number} g */
+  async function loadLazy(g) {
+    const lazy = scenes.filter((S) => S.lazy && !S.def && !S.broken);
+    if (!lazy.length) return true;
+    for (const S of lazy) {
+      S.def = await importScene(S.name);
+      if (g !== gen || dead) return false;
+      if (!S.def) { S.broken = true; later.delete(S); }
+    }
+    let order = 0;
+    for (const S of scenes) {
+      if (!S.def) continue;
+      const fs = S.def.formations || {};
+      for (const id of Object.keys(fs)) { const gid = S.name + ":" + id; S.ids[id] = gid; if (fs[id]) { if (!orderOf.has(gid)) orderOf.set(gid, order); order++; } }
+    }
+    log(`[stage] ahead: ${lazy.length} scene modules in`);
+    return true;
+  }
+
+  /* (wave 7, STAGE) SCENES PREPARED AHEAD OF THE READER. The home holds every page's scenes (nine of them): registering
+     all their formations before the first frame put it ~0.14 s later on a cold load (and a flight into the home would
+     have prepared all nine behind the door). Now the build registers only the scenes within AHEAD screens of the place
+     the reader stands (the first screen's room stands as on a page of its own); the others wait in `later`, and a pump
+     registers them one formation per task: at once those the reader comes near (the tick asks), the rest once the page
+     is quiet. A scene runs its frame only once its formations are in (S.ready). Every formation keeps the order it has
+     in the page (orderOf), as if all had been registered together: neighbours draw from opposite ends of the
+     population. Once in, a formation stays for the page (memory is flat over the scroll down and back up). */
+  const AHEAD = { up: 1.5, down: 3 };
+  /** @type {Map<string, number>} */ const orderOf = new Map();
+  /** @type {Set<Scene>} */ const later = new Set();
+  let pumping = false, idleAsked = false;
+  /** the scenes within AHEAD screens of y (document px): the ones a first frame at y needs @param {number} y */
+  function nearAt(y) {
+    /** @type {Set<Scene>} */ const out = new Set();
+    if (!M) return new Set(scenes);
+    const vh = M.ch;
+    scenes.forEach((S, k) => {
+      const m = M.scenes[k], sec = m ? at(m.r, y) : null;
+      if (!sec || (sec.y < y + vh * (1 + AHEAD.down) && sec.y + sec.h > y - vh * AHEAD.up)) out.add(S);
+    });
+    return out;
+  }
+
+  /** the scenes' formations, registered in page order, and their init; false when the stage went away meanwhile.
+   *  want: the scenes to register now (null: all); the others wait for the pump (later)
+   *  @param {GPUDevice} dev @param {number} g @param {Map<string, any> | null} [staged] @param {Set<Scene> | null} [want] */
+  async function registerScenes(dev, g, staged, want) {
       const TC = mod.TIER_COUNTS || { A: 160000 };
       inkK = (TC.A || 160000) / (TC[tier] || TC.A || 160000);
-      registered.clear();
+      registered.clear(); later.clear(); orderOf.clear();
       let order = 0;
       for (const S of scenes) {
         S.ids = {};
+        const fs = (S.def && S.def.formations) || {};   // a lazy scene's module is not in yet (loadLazy)
+        for (const id of Object.keys(fs)) { const gid = S.name + ":" + id; S.ids[id] = gid; if (fs[id]) orderOf.set(gid, order++); }
+      }
+      for (const S of scenes) {
+        if (!S.def || (want && !want.has(S))) { S.ready = false; later.add(S); continue; }
+        if (!(await registerScene(S, dev, g, staged || null, false))) return false;
+      }
+    return true;
+  }
+
+  /** one scene's formations and its init; false when the stage went away meanwhile. slow: a task of its own for each
+   *  formation (the pump, after the first frame: no long task) @param {Scene} S @param {GPUDevice} dev @param {number} g
+   *  @param {Map<string, any> | null} staged @param {boolean} slow */
+  async function registerScene(S, dev, g, staged, slow) {
         const fs = S.def.formations || {};
         for (const id of Object.keys(fs)) {
-          const gid = S.name + ":" + id, def = fs[id];
-          S.ids[id] = gid;
-          if (!def) continue;
+          const gid = S.ids[id], def = fs[id];
+          if (!def || registered.has(gid)) continue;
+          const order = orderOf.get(gid) ?? 0;
           // (lane m-fly) prepared ahead (stageScenes): registered at once, nothing awaited (the takeover is one task)
           const pre = staged ? staged.get(gid) : null;
           if (pre) {
-            const o = order++;
             if (pre.failed) continue;
-            try { const r = stage.register(gid, { ...def, order: o }, pre); if (r && typeof r.catch === "function") r.catch(() => {}); registered.add(gid); }
+            try { const r = stage.register(gid, { ...def, order }, pre); if (r && typeof r.catch === "function") r.catch(() => {}); registered.add(gid); }
             catch (e) { log(`[stage] formation "${gid}" failed: ${e && /** @type {any} */ (e).message || e}`); }
             continue;
           }
+          if (slow) { await new Promise((r) => setTimeout(r, 0)); if (g !== gen || dead || !stage) return false; }
           dev.pushErrorScope("validation"); dev.pushErrorScope("out-of-memory");
           /** @type {any} */ let e1 = null;
-          try { await stage.register(gid, { ...def, order: order++ }); } catch (e) { e1 = e; }
+          try { await stage.register(gid, { ...def, order }); } catch (e) { e1 = e; }
           const sc = await Promise.all([dev.popErrorScope(), dev.popErrorScope()]);
           if (g !== gen || dead) return false;
           if (e1 || sc.some(Boolean)) { log(`[stage] formation "${gid}" failed: ${(e1 && e1.message) || (/** @type {any} */ (sc.find(Boolean)) || {}).message}`); continue; }
@@ -1249,16 +1382,52 @@
           try { await S.def.init({ tier, phone: innerWidth < 760, etch: (/** @type {string} */ id, /** @type {string[]} */ l, /** @type {any} */ o) => etch(S.name + ":" + id, l, o), texture: (/** @type {string} */ id, /** @type {any} */ src) => addTex(S.name + ":" + id, src) }); }
           catch (e) { log(`[stage] scene "${S.name}" init threw: ${e && /** @type {any} */ (e).message || e}`); }
         }
+        S.ready = true; later.delete(S);
+        return true;
+  }
+
+  /** the pump: the scenes still waiting, nearest the reader first, a formation per task @param {number} g */
+  async function pump(g) {
+    if (pumping || !later.size || !stage || !device) return;
+    pumping = true;
+    try {
+      // (wave 7, STAGE) the lazy scenes' modules first (page order), so every formation's order is known
+      if (!(await loadLazy(g))) return;
+      while (later.size && g === gen && !dead && stage && device) {
+        const y = window.scrollY, vh = M ? M.ch : innerHeight;
+        let best = null, bd = Infinity;
+        scenes.forEach((S, k) => {
+          if (!later.has(S)) return;
+          const m = M && M.scenes[k], sec = m ? at(m.r, y) : null;
+          const d = sec ? Math.max(0, sec.y - (y + vh), y - (sec.y + sec.h)) : 0;
+          if (d < bd) { bd = d; best = S; }
+        });
+        if (!best) break;
+        const t0 = performance.now();
+        if (!(await registerScene(best, device, g, null, true))) break;
+        log(`[stage] ahead: "${best.name}" in (${(performance.now() - t0).toFixed(0)} ms), ${later.size} to go`);
+        await new Promise((r) => setTimeout(r, 0));
       }
-    return true;
+    } catch (e) { log("[stage] pump: " + (e && /** @type {any} */ (e).message || e)); }
+    finally { pumping = false; }
+  }
+  /** the rest, once the page is quiet (after the first frame): an idle callback, else a timeout */
+  function pumpIdle() {
+    if (idleAsked || !later.size) return;
+    idleAsked = true;
+    const g = gen, go = () => { if (g === gen && !dead) pump(g); };
+    const ric = /** @type {any} */ (window).requestIdleCallback;
+    setTimeout(() => { if (typeof ric === "function") ric(go, { timeout: 2500 }); else go(); }, 1200);
   }
 
   /** (lane m-fly) every formation of this page prepared on the kept stage (targets and bodies; nothing registered, the
    *  room on stage untouched), each in a task of its own: gid -> { set, body } | { failed: true }
-   *  @param {any} s @param {GPUDevice} dev @param {number} g */
-  async function stageScenes(s, dev, g) {
+   *  (wave 7, STAGE) want: only the scenes the first screen needs (nearAt); the home's others come ahead of the reader
+   *  @param {any} s @param {GPUDevice} dev @param {number} g @param {Set<Scene> | null} [want] */
+  async function stageScenes(s, dev, g, want) {
     /** @type {Map<string, any>} */ const out = new Map();
     for (const S of scenes) {
+      if (want && !want.has(S)) continue;
       const fs = S.def.formations || {};
       for (const id of Object.keys(fs)) {
         const def = fs[id];
@@ -1304,14 +1473,20 @@
       const flown = ARR_FLY && !!fs0 && (fs0.phase === "out" || fs0.phase === "hold") && typeof s.prepare === "function";
       /** @type {Map<string, any> | null} */ let staged = null;
       let core = false, full = false;
+      /* (wave 7, STAGE) where the reader will stand: Back / Forward land where the reader was (the router hands the y
+         to fx-core.js, which restores it after its build phase, later than this); else the scroll as it is */
+      const yAim = typeof (/** @type {any} */ (window)).__rvSoftY === "number" ? (/** @type {any} */ (window)).__rvSoftY : window.scrollY;
+      /** @type {Set<Scene> | null} */ let want = null;
       if (flown) {
         shadow = s;
         const t0 = performance.now();
         (async () => {
           try {
             measure();
+            want = nearAt(yAim);
+            for (const S of scenes) if (!want.has(S)) S.ready = false;   // the priming frame runs only the scenes it stages
             await new Promise((r) => setTimeout(r, 0));
-            const m = await stageScenes(s, dev, g);
+            const m = await stageScenes(s, dev, g, want);
             // room for this page's targets before the takeover (a buffer that grows there is awaited, frame by frame)
             try {
               let need = 0;
@@ -1360,7 +1535,8 @@
       s.reset();
       stage = s; shadow = null;
       if (lookWant && typeof s.look === "function") s.look(lookWant);
-      if (!(await registerScenes(dev, g, flown && core ? staged : null))) return;
+      if (!want) { measure(); want = nearAt(yAim); }
+      if (!(await registerScenes(dev, g, flown && core ? staged : null, want))) return;
       for (const k of Object.keys(W)) delete W[k];
       for (const S of scenes) S.w = 0;
       if (flown && M) {
@@ -1419,7 +1595,8 @@
       if (!ARR_PORTAL && typeof s.cut === "function") s.cut(false, null, { instant: true });
       stage.input();
       startTicking();
-      log(`[stage] adopted: tier ${tier}, scenes ${scenes.map((S) => S.name).join(", ")}, formations ${[...registered].join(", ")}`);
+      pumpIdle();
+      log(`[stage] adopted: tier ${tier}, scenes ${scenes.map((S) => S.name).join(", ")}, formations ${[...registered].join(", ")}${later.size ? `, ${later.size} scenes ahead` : ""}`);
     } catch (e) {
       building = false; shadow = null;
       if (K.bridge) K.bridge.stop();
@@ -1472,7 +1649,8 @@
     });
     try {
       if (!mod) {
-        const [m, r, sc] = await Promise.all([import(BASE + "stage.js"), import(BASE + "scenes/lib/raster.js").catch(() => null), loadScenes()]);
+        // (wave 7, STAGE) a cold load imports the scenes near the reader first (loadScenes)
+        const [m, r, sc] = await Promise.all([import(BASE + "stage.js"), import(BASE + "scenes/lib/raster.js").catch(() => null), loadScenes(window.scrollY)]);
         mod = m; raster = r; scenes = sc;
       }
       if (g !== gen || dead) return;
@@ -1483,13 +1661,18 @@
       /** @type {any} */ let s = null, err = null;
       // the plates' pipeline may still be compiling: the swarm draws without them, and a failure later turns it off
       const onError = (/** @type {any} */ e) => { if (device === dev) off("plates: " + ((e && e.message) || e)); };
-      try { s = await mod.createStage({ device: dev, canvas, tier, tokens: tokens(), log, kit, onError }); } catch (e) { err = e; }
+      // (wave 7, STAGE) a probe's switch, with ?debug=1 only: ?budget=<ms> sets the frame budget that halves the swarm
+      // and brings it back (stage.js budget()), so the halving and the restore can be watched on a fast GPU
+      const budgetMs = DEBUG && Q.has("budget") && +(Q.get("budget") || "") > 0 ? +(Q.get("budget") || "") : undefined;
+      try { s = await mod.createStage({ device: dev, canvas, tier, tokens: tokens(), log, kit, onError, budgetMs }); } catch (e) { err = e; }
       const scoped = await Promise.all([dev.popErrorScope(), dev.popErrorScope()]);
       if (err || scoped.some(Boolean)) throw err || scoped.find(Boolean);
       if (g !== gen || dead) { try { s.destroy(); } catch (e) { /* ignore */ } return; }
       stage = s;
       if (lookWant && typeof s.look === "function") s.look(lookWant);   // a scene's look survives a rebuilt stage
-      if (!(await registerScenes(dev, g))) return;
+      // (wave 7, STAGE) the scenes near the reader now; the others ahead of the reader (pump)
+      measure();
+      if (!(await registerScenes(dev, g, null, nearAt(window.scrollY)))) return;
       for (const k of Object.keys(W)) delete W[k];
       for (const S of scenes) S.w = 0;
       /* (wave 2, ARRIVE) the room before the first frame: the field's pipelines (the wall, the blades, the chips) are in
@@ -1506,7 +1689,8 @@
       building = false;
       stage.input();
       startTicking();
-      log(`[stage] on: tier ${tier}, scenes ${scenes.map((S) => S.name).join(", ")}, formations ${[...registered].join(", ")}`);
+      pumpIdle();
+      log(`[stage] on: tier ${tier}, scenes ${scenes.map((S) => S.name).join(", ")}, formations ${[...registered].join(", ")}${later.size ? `, ${later.size} scenes ahead` : ""}`);
     } catch (e) {
       building = false;
       off("build failed: " + (e && /** @type {any} */ (e).message || e));

@@ -1,6 +1,6 @@
 ---
-/* Obla's main: parts/c-main.obla.html. */
-import { partial, literal } from "../lib/site.mjs";
-const html = literal('<main id="main">') + partial("c-main.obla.html") + literal("</main>");
+/* Obla's main: parts/c-main.obla.html, in main[data-part="obla"] (wave 7: the home holds the same part, so the page's styles hold in both). */
+import { pageMain } from "../lib/site.mjs";
+const html = pageMain("obla", "c-main.obla.html");
 ---
 <Fragment set:html={html} />

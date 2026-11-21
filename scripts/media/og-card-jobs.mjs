@@ -3,8 +3,8 @@
 //
 //   node scripts/media/og-cards.mjs [name ...]      (RV_BASE: the static server serving public/, default 5178)
 //
-// One 1200x630 JPEG per page and language in public/proto/rivista/og/: og-home.jpg and og-<slug>.jpg for the nine
-// cases (the Italian ones in og/it/). Redrawn in the night studio of spec 50 (integrate lane, 2026-11-10): the night
+// One 1200x630 JPEG per page and language in public/proto/rivista/og/: og-home.jpg and og-<slug>.jpg for each case
+// page, ten since wave 7 (the Italian ones in og/it/). Redrawn in the night studio of spec 50 (integrate lane, 2026-11-10): the night
 // ground #0c0e14, warm white type in one superfamily (Sofia Sans Extra Condensed 800 for the display, Sofia Sans for
 // text, Sofia Sans Condensed 600 for labels, from css/fonts.css), one cool accent for labels. Square edges, no rule,
 // no ornament, no "Fig." folio, no shadow or gradient. Every word comes from parts/cases.json or parts/strings.mjs; a
@@ -111,8 +111,10 @@ function homeCard(lang = "en") {
   };
 }
 
-/** every card's job, both editions: { file, html, what, img }; file is og-<name>.jpg or it/og-<name>.jpg */
-export function ogJobs() { return Object.keys(LANGS).flatMap((lang) => [homeCard(lang), ...CASES.map((c) => caseCard(c, lang))]); }
+/** every card's job, both editions: { file, html, what, img }; file is og-<name>.jpg or it/og-<name>.jpg. A work that is
+    a page of the site already ("page" in cases.json: Obla, wave 7) has no case page, so no card of its own: its page
+    shares the cover's card, as every page does */
+export function ogJobs() { return Object.keys(LANGS).flatMap((lang) => [homeCard(lang), ...CASES.filter((c) => !c.page).map((c) => caseCard(c, lang))]); }
 
 /** the inputs of a card, hashed: its HTML (every word, the figure, the CSS; not the server it was drawn from) and the
     bytes of its picture */

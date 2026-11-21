@@ -291,6 +291,12 @@ fn sim(@builtin(global_invocation_id) gid : vec3u) {
     if (emit >= 0.0) {
       pos = mix(tgt, spawn + (hq * 2.0 - 1.0) * spawnR, clamp(emit, 0.0, 1.0));
       vel = vec3f(0.0);
+    } else if (P.v.w < 0.0) {
+      // (wave 7, STAGE) a point brought back after a halving (stage.js budget() writes its radius as -1): it was not
+      // simulated while the swarm was halved and has no place of its own to fly in from (a long page left its last
+      // place screens away): it appears on its target, as a point of a formation that does not fly in
+      pos = tgt;
+      vel = vec3f(0.0);
     }
     size = wantSize;
   }

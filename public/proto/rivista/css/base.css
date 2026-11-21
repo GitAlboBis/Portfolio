@@ -38,10 +38,11 @@ cite { font-style: normal; }
 
 /* the browser's own surfaces, from the palette */
 ::selection { background: var(--accent); color: var(--night); }
-html[data-ground="dawn"] ::selection, .dawn ::selection { background: var(--cobalt); color: var(--dawn); }
+/* the morning's grounds: the Contact page, the dawn close, and (wave 7) the home's last part and its legal line */
+html[data-ground="dawn"] ::selection, .dawn ::selection, [data-part="contact"] ::selection, .legal-page ::selection { background: var(--cobalt); color: var(--dawn); }
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-html[data-ground="dawn"] :focus-visible, .dawn :focus-visible { outline-color: var(--cobalt); }
+html[data-ground="dawn"] :focus-visible, .dawn :focus-visible, [data-part="contact"] :focus-visible, .legal-page :focus-visible { outline-color: var(--cobalt); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--night); }
 ::-webkit-scrollbar-thumb { background: var(--line); border: 3px solid var(--night); }

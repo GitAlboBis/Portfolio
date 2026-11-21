@@ -45,6 +45,12 @@ html.nv-rule .hdr-rule { opacity: 1; transition: transform 0.42s var(--ease-rise
 html.nv-rule .hdr-rule.is-idle { opacity: 0; }
 html.nv-rule .hdr-rule.is-cold { transition: none; }
 html.nv-rule .hdr-nav a[aria-current="page"] { text-decoration-color: transparent; }
+/* (wave 7, lane MOTION) the home: the page of the part being read (fx-nav.js .is-here), marked quietly. Its item in
+   ink, the travelling rule resting under it (without the rule, the underline of the page being read); in the menu its
+   row's hairline stands drawn. Decoration only: the link still flies to the page. */
+.hdr-nav a.is-here { color: var(--ink); }
+html:not(.nv-rule) .hdr-nav a.is-here { text-decoration-color: currentColor; }
+.menu-a.is-here .menu-hl { transform: scaleX(1); transform-origin: 0 50%; }
 .hdr-menu { color: var(--ink); padding: var(--s2) 0 var(--s2) var(--s3); min-height: 2.75rem; transition: color var(--d-hover-out) var(--ease-out); }
 .hdr-menu:hover { color: var(--accent); transition-duration: var(--d-hover); }
 /* the header enters on load: its words come down into place, the name first, a breath apart (held under a cut's
@@ -135,7 +141,7 @@ html.rv-js .hdr-snd { display: inline-flex; }
    the morning's ground, ink and rules, a straight cut with no fade; the open menu keeps it night. Without script the
    header stays night. */
 :is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr { color: var(--dawn-ink); }
-:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr-name, .hdr-menu, .hdr .lang-now, .hdr-nav a[aria-current="page"]) { color: var(--dawn-ink); }
+:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr-name, .hdr-menu, .hdr .lang-now, .hdr-nav a[aria-current="page"], .hdr-nav a.is-here) { color: var(--dawn-ink); }
 :is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr-nav a, .hdr .lang-alt) { color: var(--dawn-body); }
 :is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr-nav a:hover, .hdr .lang-alt:hover, .hdr-name:hover, .hdr-menu:hover) { color: var(--cobalt); }
 :is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) :is(.hdr .lang-sep, .hdr-nav .lang) { color: var(--dawn-line); border-color: var(--dawn-line); }

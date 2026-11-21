@@ -3,16 +3,18 @@
    of glass in the right half. The path: the head on the right, then one step per stage of the path (when and kind,
    what, where); the stage draws the line and its five panes in the left half. Without the stage both read as plain
    flow: on a wide screen the eight groups and the five stages sit in two columns of ruled rows. */
-html[data-page="about"] .stk .tools { max-width: 30em; }
-html[data-page="about"] .stk .tools li { white-space: nowrap; }
-html[data-page="about"] .stp-when .t-acc { color: var(--accent); }
-html[data-page="about"] .stp-thesis { max-width: 30em; }
-html[data-page="about"] .pth-h { max-width: 9ch; }
+/* (wave 7) scoped to About's part, [data-part="about"]: the page's main and the home's part; each selector keeps the
+   specificity it had under html[data-page="about"] */
+html [data-part="about"] .stk .tools { max-width: 30em; }
+html [data-part="about"] .stk .tools li { white-space: nowrap; }
+html [data-part="about"] .stp-when .t-acc { color: var(--accent); }
+html [data-part="about"] .stp-thesis { max-width: 30em; }
+html [data-part="about"] .pth-h { max-width: 9ch; }
 /* plain flow (reduced motion, no WebGPU, print): the steps as two columns of ruled rows on a wide screen */
 @media (min-width: 1024px) {
-  html:is(:not(.sc-on), .gl-off)[data-page="about"] :is(.stk-list, .pth-list) {
+  html:is(:not(.sc-on), .gl-off) [data-part="about"] :is(.stk-list, .pth-list) {
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gut);
     border-top: 1px solid var(--line);
   }
-  html:is(:not(.sc-on), .gl-off)[data-page="about"] :is(.stk-list, .pth-list) > .sc-step { border-top: 0; border-bottom: 1px solid var(--line); }
+  html:is(:not(.sc-on), .gl-off) [data-part="about"] :is(.stk-list, .pth-list) > .sc-step { border-top: 0; border-bottom: 1px solid var(--line); }
 }

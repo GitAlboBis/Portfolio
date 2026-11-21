@@ -3,13 +3,13 @@
    Rivista prototype · page assembler (owner: WP-A; the case pages: cases lane, spec 20 §1.3; the two editions: IT
    lane, spec 30). Node, no dependencies.
 
-     node assemble.mjs          builds, in English and in Italian (it/), index.html, the nine case-<slug>.html and
-                                404.html; and fx.css
+     node assemble.mjs          builds, in English and in Italian (it/), index.html, the pages, one case-<slug>.html
+                                per work that has a case (ten of the eleven since wave 7) and 404.html; and fx.css
      node assemble.mjs --check  exits 1 if a built page or fx.css is stale, or an assert fails (writes nothing)
 
    THE TWO EDITIONS (spec 30). Every page is built twice from the SAME parts: English at the root, Italian in it/.
    The words come from one source, English and Italian side by side: parts/strings.mjs for what a template prints
-   ({{t:id}} in a partial; UI, S404 and META for the template modules) and parts/cases.json for the nine works (each
+   ({{t:id}} in a partial; UI, S404 and META for the template modules) and parts/cases.json for the works (each
    field a twin { en, it }). So the two editions cannot drift in structure, and --check proves it: the same elements
    on both pages, every string with its Italian, the Italian typography, no English left on an Italian page, a
    language control that leads to the same page of the other edition and back.
@@ -45,12 +45,29 @@
    back to the work's typographic plate, on the tile and on the case at once (logged as a fallback).
 
    SPEC 50 (from zero, 2026-11-10): the pages are the night studio's (head, header, cover, Work, About, Consulting,
-   Obla, Contact as the dawn page, the nine cases, the 404), every page but Contact closing with the dawn close
+   Obla, Contact as the dawn page, the case pages, the 404), every page but Contact closing with the dawn close
    (c-footer.html); html[data-ground] is written here. The stylesheets are css/*.css (the CSS list below), concatenated
    into fx.css, the one stylesheet the pages link. AFTER EDITING ANY css/*.css, RUN node assemble.mjs. The asserts
    below are spec 50's: the gallery steps and their pictures, the cycle of "More work", one h1, the ground, the dawn
    close, the scene grammar (one empty view per scene, --steps = its blocks). The old notes that follow (the rail, the
    band, the S4/S5 cuts) describe the retired magazine and are kept only as history.
+
+   WAVE 7 (lane HOME, 2026-11-20): THE HOME IS ONE CONTINUOUS SCROLL through every page's experience, in the menu's
+   order: the cover's hero and Now, then the parts of Work, About, Consulting, Obla and Contact, each read from the
+   partial its page prints (parts/c-main.home.mjs: homeMain, asPart), each a named section.part[data-part]; the page
+   prints the same part in main[data-part] (partMain), so css/page-*.css scopes a page's rules to [data-part] and they
+   hold in both places. In the home a part's opener is an h2 and its first screen's entrances play in view. No dawn
+   close in the home: it ends with Contact's morning and Contact's legal line. The cover's index is gone. Asserted
+   below (7): one h1, the scenes in that order and each once, no index, each part its page's own markup, one morning
+   at the end. The pages are unchanged but for main[data-part] and the [data-dawn] mark on Contact's legal line.
+
+   WAVE 7 (lane WORKS, 2026-11-20): ELEVEN WORKS. SerSan Agent OS, the multi-agent system built for SerSan, leads the
+   gallery (tile 01) with a case page like the others; Obla, the personal project, opens the works from outside SerSan
+   (tile 08) and has no case page: "page": "obla" in cases.json makes its plate, its More work row and its 404 row open
+   obla.html ({{LINK:obla}}). RESOLVED is every work (the plates, More work, the 404); CASE_PAGES the works with a case
+   page; nextCase() walks the case pages. Asserted below (1, 2, and the links): the tiles count the works in order, the
+   counter says "NN / 11", every list of the works holds them all in order, and every link to a case page (the
+   proofs of About and Consulting are written by hand) names its case and its tile.
    ========================================================================== */
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from "node:fs";
 import vm from "node:vm";
@@ -59,8 +76,9 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const CAPTURES = join(ROOT, "..", "..", "captures");
-const { render, renderTile, tx } = await import("./parts/c-main.case.mjs");
+const { render, renderTile, tx, hasCase, nextCase } = await import("./parts/c-main.case.mjs");
 const { render404, S404 } = await import("./parts/c-main.404.mjs");
+const { HOME, homeMain, partMain, asPart } = await import("./parts/c-main.home.mjs");
 const { default: STR, LANGS, jsWords, READ_BY_MODULES } = await import("./parts/strings.mjs");
 /* S2 fix (a11y review M1): the share cards' inputs, to tell a stale card (scripts/media/og-cards.mjs draws them) */
 const OG = await import("../../../scripts/media/og-card-jobs.mjs");
@@ -81,17 +99,22 @@ function resolveCase(c) {
       : `${r.slug}: /captures/${r.fig.stem}-{800,1600}.webp not on disk, Fig. 01 is the typographic plate`);
     r.fig = Object.assign({ kind: "plate" }, r.fig.plate);
   }
-  for (const ch of r.chapters) {
+  for (const ch of r.chapters || []) {
     if (ch.figure && !hasCapture(ch.figure.stem)) {
       fallbacks.push(`${r.slug}: /captures/${ch.figure.stem}-{800,1600}.webp not on disk, its chapter figure is left out`);
       delete ch.figure;
     }
   }
   /* "Photograph: none" prints only where none exists: a held capture exists, so its row is left out */
-  r.onFile = r.onFile.filter((o) => !o.onlyPlate || (r.fig.kind === "plate" && !held));
+  if (r.onFile) r.onFile = r.onFile.filter((o) => !o.onlyPlate || (r.fig.kind === "plate" && !held));
   return r;
 }
+/* every work, in the gallery's order (the plates, More work, the 404's list) */
 const RESOLVED = CASES.map(resolveCase);
+/* (wave 7, lane WORKS) the case pages: every work but one that is a page of the site already ("page" in cases.json:
+   Obla, whose plate opens obla.html) */
+const CASE_PAGES = RESOLVED.filter(hasCase);
+const pad2 = (n) => (n < 10 ? "0" : "") + n;
 
 /* ------------------------------------------------------------ S2 chrome: the head of every page */
 const SITE = {
@@ -335,7 +358,7 @@ function shipCss(css) {
    printed on the cut's sheet; n: its chapter index (spec 50 §4: 01 Work … 05 Contact), the sheet's line; dawn: the
    page is the morning (its ground, and the dawn sheet of the cut that leads to it) */
 const ISSUE = {
-  home: { file: "index.html", order: 0, label: "cut.index", sub: "Alberto Tuveri" },
+  home: { file: "index.html", order: 0, label: "cut.home", sub: "Alberto Tuveri" },
   work: { file: "work.html", order: 1, label: "sec.work", n: "01", part: "c-main.work.html" },
   about: { file: "about.html", order: 2, label: "sec.about", n: "02", part: "c-main.about.html" },
   consult: { file: "consulting.html", order: 3, label: "sec.consult", n: "03", part: "c-main.consult.html" },
@@ -344,8 +367,10 @@ const ISSUE = {
 };
 /* a section that is not the first of its page: its name (the menu and the old addresses reach it by an anchor) */
 const ANCHOR = {};   // e.g. { evidence: "sec.evidence" } with that string added: none is linked today
-/* each section lives on exactly one page (asserted) */
-const CHAPTERS = ["now", "index", "work", "evidence", "stack", "path", "consult", "obla", "contact"];
+/* where each section lives (asserted): Now on the home alone; every page's sections on that page and, since wave 7,
+   in the home's part of it; the cover's index nowhere */
+const CHAPTERS = { now: ["home"], work: ["work", "home"], evidence: ["work", "home"], stack: ["about", "home"], path: ["about", "home"],
+  consult: ["consult", "home"], obla: ["obla", "home"], contact: ["contact", "home"], index: [] };
 const orderOf = (k) => (k === "case" ? 1.5 : k === "404" ? -1 : ISSUE[k].order);
 /* LINK placeholders (page, or page#anchor), written for the page that prints them: the href, the direction of the cut,
    the destination's name and line on the sheet, the dawn sheet for Contact, aria-current on the page being read */
@@ -370,7 +395,7 @@ const groundOf = (key) => (ISSUE[key] && ISSUE[key].dawn ? "dawn" : "night");
 /* ------------------------------------------------------------ the pages of one edition */
 function pagesOf(lang) {
   const dir = LANGS[lang].dir, up = dir ? "../" : "";
-  const RAIL = RESOLVED.map((c) => renderTile(c, { lang })).join("");
+  const RAIL = RESOLVED.map((c) => renderTile(c, { lang, all: RESOLVED })).join("");
   /* what every page of this edition shares; LANGSWITCH is per page (it names the page's twin) */
   const common = (file, key, o) => Object.assign({
     LANG: lang,
@@ -379,31 +404,33 @@ function pagesOf(lang) {
     I18N: key === "404" ? "" : "\n" + i18n(lang),   // the scripts' words (the stage's instrument line)
     LANGSWITCH: langSwitch(lang, file, !!(ISSUE[key] && ISSUE[key].dawn)),
     HOME: rootAttrs(key),
-    BRAND: key === "home" ? 'href="#top"' : 'href="index.html" data-back data-pt-label="{{t:cut.index}}" data-pt-sub="Alberto Tuveri"',
+    BRAND: key === "home" ? 'href="#top"' : 'href="index.html" data-back data-pt-label="{{t:cut.home}}" data-pt-sub="Alberto Tuveri"',
   }, o);
-  /* every page closes at dawn (c-footer.html); Contact is the morning already and keeps only its legal line */
+  /* every page closes at dawn (c-footer.html); Contact is the morning already and keeps only its legal line, and so
+     does the home (wave 7), which ends with Contact's part */
   /* the 404 has no stage: its close is the same but for its own engine line (c-footer.404.html, asserted) */
-  const shell = (main, key) => ["head.html", '<body id="top">', "a-header.html", ...main, key === "contact" ? "c-footer.contact.html" : key === "404" ? "c-footer.404.html" : "c-footer.html", "a-overlays.html", "</body>\n</html>"];
+  const shell = (main, key) => ["head.html", '<body id="top">', "a-header.html", ...main, key === "contact" || key === "home" ? "c-footer.contact.html" : key === "404" ? "c-footer.404.html" : "c-footer.html", "a-overlays.html", "</body>\n</html>"];
   const place = dir ? (html) => relocate(html, up) : null;
   return [
     {
+      /* the home (wave 7): the cover's hero and Now, then every page's part (parts/c-main.home.mjs) */
       out: dir + "index.html", lang, file: "index.html", key: "home",
-      vars: common("index.html", "home", { META: meta(homeMeta(lang), lang) }),
+      vars: common("index.html", "home", { META: meta(homeMeta(lang), lang), RAIL }),
       post: place,
-      parts: shell(['<main id="main">', "b-hero.html", "c-main.index.html", "</main>"], "home"),
+      parts: shell([{ render: () => homeMain((f) => piece(f, dir + "index.html")) }], "home"),
     },
     ...Object.keys(ISSUE).filter((k) => k !== "home").map((key) => ({
       out: dir + ISSUE[key].file, lang, file: ISSUE[key].file, key,
       vars: common(ISSUE[key].file, key, { META: meta(pageMeta(key, lang), lang), RAIL }),
       post: place,
-      parts: shell(['<main id="main">', ISSUE[key].part, "</main>"], key),
+      parts: shell([partMain(key), ISSUE[key].part, "</main>"], key),
     })),
-    ...RESOLVED.map((c, i) => ({
+    ...CASE_PAGES.map((c) => ({
       out: dir + "case-" + c.slug + ".html", lang, file: "case-" + c.slug + ".html", key: "case",
       slug: c.slug,
       vars: common("case-" + c.slug + ".html", "case", { META: meta(caseMeta(c, lang), lang) }),
       post: place,
-      parts: shell([`<main id="main" data-case="${c.slug}" data-tile="${c.tile}">`, { render: () => render(c, { next: RESOLVED[(i + 1) % RESOLVED.length], all: RESOLVED, lang }) }, "</main>"], "case"),
+      parts: shell([`<main id="main" data-case="${c.slug}" data-tile="${c.tile}">`, { render: () => render(c, { next: nextCase(RESOLVED, c), all: RESOLVED, lang }) }, "</main>"], "case"),
     })),
     /* the 404: no stage (html[data-nogl]: the head script never loads the engine); rooted paths (see SITE.base) */
     {
@@ -493,17 +520,25 @@ function asserts(built) {
     const work = built[dir + "work.html"] || "";
     const caseOf = (slug) => built[dir + "case-" + slug + ".html"];
     // 1 · the gallery: one step per work, in order, its link to its own case under its own name; a capture work holds
-    //     its picture as <img data-slab="SLUG">, a work without one its key words ([data-slab-words="SLUG"])
+    //     its picture as <img data-slab="SLUG">, a work without one its key words ([data-slab-words="SLUG"]).
+    //     (wave 7, lane WORKS) the tiles are 01, 02 … in the data's order and the counter says "NN / their count"; a
+    //     work with a page of its own (Obla) opens that page under the page's own name and has no case page
+    if (count(work, /<li class="sc-step wk" /g) !== RESOLVED.length) F(`${dir}work: ${count(work, /<li class="sc-step wk" /g)} gallery steps (want ${RESOLVED.length}, one per work)`);
+    RESOLVED.forEach((c, i) => { if (c.tile !== pad2(i + 1)) F(`cases.json: ${c.slug} is tile ${c.tile} (want ${pad2(i + 1)}: the tiles count the works in order)`); });
     for (const c of RESOLVED) {
       const m = new RegExp(`<li class="sc-step wk" data-stage-step="(\\d+)" data-tile-id="${c.tile}">([\\s\\S]*?)</li>\\n`).exec(work);
       if (!m) { F(`${dir}work: no gallery step for ${c.tile}`); continue; }
       if (+m[1] !== +c.tile) F(`${dir}work: step ${m[1]} for tile ${c.tile}`);
+      if (!m[2].includes(`<p class="t-label wk-n"><span class="t-acc">${c.tile}</span> / ${pad2(RESOLVED.length)}</p>`)) F(`${dir}work: tile ${c.tile}'s counter is not "${c.tile} / ${pad2(RESOLVED.length)}"`);
       const a = /<a class="q" href="([^"]+)" data-pt-label="([^"]*)"/.exec(m[2]);
-      if (!a || a[1] !== "case-" + c.slug + ".html") F(`${dir}work: tile ${c.tile} links ${a && a[1]} (want case-${c.slug}.html)`);
-      else if (a[2] !== c.label.replace(/&/g, "&amp;")) F(`${dir}work: tile ${c.tile} data-pt-label ${a[2]} (want ${c.label})`);
+      const wantHref = hasCase(c) ? "case-" + c.slug + ".html" : (ISSUE[c.page] || {}).file;
+      const wantLabel = hasCase(c) ? c.label.replace(/&/g, "&amp;") : ISSUE[c.page] ? ea(S(ISSUE[c.page].label, lang)) : "?";
+      if (!a || a[1] !== wantHref) F(`${dir}work: tile ${c.tile} links ${a && a[1]} (want ${wantHref})`);
+      else if (a[2] !== wantLabel) F(`${dir}work: tile ${c.tile} data-pt-label ${a[2]} (want ${wantLabel})`);
       const cap = c.fig.kind === "capture";
       if (cap !== new RegExp(`<img data-slab="${c.slug}"`).test(m[2])) F(`${dir}work: tile ${c.tile} ${cap ? "has no" : "has a"} <img data-slab> but its case is a ${c.fig.kind}`);
       if (!cap && !new RegExp(`data-slab-words="${c.slug}"`).test(m[2])) F(`${dir}work: tile ${c.tile} without its key words`);
+      if (!hasCase(c)) { if (caseOf(c.slug)) F(`${dir}case-${c.slug}.html: a work with a page of its own has a case page`); continue; }
       // the case opens on that same plate: its opener is the scene "case" (two blocks, the h1 in the first), and its
       // picture is the gallery step's slab (the same capture as <img data-slab="SLUG"> in a [data-case-hero] figure,
       // or the same key words as [data-slab-words="SLUG"]), printed as the plain picture outside scene mode
@@ -522,36 +557,52 @@ function asserts(built) {
       const kinds = [...page.matchAll(/<section id="c\d+" data-ch="([a-z]+)" /g)].map((m) => m[1]).join(" ");
       if (kinds !== c.chapters.map((ch) => ch.type).join(" ")) F(`${dir}case-${c.slug}: its chapters' data-ch are "${kinds}" (want "${c.chapters.map((ch) => ch.type).join(" ")}")`);
     }
-    // 2 · "More work": the next links are one cycle of nine, in gallery order
+    // 2 · "More work": the next links are one cycle through the case pages, in gallery order (a work with a page of its
+    //     own is passed over); every case lists every work, in gallery order, and so does the 404
     const seen = new Set();
-    let at = RESOLVED[0].slug;
-    for (let k = 0; k < RESOLVED.length; k++) {
+    let at = CASE_PAGES[0].slug;
+    for (let k = 0; k < CASE_PAGES.length; k++) {
       seen.add(at);
       const m = /<a class="cs-more-a cs-next" href="case-([a-z0-9-]+)\.html"/.exec(caseOf(at) || "");
-      const want = RESOLVED[(RESOLVED.findIndex((c) => c.slug === at) + 1) % RESOLVED.length].slug;
+      const want = nextCase(RESOLVED, RESOLVED.find((c) => c.slug === at) || CASE_PAGES[0]).slug;
       if (!m) { F(`${dir}case-${at}: no next link`); break; }
       if (m[1] !== want) F(`${dir}case-${at}: next is ${m[1]} (want ${want})`);
       at = m[1];
     }
-    if (seen.size !== RESOLVED.length || at !== RESOLVED[0].slug) F(`${dir}next links: not one cycle of ${RESOLVED.length} (visited ${seen.size}, ended on ${at})`);
-    const dawn = (built[dir + "index.html"] || "").match(/<footer class="dawn"[\s\S]*?<\/footer>/);
+    if (seen.size !== CASE_PAGES.length || at !== CASE_PAGES[0].slug) F(`${dir}next links: not one cycle of ${CASE_PAGES.length} (visited ${seen.size}, ended on ${at})`);
+    const names = RESOLVED.map((c) => ea(c.label)).join(" | ");
+    for (const c of CASE_PAGES) {
+      const got = [...(caseOf(c.slug) || "").matchAll(/<span class="t-d2 cs-more-t">([^<]*)<\/span>/g)].map((m) => m[1]).join(" | ");
+      if (got !== names) F(`${dir}case-${c.slug}: More work lists "${got}" (want every work in gallery order)`);
+    }
+    const nf = /<h3 class="t-label nf-works">[\s\S]*?<\/ol>/.exec(built[dir + "404.html"] || "");
+    const nfGot = nf ? [...nf[0].matchAll(/<span class="t-d2 ix-t">([^<]*)<\/span>/g)].map((m) => m[1]).join(" | ") : "";
+    if (nfGot !== names) F(`${dir}404: its works are "${nfGot}" (want every work in gallery order)`);
+    /* the reference close: Work's (the home has none since wave 7) */
+    const dawn = (built[dir + "work.html"] || "").match(/<footer class="dawn"[\s\S]*?<\/footer>/);
     for (const p of PAGES.filter((x) => x.lang === lang)) {
       const h = built[p.out] || "";
       // 3 · one h1; the ground written by the build; no water, no magazine
       if (count(h, /<h1[\s>]/g) !== 1) F(p.out + ": " + count(h, /<h1[\s>]/g) + " h1");
       if (!new RegExp(`<html [^>]*data-ground="${groundOf(p.key)}"`).test(h)) F(p.out + ": html[data-ground] is not " + groundOf(p.key));
       if (WATER.test(h)) F(p.out + ": something of the old site is back (" + WATER.exec(h)[0] + ")");
-      // 4 · every page but Contact closes at dawn, with the same bytes; Contact is the morning itself
+      // 4 · every page but Contact and the home closes at dawn, with the same bytes; Contact is the morning itself, and
+      //     the home ends with Contact's part (7); both end with Contact's legal line, marked [data-dawn]
       const close = h.match(/<footer class="dawn"[\s\S]*?<\/footer>/g) || [];
-      if (p.key === "contact") { if (close.length) F(p.out + ": the Contact page has a dawn close"); if (count(h, /\sdata-dawn[\s>]/g) !== 1) F(p.out + ": the Contact page is not [data-dawn]"); }
+      if (p.key === "contact" || p.key === "home") {
+        if (close.length) F(p.out + ": " + (p.key === "home" ? "the home" : "the Contact page") + " has a dawn close");
+        if (count(h, /<section class="sc ct" id="contact" data-stage="contact" data-dawn /g) !== 1) F(p.out + ": Contact's morning is not one section.ct[data-dawn]");
+        if (count(h, /<footer class="legal legal-page" data-dawn>/g) !== 1 || !/<\/main>\n<footer class="legal legal-page" data-dawn>/.test(h)) F(p.out + ": Contact's legal line, [data-dawn], does not follow the main");
+        if (count(h, /\sdata-dawn[\s>]/g) !== 2) F(p.out + ": " + count(h, /\sdata-dawn[\s>]/g) + " [data-dawn] grounds (want 2: Contact's part and its legal line)");
+      }
       else if (close.length !== 1) F(p.out + ": " + close.length + " dawn closes (want 1)");
-      else if (dawn && p.key !== "404" && close[0] !== dawn[0]) F(p.out + ": the dawn close differs from the cover's");
+      else if (dawn && p.key !== "404" && close[0] !== dawn[0]) F(p.out + ": the dawn close differs from Work's");
       else if (dawn && p.key === "404") {
         // the one exception: the 404 draws nothing live, so its engine line is its own; the rest is the cover's close
         const LL = /<p class="legal-line">[\s\S]*?<\/p>/;
         const own = (close[0].match(LL) || [""])[0], cover = (dawn[0].match(LL) || [""])[0];
         if (!own || own === cover) F(p.out + ": the 404's close does not print its own engine line");
-        if (close[0].replace(LL, "") !== dawn[0].replace(LL, "")) F(p.out + ": the 404's close differs from the cover's beyond its engine line");
+        if (close[0].replace(LL, "") !== dawn[0].replace(LL, "")) F(p.out + ": the 404's close differs from Work's beyond its engine line");
       }
       // 5 · the scene grammar (spec 50 §3): each scene has its one empty view, named as the scene; --steps counts its blocks
       for (const m of h.matchAll(/<section class="sc[ "][^>]*data-stage="([a-z]+)"[^>]*>([\s\S]*?)<\/section>/g)) {
@@ -561,10 +612,32 @@ function asserts(built) {
         if (st && +st[1] !== blocks) F(`${p.out}: scene ${name} says --steps:${st[1]} and holds ${blocks} blocks`);
       }
     }
-    for (const id of CHAPTERS) {
-      const on = PAGES.filter((x) => x.lang === lang && new RegExp('<section [^>]*id="' + id + '"').test(built[x.out] || "")).map((x) => x.out);
-      if (on.length !== 1) F(dir + "section #" + id + " is on " + on.length + " pages (" + on.join(", ") + "): a section lives on exactly one page");
+    for (const [id, keys] of Object.entries(CHAPTERS)) {
+      const on = PAGES.filter((x) => x.lang === lang && new RegExp('<section [^>]*id="' + id + '"').test(built[x.out] || "")).map((x) => x.key).sort().join(" ");
+      if (on !== [...keys].sort().join(" ")) F(`${dir}section #${id} is on "${on}" (want "${[...keys].sort().join(" ")}")`);
     }
+    // 7 · THE HOME (wave 7): its scenes are the cover's hero and Now, then every part's own scenes in the menu's order,
+    //     each once; nothing of the cover's index; each part a section.part[data-part] named as its page, holding its
+    //     page's own markup (the page's main through asPart: the opener an h2, its entrances in view; the direction of
+    //     a link may differ, home being first); it ends with Contact's part, then the legal line (4). One h1: (3).
+    const home = built[dir + "index.html"] || "";
+    const scenesOf = (h) => [...h.matchAll(/<section class="sc[ "][^>]*data-stage="([a-z]+)"/g)].map((m) => m[1]);
+    const want = ["hero", "now", ...HOME.flatMap((p) => scenesOf(built[dir + ISSUE[p.key].file] || ""))].join(" ");
+    const got = [...home.matchAll(/\sdata-stage="([a-z]+)"/g)].map((m) => m[1]).join(" ");
+    if (got !== want) F(`${dir}index.html: its scenes are "${got}" (want "${want}")`);
+    if (/\sid="index"|\sdata-stage-cue=|class="ix-/.test(home)) F(`${dir}index.html: something of the cover's index is back`);
+    const parts = [...home.matchAll(/<section class="part" data-part="([a-z]+)" aria-label="([^"]*)">\n([\s\S]*?\n)<\/section>\n/g)];
+    if (parts.map((m) => m[1]).join(" ") !== HOME.map((p) => p.key).join(" ")) F(`${dir}index.html: its parts are "${parts.map((m) => m[1]).join(" ")}" (want "${HOME.map((p) => p.key).join(" ")}")`);
+    const norm = (s) => s.replace(/ data-back(?=[\s>])| aria-current="page"/g, "");
+    for (const m of parts) {
+      const P = HOME.find((x) => x.key === m[1]);
+      if (!P) continue;
+      if (m[2] !== ea(S(P.label, lang))) F(`${dir}index.html: the part ${m[1]} is named "${m[2]}" (want its page's name)`);
+      const own = new RegExp(`<main id="main" data-part="${P.key}">\\n([\\s\\S]*?\\n)</main>\\n`).exec(built[dir + ISSUE[P.key].file] || "");
+      if (!own) { F(`${dir}${ISSUE[P.key].file}: its main is not main[data-part="${P.key}"]`); continue; }
+      if (norm(m[3]) !== norm(asPart(own[1]))) F(`${dir}index.html: the part ${m[1]} is not its page's own markup (parts/c-main.home.mjs)`);
+    }
+    if (!/\n<\/section>\n<\/main>\n<footer class="legal legal-page" data-dawn>/.test(home) || parts.length && parts[parts.length - 1][1] !== "contact") F(`${dir}index.html: the home does not end with Contact's part and its legal line`);
   }
   for (const [f, html] of Object.entries(built)) {
     if (!/\.html$/.test(f)) continue;
@@ -572,6 +645,13 @@ function asserts(built) {
     const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
     const dup = ids.filter((x, i) => ids.indexOf(x) !== i);
     if (dup.length) F(`${f}: duplicate id ${[...new Set(dup)].join(", ")}`);
+    // (wave 7, lane WORKS) every link to a case page, on every page (the gallery, More work, a teaser, the 404, About's
+    // and Consulting's proofs, written by hand), names its case on the cut's sheet as the gallery numbers it
+    for (const m of html.matchAll(/href="(?:[^"]*\/)?case-([a-z0-9-]+)\.html" data-pt-label="([^"]*)" data-pt-sub="([^"]*)"/g)) {
+      const c = RESOLVED.find((x) => x.slug === m[1]);
+      if (!c || !hasCase(c)) { F(`${f}: a link to case-${m[1]}.html, which is no case page`); continue; }
+      if (m[2] !== ea(c.label) || !m[3].startsWith(c.tile + " · ")) F(`${f}: its link to case-${m[1]}.html says "${m[2]}" / "${m[3]}" (want "${c.label}" / "${c.tile} · …")`);
+    }
   }
   // 6 · every share card was drawn from its current inputs (words, figure, picture bytes)
   const man = existsSync(OG.MANIFEST) ? JSON.parse(readFileSync(OG.MANIFEST, "utf8")) : {};
@@ -728,5 +808,5 @@ for (const m of missing) console.warn(`[assemble] missing partial, replaced by a
 for (const f of fallbacks) console.log(`[assemble] fallback · ${f}`);
 const bad = [...asserts(built), ...editions(built)];
 for (const b of bad) console.log(`[assemble] ASSERT ${b}`);
-if (!bad.length) console.log(`[assemble] structural asserts ok (${LANG_IDS.length} editions: ${LANG_IDS.join(", ")}; ${RESOLVED.length} cases, ${RESOLVED.filter((c) => c.fig.kind === "capture").length} on a capture; ${Object.keys(STR).length} strings and the cases' twins, each in both languages)`);
+if (!bad.length) console.log(`[assemble] structural asserts ok (${LANG_IDS.length} editions: ${LANG_IDS.join(", ")}; ${RESOLVED.length} works, ${CASE_PAGES.length} with a case page, ${RESOLVED.filter((c) => c.fig.kind === "capture").length} on a capture; ${Object.keys(STR).length} strings and the works' twins, each in both languages)`);
 if ((check && stale) || bad.length) process.exit(1);

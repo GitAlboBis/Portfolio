@@ -131,16 +131,20 @@ const light = {
   },
 };
 
-/** the five "when" labels, read once from the page (each step's first label): what each pane carries etched */
+/** the five "when" labels, read once from the page (each step's first label): what each pane carries etched
+ *  (wave 7, INTEGRATE) read again once the label they came from has left the document: the Astro router keeps this
+ *  module across pages, and a language flight to the other edition etched the English months on the Italian path */
 /** @type {string[][] | null} */ let WHEN = null;
+/** @type {Element | null} */ let WHEN_EL = null;
 function whens() {
-  if (WHEN) return WHEN;
-  const out = [];
-  for (const el of document.querySelectorAll('[data-stage="path"] [data-stage-step] .stp-when .t-acc')) {
+  if (WHEN && WHEN_EL && WHEN_EL.isConnected) return WHEN;
+  const out = [], els = document.querySelectorAll('[data-stage="path"] [data-stage-step] .stp-when .t-acc');
+  for (const el of els) {
     const t = (el.textContent || "").split(/[–-]/)[0].replace(/\s+/g, " ").trim();
     out.push(t.split(" ").filter(Boolean));
   }
   WHEN = out.slice(0, NODES);
+  WHEN_EL = els[0] || null;
   return WHEN;
 }
 

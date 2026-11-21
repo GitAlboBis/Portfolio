@@ -1,14 +1,23 @@
 # Scenes — what a scene author needs (spec 50 §3, §5; plan 70)
 
-> Brought up to the code of 17 November 2026 (wave 5) by its DOCS lane. The engine's own reference is the header of
-> `stage/stage.js`; the host's is the header of `fx-stage.js`. Where this page and the code disagree, the code wins.
+> Brought up to the code of 17 November 2026 (wave 5) by its DOCS lane; corrected in place for wave 6 (20 November)
+> and wave 7 (21 November: the home as one page of every page's scenes, the neural cosmos where the wall was, the
+> looks mixed by weight). The engine's own reference is the header of `stage/stage.js`; the host's is the header of
+> `fx-stage.js`. Where this page and the code disagree, the code wins.
 
 A scene is one module, `stage/scenes/NAME.js`, for every `<section data-stage="NAME">` on a page (a case page's
 `main[data-case]` is given the `mist` scene). The host (`fx-stage.js`) imports it when the page has that section (a
 missing or failing module is skipped), registers its formations with the stage, calls `frame(ctx)` every frame while
 the section is near the viewport, blends the answers of every scene on screen by how much of the viewport each holds,
-and sends one `stage.set` per frame. Today: `hero`, `now`, `index`, `gallery`, `evidence`, `stack`, `path`, `consult`,
-`obla`, `contact`, `dawn`, `mist`, `case`.
+and sends one `stage.set` per frame. Today: `hero`, `now`, `gallery`, `evidence`, `stack`, `path`, `consult`,
+`obla`, `contact`, `dawn`, `mist`, `case` (wave 7: the index left the home with its scene, `index.js`). The home holds
+the scenes of every page but the cases in one document (hero, now, gallery, evidence, stack, path, consult, obla,
+contact): the host registers a scene's formations ahead of the reader (`AHEAD` in `fx-stage.js`: 1.5 screens up, 3
+down; on a cold load only the scenes near the reader are imported before the first frame, the others after it in page
+order, one formation a task), mixes the scenes' looks by weight (a key a scene does not ask for counts at the stage's
+`LOOK`), and contact draws the edge of day there. A scene runs its `frame` only once its formations are in. Every
+scene of a page keeps its own shot in the home: each part hands the frame to the next by weight, the cosmos
+travelling between them.
 
 Where things live: helpers in `stage/scenes/lib/` (never a scene name: `room.js`, `camera.js`, `page.js`, `prism.js`,
 `portal.js`, `raster.js`); the cover's world in `scenes/cover/`; a case's plate, glow and chapter figures in
@@ -61,7 +70,7 @@ export default {
 | `glass` | `{ ready, age, late }`: whether plates can draw yet, seconds since they could (0 until then), and whether the stage drew before they could (see "The glass signal") |
 | `etch(id, lines, o)` | etched words (display face, uppercase; `o.w`, `o.h` the canvas in css px: the plate's aspect) as a slab texture for a slab's `etch`; returns its id once drawn, else `null` (ask again next frame) |
 | `texture(id, source)` | a canvas or bitmap of your own as a slab texture; returns its id |
-| `look(partial)` | overrides of the stage's LOOK for the whole page (e.g. `{ far, near }`: the sim clamps every point's z to far..near, −700..450 by default; the cover's hall asks −2.6 D..4.7 D). Sent to the stage only when it changes, and kept across a rebuilt stage. Ask once, from the scene that needs it |
+| `look(partial)` | your ask of the stage's LOOK (e.g. `{ far, near }`: the sim clamps every point's z to far..near, −700..450 by default; the cover's hall asks −2.6 D..4.7 D; `keepFeather`). Since wave 7 an ask, not an order: every frame the host mixes the asks of the scenes in the frame by their weight, and a key a scene does not ask for counts at LOOK's value (`fx-stage.js` `lookOf`; `keepFeather` always, any other key, `far` and `near` included, once a scene of the page asks for it: the hero and Now do, so the home's parts hand their looks over as their scenes hand over the frame; a page whose scenes never ask for a depth range keeps the one it was flown in with, LOOK's on a load). Sent to the stage only when it changes, kept across a rebuilt stage. Ask every frame you are on screen, from the scenes whose look it is (Now asks the hero's) |
 | `speed` | 0..1 the reader's speed (the scroll velocity over 2600 px/s, up in 0.12 s, down in 0.7 s, exactly 0 at rest) |
 | `aim` | `{ x, y, touch }`: the hand's orbit input, −1..1: the pointer on a desktop, a horizontal drag on a touch screen |
 | `textRects(o)` | the scene's text now, viewport px, at its final layout box (see "The room"): what to keep clear |
@@ -98,8 +107,8 @@ export default {
   `{ strength, threshold, knee, plates }`. Blended by weight; the dawn never glows.
 - `keepouts: [rect]` — no ink inside them (with the page's `[data-stage-keepout]`, 16 in all).
 - `focus` — the depth in sharp focus (px; 0 = the page plane).
-- `field: { lights, chips, wall }` — THE FIELD (round 11): shafts of light, chips of cut glass in the air, the back
-  wall in relief. Opt-in: absent, nothing of it runs. See "The field" below.
+- `field: { lights, chips, cosmos }` — THE FIELD (round 11): shafts of light, chips of cut glass in the air, and (wave
+  7) the neural cosmos where the back wall was. Opt-in: absent, nothing of it runs. See "The field" below.
 - `passes: { id: cfg }` — switches an extra pass on (see "An extra pass"): today `rays` and `splat`.
 - `subject: { x, y }` — viewport px: where the cut's push aims (the leading scene's; default the figure's centre).
 - `lit: true` — with `litSignal: true` in the module: the subject is lit now (the cover says it when the name stands);
@@ -110,10 +119,9 @@ prism of cut glass inscribed in the plate's box, traced with two refractions and
 (`stage/plates/plates.js` `isPrismSlab`). Since wave 6 a prism can carry **a beam inside its glass**, drawn between two
 points of its outline (`PRISM_BEAM` `u0` where the light enters, `u1` where it leaves; `prismOutline(u, hx, hz)` gives
 the point in the prism's own space, so a scene aims its shaft at `u0` and starts its ray at `u1`): its light rides
-`inset` below −1, as `inset: -(1 + k)` (k the beam's light, read up to 2; the index sends 0.6–1; `-1` alone is a
-prism with no beam). Two prisms exist: the index's,
-with its beam (`index.js`), and More work's in a case (`case/figures.js`, `inset: -1`, its ray drawn by the `rays`
-pass).
+`inset` below −1, as `inset: -(1 + k)` (k the beam's light, read up to 2; `-1` alone is a prism with no beam). One
+prism exists since wave 7 (the index's, with its beam, left with the index): More work's in a case
+(`case/figures.js`, `inset: -1`, no beam: its shaft, the light inside it and its ray are drawn by the `rays` pass).
 
 ## A camera path (the free camera, `lib/camera.js`)
 
@@ -148,15 +156,15 @@ export default {
 Shoot on `stage/dev.html?view=fly` first: the bench's test world with this kind of path (`p=0..1` holds it, live it
 loops every `period` s).
 
-## The field (shafts, chips, the back wall: `stage/field/`)
+## The field (shafts, chips, the cosmos: `stage/field/`, `stage/cosmos/`)
 
 Stateless and drawn by the stage (`stage/field/field.js`, `field.wgsl.js`, `atlas.js`): nothing is simulated, so a
 field costs nothing until a scene returns one, and it stands still when the stage rests. Every position is in the free
 camera's space (x, y viewport css px at the current scroll, z px toward the reader, the page plane z = 0), the space
 of `camera.pos`; it works with the orbiting camera too. The host blends two scenes' fields by their weights (lights
-pooled, the four strongest kept, each one's `strength` times its scene's weight; chips and wall: numbers mixed, shapes
-from the heavier). Its pipelines compile at boot after the swarm's (never before the first frame); the field enters in
-0.7 s once they are in, the chips once their shapes are rasterised. A failure leaves the stage drawing without it
+pooled, the four strongest kept, each one's `strength` times its scene's weight; chips and cosmos: numbers mixed by
+weight, their presence the sum of the weights, shapes from the heavier). Its pipelines compile at boot after the
+swarm's (never before the first frame); the field enters in 0.7 s once they are in, the chips once their shapes are rasterised. A failure leaves the stage drawing without it
 (`stage.whenField` resolves false; `?failfield=1` forces it). Nothing of it draws in the dawn or over a keep-out.
 
 - `lights: [{ pos, target | dir, radius, aspect, roll, spread, soft, strength, tint, length, haze, wall, chips }]` — up
@@ -166,7 +174,8 @@ from the heavier). Its pipelines compile at boot after the swarm's (never before
   half angle the shaft opens by (rad, default 0.04), `soft` the soft fraction of its edge (0.02–1, default 0.55),
   `strength` (default 1), `tint` 0 paper-white … 1 the night's cobalt light (default 0.15), `length` px (default
   6000), `haze` its own light in the air (0 none, 0.03–0.08 a shaft through dust; it fades when the eye is inside or
-  within ~500 px of it, so the night never turns grey), `wall` / `chips` how much it lights each (default 1).
+  within ~500 px of it, so the night never turns grey), `chips` how much it lights the chips (default 1; `wall` is still
+  read, but since wave 7 there is no wall and the cosmos takes no light: a light is a key light the glass catches).
   (wave 2, FIX) `across: [x, y, z]` the section's width axis (made normal to the direction; it replaces `roll`): the
   default axis flips when a shaft leans past ~18°, turning a leaning blade edge-on; `across: [0, 0, 1]` holds the
   blade's width toward the reader, so a slanted shaft keeps its body (the room's glow blades use it). The chips' atlas
@@ -181,16 +190,26 @@ from the heavier). Its pipelines compile at boot after the swarm's (never before
   of a face turning through a light (2.2 / 80), `transmit` the glow inside a light (0.3), `bevel` the cut edge (cell
   px, 7). `near` css px: a chip bigger on screen fades (160); `cap` the blur past which one fades (0 = the camera's
   bokeh cap). `mask`: a canvas or bitmap whose alpha is the `own` shape. `alpha` presence 0–1.
-- `wall: { point, normal, cell, line, relief, extent, unlit, lit, spec, grain, displace, alpha }` — an analytic plane
-  (a wall facing the hall, never a floor), drawn before the swarm so the plates bend it. `point` (default
-  [720, 450, −2600]), `normal` (toward the hall, default [0, 0, 1]), `cell` px (72), `line` px (1.4), `relief` the
-  tilt of a cell (0.12), `extent` [w, h] half sizes with a soft fall to nothing (no edge, no horizon), `unlit` the
-  grid's level in the dark (0.06: barely there), `lit` [line, cell] under a light (0.9, 0.1), `spec` (0.55), `grain`
-  (0.035), `displace` px the grid moves along each cell's tilt inside a light (7: the relief shimmers as a light
-  sweeps). The wall saturates softly; keep the scene's `bloom` ≤ 0.8 when a lit wall is on screen.
+- `cosmos: { z, alpha, gain, stars, white, far, dof, keep, thread, cap }` — (wave 7, COSMOS) THE NEURAL COSMOS where
+  the ruled wall was (the grid is gone from every room): the large-scale structure of the universe, one web seeded once
+  for the whole site (`stage/cosmos/web.js`: nodes, the filaments between them, galaxies strung along them, a faint
+  field of distant stars), drawn before the swarm so the plates bend it, with the stage's depth of field; only the
+  dense nodes' cores pass the glow's threshold. Every page is a place in it (`journeyOf` / `placeOf`, from the host's
+  `stage.set({ cosmos: { key, slug, max, parts, y, vh } })`): a page's scroll travels through its place, the home's
+  scroll is one journey through every page's, and a flight shows it inside the door. While the stage is awake an
+  impulse of light now and then runs a filament from node to node (the stage's clock: it stops at rest; none in a
+  flight). It stops at the straight edge of day. An old `wall` is read as the cosmos at its depth (`wallAsCosmos`).
+  The fields (defaults in `field.js` `FIELD_DEF.cosmos`): `z` the room's back plane in px (only what lies behind it
+  draws; default −1200, the room kit sends −0.6 D), `alpha` its presence (1), `gain` its light (2.6), `stars` the far
+  stars' own (0.16), `white` the thin light's share of paper white (0.32; the rest is cobalt, denser light goes white),
+  `far` the fog's end in D (7), `dof` the depth of field's factor of the stage's aperture (0.012: deep focus), `keep`
+  the dim round the kept text `{ floor, fall, haze }` (0.04, 140 px, 0.12; the floor never above 0.08), `thread` the
+  filaments' light `[core gain, halo gain, core width, halo width]` and `cap` `[a galaxy's ceiling, a node core's
+  ceiling, a core's reach, its size]` (only the node cores pass the glow's threshold). The web itself is not a
+  scene's to change: one seed, the same everywhere (`stage/cosmos/web.js`; `field.stats().cosmos` for a probe).
 
 ```js
-// a hall with the field: one blade sweeping the wall on the clock, A's near, SerSan marks deep
+// a hall with the field: one key light sweeping the room on the clock, A's near, SerSan marks deep, the cosmos behind
 frame(c) {
   const cx = c.vw / 2, cy = c.vh / 2, ph = Math.sin(c.clock.time * 0.7);
   return {
@@ -199,51 +218,61 @@ frame(c) {
     field: {
       lights: [
         { pos: [cx - 1700, cy - 520, 700], target: [cx - 300 + 1400 * ph, cy + 150, -2700],
-          radius: 230, aspect: 1.5, roll: 0.25, soft: 0.6, tint: 0.1, haze: 0.05 },
+          radius: 230, aspect: 1.5, roll: 0.25, soft: 0.6, tint: 0.1, haze: 0, wall: 0 },
       ],
-      chips: { count: 8000, center: [cx, cy, -1150], size: [c.vw * 2.4 + 1400, c.vh * 2.4 + 900, 3000],
-        wind: [9, -4, 14], spin: 0.5, sizes: [9, 28],
+      chips: { count: 3000, center: [cx, cy, -1150], size: [c.vw * 2.4 + 1400, c.vh * 2.4 + 900, 3000],
+        wind: [9, -4, 14], spin: 0.5, sizes: [9, 28], floor: c.phone ? 12 : 16,
         shapes: [{ shape: "A", depth: 0.78, width: 0.24 }, { shape: "mark", depth: 0.22, width: 0.24, scale: 1.7 }] },
-      wall: { point: [cx, cy, -2700], cell: 72, extent: [c.vw * 2.6 + 1200, c.vh * 2.6 + 700] },
+      cosmos: { z: -2700 },
     },
   };
 }
 ```
 
-Shoot on `stage/dev.html?view=field` (options in the file's head comment: `p=`, `sweep=`, `only=chips|wall`,
-`lights=`, `haze=`, `n2=`, `field=0`, `failfield=1`, `t=` to freeze, `tier=`).
+Shoot on `stage/dev.html?view=field` (options in the file's head comment: `p=`, `sweep=`, `only=chips|wall` (`wall`:
+the cosmos, since wave 7), `lights=`, `haze=`, `n2=`, `field=0`, `failfield=1`, `t=` to freeze, `tier=`).
 
 ## The room (the cover's lit hall for any scene: `lib/room.js`)
 
-One call puts a scene in the cover's room: the back wall's grid in relief, chips cut as the A and the SerSan mark at
-every depth with their edge light, two blades of light that travel across the wall on the stage's clock (with haze),
+One call puts a scene in the cover's room: the cosmos behind it (wave 7; the back wall's grid is gone), chips cut as the
+A and the SerSan mark at every depth with their edge light (under `floor` css px on screen a chip fades: no specks), two
+blades of light that travel across the room on the stage's clock (key lights for the chips since wave 7),
 the hand's blade where the pointer aims (desktop, with weight), an optional light that follows a subject (a plate, a
-figure: a broad soft band on the wall behind it), and the scene's text kept clear. The cover keeps its own code
+figure: it lights the chips near it), and the scene's text kept clear. The cover keeps its own code
 (`cover/world.js` hallField); the room is the same studio, generalised. Nothing in it reads the DOM.
 
 `room(c, o) -> { field, keepouts, look }`. Options (all optional):
 
 - `temp` 0 cool (toward cobalt) … 1 warm (paper white): the blades', the subject's and the chips' edge light (default
-  0.3). A page runs cool at the top and warms toward its dawn: pass its progress.
-- `dim` 0 … 1: the light and the chips go down (the grid stays faintly). `alpha` the whole room's presence (1).
-- `wall: { z, size, alpha }`: its depth (default −0.6 D behind the page plane, D = `eyeD(vw, vh)`), its extent (1).
-- `chips` tier A's count (default 4000 desktop, 2600 phone since wave 4: depth, not a pattern over everything; 0
-  none; the kit thins B to 80 % and C to 60 % before the field halves and quarters them), `depth` 0..1 how far they
-  reach from the wall toward the eye (1), `scale` (1).
-- `blades` 0–2 (2), `period` s (30), `haze` (0.13 desktop, 0.09 phone; tier B 70 %, C none), `hand` (true).
+  0.3). A page runs cool at the top and warms toward its dawn: pass its progress (`pageK(c)` of `lib/page.js` is the
+  whole page's, so in the home it runs over the whole journey).
+- `dim` 0 … 1: the light and the chips go down (1: the cosmos at half its light, no blades). `alpha` the whole room's
+  presence (1).
+- `wall: { z, size, alpha }`: the room's back plane (default −0.6 D behind the page plane, D = `eyeD(vw, vh)`): since
+  wave 7 the cosmos starts behind it; `size` the chips' box (1); `alpha` the cosmos's presence (a quieter room asks a
+  quieter night: 0.4 + 0.6 alpha).
+- `chips` tier A's count: since wave 7 a scene's own number is taken at about a quarter (× 0.26) and the default is
+  1,200 on a desktop, 800 on a phone (in the void the glass is a few shapes at depth, not confetti over the cosmos;
+  0 none; the kit thins B to 80 % and C to 60 % before the field halves and quarters them); a chip under `floor` css px
+  on screen fades (16, 12 on a phone: a speck reads as a ring); `depth` 0..1 how far they reach from the back plane
+  toward the eye (1), `scale` (1).
+- `blades` 0–2 (2), `period` s (30), `hand` (true). Since wave 7 the blades, the hand's light and the subject's light
+  have no haze (key lights the glass catches); `haze` (0.13 desktop, 0.09 phone; tier B 70 %, C none) now feeds only
+  an aimed shaft (`aim`).
 - `subject: { x, y, z, w, h }` the CENTRE (viewport px), depth and size of a plate or a figure: its light follows it 0.35 s behind.
 - `keep` the rectangles to keep clear (default `c.textRects({ pad: 14 })`), `pad`, `header` (true).
 - `clear: { rect, point }` the field's clear rectangle (chips nearer than `point` stay out of `rect`). (wave 2, FIX)
   `night/shot.js` `clearOf(c, pose, P, w, h, pad)` builds it for a subject at world point P seen from a pose (every chip
   in its box: a figure of points draws before the chips with no depth between them, so a chip behind Obla still drew
   across its face); `project(c, pose, P)` is the screen point under that pose. Obla and the path's pane in step use it.
-- `glow` 0 … 1 (wave 2; default 0): the room as lit as the cover's hall: the blades come down from high above, close
-  in front of the wall, brighter and with more haze; more chips; the unlit wall a little up.
+- `glow` 0 … 1 (wave 2; default 0): the room as lit as the cover's hall: the blades come down from high above,
+  brighter, their travel kept inside the frame; more chips, the middle population larger and rimmed as the cover's;
+  since wave 7 the cosmos a little brighter, the blades lighting only the glass.
 - **Light never draws a figure** (wave 3, LIGHT3): two blades leaning opposite ways crossed behind every page as a
   large grey X. Every blade now leans the same way as the cover's shaft, the slant set per page by `seed`.
 - `aim: { at, from?, radius?, strength?, tint?, aspect?, haze?, over? }` (wave 4, PRISM): the room's ONE shaft comes
-  down onto a subject at `at` and ends in it (it never lights the wall beyond); the second blade stays dark. The
-  index aims it at its prism.
+  down onto a subject at `at` and ends in it, with its haze; the second blade stays dark. The index aimed it at its
+  prism until wave 7, when the index left the home; More work's prism draws its shaft as a ray of the `rays` pass.
 - The hand's blade and the subject's light step aside while the cut's portal closes on the eye (`c.flight`).
 - `center` [x, y] (the viewport's centre), `eye` [x, y, z] (the straight view's eye, [vw/2, vh/2, D]), `seed` per
   page (the chips' scatter and the blades' phase), `fade` s (0.25), `off`.
@@ -287,17 +316,19 @@ export default {
 };
 ```
 
-What a scene still does itself: its camera path (one continuous shot: pose by progress, never a cut), its bloom (≤ 0.8
-with the lit wall on screen), its own keep-outs beyond the text (a figure's place), and one `c.look` call that
-includes `R.look` (the stage's look is shared: a scene that sets `far`/`near` puts `keepFeather` in the same call).
+What a scene still does itself: its camera path (one continuous shot: pose by progress, never a cut), its bloom (the
+cosmos's node cores are the only light of the room over the glow's threshold), its own keep-outs beyond the text (a
+figure's place), and one `c.look` call a frame that includes `R.look` (the look is mixed by weight across the scenes
+in the frame: a scene that sets `far`/`near` puts `keepFeather` in the same call).
 Two scenes in a crossfade pool their lights (the four strongest are kept): give the scenes of one page the same `seed`
-so their blades coincide. Cost (bench, frozen): 0.42 ms at 1440×900 DPR 2 tier A, 0.32 ms at 1920×1080 DPR 1, 0.07 ms
-on a phone (tier B), on top of the scene's swarm and plates.
+so their blades coincide. Cost: the wave 1 bench measured the room with its wall at 0.42 ms at 1440×900 DPR 2 tier A,
+0.32 at 1920×1080 DPR 1, 0.07 on a phone (tier B); since wave 7 the cosmos costs less than the wall did on every page
+measured (`build/l-cosmos.md`), on top of the scene's swarm and plates.
 
-(wave 1, WORK) Two more options: `subject.strength` (default 0.42; a capture on a plate wants about 0.26, or the
-whole grid behind it reads evenly lit) and `sweep: [lo, hi]` in −1 (the wall's left) … 1 (its right): where the two
-blades and the hand's blade may fall (default the whole wall; a page with its text in the left half passes
-`[0.05, 1]`, or a blade cut by the text's keep-out reads as a dark card). A scene with `blend: false` weighs itself, so
+(wave 1, WORK) Two more options: `subject.strength` (default 0.42; a capture on a plate wants about 0.26) and `sweep:
+[lo, hi]` in −1 (the room's left) … 1 (its right): where the two blades and the hand's blade may fall (default the
+whole width; a page with its text in the left half passes `[0.05, 1]`, or a blade cut by the text's keep-out reads as
+a dark card). A scene with `blend: false` weighs itself, so
 the host pools its field at full weight: pass `alpha` (its own presence) or its blades light the next scene.
 
 ONE SHOT PER PAGE (`lib/page.js`): `span(c, sel)` a section's place in the document, `pageK(c)` 0..1 down the page,
@@ -305,7 +336,9 @@ ONE SHOT PER PAGE (`lib/page.js`): `span(c, sel)` a section's place in the docum
 per frame). Every scene of a page asks one function of the scroll for the eye (`gallery.js` `workEye`, `case.js`
 `caseEye`), so the host mixes equal poses and the eye never jumps; a scene composes its plates in screen px as the
 straight view would see them and places them for that eye (a pure translation: they draw where composed while the
-room moves behind them).
+room moves behind them). In the home every part keeps its page's shot (an eye follows its own sections' spans, `span` /
+`through`, wherever they stand; `pageK`, the temperature, runs over the home's whole scroll), and the host mixes the
+parts' poses by weight where two meet.
 
 Shoot on `stage/dev.html?view=room` (`sweep=`, `temp=`, `dim=`, `n2=`, `seed=`, `speed=`, `keep=0`, `field=0`, `t=`).
 
@@ -319,7 +352,7 @@ blend 0–1). With nothing registered, or nothing asked, the frame is exactly wh
 ```js
 import { registerPass } from "../stage.js";            // the same URL the host imports (no query string)
 registerPass({
-  id: "splat", layer: "under",                          // "under": after the field's wall, before the swarm; "over": after it
+  id: "splat", layer: "under",                          // "under": after the field's cosmos, before the swarm; "over": after it
   async init(api) {                                     // { device, format, frameLayout, frameWGSL, noiseWGSL, blend, tier, log }
     const pipe = await makePipeline(api);               // layout [api.frameLayout, yours...], target { format, blend }
     return {
@@ -402,12 +435,13 @@ The cut between pages is the host's and the engine's; a scene does not drive it,
   and closes on the eye. `c.flight` runs 0 → 1 with it; dim what only the room's own light should show (the room kit
   already takes the hand's blade and the subject's light away).
 - **The flight** (`stage.fly`, under the router): the stage itself dollies the eye along its view axis through the room
-  to a door of cut glass standing in the wall (`LOOK.flyDoor` × D behind the page plane), and adds the door as a slab
+  to a door of cut glass standing in the room (`LOOK.flyDoor` × D behind the page plane), and adds the door as a slab
   of its own. The scene keeps returning its pose: the flight is added to it. `c.flight` stays 0. The page's display
   type leaves the glass with the text (the host clears the backdrop), so a plate stops bending the old title.
 
-The events (`fx:nav:start { to, side, dawn, back, ms, door, glass }`, `fx:nav:covered`, `fx:nav:arrived`,
-`fx:stage:frame`, `fx:stage:lit`, `fx:step { scene, step, of }`) are for the page's modules; a scene reads `ctx` only.
+The events (`fx:nav:start { to, side, dawn, back, ms, door, glass, day }`, `fx:nav:covered`, `fx:nav:arrived`,
+`fx:stage:frame`, `fx:stage:lit`, `fx:step { scene, step, of }`, and since wave 7 `fx:part { part, from }`, the home's
+part being read) are for the page's modules; a scene reads `ctx` only.
 
 ## The glass signal (a plate never pops)
 
@@ -449,7 +483,7 @@ export default {
   frame(c) {
     const open = Math.min(1, c.progress * 2);
     const f = c.fig;
-    const etch = c.etch("word", ["Nine", "works"], { w: 400, h: 560 });
+    const etch = c.etch("word", ["Eleven", "works"], { w: 400, h: 560 });
     return {
       swarm: [
         { id: "fan", weight: open },
@@ -475,13 +509,19 @@ markup to the bench's builder if the generic steps do not fit.
 - `yields: true` on a scene's default export: the host steps that scene's plates back from every OTHER scene's text on
   screen (straight-view box of the plate, gone on contact, full 140 px away). Set by `stack` (the path's head lay bent
   double under its last plate) and `gallery` (the evidence's head).
-- The room's keep-outs no longer cut the wall: `room(c, { keepDim })` dims the wall and haze to a floor inside a kept
-  rect over a long fall (default floor 0.18 / fall 150 px desktop, 0.22 / 80 phone, haze 0.12; `keepDim: false` = the
-  old cut). Engine: the field's `wall.keep { floor, fall, haze }` (slot `wallK`); no fall = the stage's keep-out as
-  before (the cover).
-- Room defaults: fade 0.25 s, blades sweep the part of the wall the frame shows (0.42 x its width), haze 0.13 / 0.09.
+- The room's keep-outs never cut a hole: `room(c, { keepDim })` dims the room's light to a floor inside a kept rect
+  over a long fall (since wave 7 the cosmos's floor is a quarter of the one asked and never above 0.06: default 0.035
+  desktop, 0.05 phone; fall 150 / 90 px; the haze's 0.12; `keepDim: false` = the old cut). Engine: the field's
+  `cosmos.keep { floor, fall, haze }` (slot `wallK`, `wallKeep` in `field.wgsl.js`); no fall = the stage's keep-out
+  as before.
+- Room defaults: fade 0.25 s, the blades sweep the part of the room the frame shows (0.42 × its width).
 - `night/shot.js freeBand(c, x0, x1)`: the tallest band no text crosses (the phone's path, stack and gallery move into it).
-- `dawn` returns the straight view focused on the page plane (aperture 0.2): the threads stay ruled and sharp.
+- `dawn` returns the straight view focused on the page plane (aperture 0.2): the threads stay ruled and sharp. Since
+  wave 7 `contact` does the same in the home, where Contact is a part on a night page: the dawn close's threads at
+  its straight edge, the same sharp camera, the strokes' upper band from Contact's own top.
+- A scene that reads a field of the room's answer (`field.wall`, `field.chips`, …) must cope with it gone: in wave 7
+  `now.js` read `field.wall` after the wall became the cosmos, threw, and the host marked it broken for good (the
+  `[stage] scene "now" frame threw` line shows only with `?debug=1`).
 - A page's chapters without sticky scenes can still have figures: `mist.js` hands a case's chapters to
   `case/figures.js`, which reads `section[data-ch]`, composes one figure per chapter type in the free third the CSS
   leaves (plates, a line of light, bars and counts on the rows), places them for the page's eye (`case.js` `caseEye`)

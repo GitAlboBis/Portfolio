@@ -5,7 +5,7 @@
    ONE place per kind of copy:
      · this file      every word a template prints: the chrome (header, menu, the dawn close, the cuts), the pages,
                       the 404, the case template's own words (UI), the head (META) and the words a script writes (JS)
-     · cases.json     the nine works' content, each field a twin { "en": …, "it": … }
+     · cases.json     the works' content (eleven since wave 7), each field a twin { "en": …, "it": … }
 
    An entry is { en, it }. assemble.mjs prints it where a partial says {{t:id}} (escaped), or where a template
    module reads it (UI, S404, META). To add a string: add its entry here with both languages, then put {{t:id}} in
@@ -51,6 +51,8 @@ const S = {
   "sec.consult": { en: "Consulting", it: "Consulenza" },
   "sec.obla": { en: "Obla", it: "Obla", same: true },
   "cut.index": { en: "Index", it: "Indice" },
+  /* (wave 7) the name a cut prints for the home, which holds no index any more (the 404's list keeps "cut.index") */
+  "cut.home": { en: "Home", it: "Inizio" },
   "cta.write": { en: "Write to me", it: "Scrivimi" },
   "copy.label": { en: "Copy address", it: "Copia indirizzo" },
   "copy.done": { en: "Copied", it: "Copiato" },
@@ -76,26 +78,30 @@ const S = {
     en: "I own the front-end, WebGPU/3D and motion layer of what the studio ships, the AI work on its flagship platform, and the studio's creative direction.",
     it: "Ho in mano il front-end, il WebGPU/3D e il motion di ciò che lo studio rilascia, il lavoro di AI sulla sua piattaforma di punta e la direzione creativa dello studio.",
   },
+  /* (wave 7, lane l-content) the studio's own multi-agent system, built for SerSan (PRODUCT §3 item 10) */
   "now.body": {
-    en: "SerSan is a custom software, automation and AI studio: Sersan Limited, London. I work remote, as Software & AI Engineer and Creative Lead.",
-    it: "SerSan è uno studio di software su misura, automazione e AI: Sersan Limited, Londra. Lavoro da remoto, come Software & AI Engineer e Creative Lead.",
+    en: "SerSan is a custom software, automation and AI studio: Sersan Limited, London. I work remote, as Software & AI Engineer and Creative Lead, and I built the studio's own multi-agent system, SerSan Agent OS.",
+    it: "SerSan è uno studio di software su misura, automazione e AI: Sersan Limited, Londra. Lavoro da remoto, come Software & AI Engineer e Creative Lead, e ho costruito il sistema multi-agente dello studio, SerSan Agent OS.",
   },
   "now.alt": {
     en: "The sersan.io home hero at rest: the hexagonal SerSan mark and the glowing SERSAN wordmark, both drawn in particles, above a raymarched black hole edged by a thin bright ring, on a dark starfield.",
     it: "La schermata d’apertura della home di sersan.io, a riposo: il marchio esagonale SerSan e il logotipo SERSAN luminoso, entrambi disegnati a particelle, sopra un buco nero in raymarching bordato da un sottile anello chiaro, su un campo di stelle scuro.",
   },
 
-  /* ---------------------------------------------------------------- the cover: the index (one row per page) */
-  "ix.work": { en: "Nine works, and two sets of figures measured before and after.", it: "Nove lavori, e due serie di numeri misurati prima e dopo." },
+  /* ---------------------------------------------------------------- one sentence per page: the cover's index printed
+     them until wave 7 (the index is gone); the 404's rows print them now (S404.pages, read by parts/c-main.404.mjs) */
+  "ix.work": { en: "Eleven works, and two sets of figures measured before and after.", it: "Undici lavori, e due serie di numeri misurati prima e dopo." },
   "ix.about": { en: "Eight groups of tools, each tied to the work that proves it, and the path from Camerino to London.", it: "Otto gruppi di strumenti, ciascuno legato al lavoro che lo dimostra, e il percorso da Camerino a Londra." },
   "ix.consult": { en: "Four ways to work with me, for companies and for private individuals.", it: "Quattro modi di lavorare insieme, per aziende e per privati." },
-  "ix.obla": { en: "My personal agent: it listens, works, asks, and reports every morning at 08:00.", it: "Il mio agente personale: ascolta, lavora, chiede e ogni mattina alle 08:00 fa rapporto." },
+  "ix.obla": { en: "My personal multi-agent system: it listens, works, asks, and reports every morning at 08:00.", it: "Il mio sistema multi-agente personale: ascolta, lavora, chiede e ogni mattina alle 08:00 fa rapporto." },
 
   /* ---------------------------------------------------------------- Work: the gallery */
-  "work.head": { en: "Nine works", it: "Nove lavori" },
+  /* (wave 7, lane WORKS) eleven: the multi-agent system built for SerSan leads the SerSan works, Obla (his personal
+     project, its plate opening the Obla page) leads the three from outside (PRODUCT §3 items 10-11) */
+  "work.head": { en: "Eleven works", it: "Undici lavori" },
   "work.lead": {
-    en: "A trading platform and its AI mentor, a workshop ERP, a WebGPU studio site, a real-estate platform and a brand film at SerSan, and three projects from outside it.",
-    it: "Una piattaforma di trading e il suo mentor AI, un ERP d’officina, il sito WebGPU dello studio, una piattaforma immobiliare e un brand film in SerSan, più tre progetti esterni.",
+    en: "At SerSan, the multi-agent system I built for the studio, a trading platform and its AI mentor, a workshop ERP, a WebGPU studio site, a real-estate platform and a brand film. Then Obla, my personal project, and three projects from outside SerSan.",
+    it: "In SerSan, il sistema multi-agente che ho costruito per lo studio, una piattaforma di trading e il suo mentor AI, un ERP d’officina, il sito WebGPU dello studio, una piattaforma immobiliare e un brand film. Poi Obla, il mio progetto personale, e tre progetti esterni.",
   },
 
   /* ---------------------------------------------------------------- Work: measured before and after */
@@ -142,6 +148,10 @@ const S = {
   "cap.6": { en: "Cloud & DevOps", it: "Cloud e DevOps" },
   "cap.7": { en: "Testing & Tooling", it: "Strumenti e test" },
   "cap.8": { en: "Creative", it: "Creatività" },
+  /* (wave 7, lane l-content) the AI group leads with the multi-agent work and the stack it really uses (PRODUCT §9,
+     «Dopo il CV»); the internship's tools are one short mention, written in the partial as a name */
+  "cap.5.mas": { en: "Multi-agent systems", it: "Sistemi multi-agente" },
+  "cap.5.local": { en: "Local models (llama.cpp)", it: "Modelli locali (llama.cpp)" },
   "cap.5.rag": { html: true, en: "RAG&nbsp;&amp;&nbsp;embeddings", it: "RAG&nbsp;ed&nbsp;embedding" },
   "cap.5.eval": { en: "LLM evaluation & guardrails", it: "Valutazione degli LLM e guardrail" },
   "cap.8.motion": { en: "Motion graphics & VFX (After Effects)", it: "Motion graphics e VFX (After Effects)" },
@@ -204,19 +214,22 @@ const S = {
     it: "Un’impostazione che funziona, per te o per il tuo team: istruzioni di progetto, skill, hook, server MCP e controlli di revisione, così l’agente segue le tue regole invece di tirare a indovinare.",
   },
   "co.4.name": { html: true, en: "Multi-agent systems, built and tested", it: 'Sistemi <span style="white-space:nowrap">multi-agente,</span> sviluppo e collaudo' },
+  /* (wave 7, lane l-content) the proof is the system built for SerSan, then Obla (PRODUCT §10, §3 items 10-11): the
+     partial prints them as names; the thesis stays in About's path */
   "co.4.line": {
-    en: "Design, build and testing of systems where several agents share a job: roles, hand-offs, guardrails, and the tests that show what happens when one of them fails.",
-    it: "Progetto, sviluppo e collaudo di sistemi in cui più agenti si dividono un lavoro: ruoli, passaggi di consegna, guardrail e i test che mostrano che cosa succede quando uno di loro sbaglia.",
+    en: "Systems where several agents share a job: each agent with its role, hand-offs with a brake that calls in a person, a gate on every action that goes out, and tests that show what happens when a part fails. I built one for SerSan, and Obla as my personal project.",
+    it: "Sistemi in cui più agenti si dividono un lavoro: ogni agente con il suo ruolo, passaggi di consegna con un freno che fa intervenire una persona, un cancello davanti a ogni azione che esce e test che mostrano che cosa succede quando un pezzo si guasta. Ne ho costruito uno per SerSan, e Obla come progetto personale.",
   },
-  "co.4.proof": { en: "B.Sc. thesis", it: "Tesi di laurea" },
   "co.closing": { en: "For companies and for private individuals.", it: "Per aziende e per privati." },
   "co.next": { en: "On to Obla", it: "Avanti con Obla" },
 
   /* ---------------------------------------------------------------- Obla (spec 10 §6.2, as built) */
   "ob.eyebrow": { en: "Personal project", it: "Progetto personale" },
+  /* (wave 7, lane l-content) corrected on the code (PRODUCT §11): a chief of staff and named agents, not one voice;
+     "anything that leaves the machine waits for my yes" overstated; the flying character (in build) left out */
   "ob.lead": {
-    en: "Obla is my personal agent: one voice I talk to instead of opening sessions, writing prompts and checking on things by hand. It lives on my desktop, runs on my own machine and answers to me alone.",
-    it: "Obla è il mio agente personale: una sola voce a cui parlo, invece di aprire sessioni, scrivere prompt e controllare tutto a mano. Vive sul mio desktop, gira sulla mia macchina e risponde solo a me.",
+    en: "Obla is my personal multi-agent system: one chief of staff I talk to, and the agents it hands the work to, instead of opening sessions, writing prompts and checking on things by hand. It lives on my desktop, runs on my own machine and answers to me alone.",
+    it: "Obla è il mio sistema multi-agente personale: un capo di gabinetto a cui parlo e gli agenti a cui passa il lavoro, invece di aprire sessioni, scrivere prompt e controllare tutto a mano. Vive sul mio desktop, gira sulla mia macchina e risponde solo a me.",
   },
   "ob.1.name": { en: "It listens", it: "Ascolta" },
   "ob.1.line": {
@@ -225,26 +238,29 @@ const S = {
   },
   "ob.2.name": { en: "It thinks", it: "Pensa" },
   "ob.2.line": {
-    en: "A small local model judges the request, a second one holds the conversation, and only real work goes to Claude Code.",
-    it: "Un piccolo modello locale giudica la richiesta, un secondo tiene la conversazione, e solo il lavoro vero passa a Claude Code.",
+    en: "A small local model answers closed questions, such as which agent takes a job; a second one holds the conversation; only real work goes to Claude Code.",
+    it: "Un piccolo modello locale risponde alle domande chiuse, come a quale agente affidare un lavoro; un secondo tiene la conversazione; solo il lavoro vero passa a Claude Code.",
   },
   "ob.3.name": { en: "It works", it: "Lavora" },
   "ob.3.line": {
-    en: "It opens the right Claude Code session on the right repository with the brief already written, and the character flies to the window where the work is happening.",
-    it: "Apre la sessione Claude Code giusta sulla repo giusta, con il brief già scritto, e il personaggio vola sulla finestra in cui il lavoro sta succedendo.",
+    en: "Each job goes to the agent that fits it, for code, design, research, content or review: a Claude Code session on the right repository, with the brief already written. The agents hand work on to each other, within limits written in code.",
+    it: "Ogni lavoro va all’agente adatto, per il codice, il design, la ricerca, i contenuti o la revisione: una sessione Claude Code sulla repo giusta, con il brief già scritto. Gli agenti si passano il lavoro tra loro, entro limiti scritti nel codice.",
   },
   "ob.4.name": { en: "It asks", it: "Chiede" },
   "ob.4.line": {
-    en: "Anything that leaves the machine, a message, a push, a deploy, a deletion, waits for my yes on an approval card.",
-    it: "Tutto ciò che esce dalla macchina, un messaggio, un push, un deploy, una cancellazione, aspetta il mio sì su una carta di approvazione.",
+    en: "Models propose, code acts: a push, a merge or a deletion waits for my yes on an approval card, and a message to someone else stays a draft until I send it.",
+    it: "I modelli propongono, il codice esegue: un push, un merge o una cancellazione aspettano il mio sì su una carta di approvazione, e un messaggio per qualcun altro resta una bozza finché non lo invio io.",
   },
   "ob.5.name": { en: "It reports", it: "Riferisce" },
   "ob.5.line": {
-    en: "Every morning at 08:00: projects, jobs and sessions, spoken or written. What it remembers is kept in Markdown notes I can read and edit.",
-    it: "Ogni mattina alle 08:00: progetti, lavori e sessioni, a voce o per iscritto. Ciò che ricorda sta in note Markdown che posso leggere e modificare.",
+    en: "Every morning at 08:00: jobs, sessions, approvals, spending and what each agent did, spoken or written. What it remembers is kept in Markdown notes I can read and edit.",
+    it: "Ogni mattina alle 08:00: lavori, sessioni, approvazioni, spesa e che cosa ha fatto ogni agente, a voce o per iscritto. Ciò che ricorda sta in note Markdown che posso leggere e modificare.",
   },
   "ob.f1.k": { en: "Runs on", it: "Gira su" },
-  "ob.f1.v": { en: "Windows, Tauri, Rust, local models, Claude Code", it: "Windows, Tauri, Rust, modelli locali, Claude Code" },
+  "ob.f1.v": {
+    en: "Windows, TypeScript on Node.js, Rust and Tauri, llama.cpp with local models, the Claude Agent SDK and MCP, SQLite, Obsidian",
+    it: "Windows, TypeScript su Node.js, Rust e Tauri, llama.cpp con modelli locali, Claude Agent SDK e MCP, SQLite, Obsidian",
+  },
   "ob.f2.k": { en: "For", it: "Per" },
   "ob.f2.v": { en: "One person. Not distributed.", it: "Una persona sola. Non è distribuito." },
   "ob.alt": {
@@ -268,12 +284,13 @@ const S = {
 
   /* ---------------------------------------------------------------- the case template's own words (UI) */
   "ui.work": { en: "Work", it: "Lavori" },
-  "ui.index": { en: "Index", it: "Indice" },
   "ui.backIndex": { en: "Back to the index", it: "Torna all’indice" },
   "ui.allWork": { en: "All works", it: "Tutti i lavori" },
   "ui.more": { en: "More work", it: "Altri lavori" },
   "ui.open": { en: "Open", it: "Apri" },
   "ui.openCase": { en: "Open the case", it: "Apri il caso" },
+  /* (wave 7, lane WORKS) the gallery's verb for a work that is a page of the site already (Obla) */
+  "ui.openPage": { en: "Open its page", it: "Apri la sua pagina" },
   "ui.onFile": { en: "The record", it: "La scheda" },
   "ui.next": { en: "Next", it: "Prossimo" },
   "ui.thisCase": { en: "This case", it: "Questo caso" },
@@ -306,8 +323,8 @@ const S = {
     it: "Alberto Tuveri, Software & AI Engineer e Creative Lead: il nome attraverso la card in maiuscole condensate bianche su un fondo quasi nero, e la riga: dallo schema del database al rendering WebGPU in tempo reale e al motion design.",
   },
   "meta.work.desc": {
-    en: "Nine works by Alberto Tuveri, from a trading platform and its AI mentor to a brand film, and two sets of figures measured before and after.",
-    it: "Nove lavori di Alberto Tuveri, da una piattaforma di trading con il suo mentor AI a un brand film, e due serie di numeri misurate prima e dopo.",
+    en: "Eleven works by Alberto Tuveri, from the multi-agent system he built for SerSan to a brand film and his personal project Obla, and two sets of figures measured before and after.",
+    it: "Undici lavori di Alberto Tuveri, dal sistema multi-agente che ha costruito per SerSan a un brand film e al suo progetto personale Obla, e due serie di numeri misurate prima e dopo.",
   },
   "meta.about.desc": {
     en: "What Alberto Tuveri builds with, eight groups of tools each tied to the work that proves it, and his path from Camerino and Trento to a London studio.",
@@ -318,8 +335,8 @@ const S = {
     it: "Quattro modi di lavorare con Alberto Tuveri: contenuti generati con l’AI, montaggio video, buone pratiche di Claude Code e sistemi multi-agente, sviluppo e collaudo.",
   },
   "meta.obla.desc": {
-    en: "Obla, Alberto Tuveri's personal agent: one voice that listens, thinks, works, asks for his yes and reports every morning at 08:00.",
-    it: "Obla, l’agente personale di Alberto Tuveri: una sola voce che ascolta, pensa, lavora, chiede il suo sì e ogni mattina alle 08:00 riferisce.",
+    en: "Obla, Alberto Tuveri's personal project: a multi-agent system on his own machine that listens, thinks, works, asks for his yes and reports every morning at 08:00.",
+    it: "Obla, il progetto personale di Alberto Tuveri: un sistema multi-agente sulla sua macchina che ascolta, pensa, lavora, chiede il suo sì e ogni mattina alle 08:00 riferisce.",
   },
   "meta.contact.desc": {
     en: "Write to Alberto Tuveri at albertotuveri@gmail.com, or find him on LinkedIn and GitHub.",
@@ -357,12 +374,13 @@ export const S404 = {
   pagesTitle: S["cut.index"],
   open: S["ui.open"],
   work: S["ui.work"],
-  index: S["ui.index"],
-  /* the pages, each with the sentence the cover prints for it (the contact page: its own sentence) */
+  index: S["cut.home"],
+  /* the pages, each with its sentence ("ix.*", printed by the cover's index until wave 7, now by the 404 alone; the
+     contact page: its own sentence) */
   pages: {
     work: [S["sec.work"], S["ix.work"]], about: [S["sec.about"], S["ix.about"]], consult: [S["sec.consult"], S["ix.consult"]],
     obla: [S["sec.obla"], S["ix.obla"]], contact: [S["sec.contact"], S["ct.line"]],
   },
 };
 /* ids a template module reads without a {{t:}} token: assemble.mjs counts them as printed */
-export const READ_BY_MODULES = ["ui.", "nf.", "meta.", "js.", "band."];
+export const READ_BY_MODULES = ["ui.", "nf.", "meta.", "js.", "band.", "ix.", "cut.index"];

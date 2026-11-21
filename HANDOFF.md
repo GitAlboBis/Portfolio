@@ -1,6 +1,78 @@
 # HANDOFF — continua da qui
 
-> **Macchina: GIANNI · scritto il 20 novembre alle 15:55. Adesso: INTEGRATE riparte dai suoi appunti, poi il sito va online.** Direttore: la sessione `d1419707-434e-400d-a846-5dd3531f8e24` sul profilo `claude-albi`, su Opus 5.5 (Alberto: «riprendi la sessione 376013bc-3dba-4879-9828-a13cfb188f2c (claudeale)»). Run `wf_913f3c50-85e`, compito `wayl3ptwz`, script `.shots/_director/rivista-wave6-integrate.js`, generato da `.shots/_director/make-wave6-integrate.mjs`.
+> **Macchina: GIANNI · aggiornato il 20 novembre alle 20:55. Adesso: il seguito dell'ondata 7 è in corsa (run `wf_2819c809-e45` + `wf_9ab1e002-c84`); poi si ripubblica.** Direttore: la sessione `d1419707-434e-400d-a846-5dd3531f8e24` sul profilo `claude-albi`, su Opus 5.5.
+> - **Il primo run** (`wf_2819c809-e45`, compito `wzc48v3to`, script `C:\Users\alber\.claude-albi\projects\C--Users-alber-Desktop-PortfolioAlbertoTuveri-viva\d1419707-434e-400d-a846-5dd3531f8e24\workflows\scripts\rivista-wave7-continuous-home-wf_2819c809-e45.js`) si è fermato verso le 17:40 sul limite delle 5 ore, che si è azzerato alle 20:50.
+>   - **HOME è tornata, finita.** La home continua è in tutte e due le build e nelle due lingue, costruita dal nuovo `parts/c-main.home.mjs`. Gli stili delle pagine ora puntano a `[data-part]`. Sette pagine stampano identiche al sito online (0 px di differenza), e tutti i gate passano, compreso il rilascio.
+>   - **COSMOS è stata tagliata due volte, con il lavoro sul disco:** `stage/cosmos/web.js` e le modifiche a campo, `room.js`, `cover/` e `stage.js`. Il suo server orfano sulla 5382 l'ha chiuso il direttore.
+>   - Il risultato è in `.shots/_director/wf_2819c809-e45.result.json`.
+> - **Il seguito delle 20:52** (`wf_9ab1e002-c84`) e il run dei contenuti delle 21:00 (`wf_698d10a4-cbb`) li ha fermati il direttore alle 21:06, per riunirli in un solo run con un ordine sicuro. In quel momento COSMOS era a metà del lavoro, che è sul disco; i due lettori non avevano ancora consegnato le schede.
+> - **Le richieste nuove di Alberto, sera del 20 novembre:**
+>   - «in consulting e about mi sembra , per quanto riguarda le mie skills multi agente , come proof quella piu importante è lo sviluppo del mas aziendale , non solo lo stage dove ho lavorato con microsoft studio ,che ha confronto è ridicolo , questa è lo tech stack», con le cartelle `C:\Users\alber\sersan-agent-os*` e `C:\Users\alber\SerSan-AgentOS`, e «ed anche obla», con le cartelle `C:\Users\alber\Obla*`;
+>   - «anche nel work devi mettere il MAS , e anche OBLA»;
+>   - «scrivendo che obla è un mio progetto personale , e MAS è per Sersan».
+> - **Il run unico** (alle 21:10: run `wf_bdd57451-73a`, compito `wxferrehh`, script `.shots/_director/rivista-wave7-combined.js`, generato da `.shots/_director/make-wave7-combined.mjs`):
+>   - in parallelo partono COSMOS, che riprende, e due lettori in sola lettura: AGENTOS per SerSan Agent OS, OBLA per Obla;
+>   - poi CONTENT (porta 5391): i fatti in `PRODUCT.md` e la prova multi-agente in Consulting, About e Obla, in inglese e in italiano;
+>   - poi WORKS (5392): SerSan Agent OS come lavoro per SerSan, con una sua pagina caso, e Obla come progetto personale che apre la pagina Obla. Undici lastre, tutte e due le nuove fatte di parole;
+>   - poi STAGE e MOTION, poi INTEGRATE e DOCS.
+> - **Alle 21:17 il processo di Claude Code si è chiuso** dopo circa due minuti di lavoro dei tre agenti, senza che nessuno avesse consegnato. Alle 21:18 Alberto ha scritto «riprendi» e il direttore ha rilanciato lo stesso run (`resumeFromRunId: 'wf_bdd57451-73a'`, compito `wcvme20b7`). Nessuna chiamata era finita, quindi ripartono tutte; COSMOS riprende dai suoi appunti.
+> - **Notte fra il 20 e il 21 novembre:**
+>   - Hanno consegnato AGENTOS e OBLA (le schede dei fatti) e COSMOS, che ha finito: il cosmo neurale sta in ogni stanza al posto della griglia, costa meno di HEAD a riposo e nei picchi su desktop, e al telefono resta sotto il limite.
+>   - Hanno consegnato anche CONTENT e WORKS, che hanno finito ciò che stava nei loro file. Quello che resta tocca a DOCS (i conteggi nei documenti) e a STAGE (il palco). CONTENT ha segnalato a STAGE una regressione del palco nella parte Now della home, che c'era già prima dei suoi testi.
+>   - STAGE e MOTION hanno lavorato fino alle 23:39, con gli appunti `l-stage.md` e `l-motion.md`, poi le ha fermate il limite delle 5 ore (azzerato all'1:50). Il risultato è in `.shots/_director/wf_bdd57451-73a.result.json`.
+> - **Alle 03:38 del 21 novembre**, su «riprendi» di Alberto, il direttore ha chiuso i server orfani di STAGE (5383) e MOTION (5384) e ha ripreso lo stesso run (compito `wai9wch6q`). Le cinque corsie finite tornano dalla cache; STAGE e MOTION ripartono dai loro appunti, poi vengono INTEGRATE e DOCS.
+> - **Per riprendere:** dalla stessa sessione, lo stesso `scriptPath` con `resumeFromRunId: 'wf_bdd57451-73a'`.
+> - **Le parole di Alberto, 20 novembre, dopo aver guardato il sito online:**
+>   - «se è pronto procedi , altrimenti continua fino a quando il sito è perfetto»;
+>   - «cambio idea , vorrei che fosse una pagina singola con uno scroll continuo , tutta un unica esperienza nella home . ovviamente le pagine devono rimanere separate se uno clicca work o dall'url , quindi la transizione ci dev essere tra una pagina e l'altra . ma se uno scrolla dalla home , deve avere l'esperienza totale di tutte le pagine .»;
+>   - «inoltre non mi piace lo sfondo a griglia . vedi se togliere anche sta parte [l'indice della copertina, nella sua cattura] dato che appunto dobbiamo fare un esperienza continua nella home , quindi non servirebbe»;
+>   - «puoi fare molto di meglio come sfondo . reti neurali , o spazio , qualcosa di super realistico e wow»;
+>   - «non che sostituisce la griglia di sfondo , intendo come se tutte le pagine che abbiamo fatto divise , fossero nella home in un unica esperienza continua . la griglia di sfondo è un altro fattore».
+> - **Le sue risposte alle tre domande del direttore:**
+>   - lo sfondo: la ragnatela cosmica (lo spazio su larga scala, che sembra una rete neurale);
+>   - i nove casi restano pagine aperte dalle lastre della galleria;
+>   - l'indice della copertina va via.
+> - **Le decisioni del direttore**, scritte nel brief comune dello script:
+>   - la home attraversa in ordine la hero, Now, Work (galleria e misure), About (pila e percorso), Consulting, Obla e Contact, che chiude all'alba;
+>   - le pagine restano separate, ognuna con il suo URL, il volo fra l'una e l'altra e la sua alba;
+>   - la griglia va via da tutte le stanze, e al suo posto c'è il cosmo neurale;
+>   - tutte le corsie girano su Opus 5.5 a effort max.
+> - **Le corsie,** con appunti in `docs/redesign/rivista-story/build/l-*.md` e catture in `.shots/l-*/`:
+>   - **Build:** HOME (porta 5381: la home in tutte e due le build, gli stili per pagina, gli assert) e COSMOS (porta 5382: lo sfondo);
+>   - **Home:** STAGE (5383: un'unica ripresa per tutta la home; toglie la scena dell'indice; lo sciame torna intero con isteresi) e MOTION (5384: aperture, intestazione, suono, link);
+>   - **Integrate:** INTEGRATE (5385-5387: gate, rilascio dalla radice, GPU, WebKit con `webkit-2336`, la serie finale in `.shots/l-final/`, il `commitSplit`) e DOCS.
+> - **Prima di lanciare** il direttore ha controllato sul sito online:
+>   - il pavimento del tipo regge a 1440, 390 e 1920;
+>   - in WebKit 26.5 (il motore di Safari, senza WebGPU) la pagina stampata è completa, con console pulita.
+> - **Prossimo passo, quando il run torna:** guardare `.shots/l-final/` e committare per argomento. Poi il rilascio, lo squash `git commit-tree HEAD^{tree} -p 208c3de -m "…"` e il push su `main`: Alberto ha detto «se è pronto procedi». Infine lo stato del commit, i cinque indirizzi e una prova headless sul sito vero, come per l'ondata 6.
+> - **Se il run si ferma** (`stopped`, o al terzo limite d'uso): i ritorni delle corsie finite entrano come dati in uno script nuovo, come facevano `make-wave6-tail.mjs` e `make-wave6-integrate.mjs`; le altre corsie ripartono dai loro appunti. Dalla stessa sessione: lo stesso `scriptPath` con `resumeFromRunId: 'wf_2819c809-e45'`.
+> - **Non ritentare:** un secondo run mentre questo è vivo; il push di `feat/water-viva`; le porte 5178-5180; `npm ci` o `npm install`; `model: 'fable'` fino al 25 novembre.
+
+> **Storia (20 novembre, 16:45): l'ondata 6 è online.** Direttore: la sessione `d1419707-434e-400d-a846-5dd3531f8e24` sul profilo `claude-albi`, su Opus 5.5 (Alberto: «riprendi la sessione 376013bc-3dba-4879-9828-a13cfb188f2c (claudeale)»).
+> - **Online.** Lo squash `208c3de` sopra `881f68c` è su `main`: push alle 16:37, un fast-forward. Vercel ha risposto «Deployment has completed» alle 16:37:56. Su https://portfolio-jet-eta-24.vercel.app:
+>   - i cinque indirizzi di `m-release.md` sono giusti:
+>     - `/` è lo studio di notte, con `nosniff` e `index, follow`;
+>     - `robots.txt` dice `Allow: /` e nomina la sitemap;
+>     - `/it` risponde 308;
+>     - `/it/nope` risponde 404 in italiano;
+>     - `/work/badante24h` risponde 307;
+>   - nella prova headless sul sito vero il palco è acceso (160.000 punti, fascia A) e un clic dalla copertina a Work vola: `covered` dopo 205 ms, `arrived` dopo circa 1 s, nessun caricamento completo, console pulita, nessuna richiesta fallita.
+> - **Su `feat/water-viva`** (locale, mai pushato) ci sono i nove commit per argomento, da `534b087` a `0dfbc7e`, poi questo diario. Il loro albero è quello di `208c3de`.
+> - **INTEGRATE** è ripresa dai suoi appunti nel run `wf_913f3c50-85e` (15:55–16:27) ed è tornata con `releaseReady: true`.
+>   - Il direttore ha guardato la serie finale in `.shots/m-final/`.
+>   - Prima del push, sul commit finale:
+>     - i gate sono verdi (`assemble --check` 0, claims OK, il rilascio con le sue tre righe `[release]`);
+>     - nell'albero non ci sono email private, segreti né file `.env`;
+>     - da questo file è stata tolta una riga che nominava un'altra persona e il suo account, perché il diario va su `main` con l'albero.
+>   - Script e risultati sono in `.shots/_director/`: `make-wave6-integrate.mjs`, `wf_913f3c50-85e.result.json`, `squash-sha.txt`.
+> - **Prossimo passo:** lo sguardo e l'orecchio di Alberto sul sito online (il suono nessuno l'ha ancora ascoltato). Poi gli aperti in `CLAUDE.md` §8:
+>   - il GPU, sopra i limiti ma mai sopra HEAD;
+>   - lo sciame che si dimezza sull'indice e sulla pila di About;
+>   - 150 ms quasi di carta vuota verso Contact;
+>   - la lastra di Maintech OMA con il numero.
+> - **Il prossimo deploy** è un nuovo squash dell'albero sopra il `main` di allora (`git commit-tree HEAD^{tree} -p <main> -m "…"`), mai il push di `feat/water-viva`. Questo diario e la nota «Online» in `CLAUDE.md` §8 sono stati scritti dopo il push: sono solo sul branch e arrivano su `main` col prossimo squash.
+>
+> **Storia (15:55): INTEGRATE riparte dai suoi appunti.** Run `wf_913f3c50-85e`, compito `wayl3ptwz`, script `.shots/_director/rivista-wave6-integrate.js`, generato da `.shots/_director/make-wave6-integrate.mjs`.
 > - **Il primo run dell'ondata** (`wf_85707e3b-28a`, sessione `376013bc`) si è chiuso alle 08:48 al terzo limite delle 5 ore: il runtime aspetta al massimo due azzeramenti per run. Erano tornate FLY, SOUND e RELEASE; ROOMS aveva finito sul disco. Vedi la storia sotto.
 > - **La coda delle 11:05** (run `wf_ce5bf334-138`, script `rivista-wave6-tail.js`, risultato copiato in `.shots/_director/wf_ce5bf334-138.result.json`). Decisioni del direttore: FLY non rifà il punto 5, la prova di ROOMS la fa INTEGRATE, tutte le corsie su Opus 5.5 a effort max (Fable ha il limite settimanale fino al 25 novembre). È tornata alle 12:33:
 >   - **GLASS** ha finito: il prisma è un solido di vetro, la grana, l'aberrazione in velocità, il canvas HDR. Il GPU dell'indice e dei voli resta sopra i limiti assoluti su questa GPU, ma mai sopra HEAD.

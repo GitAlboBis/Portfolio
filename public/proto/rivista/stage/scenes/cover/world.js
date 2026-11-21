@@ -2,6 +2,11 @@
 /**
  * scenes/cover/world.js — the cover's world, version 2 (round 11, lane HERO2): a dark hall seen by a moving camera.
  *
+ * (wave 7, lane COSMOS) THE HALL OPENS ONTO THE COSMOS: the back wall's grid is gone (Alberto: «non mi piace lo sfondo a
+ * griglia»); behind the hall's back plane the neural cosmos of every room (stage/cosmos/web.js); the blades and the
+ * name's light no longer fall on a wall (no shafts): the chips catch them. Where the text below says wall or shafts,
+ * this replaced it.
+ *
  * VERSION 3, "THE LIT HALL" (round 12, lane COVER3; notes in docs/redesign/rivista-story/build/s-cover3.md): the room
  * is lit and you can see it. A wide lens (0.62) close to the name, the eye to the left and below it (a block seen from
  * below: six receding outlines in cobalt); the back wall's grid lit by the name's own light and two blades that travel
@@ -715,11 +720,10 @@ function nameRect(W, cam, pad) {
  *           few large near ones, a middle population, a far dust near the wall, the marks deep around Now's plate; each
  *           with a faint edge light of its own (rim), flashing toward white where a blade crosses it; none in front of
  *           the name's face (clear) or of DOM text (the keep-outs)
- *   wall    the studio's back wall, its grid in relief
- *   lights  the NAME's light (a broad soft band on the wall behind the letters, as if they lit the room, on as they
- *           ignite), two BLADES that travel across the wall slowly and continuously on the stage's clock (one cool,
- *           one warm; there is always one on screen; their haze is the shaft, coming down at a slant from above and
- *           passing behind the name), and the hand's blade where the pointer is (desktop)
+ *   cosmos  (wave 7, COSMOS) the hall has no back wall now: behind its back plane the neural cosmos (cosmos/web.js)
+ *   lights  the NAME's light, two BLADES that travel slowly and continuously on the stage's clock (one cool, one warm),
+ *           and the hand's where the pointer is (desktop): (wave 7) with no wall to fall on and no haze, the key lights
+ *           the chips catch (they glint as a light passes)
  * hero.js returns all of it; now.js returns the same chips and wall (no lights) for the end of the flight.
  * @param {any} c
  * @param {{ at: number, k: number, lights?: boolean, aim?: number[], hand?: number, time?: number }} o
@@ -741,7 +745,9 @@ export function hallField(c, o) {
   /** @type {any} */ const field = {
     fade: 0.12, hazeEnd: 0.6 * D,
     chips: {
-      count: ph ? 7000 : 11000,
+      // (wave 7, COSMOS) a third of the hall's glass: in the void the chips are a few shapes drifting at depth, not a
+      // snow of confetti over the cosmos (the far dust is gone: the galaxies are the dust)
+      count: ph ? 1800 : 3000,
       center: [N[0], N[1], (wallZ + front) / 2],
       size: [vw * 3.4 + 900, vh * 3.4 + 700, depth],
       wind: [6, -2.5, 7], spin: 0.32, sizes: ph ? [9, 22] : [9, 24],
@@ -752,22 +758,21 @@ export function hallField(c, o) {
         { shape: "A", weight: 0.42, depth: mix(fNow, fName, 0.6), width: 0.22, scale: 1 },
         // the SerSan marks deep, around Now's plate
         // (round 12, COVER3FIX) larger: under about 10 device px the mark read as a little ring
-        { shape: "mark", weight: 0.18, depth: fNow, width: 0.12, scale: 2.6 },
-        // the far dust by the wall
-        { shape: "A", weight: 0.26, depth: 0.05, width: 0.07, scale: 0.75 },
+        { shape: "mark", weight: 0.12, depth: fNow, width: 0.12, scale: 2.6 },
       ],
       body: 0.045, edge: 0.4, rim: 1, bevel: 12, glint: 2.6, transmit: 0.34, near: 170, cap: 9, seed: 11,
+      // (wave 7) under sixteen css px (twelve on a phone) a chip fades: a speck or a small ring over the cosmos is not glass
+      floor: ph ? 12 : 16,
       clear: cl ? { rect: cl.rect, point: cl.point } : undefined,
       alpha: (0.6 + 0.4 * up) * (1 - 0.35 * sstep(0.85, 1, k)),
     },
-    wall: {
-      point: [N[0], N[1] + 0.05 * vh, wallZ], normal: [0, 0, 1],
-      // (round 12, COVER3FIX) a gentler relief and specular: under a narrow blade v3's cells lit one by one as a
-      // blocky mosaic; the grid still shifts and shimmers inside a blade
-      cell: 0.058 * D, line: 1.6, relief: 0.06, extent: [vw * 4.2 + 2400, vh * 4.2 + 1600],
-      unlit: 0.03, lit: [0.9, 0.12], spec: 0.22, grain: 0.03, displace: 6,
-      // (round 12, COVER3FIX) the lit wall stays through the middle of the flight (it read as an empty room)
-      alpha: 1 - 0.8 * sstep(0.78, 1, k),
+    // (wave 7, COSMOS) THE WALL IS GONE: behind the hall's back plane the neural cosmos (stage/cosmos/web.js), the web
+    // every room of the site stands in; the name's hall is its first place (the host's journey). Through the flight onto
+    // Now's plate it stays (the eye flies on into it); a little brighter than a page's room, the hall being lit; the
+    // keep-outs (the foot, the header) dim it to a few hundredths over a soft fall
+    cosmos: {
+      z: wallZ, alpha: 1, gain: 2.75, stars: 0.17, white: 0.34, far: 7.2,
+      keep: { floor: ph ? 0.05 : 0.035, fall: ph ? 90 : 150, haze: 0.12 },
     },
   };
   if (!o.lights) return field;
@@ -784,7 +789,7 @@ export function hallField(c, o) {
     lights.push({
       pos: o0, target: tw, radius: W.sets.height * 0.8, aspect: ph ? 1.6 : 2.6, roll: 0,
       spread: Math.atan(Math.max(0, 0.42 * wallH - W.sets.height * 0.8) / dist), soft: 1,
-      strength: 0.42 * light * (0.6 + 0.4 * sstep(0.1, 1.3, o.at)), tint: 0.32, length: 16000, haze: 0, wall: 1, chips: 0.35,
+      strength: 0.42 * light * (0.6 + 0.4 * sstep(0.1, 1.3, o.at)), tint: 0.32, length: 16000, haze: 0, wall: 0, chips: 0.35,
     });
   }
   // the two travelling blades: from high above (behind the name's plane), down at a slant onto the wall; each crosses
@@ -801,7 +806,8 @@ export function hallField(c, o) {
     const pos = [xw + b.lean * 0.55 * fw, N[1] - 3.2 * fh, W.Zn - 0.35 * D];
     lights.push({
       pos, target, radius: 0.075 * D, aspect: 2.2, roll: 0, spread: 0.03, soft: 0.75,
-      strength: 1.25 * b.s * env * light, tint: b.tint, length: 16000, haze: ph ? 0.08 : 0.11, wall: 1, chips: 1,
+      // (wave 7) the key light the glass catches: no shaft, no wall to fall on
+      strength: 1.25 * b.s * env * light, tint: b.tint, length: 16000, haze: 0, wall: 0, chips: 1,
     });
   }
   // the hand's blade (no pointer on a phone): from above and in front of the name, onto the wall where the hand points
@@ -812,7 +818,7 @@ export function hallField(c, o) {
       // (round 12, COVER3FIX) never down onto the foot's band (a lit patch had reached the scroll cue)
       target: [N[0] + a[0] * 0.5 * wallW, N[1] + Math.min(a[1], 0.3) * 0.4 * wallH, wallZ],
       radius: 0.09 * D, aspect: 1.7, roll: 0.15, spread: 0.03, soft: 0.8,
-      strength: 0.9 * light * (o.hand ?? 0) * up, tint: 0.1, length: 16000, haze: 0, wall: 1, chips: 1,
+      strength: 0.9 * light * (o.hand ?? 0) * up, tint: 0.1, length: 16000, haze: 0, wall: 0, chips: 1,
     });
   }
   field.lights = lights;

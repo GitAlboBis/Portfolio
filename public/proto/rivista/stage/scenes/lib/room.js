@@ -4,13 +4,15 @@
  * (scenes/cover/world.js hallField) stays the cover's; this is the same room, generalised for a page that looks at it
  * from the page's straight view (or from a camera the scene moves through it):
  *
- *   wall    the studio's back wall, its grid in relief (the cover's cell, line, relief, specular, shimmer)
+ *   cosmos  (wave 7, COSMOS) the room has no back wall now: at the wall's depth it opens onto the neural cosmos
+ *           (stage/cosmos/web.js, drawn by the field), the same web behind every room, each page a place in it
  *   chips   cut glass shaped as the letter A and the SerSan mark at every depth, with the cover's classes (a few large
- *           near ones, a middle population, the marks deep, a far dust by the wall) and their edge light (rim)
- *   lights  two BLADES that travel across the wall on the stage's clock (half a cycle apart: one is always in the
- *           room), with haze (their shafts, at a slant from above); the HAND's blade where the pointer aims (desktop,
- *           with weight); optionally a SUBJECT's light, a broad soft band on the wall behind a plate or a figure, that
- *           follows it with weight
+ *           near ones, a middle population, the marks deep, a far dust by the back plane) and their edge light (rim)
+ *   lights  two BLADES that travel on the stage's clock (half a cycle apart: one is always in the room); (wave 7) with no
+ *           wall to fall on they are key lights only, the glass glints as one passes (no shaft, no haze: a column of
+ *           grey light read as fog in the night); the HAND's light where the pointer aims (desktop, with weight);
+ *           optionally a SUBJECT's light behind a plate or a figure, that follows it with weight (it lights the chips
+ *           near it); the aimed shaft (aim) keeps its haze: a shaft that ends in its prism
  *   keep    the scene's text kept clear: the light, the chips and the swarm stay out of these rectangles (the host's
  *           ctx.textRects(): text blocks at their final layout box, display titles, controls, the header's words)
  *
@@ -40,7 +42,9 @@ export const ROOM_BLADE_S = 30;
 /** chips at tier A by device, and each tier's share of that (the field then draws B half, C a quarter) */
 // (lane o-fix) 9000 / 6000 -> 4000 / 2600: the chips filled every room and the index and competed with the prism, the
 // plates and the emblems (the critic's finding 7); a room keeps them as depth, not as a pattern over everything
-const CHIPS = { desk: 4000, phone: 2600 };
+// (wave 7, COSMOS) fewer chips: in the void the glass is a few shapes drifting at depth that catch the key lights, not a
+// snow of confetti over the cosmos (its galaxies are the dust now: the far dust class is gone)
+const CHIPS = { desk: 1200, phone: 800 };
 const TIER_K = /** @type {Record<string, number>} */ ({ A: 1, B: 0.8, C: 0.6 });
 const HAZE_K = /** @type {Record<string, number>} */ ({ A: 1, B: 0.7, C: 0 });
 
@@ -59,13 +63,13 @@ const HAZE_K = /** @type {Record<string, number>} */ ({ A: 1, B: 0.7, C: 0 });
  *   center   [x, y] the room's middle (viewport px; default the viewport's centre)
  *   eye      [x, y, z] where the eye stands (default the straight view, [vw/2, vh/2, D]); the chips reach to just short
  *            of it and the wall's size follows its distance
- *   wall     z the wall's depth (default -0.6 D: behind the page plane), size its extent against the default (1),
- *            alpha (1)
+ *   wall     z the room's back plane (default -0.6 D: behind the page plane): the cosmos starts behind it; size (the
+ *            chips' box), alpha: the cosmos's presence (a quieter wall asked a quieter night: 0.4 + 0.6 alpha)
  *   chips    tier A's count (default 9000 desktop, 6000 phone; 0 = none); the kit thins it on tier B and C
  *   depth    how far the chips reach from the wall toward the eye, 0..1 (default 1: all the way)
  *   scale    the chips' size (1)
  *   temp     0 cool (toward cobalt) … 1 warm (paper white): the blades', the subject's and the chips' edge light
- *   dim      0 … 1: the room's light and chips go down (1 = the wall's grid barely there, no blades)
+ *   dim      0 … 1: the room's light and chips go down (1 = the cosmos at half its light, no blades)
  *   seed     per page: the chips' scatter and the blades' phase
  *   blades   travelling blades (0–2, default 2); period s for one to cross and come round (30); haze their shafts
  *            (default 0.13 desktop, 0.09 phone; tier B 70 %, C none)
@@ -79,14 +83,15 @@ const HAZE_K = /** @type {Record<string, number>} */ ({ A: 1, B: 0.7, C: 0 });
  *            draws in light (the cover's name)
  *   fade     s the field takes to come in (0.25: the page opens on a lit wall, as the cover does); alpha the whole
  *            room's presence (1); off: nothing
- *   keepDim  (wave 1, FIX3D) the wall round the kept text: { floor, fall, haze } it is DIMMED to floor inside a kept
- *            rect over a fall of that many px (default floor 0.18, fall 150 desktop / 0.22, 80 phone; haze 0.12), never
- *            cut out (a hole the size of a block of text read as a black card); false: cut, as before
+ *   keepDim  (wave 1, FIX3D) the light round the kept text: { floor, fall, haze } it is DIMMED to floor inside a kept
+ *            rect over a fall of that many px, never cut out (a hole the size of a block of text read as a black card).
+ *            (wave 7) the cosmos's floor is a quarter of the one asked, never above 0.06 (default 0.035 desktop, 0.05
+ *            phone; fall 150 / 90; the haze's 0.12): behind text the night is all but empty
  *   glow     (wave 2, GLOW-WORK) 0 … 1: the room as lit as the cover's hall (default 0: today's image). The blades come
  *            down as the cover's do (from high above, close in front of the wall: a column of light with body in its
  *            haze), their travel kept inside the part of the wall the frame shows (one is always on screen), brighter
- *            and with more haze; more chips, the middle population larger and rimmed as the cover's; the unlit wall a
- *            little up so its grid reads across the frame, not only round the subject
+ *            and with more haze; more chips, the middle population larger and rimmed as the cover's (wave 7: the
+ *            cosmos a little brighter; the blades light only the glass)
  */
 
 /**
@@ -121,18 +126,21 @@ export function room(c, o = {}) {
   // the page plane's depth fraction in the box (where the middle population gathers)
   const fPage = clamp((0 - wallZ) / depth, 0.15, 0.85);
 
-  const nC = Math.round((o.chips ?? (ph ? CHIPS.phone : CHIPS.desk)) * (TIER_K[tier] ?? 1) * (1 + 0.35 * G));
+  // (wave 7) a scene's own count (the cases' 7000) is thinned as the defaults were (4000 to 1200)
+  const nC = Math.round((o.chips != null ? o.chips * 0.26 : (ph ? CHIPS.phone : CHIPS.desk)) * (TIER_K[tier] ?? 1) * (1 + 0.35 * G));
   const scl = o.scale ?? 1, sMid = mix(1, 1.3, G);
   /** @type {any} */ const field = {
     // (wave 2, GLOW-WORK) a page reached by a cut is lit under the arriving sheet: no rise at all (ctx.arrival, ARRIVE)
     fade: o.fade ?? (c.arrival && c.arrival.cut ? 0 : 0.25), hazeEnd: 0.6 * D,
-    wall: {
-      point: [cx, cy + 0.05 * vh, wallZ], normal: [0, 0, 1],
-      cell: 0.058 * D, line: 1.6, relief: 0.06,
-      extent: [(wallW * 1.6 + 1600) * ws, (wallH * 1.6 + 1200) * ws],
-      unlit: mix(0.03, 0.05, G) * mix(1, 0.6, dim), lit: [0.9, 0.12], spec: 0.22, grain: 0.03, displace: 6,
-      alpha: a0 * clamp(o.wall && typeof o.wall.alpha === "number" ? o.wall.alpha : 1) * (1 - 0.6 * dim),
-      keep: kd === false ? null : { floor: (kd && kd.floor) ?? (ph ? 0.22 : 0.18), fall: (kd && kd.fall) ?? (ph ? 80 : 150), haze: (kd && kd.haze) ?? 0.12 },
+    // (wave 7, COSMOS) THE WALL IS GONE. The room opens at its back plane (the wall's depth) onto the neural cosmos
+    // (stage/cosmos/web.js): the same web behind every room, each page a place in it (the host's journey). Its light
+    // follows the room's (dim, the phone's quieter wall, temp: a warm room's thin light a little whiter) and it fades to
+    // a few hundredths of the night round the kept text (keepDim: the floor never above 0.06, a long soft fall)
+    cosmos: {
+      z: wallZ,
+      alpha: a0 * clamp(o.wall && typeof o.wall.alpha === "number" ? 0.4 + 0.6 * o.wall.alpha : 1) * (1 - 0.5 * dim),
+      gain: 2.6 * mix(1, 1.06, G), stars: 0.16, white: mix(0.28, 0.4, temp), far: 7,
+      keep: { floor: Math.min(0.06, (kd && kd.floor != null ? kd.floor * 0.25 : null) ?? (ph ? 0.05 : 0.035)), fall: (kd && kd.fall) ?? (ph ? 90 : 150), haze: (kd && kd.haze) ?? 0.12 },
     },
   };
   if (nC > 0) {
@@ -147,11 +155,12 @@ export function room(c, o = {}) {
         // the middle population, about the page's plane
         { shape: "A", weight: 0.44, depth: fPage, width: 0.26, scale: sMid * scl },
         // the SerSan marks deep (under about 10 device px the mark reads as a ring: kept large)
-        { shape: "mark", weight: 0.2, depth: fPage * 0.45, width: 0.14, scale: 2.6 * scl },
-        // the far dust by the wall
-        { shape: "A", weight: 0.28, depth: 0.05, width: 0.07, scale: 0.75 * scl },
+        { shape: "mark", weight: 0.16, depth: fPage * 0.45, width: 0.14, scale: 2.6 * scl },
+        // (wave 7) the far dust by the wall is gone: the cosmos's galaxies are the dust behind the room
       ],
       body: 0.045, edge: mix(0.4, 0.55, G), rim: mix(mix(0.55, 1, temp), 1, G), bevel: 12, glint: 2.6, transmit: 0.34, near: 170, cap: 9,
+      // (wave 7) under sixteen css px (twelve on a phone) a chip fades: a speck or a small ring over the cosmos is not glass
+      floor: ph ? 12 : 16,
       seed: 11 + seed * 7,
       alpha: a0 * (1 - 0.8 * dim),
     };
@@ -216,8 +225,10 @@ export function room(c, o = {}) {
       ...(G > 0 ? { across: [0, 0, 1] } : {}),
       // (wave 4, PRISM) a lit room's shafts no brighter at their core than the cover's: 1.45 / 1.9 read 0.20 against the
       // cover's 0.18 on the same measure (Obla's room), now about 15 % down
+      // (wave 7, COSMOS) no wall to fall on and no air to stand in: the blade is the key light the glass catches (its
+      // chips glint as it passes), never a shaft or a lit patch on the night
       strength: Math.round(mix(1.25, 1.24, G) * (i === 0 ? 1 : 0.55) * env * live * a0 * 1e5) / 1e5, tint: tints[i], length: 16000,
-      haze: haze * mix(1, 1.6, G) * (i === 0 ? 1 : 0.6), wall: 1, chips: 1,
+      haze: 0, wall: 0, chips: 1,
     });
   }
   // the subject's light: from just in front of it along the eye's ray onto the wall behind it, a broad soft band
@@ -235,7 +246,7 @@ export function room(c, o = {}) {
       pos: o0, target: tw, radius: h * 0.8, aspect: clamp(w / h, 1.2, 3), roll: 0,
       spread: Math.atan(Math.max(0, 0.36 * wallH - h * 0.8) / Math.max(1, dist)), soft: 1,
       // (lane o-fix) it goes in the cut's flight too, with the subject's plate
-      strength: (typeof sj.strength === "number" ? sj.strength : 0.42) * live * a0 * (1 - sstep(0, 0.12, c.flight || 0)), tint: mix(0.5, 0.05, temp), length: 16000, haze: 0, wall: 1, chips: 0.35,
+      strength: (typeof sj.strength === "number" ? sj.strength : 0.42) * live * a0 * (1 - sstep(0, 0.12, c.flight || 0)), tint: mix(0.5, 0.05, temp), length: 16000, haze: 0, wall: 0, chips: 0.35,
     });
   }
   // the hand's blade (a desktop pointer): it follows the aim with weight, a little slower than the camera's orbit
@@ -258,7 +269,7 @@ export function room(c, o = {}) {
       radius: 0.09 * D, aspect: 1.7, roll: 0.15, spread: 0.03, soft: 0.8,
       // (lane o-fix) gone in the cut's flight: with the plates leaving and the eye pushed in it stood alone as a tall grey
       // column inside the glass (c.flight, fx-stage.js)
-      strength: Math.round(0.9 * S.hand * live * a0 * (1 - sstep(0, 0.12, c.flight || 0)) * 1e5) / 1e5, tint: mix(0.3, 0.05, temp), length: 16000, haze: 0, wall: 1, chips: 1,
+      strength: Math.round(0.9 * S.hand * live * a0 * (1 - sstep(0, 0.12, c.flight || 0)) * 1e5) / 1e5, tint: mix(0.3, 0.05, temp), length: 16000, haze: 0, wall: 0, chips: 1,
     });
   }
   if (lights.length) field.lights = lights.slice(0, 4);

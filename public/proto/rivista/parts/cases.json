@@ -1,7 +1,99 @@
 [
   {
-    "slug": "spherenode",
+    "slug": "sersan-agent-os",
     "tile": "01",
+    "label": "SerSan Agent OS",
+    "titleLines": ["SerSan Agent OS"],
+    "overline": [
+      { "t": "SerSan", "src": "P:96" },
+      { "t": { "en": "Multi-agent system", "it": "Sistema multi-agente" }, "src": "P:40" },
+      { "t": { "en": "Oct – Nov 2026", "it": "ott – nov 2026" }, "src": "P:256" }
+    ],
+    "ornament": { "t": { "en": "earned autonomy", "it": "autonomia meritata" }, "src": "P:40" },
+    "lead": { "t": { "en": "The multi-agent system I built for SerSan: agents with roles, a router, hand-offs with a brake that calls in a person, and a Gate that lets an action out only at the level the agent has earned.", "it": "Il sistema multi-agente che ho costruito per SerSan: agenti con un ruolo, un router, passaggi di consegna con un freno che fa intervenire una persona e un Cancello che fa uscire un’azione solo al livello che l’agente si è guadagnato." }, "src": "P:40, P:256" },
+    "cta": null,
+    "fields": [{ "k": { "en": "Access", "it": "Accesso" }, "v": { "en": "private repository", "it": "repository privato" }, "src": "P:40" }],
+    "rail": {
+      "kicker": { "en": "SerSan · multi-agent system", "it": "SerSan · sistema multi-agente" },
+      "body": { "en": "Agents with roles, hand-offs under a brake and a Gate on every action that goes out; 2,513 tests passed.", "it": "Agenti con un ruolo, passaggi di consegna con un freno e un Cancello davanti a ogni azione che esce; 2.513 test superati." },
+      "src": "P:40"
+    },
+    "fig": {
+      "kind": "plate",
+      "figure": { "en": "Earned autonomy", "it": "Autonomia meritata" }, "word": true,
+      "figLine": { "en": "each agent acts on its own only at the level it has earned", "it": "ogni agente agisce per conto suo solo al livello che si è guadagnato" },
+      "caption": [{ "en": "The Gate", "it": "Il Cancello" }, { "en": "Every action that goes out passes it, at the level the agent has earned.", "it": "Ogni azione che esce passa da lì, al livello che l’agente si è guadagnato." }],
+      "src": "P:40",
+      "note": "Wave 7 (lane WORKS): a plate by words. The repository is private and no capture is made (PRODUCT §5): a capture lands only if Alberto asks for one."
+    },
+    "chapters": [
+      {
+        "type": "what",
+        "eyebrow": { "en": "What it is", "it": "Che cos’è" },
+        "headline": [{ "en": "Agents with roles,", "it": "Agenti con un ruolo," }, { "en": "a Gate on the way out", "it": "un Cancello in uscita" }],
+        "lead": { "t": { "en": "SerSan's own multi-agent system, which I built for the studio. After a client call, or each morning, its agents prepare call summaries, CRM notes, to-dos, follow-ups, meeting briefs and their own stand-up. A router sends each job where it belongs, the agents hand work to each other on a shared board, and nothing reaches the outside except through the Gate.", "it": "Il sistema multi-agente di SerSan, che ho costruito per lo studio. Dopo una chiamata con un cliente, o ogni mattina, i suoi agenti preparano riassunti delle chiamate, note per il CRM, cose da fare, follow-up, brief delle riunioni e il loro stand-up. Un router manda ogni lavoro dove deve andare, gli agenti si passano il lavoro su una bacheca comune e niente esce se non attraverso il Cancello." }, "src": "P:40" },
+        "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": { "en": "TypeScript · Node.js 22 · Claude Agent SDK · Model Context Protocol · Anthropic API · Open-weight models hosted in house · Zod · Fastify · PostgreSQL 16 · Vitest · GitHub Actions", "it": "TypeScript · Node.js 22 · Claude Agent SDK · Model Context Protocol · Anthropic API · Modelli open-weight ospitati in casa · Zod · Fastify · PostgreSQL 16 · Vitest · GitHub Actions" }, "src": "P:256" }
+      },
+      {
+        "type": "schematic",
+        "eyebrow": { "en": "How a job travels", "it": "Il percorso di un lavoro" },
+        "headline": [{ "en": "From an event", "it": "Da un evento" }, { "en": "to the Gate", "it": "al Cancello" }],
+        "lead": { "t": { "en": "A job starts from one of 12 kinds of event and ends at the Gate.", "it": "Un lavoro parte da uno dei 12 tipi di evento e finisce al Cancello." }, "src": "P:40" },
+        "nodes": [
+          { "t": { "en": "An event", "it": "Un evento" }, "sub": { "en": "after a client call, or each morning", "it": "dopo una chiamata con un cliente, o ogni mattina" }, "src": "P:40" },
+          { "t": { "en": "The router", "it": "Il router" }, "sub": { "en": "to a code rule, a model hosted in house, the Claude API, an Agent SDK session, Claude Code or a person", "it": "verso una regola di codice, un modello ospitato in casa, Claude API, una sessione Agent SDK, Claude Code o una persona" }, "src": "P:40" },
+          { "t": { "en": "The agents", "it": "Gli agenti" }, "sub": { "en": "each with its role, on three lanes", "it": "ognuno con il suo ruolo, su tre corsie" }, "src": "P:40" },
+          { "t": { "en": "The board", "it": "La bacheca" }, "sub": { "en": "the hand-offs, and a brake that calls in a person", "it": "i passaggi di consegna, e un freno che fa intervenire una persona" }, "src": "P:40, P:256" },
+          { "t": { "en": "The Gate", "it": "Il Cancello" }, "sub": { "en": "the only part that acts outside", "it": "l’unica parte che agisce verso l’esterno" }, "src": "P:40" }
+        ],
+        "outcomesLabel": { "en": "Then the action", "it": "Poi l’azione" },
+        "outcomes": [
+          { "t": { "en": "Is done by a person", "it": "La fa una persona" }, "src": "P:40" },
+          { "t": { "en": "Becomes a card a person approves", "it": "Diventa una carta che una persona approva" }, "src": "P:40" },
+          { "t": { "en": "Waits in a timed window, with a Stop button", "it": "Aspetta in una finestra a tempo, con un pulsante Stop" }, "src": "P:40" },
+          { "t": { "en": "Goes out on its own, within daily caps", "it": "Esce da sola, entro tetti giornalieri" }, "src": "P:40" }
+        ],
+        "caption": [{ "en": "Four levels of autonomy", "it": "Quattro livelli di autonomia" }, { "en": "Set for each agent, action type and kind of recipient.", "it": "Per ogni agente, tipo di azione e classe di destinatario." }]
+      },
+      {
+        "type": "facts",
+        "eyebrow": { "en": "Tested", "it": "Collaudo" },
+        "headline": [{ "en": "Broken on purpose,", "it": "Rotto apposta," }, { "en": "piece by piece", "it": "pezzo per pezzo" }],
+        "lead": { "t": { "en": "Tests that break each piece on purpose, to show what happens when a part fails. It runs on development machines, with test data and a scripted model in place of the real ones.", "it": "Test che rompono apposta ogni pezzo, per mostrare che cosa succede quando una parte si guasta. Il sistema gira su macchine di sviluppo, con dati di prova e un modello a copione al posto di quelli veri." }, "src": "P:40, P:256" },
+        "items": [
+          { "num": { "en": "2,513", "it": "2.513" }, "title": { "en": "Automated tests passed", "it": "Test automatici superati" }, "body": { "en": "And 0 failed, on 20 November 2026; there were 777 when the first milestone closed. The suite must give the same names, outcomes and counts in three runs in a row.", "it": "E 0 falliti, il 20 novembre 2026; alla chiusura della prima milestone erano 777. La suite deve dare gli stessi nomi, esiti e conteggi in tre giri di fila." }, "src": "P:40" },
+          { "num": "28", "title": { "en": "Failure scenarios, end to end", "it": "Scenari di guasto, da un capo all’altro" }, "body": { "en": "Plus six continuity tests. The Gate down, two approvals at the same instant, instructions hidden in a third party's text, the emergency stop, the engine dying mid-chain, three clients at once: each ends by checking that no output went above its level.", "it": "Più sei prove di continuità. Il Cancello fuori servizio, due approvazioni nello stesso istante, istruzioni nascoste nel testo di terzi, l’arresto di emergenza, il motore che muore a metà catena, tre clienti insieme: ognuno si chiude controllando che nessuna uscita abbia superato il suo livello." }, "src": "P:40" },
+          { "num": "12", "title": { "en": "Defects confirmed by adversarial review", "it": "Difetti confermati dalle revisioni avversarie" }, "body": { "en": "In the first milestone: 1 critical, 4 high, 7 medium, each fixed with a test seen failing first. In the second, 17 and 13, none critical or high.", "it": "Nella prima milestone: 1 critico, 4 alti, 7 medi, ciascuno corretto con un test visto fallire prima. Nella seconda, 17 e 13, nessuno critico o alto." }, "src": "P:40" },
+          { "num": "11", "title": { "en": "Days, first commit to last", "it": "Giorni, dal primo commit all’ultimo" }, "body": { "en": "304 commits, 82 pull requests, about 96,000 lines of TypeScript (37,600 of source, 58,600 of tests), written by directing one coordinating and two executing Claude Code sessions under my written directives.", "it": "304 commit, 82 pull request, circa 96.000 righe di TypeScript (37.600 di sorgente, 58.600 di test), scritte dirigendo una sessione Claude Code coordinatrice e due esecutrici con le mie direttive scritte." }, "src": "P:40" }
+        ]
+      },
+      {
+        "type": "list",
+        "eyebrow": { "en": "Guardrails", "it": "Guardrail" },
+        "headline": [{ "en": "Autonomy", "it": "L’autonomia" }, { "en": "is earned", "it": "si guadagna" }],
+        "label": { "en": "Written in the code", "it": "Scritti nel codice" },
+        "items": [
+          { "t": { "en": "Each agent's level holds for one action type and one kind of recipient: 9 action types, 10 classes of recipient.", "it": "Il livello di ogni agente vale per un tipo di azione e una classe di destinatario: 9 tipi di azione, 10 classi di destinatari." }, "src": "P:40" },
+          { "t": { "en": "From a card to a timed window: 5 approvals in a row and 30 days without a negative signal. To going out alone: 15 clean windows and 60 days. Always with the owner's yes; a negative signal lowers the level by itself.", "it": "Da una carta a una finestra a tempo: 5 approvazioni di fila e 30 giorni senza segnali negativi. All’uscita da sola: 15 finestre pulite e 60 giorni. Sempre con il sì del responsabile; un segnale negativo abbassa il livello da solo." }, "src": "P:40" },
+          { "t": { "en": "Payments are always manual; deletions, credentials, secrets and permissions are off limits.", "it": "I pagamenti sono sempre manuali; cancellazioni, credenziali, segreti e permessi sono vietati." }, "src": "P:40" },
+          { "t": { "en": "A content check before anything leaves without a person's approval, and a line in every message sent without a person saying that an AI prepared it.", "it": "Un controllo dei contenuti prima di tutto ciò che esce senza l’approvazione di una persona e, in ogni messaggio inviato senza una persona, una riga che dice che l’ha preparato un’AI." }, "src": "P:40" },
+          { "t": { "en": "A register that can only grow, enforced by triggers in the database, and an emergency stop.", "it": "Un registro che può solo crescere, imposto da trigger nel database, e un arresto di emergenza." }, "src": "P:40" }
+        ]
+      }
+    ],
+    "onFile": [
+      { "k": { "en": "Studio", "it": "Studio" }, "v": { "en": "SerSan · Sersan Limited · London · Remote", "it": "SerSan · Sersan Limited · Londra · Da remoto" }, "src": "P:96-97" },
+      { "k": { "en": "Role", "it": "Ruolo" }, "v": { "en": "Idea, proposal and direction; built by directing Claude Code sessions", "it": "Idea, proposta e direzione; costruito dirigendo sessioni Claude Code" }, "src": "P:40" },
+      { "k": { "en": "Period", "it": "Periodo" }, "v": { "en": "Oct – Nov 2026", "it": "ott – nov 2026" }, "src": "P:256" },
+      { "k": { "en": "Access", "it": "Accesso" }, "v": { "en": "Private, the studio's internal system", "it": "Privato, sistema interno dello studio" }, "src": "P:40" },
+      { "k": { "en": "Status", "it": "Stato" }, "v": { "en": "Built and tested, not in production", "it": "Costruito e collaudato, non in produzione" }, "src": "P:40" },
+      { "k": { "en": "Photograph", "it": "Fotografia" }, "v": { "en": "none", "it": "nessuna" }, "gap": true, "onlyPlate": true, "src": "gap: PRODUCT §5 (no capture of SerSan Agent OS)" }
+    ]
+  },
+
+  {
+    "slug": "spherenode",
+    "tile": "02",
     "label": "SphereNode",
     "titleLines": ["SphereNode"],
     "overline": [
@@ -76,7 +168,7 @@
 
   {
     "slug": "sphere-ai",
-    "tile": "02",
+    "tile": "03",
     "label": "Sphere AI",
     "titleLines": ["Sphere AI"],
     "overline": [
@@ -177,7 +269,7 @@
 
   {
     "slug": "maintech-oma",
-    "tile": "03",
+    "tile": "04",
     "label": "Maintech OMA",
     "titleLines": ["Maintech OMA"],
     "overline": [
@@ -246,7 +338,7 @@
 
   {
     "slug": "sersan-io",
-    "tile": "04",
+    "tile": "05",
     "label": "sersan.io",
     "titleLines": ["sersan.io"],
     "overline": [
@@ -346,7 +438,7 @@
 
   {
     "slug": "domus-tua",
-    "tile": "05",
+    "tile": "06",
     "label": "Domus Tua",
     "titleLines": ["Domus Tua"],
     "overline": [
@@ -419,7 +511,7 @@
 
   {
     "slug": "sersan-brand",
-    "tile": "06",
+    "tile": "07",
     "label": "Brand film",
     "titleLines": [{ "en": "Brand identity", "it": "Brand identity" }, { "en": "and brand film", "it": "e brand film" }],
     "overline": [
@@ -503,8 +595,27 @@
   },
 
   {
+    "slug": "obla",
+    "tile": "08",
+    "label": "Obla",
+    "page": "obla",
+    "note": "Wave 7 (lane WORKS): a work that is a page of the site already. Its plate, its More work row and its row on the 404 open obla.html, the page in the menu; it has no case page and no share card of its own. A plate by words: the repository is private and no capture is made (PRODUCT §5).",
+    "rail": {
+      "kicker": { "en": "Personal project · multi-agent system", "it": "Progetto personale · sistema multi-agente" },
+      "body": { "en": "One chief of staff I talk to, and the agents it hands the work to, on my own machine.", "it": "Un capo di gabinetto a cui parlo e gli agenti a cui passa il lavoro, sulla mia macchina." },
+      "src": "P:41, P:257"
+    },
+    "fig": {
+      "kind": "plate",
+      "figure": { "en": "Personal", "it": "Personale" }, "word": true,
+      "figLine": { "en": "my own multi-agent system, for me alone", "it": "il mio sistema multi-agente, solo per me" },
+      "src": "P:41"
+    }
+  },
+
+  {
     "slug": "badante24h",
-    "tile": "07",
+    "tile": "09",
     "label": "Badante24h",
     "titleLines": ["Badante24h"],
     "overline": [
@@ -570,7 +681,7 @@
 
   {
     "slug": "doit-voice-ai-agent",
-    "tile": "08",
+    "tile": "10",
     "label": "Voice AI Agent",
     "titleLines": [{ "en": "Voice AI Agent", "it": "Voice AI Agent" }, { "en": "for Microsoft Teams", "it": "per Microsoft Teams" }],
     "overline": [
@@ -637,7 +748,7 @@
 
   {
     "slug": "agricultural-supply-chain",
-    "tile": "09",
+    "tile": "11",
     "label": "Supply Chain",
     "titleLines": [{ "en": "Agricultural", "it": "Filiera" }, { "en": "supply chain", "it": "agricola" }],
     "overline": [

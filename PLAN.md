@@ -4,32 +4,31 @@
 >
 > Su ogni riga vale la regola di proporzione: i gate che esistono (`assemble.mjs --check`, `check-claims-proto.mjs`) più uno sguardo alle pagine. Nessun nuovo script di misura nel repo.
 
-## 0. Adesso (20 novembre)
+## 0. Adesso (21 novembre)
 
-**La sesta ondata è chiusa e va online.** Committata per argomento il 20 novembre su `feat/water-viva`; online come un solo commit con l'albero finale sopra `881f68c`, pushato su `main` (Alberto, 19 novembre: «pusha su github e mergia su main così fa il deploy su vercel automatico»). Vercel lo costruisce con `web/scripts/release.mjs` e lo serve alla radice di https://portfolio-jet-eta-24.vercel.app. La vecchia app Next.js è tolta. I dettagli sono in testa a `HANDOFF.md`.
+**La settima ondata è sul disco: la committa il direttore per argomento e va online come la sesta.** Nasce dalle parole di Alberto del 20 novembre, dopo aver guardato il sito online: «vorrei che fosse una pagina singola con uno scroll continuo , tutta un unica esperienza nella home . ovviamente le pagine devono rimanere separate se uno clicca work o dall'url»; «non mi piace lo sfondo a griglia»; «puoi fare molto di meglio come sfondo . reti neurali , o spazio , qualcosa di super realistico e wow»; e, la sera, SerSan Agent OS (per SerSan) e Obla (suo) come la prova più forte delle sue competenze multi-agente, in Consulting, About e Work. Gli appunti sono in `docs/redesign/rivista-story/build/l-*.md`.
 
-**I nove punti dell'ondata:**
-- Costruiti i primi otto:
-  1. il primo clic di una visita vola subito e muto, e il suono entra all'arrivo;
-  2. la porta tiene la stanza nuova dal primo fotogramma all'ultimo, e verso Contact il mattino arriva come un bordo di giorno;
-  3. il GPU dei voli;
-  4. una figura per «More work» e per il record al telefono;
-  5. le date del percorso di About sempre separate;
-  6. il prisma dell'indice come vetro pieno;
-  7. la fase 4 del piano 70 (grana, aberrazione in velocità, canvas HDR);
-  8. i resti del 2D.
-- Il punto 3 resta sopra i limiti su questa GPU, ma mai sopra HEAD (`CLAUDE.md` §8).
-- Il punto 9 vale solo per la build Astro, dove da Contact si vola: le pagine assemblate tengono il loro taglio e non vanno online (brief dell'ondata 6).
+**Costruiti:**
+1. la home come un solo viaggio attraverso tutte le pagine, nell'ordine del menu, fino al mattino di Contact, nelle due build e nelle due lingue; le pagine restano separate e fra l'una e l'altra si vola (HOME; poi STAGE sul palco, MOTION per aperture, intestazione, suono e link);
+2. il cosmo neurale in ogni stanza al posto della griglia, un solo cosmo seminato una volta, più leggero della griglia a riposo e nei picchi su desktop (COSMOS);
+3. l'indice della copertina tolto, il prisma solo sotto «More work»;
+4. undici lavori: SerSan Agent OS con la sua pagina di caso, Obla che porta alla sua pagina (WORKS); i fatti prima in `PRODUCT.md` e la prova multi-agente in Consulting, About, Now e Obla (CONTENT);
+5. lo sciame che torna intero dopo un dimezzamento, le parole incise in righe bilanciate (STAGE).
+
+Poi INTEGRATE (gate, rilascio, GPU, WebKit, la serie finale in `.shots/l-final/`) e i documenti.
 
 **Prossimi passi:**
 
-- **Lo sguardo e l'orecchio di Alberto, sul sito online.** Il suono nessuno l'ha ancora sentito. Safari, Firefox, un telefono vero e uno schermo HDR non sono mai stati provati.
-- **Gli aperti dell'ondata 6** (`CLAUDE.md` §8):
-  - il GPU;
-  - lo sciame che si dimezza sull'indice e sulla pila di About;
-  - i 150 ms quasi di carta vuota verso Contact;
-  - la lastra di Maintech OMA con il numero.
+- **Il direttore:** guardare `.shots/l-final/`, committare per argomento, poi il rilascio sull'albero finale, lo squash sopra `208c3de` e il push su `main` (il diario in testa a `HANDOFF.md`; `CLAUDE.md` §6), lo stato del commit, i cinque indirizzi e una prova headless sul sito vero.
+- **Lo sguardo e l'orecchio di Alberto, sul sito online:** la home dall'alto in basso e le sue giunture, il cosmo, i lavori nuovi; il suono non l'ha ancora sentito nessuno. Firefox, un telefono vero e uno schermo HDR non sono mai stati provati, Safari solo per la pagina stampata.
+- **Gli aperti dell'ondata 7** (`CLAUDE.md` §8):
+  - il primo frame della home e il picco a 1920 fra Now e la galleria, sopra HEAD;
+  - le giunture fra le parti della home, all'occhio di Alberto; i vecchi indirizzi `index.html#…`, che portano ancora alle pagine;
+  - il «9» di Maintech e il «PostGIS 3» di Badante24h sulle lastre;
+  - la lettura da madrelingua dell'italiano nuovo.
 - **Astro come unica build.** Togliere `assemble.mjs` si decide dopo il suo sguardo.
+
+**Storia: la sesta ondata è online dal 20 novembre.** Committata per argomento (`534b087` … `bc438dd`) e pubblicata come un solo commit con l'albero finale sopra `881f68c`, pushato su `main` (Alberto, 19 novembre: «pusha su github e mergia su main così fa il deploy su vercel automatico»): lo squash `208c3de`, Vercel verde alle 16:37, servito alla radice di https://portfolio-jet-eta-24.vercel.app; la vecchia app Next.js è tolta. I suoi nove punti: il primo clic di una visita vola subito e muto; la porta tiene la stanza nuova dal primo fotogramma all'ultimo e verso Contact il mattino arriva come un bordo di giorno; il GPU dei voli; una figura per «More work» e per il record al telefono; le date del percorso di About sempre separate; il prisma dell'indice come vetro pieno; la fase 4 del piano 70 (grana, aberrazione in velocità, canvas HDR); i resti del 2D; il volo anche da Contact (solo la build Astro).
 
 0. **Storia: la quinta ondata, rilanciata alle 23:20 da una sessione nuova** (workflow `wf_995d83ca-ed7`, corsie su Fable 5.2 a effort max per la regola di Alberto delle 23:05; il primo lancio, `wf_a63941f9-c76`, è stato chiuso verso le 22:59 con le tre corsie di build a metà e il loro lavoro sul disco; all'01:30 del 13 novembre le tre corsie di build sono tornate e il critico, tagliato all'01:15 dai crediti d'uso, è ripartito sullo stesso run; alle 03:25 il critico (sicuro sì, bello abbastanza non ancora) e la correzione del volo sono tornati, e le correzioni del suono e dei casi, tagliate alle 02:33, sono ripartite nel run di coda `wf_041ff2b2-31c` (FIXSOUND, FIXCASES, INTEGRATE, DOCS): da qui le corsie girano una per volta; FIXSOUND è tornata alle 04:00; alle 04:02 Fable ha raggiunto il limite settimanale e FIXCASES, INTEGRATE e DOCS sono passate su Opus 5.5 a effort max nel run `wf_0bfb5947-52e`: FIXCASES è tornata alle 05:22, INTEGRATE è stata tagliata alle 08:03 dal limite settimanale di tutti i modelli; dal 17 novembre alle 17:36, azzerati i limiti, INTEGRATE è ripresa dai suoi appunti su Fable 5.2 a effort max nel run `wf_e0427eac-3f8` ed è tornata alle 19:15; DOCS è partita dopo di lei, alle 19:55 il limite settimanale di Fable l'ha fermata a documenti già riscritti, e la finisce su Opus 5.5 a effort max nello stesso run; i dettagli, le corsie e come riprenderla sono nel riquadro in testa a `HANDOFF.md`): il taglio come un volo vero dell'occhio nello studio (FLIGHT), il suono sintetizzato e acceso dal primo gesto (SOUND), una figura di luce per ogni capitolo dei nove casi (CASES); poi un critico, tre corsie di correzione, l'integrazione con i film e i documenti riscritti sul sito com'è (DOCS). **Fatte e committate la terza ondata** (`a508f55` il progetto Astro in `web/` a parità di byte, `ab1d0da` il prisma, `096af60` il primo portale, `40d3d38` il nome a splat dietro `?name=splat`) **e la quarta** (`034494d` il palco vivo fra le pagine negli script, `d4d058b` il router nel progetto Astro, `02af948` il vetro, `1ec2133`, `d9f6306`, `054daa7`), mandata ad Alberto alle 22:24 con cinque film e due link (5178 le pagine assemblate, 5180 il build Astro con il palco vivo). **Dopo la quinta:** il prisma come vetro pieno, la fase 4 del piano 70 (grana, aberrazione in velocità, canvas HDR), i resti del 2D, la decisione sul passaggio definitivo ad Astro.
 1. **Giro 12, «la sala accesa», fatto e committato** (`197039b` le opzioni del motore, `904045e` la hero in terza versione): la posa di riposo è una sala accesa (parete a griglia, lame di luce, schegge a forma di A e di marchio SerSan, il nome come blocco visto da sotto, due lastre grandi); mandata ad Alberto con due film verso le 00:05 del 12 novembre. Che cosa è ancora debole è nel riquadro in testa a `HANDOFF.md`.

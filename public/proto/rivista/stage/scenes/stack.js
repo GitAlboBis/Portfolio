@@ -117,14 +117,18 @@ const outlines = {
   },
 };
 
-/** the groups' names, read once from the page (each step's title): what each layer carries etched */
+/** the groups' names, read once from the page (each step's title): what each layer carries etched
+ *  (wave 7, INTEGRATE) read again once the title they came from has left the document (the router keeps this module
+ *  across pages: a language flight kept the other edition's names) */
 /** @type {string[] | null} */ let NAMES = null;
+/** @type {Element | null} */ let NAMES_EL = null;
 function names() {
-  if (NAMES) return NAMES;
+  if (NAMES && NAMES_EL && NAMES_EL.isConnected) return NAMES;
   const els = document.querySelectorAll('#stack [data-stage-step] .stp-t, [data-stage="stack"] [data-stage-step] .stp-t');
   const seen = new Set(), out = [];
   for (const e of els) { if (seen.has(e)) continue; seen.add(e); out.push((e.textContent || "").replace(/\s+/g, " ").trim()); }
   NAMES = out.slice(0, N_LAYERS);
+  NAMES_EL = els[0] || null;
   return NAMES;
 }
 

@@ -80,7 +80,7 @@
   };
   /** after a beat that ends at rest: no inline transform or clip is left behind (no element keeps a layer) */
   const clear = (els, props = ["transform", "clipPath", "opacity"]) => {
-    for (const el of [].concat(els)) if (el && el.style) for (const p of props) el.style[p] = "";
+    for (const el of [].concat(els)) if (el && el.style) { for (const p of props) el.style[p] = ""; if (el.classList) el.classList.remove("mo-held"); }
   };
   const done = (a, fn) => { if (a && typeof a.then === "function") a.then(fn); else fn(); };
 
@@ -170,6 +170,8 @@
     const bent = !!el.closest("[data-refract]");
     const gapC = opts.gapC ?? 24, gapL = opts.gapL ?? 90, dur = opts.dur ?? 900;
     const all = lines.flat();
+    /* (wave 7) built paused, each letter is held behind its mask in its own style too, until its beat plays */
+    if (opts.paused) for (const c of all) { c.style.clipPath = SHUT; if (!bent) c.style.transform = DOWN; }
     const delay = (c) => { for (let l = 0; l < lines.length; l++) { const i = lines[l].indexOf(c); if (i >= 0) return t + l * gapL + Math.min(i, 18) * gapC; } return t; };
     const p = bent
       ? { clipPath: [SHUT, OPEN], duration: dur, delay: (c) => delay(c), ease: EZ.rise }
@@ -514,26 +516,9 @@
 
     /* the first screen: a title, then its hairline, then the lead's lines and the rest */
     let t = arrival ? 0 : 40;          // ms after the start
-    const foot = [];
+    const foot = items.filter((el) => home && el.closest(".hero-foot"));
     const footParked = [];
-    for (const el of items) {
-      const isTitle = el.matches(TITLE) && !el.querySelector("p, a, div");
-      if (home && el.closest(".hero-foot")) { foot.push(el); continue; }
-      if (isTitle) {
-        const a = lettersIn(el, t, { paused: true, restore: true });
-        if (a) at((s) => setTimeout(() => a.play(), s));
-        const n = letters(el).flat().length;
-        const hl = el.nextElementSibling && !el.closest(".hero") ? hairline(el) : null;
-        if (hl) {
-          const hd = t + 260 + Math.min(n, 18) * 12;
-          const ha = beat(hl, { autoplay: false, transform: ["scaleX(0)", "scaleX(1)"], duration: 900, delay: hd, ease: EZ.io });
-          if (ha) at((s) => setTimeout(() => ha.play(), s));
-        }
-        t += 300 + Math.min(n, 18) * 14;
-        continue;
-      }
-      t = block(el, t, at);
-    }
+    t = cueItems(items.filter((el) => !foot.includes(el)), t, at);
     /* the cover's foot (role, lead, buttons): it follows the name as the name is lit (the hall's opening lights the
        name about 1.45 s after the stage's first frame), with its own short stagger */
     if (foot.length) {
@@ -566,6 +551,34 @@
     if (arrival) { arrStart = start; FX.once("nav:uncovered", start); if (!d.hasAttribute("data-arrive") && !d.classList.contains("cut-flown")) start(); }
     else stageFrame(SAFE_MS - 60).then(start);
   }
+  /** run fn s ms from now; at once when s is 0 (in the task that started the sheet: nothing shows in between) */
+  const later = (fn, s) => { if (s > 0) setTimeout(fn, s); else fn(); };
+  /** the beats of a first screen, built paused (each element held hidden until its beat plays): a title's letters, then
+   * its hairline, then the lead's lines and the rest. `at(fn)` parks a starter: fn(s) plays it s ms from then. Returns
+   * the time after the last beat's start. The page's opening and (wave 7) each part of the home play one. */
+  function cueItems(items, t, at) {
+    for (const el of items) {
+      const isTitle = el.matches(TITLE) && !el.querySelector("p, a, div");
+      if (isTitle) {
+        const a = lettersIn(el, t, { paused: true, restore: true });
+        if (a) at((s) => later(() => a.play(), s));
+        const n = letters(el).flat().length;
+        const hl = el.nextElementSibling && !el.closest(".hero") ? hairline(el) : null;
+        if (hl) {
+          const hd = t + 260 + Math.min(n, 18) * 12;
+          hl.style.transform = "scaleX(0)";
+          const ha = beat(hl, { autoplay: false, transform: ["scaleX(0)", "scaleX(1)"], duration: 900, delay: hd, ease: EZ.io });
+          if (ha) at((s) => later(() => ha.play(), s));
+        }
+        t += 300 + Math.min(n, 18) * 14;
+        continue;
+      }
+      t = block(el, t, at);
+    }
+    return t;
+  }
+  /** an element held hidden by a parked beat (its style says so until the beat ends; print shows it: css/motion.css) */
+  const hold = (els, from) => { for (const el of [].concat(els)) if (el && el.style) { el.classList.add("mo-held"); Object.assign(el.style, from); } };
   /** a label that stands right before a title in the same box goes after it */
   function order(items) {
     const out = items.slice();
@@ -583,12 +596,14 @@
         t = lines(k, t, at);
       } else if (k.matches(".btn, .q") || k.querySelector(".btn, .q")) {
         const ctl = k.matches(".btn, .q") ? [k] : $$(".btn, .q", k);
+        hold(ctl, { opacity: "0" });
         const a = beat(ctl, { autoplay: false, opacity: [0, 1], clipPath: ["inset(0 0 100% 0)", "inset(-0.2em -0.2em -0.2em -0.2em)"], transform: ["translate3d(0, 0.6em, 0)", REST], duration: 760, delay: (c, i) => t + i * 70, ease: EZ.rise });
-        if (a) { at((s) => setTimeout(() => a.play(), s)); done(a, () => clear(ctl)); }
+        if (a) { at((s) => later(() => a.play(), s)); done(a, () => clear(ctl)); } else clear(ctl);
         t += 80 + ctl.length * 70;
       } else {
+        hold(k, { opacity: "0" });
         const a = beat(k, { autoplay: false, opacity: [0, 1], transform: ["translate3d(0, 0.9rem, 0)", REST], duration: 700, delay: t, ease: EZ.rise });
-        if (a) { at((s) => setTimeout(() => a.play(), s)); done(a, () => clear(k)); }
+        if (a) { at((s) => later(() => a.play(), s)); done(a, () => clear(k)); } else clear(k);
         t += 90;
       }
     }
@@ -599,8 +614,9 @@
     let split = null;
     try { split = A.splitText(p, { lines: { wrap: "clip" }, accessible: true }); } catch (e) { split = null; }
     if (!split) {
+      hold(p, { opacity: "0" });
       const a = beat(p, { autoplay: false, opacity: [0, 1], transform: ["translate3d(0, 0.9rem, 0)", REST], duration: 700, delay: t, ease: EZ.rise });
-      if (a) { at((s) => setTimeout(() => a.play(), s)); done(a, () => clear(p)); }
+      if (a) { at((s) => later(() => a.play(), s)); done(a, () => clear(p)); } else clear(p);
       return t + 90;
     }
     const t0 = t;
@@ -611,19 +627,78 @@
     split.addEffect(({ lines: ls }) => {
       if (!first) return;
       first = false;
+      hold(ls, { opacity: "0", transform: "translate3d(0, 105%, 0)" });
       p.style.visibility = "";
       const a = beat(ls, { autoplay: false, transform: ["translate3d(0, 105%, 0)", REST], opacity: [0, 1], duration: 900, delay: (l, i) => t0 + i * 80, ease: EZ.rise });
-      if (!a) return;
+      if (!a) { clear(ls); return; }
       const run = () => a.play();
-      if (start >= 0) setTimeout(run, Math.max(0, start - performance.now())); else p._moRun = run;
+      if (start >= 0) later(run, Math.max(0, start - performance.now())); else p._moRun = run;
       /* the split stays: its lines are anime's whole-word lines, and a revert would let the browser break them anew
          (a hyphen, text-wrap: pretty) under the reader's eyes; the stage on and ?stage=0 both read this split */
       done(a, () => clear(ls));
     });
-    at((s) => { start = performance.now() + s; if (p._moRun) { const r = p._moRun; p._moRun = null; setTimeout(r, s); } });
+    at((s) => { start = performance.now() + s; if (p._moRun) { const r = p._moRun; p._moRun = null; later(r, s); } });
     /* a split that never comes (fonts never settle): the paragraph shows anyway */
     setTimeout(() => { if (first) p.style.visibility = ""; }, 2500);
     return t + 260;
+  }
+
+  /* ---------------------------------------------------------------- the home's parts (wave 7, lane MOTION)
+     The home is one continuous scroll through every page's part (parts/c-main.home.mjs). Each part opens with its page's
+     own first screen (the gallery's head and lead, the stack's, Consulting's, Obla's, Contact's line, sentence, address
+     and controls), and in the home that screen opens where the reader meets it, with the title sequence its page plays
+     on load: the title letter by letter from behind its straight mask (a curtain only for the type the stage bends), its
+     hairline, the lead's lines, the controls. Its beats are built paused while it is still a screen and a half away (its
+     elements held hidden: .mo-own, which fx-scroll.js leaves to this module), and they play once, when its block (the
+     title first) reaches 85 % of the view's height. A part whose text has already come in another way (the focus verb, when the library came
+     late or the page was put down beside it) is left as it is. Live motion only: nothing here runs under reduced motion,
+     and every printed state shows the text (css/print.css, css/motion.css .mo-held). */
+  const partOf = new Map();   // a part's opening step (or its block, Contact's) -> { items, head, built, played, parked }
+  function parts() {
+    if (FX.page !== "home" || !motion || !A || !("IntersectionObserver" in window)) return;
+    const recs = [];
+    for (const part of $$("main > section.part[data-part]")) {
+      const block = $(".sc-intro .sc-in, .ct-in", part);
+      if (!block) continue;
+      const items = $$("[data-focus], [data-focus-lines]", block).filter((el) => !(el.parentElement && el.parentElement.closest("[data-focus], [data-focus-lines]")));
+      if (!items.length) continue;
+      const P = { block, items, head: items[0], built: false, played: false, parked: [] };
+      partOf.set(block.closest(".sc-step") || block, P);
+      recs.push(P);
+    }
+    if (!recs.length) return;
+    const near = new IntersectionObserver((es) => {
+      for (const e of es) if (e.isIntersecting) { near.unobserve(e.target); partBuild(recs.find((P) => P.block === e.target)); }
+    }, { rootMargin: "0px 0px 150% 0px", threshold: 0 });
+    /* the title reaching 85 % plays it; the block too once its title is past that line: a jump (Back, the language's
+       place, a dragged scrollbar) can land with the title above the view and the block's last lines on screen, and
+       nothing on screen may stay held. (Contact's block stands a screen tall, its title low in it: the block alone
+       would play the title before it is on screen.) */
+    const reach = new IntersectionObserver((es) => {
+      for (const e of es) {
+        if (!e.isIntersecting) continue;
+        const P = recs.find((R) => R.head === e.target || R.block === e.target);
+        if (!P || P.played) continue;
+        if (e.target === P.block && P.head.getBoundingClientRect().top > window.innerHeight * 0.85) continue;
+        reach.unobserve(P.head); reach.unobserve(P.block);
+        partBuild(P); partPlay(P);
+      }
+    }, { rootMargin: "0px 0px -15% 0px", threshold: 0 });
+    recs.forEach((P) => { near.observe(P.block); reach.observe(P.head); if (P.block !== P.head) reach.observe(P.block); });
+  }
+  function partBuild(P) {
+    if (!P || P.built) return;
+    P.built = true;
+    if (!A || !FX.has("motion") || P.items.some((el) => el.classList.contains("is-in"))) { P.played = true; return; }
+    P.items.forEach((el) => el.classList.add("mo-own"));
+    cueItems(order(P.items), 40, (fn) => P.parked.push(fn));
+  }
+  function partPlay(P) {
+    if (!P || P.played) return;
+    P.played = true;
+    /* the CSS's in-view state under the beats (their elements' transitions are off), so the text stays when they end */
+    P.items.forEach((el) => el.classList.add("is-in"));
+    P.parked.splice(0).forEach((fn) => fn(0));
   }
 
   /* ---------------------------------------------------------------- the steps */
@@ -648,6 +723,9 @@
   }
   function step(el, on) {
     if (!A || !motion || !el) return false;
+    /* (wave 7) the opening step of a part of the home: its opening plays it the first time (parts(), above) */
+    const P = partOf.get(el);
+    if (P && !P.played) return true;
     adopt(el);
     const words = $$(".rv-split .w", el), wipe = $$(".rv-wipe .w", el), rows = $$(".rv-row", el), hl = $(".mo-hl", el);
     if (on) {
@@ -680,7 +758,8 @@
   /* ---------------------------------------------------------------- the cut */
   const numOf = (s) => { const m = /^(\d{2})\b/.exec(String(s || "").trim()); return m ? m[1] : null; };
   function hereN() {
-    const a = $('.hdr-nav a[aria-current="page"]');
+    /* the page being read, or (wave 7) in the home the page of the part being read (fx-nav.js .is-here) */
+    const a = $('.hdr-nav a[aria-current="page"]') || $(".hdr-nav a.is-here");
     if (a) return numOf(a.getAttribute("data-pt-sub"));
     const m = $("main[data-tile]");
     if (m) return numOf(m.getAttribute("data-tile"));
@@ -896,11 +975,14 @@
     /* both observers report once before the first decision: a section seen before its heading's own report would put
        the name in the header for a frame while the title is still on screen */
     let reports = heads.length ? 0 : 1;
+    /* (wave 7, lane MOTION) ... and only once that heading has gone up: a scene whose top has passed the middle while
+       its heading is still to come from below (in the home, the gallery right after Now's text) has no name yet */
+    const gone = (h) => !h || (!headOn.get(h) && h.getBoundingClientRect().bottom < window.innerHeight / 2);
     const update = () => {
       if (reports < 2) return;
       const mid = secs.find((s) => seen.get(s));
       const h = mid && document.getElementById(mid.getAttribute("aria-labelledby"));
-      show(mid && !(h && headOn.get(h)) ? nameOf(mid) : "");
+      show(mid && gone(h) ? nameOf(mid) : "");
     };
     let ioIn = false, hoIn = false;
     const io = new IntersectionObserver((es) => { for (const e of es) seen.set(e.target, e.isIntersecting); if (!ioIn) { ioIn = true; reports++; } update(); },
@@ -931,7 +1013,7 @@
       prepared = load().then((ok) => {
         if (!ok) return null;
         hand();
-        return FX.fonts(arrival ? 500 : 200).then(() => { opening(arrival); return true; });
+        return FX.fonts(arrival ? 500 : 200).then(() => { opening(arrival); parts(); return true; });
       });
     },
   });

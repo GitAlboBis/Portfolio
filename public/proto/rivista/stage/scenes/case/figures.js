@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * case/figures.js — (lane CASES) a figure of light for every chapter of a case page, so the chapters are one
- * continuous shot with the opener and never text on wallpaper. The same figure for the same chapter type on all nine
+ * continuous shot with the opener and never text on wallpaper. The same figure for the same chapter type on all ten
  * cases (section[data-ch] in parts/c-main.case.mjs):
  *
  *   what       the work's own plate (its capture, or its key words etched), large and deep in the room, turned, its far
@@ -20,7 +20,7 @@
  *              schematic's too)
  *   the record the work's plate again, far back in the room and turned the other way: the shot ends on the plate it
  *              opened with ((wave 6) a phone too: in its band, a little smaller and further back)
- *   more       (wave 6) More work, the index of the nine, has the index's figure: a prism of cut glass in the free third,
+ *   more       (wave 6) More work, the index of the works, has the (old) index's figure: a prism of cut glass in the free third,
  *              the room's shaft into it from above and one ray out of it to the row under the hand (or with focus), else
  *              the row being read; a phone: the prism alone, small, between the cued row's title and its verb
  * The bars and the counts are light on the rows (one formation, the chapter nearest the reading line); the plates stand
@@ -83,7 +83,7 @@ function layout(c) {
   const glyph = (/** @type {Element} */ el) => { const rg = document.createRange(); rg.selectNodeContents(el); const r = rg.getBoundingClientRect(); return r.width > 1 ? { x: r.left, y: r.top + sy, w: r.width, h: r.height } : doc(el); };
   /** @type {any[]} */ const blocks = [];
   // (lane FIXCASES) the record is a chapter too: it has a figure on a wide screen
-  // (wave 6, ROOMS) and More work: the index of the nine has the index's figure, the prism (a phone's record its plate)
+  // (wave 6, ROOMS) and More work: the index of the works has the (old) index's figure, the prism (a phone's record its plate)
   /** a row's number glyph and its words (the row's other children), for a phone's light under the number
    *  @param {Element} li */
   const numOf = (li) => { const n = li.querySelector(".t-acc"); return n ? glyph(n) : null; };
@@ -642,7 +642,7 @@ export function chapterFigures(c, EYE) {
     }
     subj = { X: Xc, Y: Yc, z: -100, w: lw * 1.2, h: R.h * 0.6 };
   } else if (kind === "more" && nI) {
-    // ------------------------------------------------ (wave 6, ROOMS) MORE WORK, the index of the nine, has the index's
+    // ------------------------------------------------ (wave 6, ROOMS) MORE WORK, the index of the works, has the (old) index's
     // figure (the cover's): a prism of cut glass in the free third (a phone: small, in the row by the row being read,
     // between its title and its verb), the room's shaft coming into it from above and ONE ray leaving it toward the
     // row under the hand (or with the keyboard's focus), else the row being read: the light points where the reader can

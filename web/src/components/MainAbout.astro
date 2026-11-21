@@ -1,6 +1,6 @@
 ---
-/* About's main: parts/c-main.about.html. */
-import { partial, literal } from "../lib/site.mjs";
-const html = literal('<main id="main">') + partial("c-main.about.html") + literal("</main>");
+/* About's main: parts/c-main.about.html, in main[data-part="about"] (wave 7: the home holds the same part, so the page's styles hold in both). */
+import { pageMain } from "../lib/site.mjs";
+const html = pageMain("about", "c-main.about.html");
 ---
 <Fragment set:html={html} />

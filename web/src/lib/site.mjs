@@ -11,9 +11,11 @@
 import { readFileSync, existsSync } from "node:fs";
 import vm from "node:vm";
 import { join, resolve } from "node:path";
-import { render, renderTile, tx } from "../../../public/proto/rivista/parts/c-main.case.mjs";
+import { render, renderTile, tx, hasCase, nextCase } from "../../../public/proto/rivista/parts/c-main.case.mjs";
 import { render404, S404 } from "../../../public/proto/rivista/parts/c-main.404.mjs";
 import STR, { LANGS, jsWords } from "../../../public/proto/rivista/parts/strings.mjs";
+/* (wave 7, lane HOME) the home as one continuous scroll, composed in one place for both builds */
+import { homeMain, partMain } from "../../../public/proto/rivista/parts/c-main.home.mjs";
 
 /* Astro bundles this module before it runs it, so import.meta.url is not where the file is: the folders are found
    from the working directory (web/, where "astro build" runs) unless RV_DIR names the site folder */
@@ -34,11 +36,15 @@ function resolveCase(c) {
     held = !!r.fig.hold;
     r.fig = Object.assign({ kind: "plate" }, r.fig.plate);
   }
-  for (const ch of r.chapters) if (ch.figure && !hasCapture(ch.figure.stem)) delete ch.figure;
-  r.onFile = r.onFile.filter((o) => !o.onlyPlate || (r.fig.kind === "plate" && !held));
+  for (const ch of r.chapters || []) if (ch.figure && !hasCapture(ch.figure.stem)) delete ch.figure;
+  if (r.onFile) r.onFile = r.onFile.filter((o) => !o.onlyPlate || (r.fig.kind === "plate" && !held));
   return r;
 }
+/* every work, in the gallery's order (the plates, More work, the 404's list) */
 export const RESOLVED = CASES.map(resolveCase);
+/* (wave 7, lane WORKS) the case pages: every work but one that is a page of the site already (Obla, "page": "obla") */
+export const CASE_PAGES = RESOLVED.filter(hasCase);
+export { hasCase, nextCase };
 
 /* ------------------------------------------------------------ the head of every page */
 const SITE = {
@@ -269,7 +275,7 @@ export function buildCss() {
 
 /* ------------------------------------------------------------ the pages */
 export const ISSUE = {
-  home: { file: "index.html", order: 0, label: "cut.index", sub: "Alberto Tuveri" },
+  home: { file: "index.html", order: 0, label: "cut.home", sub: "Alberto Tuveri" },
   work: { file: "work.html", order: 1, label: "sec.work", n: "01", part: "c-main.work.html" },
   about: { file: "about.html", order: 2, label: "sec.about", n: "02", part: "c-main.about.html" },
   consult: { file: "consulting.html", order: 3, label: "sec.consult", n: "03", part: "c-main.consult.html" },
@@ -308,9 +314,10 @@ function pageOf(lang, key, file, extra = {}) {
       I18N: key === "404" ? "" : "\n" + i18n(lang),
       LANGSWITCH: langSwitch(lang, file, !!(ISSUE[key] && ISSUE[key].dawn)),
       HOME: rootAttrs(key),
-      BRAND: key === "home" ? 'href="#top"' : 'href="index.html" data-back data-pt-label="{{t:cut.index}}" data-pt-sub="Alberto Tuveri"',
+      BRAND: key === "home" ? 'href="#top"' : 'href="index.html" data-back data-pt-label="{{t:cut.home}}" data-pt-sub="Alberto Tuveri"',
       META: meta(metaO, lang),
-      ...(key !== "home" && key !== "404" && key !== "case" ? { RAIL: RESOLVED.map((c) => renderTile(c, { lang })).join("") } : {}),
+      /* the gallery's steps, one per work: on the pages, and (wave 7) in the home's part of Work */
+      ...(key !== "404" && key !== "case" ? { RAIL: RESOLVED.map((c) => renderTile(c, { lang, all: RESOLVED })).join("") } : {}),
     },
   };
 }
@@ -319,7 +326,7 @@ export function pages() {
   for (const lang of LANG_IDS) {
     all.push(pageOf(lang, "home", "index.html"));
     for (const key of Object.keys(ISSUE).filter((k) => k !== "home")) all.push(pageOf(lang, key, ISSUE[key].file));
-    RESOLVED.forEach((c, i) => all.push(pageOf(lang, "case", "case-" + c.slug + ".html", { case: c, index: i })));
+    RESOLVED.forEach((c, i) => { if (hasCase(c)) all.push(pageOf(lang, "case", "case-" + c.slug + ".html", { case: c, index: i })); });
     all.push(pageOf(lang, "404", "404.html"));
   }
   return all;
@@ -335,7 +342,11 @@ export function partial(name) {
 }
 const piece = (s) => (s.endsWith("\n") ? s : s + "\n");
 export const literal = (s) => s + "\n";
-export const caseMain = (page) => piece(render(RESOLVED[page.index], { next: RESOLVED[(page.index + 1) % RESOLVED.length], all: RESOLVED, lang: page.lang }));
+export const caseMain = (page) => piece(render(RESOLVED[page.index], { next: nextCase(RESOLVED, RESOLVED[page.index]), all: RESOLVED, lang: page.lang }));
+/* (wave 7) the home's main: the hero, Now, then every page's part (parts/c-main.home.mjs, as assemble.mjs prints it) */
+export const coverMain = () => homeMain(partial);
+/* a page's main: its part, main[data-part=KEY] (the same element the home names its part with) */
+export const pageMain = (key, name) => literal(partMain(key)) + partial(name) + literal("</main>");
 export const notFoundMain = (page) => piece(render404(RESOLVED, { tx, lang: page.lang }));
 
 /* the page's whole text, as the layout got it from its components: the placeholders filled exactly as assemble.mjs

@@ -4,8 +4,11 @@
    render404(cases, { tx, lang }) → the <main> content of 404.html: the status, the title, a sentence, the way back,
    then every page (the cover's sentence for each) and every work, as rows of links. No stage on this page
    (html[data-nogl]). COPY: parts/strings.mjs ("nf.*", the pages' "ix.*"); the works' names and kickers from cases.json.
+   The works are every work in the gallery's order; a work with a page of its own (Obla) links that page (workLink,
+   parts/c-main.case.mjs).
    ========================================================================== */
 import { S404 } from "./strings.mjs";
+import { workLink } from "./c-main.case.mjs";
 export { S404 };
 
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
@@ -18,7 +21,7 @@ export function render404(cases, { tx, lang = "en" }) {
   const P = [["work", "01", S404.pages.work], ["about", "02", S404.pages.about], ["consult", "03", S404.pages.consult], ["obla", "04", S404.pages.obla], ["contact", "05", S404.pages.contact]];
   const row = (attrs, n, name, line) => `        <li><a class="ix-a" ${attrs}><span class="t-label ix-n">${n}</span><span class="t-d2 ix-t">${name}</span><span class="t-body ix-k">${line}</span><span class="q ix-v">${T(S404.open)} ${ARROW_E}</span></a></li>`;
   const pages = P.map(([k, n, p]) => row(`{{LINK:${k}}}`, n, T(p[0]), T(p[1]))).join("\n");
-  const works = cases.map((c) => row(`href="case-${esc(c.slug)}.html" data-pt-label="${esc(c.label)}" data-pt-sub="${esc(c.tile)} · ${T(S404.work)}"`, esc(c.tile), esc(c.label), T(c.rail.kicker))).join("\n");
+  const works = cases.map((c) => row(workLink(c, lang), esc(c.tile), esc(c.label), T(c.rail.kicker))).join("\n");
   return `  <section class="nf" aria-labelledby="nf-h">
     <p class="t-label t-acc nf-over" data-focus="load">${T(S404.over)}</p>
     <h1 id="nf-h" class="t-mega nf-h" data-focus="load" style="--fd:80ms">${T(S404.title)}</h1>

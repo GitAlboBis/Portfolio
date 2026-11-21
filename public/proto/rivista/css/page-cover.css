@@ -1,6 +1,7 @@
-/* css/page-cover.css · index.html (hero, now, index), composed by the COVER lane in wave 2 (spec 50 §1, §4, §7);
-   the hero's world rewritten in round 11 (lane HERO2).
-   Comes after the system files in fx.css; every rule is scoped to the cover (html[data-page="home"]).
+/* css/page-cover.css · index.html's own scenes (hero, now), composed by the COVER lane in wave 2 (spec 50 §1, §4, §7);
+   the hero's world rewritten in round 11 (lane HERO2); the index left the home in wave 7.
+   Comes after the system files in fx.css; every rule is scoped to the cover (html[data-page="home"]) and names only
+   the hero's and Now's elements, so none reaches the pages' parts that follow them in the home.
 
    The first viewport: the name is one line across the measure on a wide screen and two lines on a phone (its two
    .ln spans are inline from 760 px up). In scene mode the stage draws the name as light in a deep hall
@@ -69,15 +70,5 @@ html.rv-motion[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue-l
   to { opacity: 0; filter: blur(var(--focus-blur)); }
 }
 @media print { html[data-page="home"] .hero-cue { display: none !important; } }
-
-/* ---------------------------------------------------------------- index: the rows keep to the left; the emblem has the right */
-@media (min-width: 1024px) {
-  html[data-page="home"].sc-on:not(.gl-off) .ix-in { max-width: min(50rem, 54vw); }
-}
-/* while one row is under the hand, the others step back (the mechanism of 21st.dev's "Disc Reveal List": the other
-   rows dim), so the emblem and its row read as one */
-@media (hover: hover) {
-  html[data-page="home"] .ix-rows:has(.ix-a:hover) .ix-a:not(:hover) .ix-t,
-  html[data-page="home"] .ix-rows:has(.ix-a:focus-visible) .ix-a:not(:focus-visible) .ix-t { color: var(--mute); }
-  html[data-page="home"] .ix-t { transition: color var(--d-hover) var(--ease-out); }
-}
+/* (wave 7) the cover's index is gone: after Now the home goes on through every page's part, styled by the page's own
+   sheet (css/page-*.css, scoped to [data-part]) */

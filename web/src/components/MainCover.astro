@@ -1,6 +1,8 @@
 ---
-/* The cover's main: the first screen (parts/b-hero.html), then Now and the index (parts/c-main.index.html). */
-import { partial, literal } from "../lib/site.mjs";
-const html = literal('<main id="main">') + partial("b-hero.html") + partial("c-main.index.html") + literal("</main>");
+/* The home's main (wave 7, lane HOME): one continuous scroll. The cover's first screen (parts/b-hero.html) and Now
+   (parts/c-main.index.html), then every page's own part in the menu's order, each a named section.part[data-part]
+   (parts/c-main.home.mjs, the same composition assemble.mjs prints). The cover's index is gone. */
+import { coverMain } from "../lib/site.mjs";
+const html = coverMain();
 ---
 <Fragment set:html={html} />

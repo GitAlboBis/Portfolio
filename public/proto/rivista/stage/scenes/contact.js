@@ -12,8 +12,16 @@
  * onto the line and open out to their places over about two and a half seconds, then the ink only slides along them.
  * In focus (z near 0): a drafting line, not a haze. Every text block is a keep-out.
  *
- * The display line is [data-stage-mark="line"] if the page marks one, else the section's h1.
+ * The display line is [data-stage-mark="line"] if the page marks one, else the section's h1 (on Contact's own page),
+ * else its h2 (in the home, where the hero's name is the only h1).
+ *
+ * (wave 7, STAGE) IN THE HOME Contact is the journey's last part: the night (html[data-ground="night"]) runs down to
+ * Contact's straight edge of day, which crosses the frame once. There this scene draws the dawn close's threads at that
+ * edge (day/threads.js, as scenes/dawn.js does at every page's close): the strokes cross the edge as light above and ink
+ * below while it rises, so the frame never shows bare paper between Obla's room and the morning's strokes. On Contact's
+ * own page (all dawn) there is no edge and nothing changes.
  */
+import threads, { input as edgeIn } from "../day/threads.js";
 
 const PER = 520;
 
@@ -82,13 +90,43 @@ const strokes = {
   },
 };
 
+/** (wave 7, STAGE) the home's edge of day, as scenes/dawn.js weighs it: full while the edge crosses the screen's
+ *  middle band, nothing before it comes up or once the morning fills the screen @param {any} c */
+function edgeOf(c) {
+  if (c.ground === "dawn") return null;
+  const edge = c.section.y, e = edge / c.vh;
+  const weight = sstep(1.12, 0.8, e) * (1 - sstep(0.1, -0.3, e));
+  if (weight <= 0.001) return null;
+  const below = c.texts.filter((/** @type {any} */ t) => t.y > edge + 4).map((/** @type {any} */ t) => t.y - edge);
+  edgeIn.vw = c.vw; edgeIn.vh = c.vh; edgeIn.phone = c.phone; edgeIn.inkK = c.inkK;
+  edgeIn.room = Math.max(16, (below.length ? Math.min(...below) : c.vh * 0.2) - 24);
+  const H = c.vh * 0.5;
+  return { id: "edge", weight, rect: { x: 0, y: edge - H / 2, w: c.vw, h: H } };
+}
+
 export default {
   blend: false,
-  formations: { strokes },
+  formations: { strokes, edge: threads },
   /** @param {any} c */
   frame(c) {
-    const line = c.marks.line || c.texts.find((/** @type {any} */ t) => t.tag === "h1");
-    if (!line) return null;
+    const edge = edgeOf(c);
+    /* (wave 7, STAGE) IN THE HOME (a night page) the camera is the dawn close's (scenes/dawn.js): the straight view
+       focused on the page plane with a short depth of field. Blended with Obla's deep room, the orbiting camera (whose
+       lens is wide open) drew the edge's threads and the strokes as soft blurred bands across the edge, a haze. The hand
+       orbits the eye exactly as the orbiting camera's `pointer: 0.4` does on Contact's own page (fx-stage.js PTR_FOLLOW,
+       0.035 rad: 0.4 of it, pitch 0.6 of that). On Contact's own page (all dawn) nothing changes. */
+    const homeCam = c.ground !== "dawn";
+    const D = Math.min(2600, Math.max(1100, 1.25 * Math.hypot(c.vw, c.vh)));
+    const camera = homeCam
+      ? { pos: [c.vw / 2, c.vh / 2, D], target: [c.vw / 2, c.vh / 2, 0], focus: D, aperture: 0.2, lens: 1, roll: 0, orbit: { yaw: 0.014, pitch: 0.0084 } }
+      : { yaw: 0, pitch: 0, dolly: 0, pointer: 0.4 };
+    const line = c.marks.line || c.texts.find((/** @type {any} */ t) => t.tag === "h1") || c.texts.find((/** @type {any} */ t) => t.tag === "h2");
+    if (!line) {
+      // the line not measured yet (still below the screen): the edge alone, on the page plane, sharp
+      if (!edge) return null;
+      return { swarm: [edge], camera,
+        keepouts: c.texts.map((/** @type {any} */ t) => ({ x: t.x - 6, y: t.y - 6, w: t.w + 12, h: t.h + 12 })) };
+    }
     // in page px (the rect sits on the page's top), so the threads ride with the page and are not rebuilt by a scroll
     const sy = c.scrollY, gap = c.phone ? 14 : 24;
     // the host's glyph box is the face's content area (1.2 em: ascent 0.899, descent 0.300); the capitals stand from
@@ -97,7 +135,9 @@ export default {
     const below = c.texts.filter((/** @type {any} */ t) => t.y > line.y + line.h - 2);
     const footTop = (below.length ? Math.min(...below.map((/** @type {any} */ t) => t.y)) : c.vh) + sy;
     const footBot = (below.length ? Math.max(...below.map((/** @type {any} */ t) => t.y + t.h)) : c.vh) + sy;
-    const hdr = (c.phone ? 64 : 64) + gap;
+    // (wave 7, STAGE) the upper band starts under the header at Contact's own top: in the home the part's top is far down
+    // the page (on Contact's own page it is 0, as before); the strokes belong to the morning, never above its edge
+    const hdr = (homeCam ? c.section.y + sy : 0) + (c.phone ? 64 : 64) + gap;
     /** @type {{ y0: number, y1: number, up: boolean }[]} */ const bands = [];
     if (top - gap - hdr > 60) bands.push({ y0: hdr, y1: top - gap, up: true });
     // under the line: between it and the foot if there is room, else under the foot
@@ -111,12 +151,12 @@ export default {
     /** @type {any} */ (I).flown = !!(c.arrival && c.arrival.cut && !c.arrival.under && c.arrival.age < 1.5);
     const w = sstep(0.02, 0.3, c.share) * sstep(-0.3, 0.2, (line.y + line.h) / c.vh);
     return {
-      swarm: [{ id: "strokes", weight: w, rect: { x: 0, y: I.cy - sy - c.vh / 2, w: c.vw, h: c.vh } }],
+      swarm: [{ id: "strokes", weight: w, rect: { x: 0, y: I.cy - sy - c.vh / 2, w: c.vw, h: c.vh } }, ...(edge ? [edge] : [])],
       // every text block; the display line by its capitals (its content area reaches far over and under them)
       keepouts: c.texts.map((/** @type {any} */ t) => (t === line || t.tag === "h1"
         ? { x: t.x - 12, y: t.y + 0.189 * t.h - 10, w: t.w + 24, h: 0.574 * t.h + 20 }
         : { x: t.x - 10, y: t.y - 8, w: t.w + 20, h: t.h + 16 })),
-      camera: { yaw: 0, pitch: 0, dolly: 0, pointer: 0.4 },
+      camera,
       focus: 0,
     };
   },

@@ -146,10 +146,16 @@ export default {
     let field;
     if (k > 0.88 || y >= nowTop) {
       field = hallField(c, { at: C.at ?? 99, k });
-      if (field) { const g = 1 - sstep(0.05, 0.5, gone); field.chips.alpha *= g; field.wall.alpha *= g; }
+      // (wave 7, STAGE) the hall's back is the cosmos now (no `wall`): reading field.wall threw here and the host marked
+      // the scene broken for good (no plate, no keep-outs over Now's text from the first frame of the flight on). In the
+      // home the cosmos runs on behind Now into the gallery's room: only the chips thin out as Now leaves
+      if (field) { const g = 1 - sstep(0.05, 0.5, gone); field.chips.alpha *= g; if (field.wall) field.wall.alpha *= g; }
     }
     const fx = vw / 2 + (P.cx + lx - vw / 2) * (kP / kF), fy = vh / 2 + (P.cy + ride + ly - vh / 2) * (kP / kF);
     const passes = SN ? SN.nameFrame(c) : null;
+    // (wave 7, STAGE) the cover's one shot is one look: Now asks the hero's (the host mixes the scenes' looks by weight,
+    // and a scene that asks none counts at the stage's defaults: Now would have pulled the hall's depth in mid-flight)
+    if (typeof c.look === "function") c.look({ far: Math.round(-2.6 * D), near: Math.round(4.7 * D), keepFeather: k > 0.45 && y < nowTop + vh * 0.5 ? 40 : 6 });
     return {
       ...(passes ? { passes } : {}),
       swarm: [{ id: "field", weight: hw, rect: { x: fx - P.w / 2, y: fy - P.h / 2, w: P.w, h: P.h } }],

@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * gallery — the Work page's nine works (spec 50 §4): nine thick plates of clear glass standing on a curved line in
+ * gallery — the Work page's works (spec 50 §4; eleven since wave 7): thick plates of clear glass standing on a curved line in
  * depth, and the reader's scroll is the camera travelling along it.
  *
  * THE FRAME (decided before it was built, then corrected on captures; docs/redesign/rivista-story/build/z-work.md):
@@ -28,6 +28,8 @@ import { room } from "./lib/room.js";
 import { speedLens, drift } from "./lib/camera.js";
 import { span, pageK, through } from "./lib/page.js";
 import { lifted } from "./case/lift.js";
+// (wave 7, STAGE) one etched drawing for the gallery and a case's opening plate (balanced rows, a size floor)
+import { etchCanvas } from "./case/etch.js";
 
 /* (lane m-fly) THE LIFTED CAPTURES ARE ASKED FOR ONE AT A TIME while the eye arrives. Asked together on the room's first
    frame, the six pictures decoded together and their levels were set back to back in one task of about 50 ms: the hole
@@ -121,10 +123,11 @@ function arc(u, L) {
   };
 }
 
-/** the opening frame (the head, "Nine works"): the nine plates at once, a row of glass standing in depth across the
- *  figure's half, each turned like the next, the first nearest. @param {number} i 0..8 @param {any} L */
+/** the opening frame (the head, "Eleven works"): every plate at once, a row of glass standing in depth across the
+ *  figure's half, each turned like the next, the first nearest. (wave 7, STAGE) spread over the works there are (L.n:
+ *  it was i / 8, and with eleven works the last two stood past the row's end) @param {number} i 0..n-1 @param {any} L */
 function lineup(i, L) {
-  const k = i / 8;
+  const k = i / Math.max(1, (L.n || 9) - 1);
   return L.phone
     ? { X: L.vw * 0.3 + L.vw * 0.56 * k, Y: L.ay + L.ph * 0.12 - L.ph * 0.5 * k, z: -40 - 900 * k, yaw: -0.62, sharp: 1 - 0.55 * k, alpha: 1, scale: 0.62 }
     : { X: L.fx + L.fw * 0.2 + L.fw * 0.64 * k, Y: L.ay + L.ph * 0.1 - L.ph * 0.42 * k, z: -40 - 1500 * k, yaw: -0.66, sharp: 1 - 0.6 * k, alpha: 1, scale: 0.6 };
@@ -148,34 +151,6 @@ function layout(c) {
 
 /** the room's mist, turning a little with the travel */
 const mist = { ...mistDef, update(/** @type {any} */ c) { return { rotate: [0, ((c.scene.progress || 0) - 0.5) * 0.16, 0] }; } };
-
-/** the etched key words: the figure fitted large to the plate's width, the line under it, both in the display face,
- *  capitals, white on transparent (the stage frosts the alpha into the glass) @param {string} fig @param {string} line */
-function etchCanvas(fig, line) {
-  const W = 1600, H = 1200, pad = 120;
-  const cv = document.createElement("canvas");
-  cv.width = W; cv.height = H;
-  const g = /** @type {CanvasRenderingContext2D} */ (cv.getContext("2d"));
-  const face = '"Sofia Sans Extra Condensed", "Barlow Condensed", sans-serif';
-  g.fillStyle = "#fff"; g.textBaseline = "alphabetic";
-  const F = fig.toUpperCase(), Ln = line.toUpperCase();
-  g.font = `800 100px ${face}`;
-  const size = Math.min((100 * (W - 2 * pad)) / Math.max(1, g.measureText(F).width), H * 0.5);
-  g.font = `800 ${size}px ${face}`;
-  const top = pad + size * 0.86 + (H * 0.5 - size) * 0.35;
-  g.fillText(F, pad, top);
-  // the line: wrapped to the width, a fifth of the figure's size at most
-  // (wave 2, GLOW-WORK) larger: the line read as small print on the glass
-  const ls = Math.min(size * 0.27, 136);
-  g.font = `800 ${ls}px ${face}`;
-  const words = Ln.split(/\s+/), rows = [];
-  let cur = "";
-  for (const w of words) { const t = cur ? cur + " " + w : w; if (g.measureText(t).width > W - 2 * pad && cur) { rows.push(cur); cur = w; } else cur = t; }
-  if (cur) rows.push(cur);
-  let y = H - pad - (rows.length - 1) * ls * 0.92;
-  for (const r of rows) { g.fillText(r, pad, y); y += ls * 0.92; }
-  return cv;
-}
 
 export default {
   // (FIX3D) its plates give way to the evidence's text as it comes up
@@ -201,6 +176,7 @@ export default {
       S.s = null; S.tilt = { x: 0, y: 0, vx: 0, vy: 0 };
     }
     const L = layout(c);
+    L.n = S.works.length;
     const EYE = workEye(c), C = EYE.pos;
     const dt = Math.min(c.dt || 0, 0.1);
     // (FIX3D) a phone: the step's text scrolls through the plate's band, and the plate hid there (Voice AI and Supply
@@ -282,6 +258,14 @@ export default {
     clear *= 1 - S.k;
     const ps0 = persp(L.D, L.cz), face = { x0: L.ax - (L.pw * ps0) / 2, x1: L.ax + (L.pw * ps0) / 2, y0: L.ay - (L.ph * ps0) / 2, y1: L.ay + (L.ph * ps0) / 2 };
 
+    /* (wave 7, STAGE) the opening row: a plate standing behind an etched one steps back from its face, by how much of it
+       the face covers (with SerSan Agent OS first, SphereNode's own words read through the clear glass across "EARNED
+       AUTONOMY"): the etched words read, the row still recedes behind them */
+    const fronts = K > 0.001 ? S.works.map((/** @type {any} */ w, /** @type {number} */ i) => {
+      if (!w.words) return null;
+      const b = lineup(i, L), ps = persp(L.D, b.z), hw = (L.pw * b.scale * ps) / 2, hh = (L.ph * b.scale * ps) / 2;
+      return { i, x0: b.X - hw, x1: b.X + hw, y0: b.Y - hh, y1: b.Y + hh };
+    }).filter(Boolean) : [];
     /** @type {any[]} */ const slabs = [];
     S.works.forEach((/** @type {any} */ w, /** @type {number} */ i) => {
       const u = i - s;
@@ -302,6 +286,16 @@ export default {
         const m = (/** @type {number} */ x, /** @type {number} */ y) => x + (y - x) * K;
         a = { X: m(a.X, b.X), Y: m(a.Y, b.Y), z: m(a.z, b.z), yaw: m(a.yaw, b.yaw), sharp: m(a.sharp, b.sharp), alpha: m(a.alpha, b.alpha) };
         sc = m(1, b.scale);
+        let cover = 0;
+        for (const f of /** @type {any[]} */ (fronts)) {
+          if (f.i >= i) continue;
+          const ps = persp(L.D, b.z), hw = (L.pw * b.scale * ps) / 2, hh = (L.ph * b.scale * ps) / 2;
+          const ox = Math.max(0, Math.min(f.x1, b.X + hw) - Math.max(f.x0, b.X - hw)), oy = Math.max(0, Math.min(f.y1, b.Y + hh) - Math.max(f.y0, b.Y - hh));
+          cover = Math.max(cover, (ox * oy) / Math.max(1, 4 * hw * hh));
+        }
+        // (run 2) 0.7 left SphereNode's capture reading through "EARNED AUTONOMY" (1:1, 1440): a plate mostly behind
+        // an etched face is all but gone there (a tenth), the row still recedes past the face's edge
+        a.alpha *= 1 - 0.9 * K * clamp(cover * 3);
       }
       if (!a || a.alpha < 0.01) return;
       // a plate draws over the page: where a block of text passes through it (a phone, between two steps, when the

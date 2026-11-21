@@ -8,11 +8,17 @@
    tx(v, lang)         → a copy field in the reader's language: a plain string is an invariant (a name, a stack),
                          { en, it } a twin; a missing twin falls back to en
    barWidths(r)        → the geometry of a before → after row (read by scripts/check-claims-proto.mjs)
+   hasCase(w)          → (wave 7, lane WORKS) whether a work opens a case page of its own. A work with "page" (a key of
+                         the site's page table: Obla, "obla") is a page of the site already: its plate opens that page
+                         ({{LINK:<page>}}, named on the cut's sheet as the menu names it) and it has no case page
+   nextCase(all, c)    → the case page after c in the gallery's order, cycling, passing over a work with a page of its own
+   workLink(w, lang)   → the attributes of a link to a work: its case page with its name and "NN · Work", or its page
 
    Pure: no Date, no randomness, no file reads. assemble.mjs resolves the media (a capture that is not on disk becomes
    the work's key words) and passes the resolved case. Every word and number comes from cases.json or strings.mjs,
-   escaped here; the template prints no digit except the zero-padded indices (01–09) and the bar geometry inside
-   aria-hidden style attributes. A caption names its picture, never numbers it.
+   escaped here; the template prints no digit except the indices (the works' tiles, 01–11, and their count; a
+   chapter's and a list's 01–09) and the bar geometry inside aria-hidden style attributes. A caption names its picture,
+   never numbers it.
    ========================================================================== */
 import STR, { UI as UI_STR } from "./strings.mjs";
 
@@ -40,6 +46,19 @@ const href = (slug) => "case-" + slug + ".html";
 const capSrc = (stem, w) => "/captures/" + stem + "-" + w + ".webp";
 const srcset = (stem) => capSrc(stem, 800) + " 800w, " + capSrc(stem, 1600) + " 1600w";
 export const UI = UI_STR;
+
+/* ------------------------------------------------------------ the works and their links (wave 7, lane WORKS) */
+export const hasCase = (w) => !w.page;
+export function nextCase(all, c) {
+  const i = all.findIndex((w) => w.slug === c.slug);
+  for (let k = 1; k <= all.length; k++) { const w = all[(i + k) % all.length]; if (hasCase(w)) return w; }
+  return c;
+}
+/* the build replaces {{LINK:<page>}} (assemble.mjs link(), web/src/lib/site.mjs link()): the page's address, the cut's
+   direction, the page's name and index on the sheet */
+export const workLink = (w, lang = "en") => (hasCase(w)
+  ? `href="${href(w.slug)}" data-pt-label="${esc(w.label)}" data-pt-sub="${w.tile} · ${T(UI.work, lang)}"`
+  : `{{LINK:${w.page}}}`);
 
 /* ------------------------------------------------------------ the opener: the scene "case" (stage/scenes/case.js)
    Two blocks in the scene grammar: "what it is" (the text in the left column, the work's plate in the figure's half)
@@ -162,7 +181,7 @@ ${ch.rows.map((r) => metric(r, L, ctx.ui)).join("")}      </ol>
 
 function chTeaser(n, ch, ctx) {
   const L = ctx.lang, to = ctx.all.find((x) => x.slug === ch.link.to);
-  const more = `      <p class="cs-more-go"><a class="q" href="${href(to.slug)}" data-pt-label="${esc(to.label)}" data-pt-sub="${to.tile} · ${T(ctx.ui.work, L)}">${T(ch.link.label, L)} ${ARROW_E}</a></p>\n`;
+  const more = `      <p class="cs-more-go"><a class="q" ${workLink(to, L)}>${T(ch.link.label, L)} ${ARROW_E}</a></p>\n`;
   return chapter(n, ch, L, rows(ch, ctx) + more, "cs-teaser");
 }
 function chMeasured(n, ch, ctx) {
@@ -240,8 +259,9 @@ ${rows}
 `;
 }
 
-/* More work: the nine, in gallery order; this case is marked and is not a link, the next one says so (its link is
-   .cs-next: assemble.mjs walks those links, one cycle of nine) */
+/* More work: every work, in gallery order; this case is marked and is not a link, the next case says so (its link is
+   .cs-next: assemble.mjs walks those links, one cycle through the case pages); a work with a page of its own (Obla)
+   is a row like the others, its link that page */
 function chMore(c, ctx) {
   const L = ctx.lang;
   const list = ctx.all.map((w) => {
@@ -249,7 +269,7 @@ function chMore(c, ctx) {
     const inner = `<span class="t-label t-acc">${esc(w.tile)}</span><span class="t-d2 cs-more-t">${esc(w.label)}</span><span class="t-body cs-more-k">${T(w.rail.kicker, L)}</span><span class="t-label cs-more-v">${here ? T(ctx.ui.thisCase, L) : T(nx ? ctx.ui.next : ctx.ui.open, L)}</span>`;
     return here
       ? `      <li aria-current="page" class="is-here"><span class="cs-more-a">${inner}</span></li>`
-      : `      <li><a class="cs-more-a${nx ? " cs-next" : ""}" href="${href(w.slug)}" data-pt-label="${esc(w.label)}" data-pt-sub="${w.tile} · ${T(ctx.ui.work, L)}">${inner}</a></li>`;
+      : `      <li><a class="cs-more-a${nx ? " cs-next" : ""}" ${workLink(w, L)}>${inner}</a></li>`;
   }).join("\n");
   return `  <section class="cs-more next" aria-labelledby="more-h">
     <h2 id="more-h" class="t-label cs-folio">${T(ctx.ui.more, L)}</h2>
@@ -278,6 +298,8 @@ export function render(c, ctx0) {
 }
 
 /* ------------------------------------------------------------ the gallery step (Work page) */
+/* ctx.all: every work, in gallery order (the counter prints "NN / their count"). A work with a page of its own opens
+   that page ("Open its page") */
 export function renderTile(c, ctx0) {
   const ctx = Object.assign({ lang: "en", ui: UI }, ctx0), L = ctx.lang, f = c.fig, cap = f.kind === "capture";
   const n = parseInt(c.tile, 10), id = "t" + c.tile;
@@ -286,11 +308,11 @@ export function renderTile(c, ctx0) {
     : `<div class="wk-pic is-words" data-slab-words="${esc(c.slug)}" data-stage-poster>${keyWords(f, L, "wk-words")}</div>`;
   return `        <li class="sc-step wk" data-stage-step="${n}" data-tile-id="${c.tile}">
           <div class="sc-in">
-            <p class="t-label wk-n"><span class="t-acc">${c.tile}</span> / 09</p>
+            <p class="t-label wk-n"><span class="t-acc">${c.tile}</span> / ${pad2((ctx.all || [c]).length)}</p>
             <p class="t-label wk-kind">${T(c.rail.kicker, L)}</p>
             <h2 id="${id}-t" class="t-d2 wk-name">${esc(c.label)}</h2>
             <p class="t-body wk-line">${T(c.rail.body, L)}</p>
-            <p class="wk-go"><a class="q" href="${href(c.slug)}" data-pt-label="${esc(c.label)}" data-pt-sub="${c.tile} · ${T(ctx.ui.work, L)}" aria-describedby="${id}-t">${T(ctx.ui.openCase, L)} ${ARROW_E}</a></p>
+            <p class="wk-go"><a class="q" ${workLink(c, L)} aria-describedby="${id}-t">${T(hasCase(c) ? ctx.ui.openCase : ctx.ui.openPage, L)} ${ARROW_E}</a></p>
           </div>
           ${pic}
         </li>

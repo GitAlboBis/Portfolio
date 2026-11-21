@@ -19,8 +19,16 @@ const PLACES = {
   phone: [[0, 0, 0], [-0.03, 0, -0.14], [0.03, 0, -0.28], [-0.03, 0, -0.4], [0.03, 0, -0.52], [0, 0, -0.64]],
 };
 
+/** (wave 7, STAGE) how much of the night is left under Obla as the morning comes up (frame() writes it; the figure's
+ *  update reads it in the same frame): its points fade where they stand, never released lit to drift over the day */
+const DAY = { k: 1 };
+const oblaLit = { ...obla, update(/** @type {any} */ c) {
+  const r = obla.update ? obla.update(c) : null;
+  return DAY.k < 1 && r ? { ...r, ink: (r.ink ?? 1) * DAY.k * DAY.k } : r;
+} };
+
 export default {
-  formations: { obla },
+  formations: { obla: oblaLit },
   /** @param {any} c */
   frame(c) {
     const f = c.fig, m = Math.min(f.w, f.h) * (c.phone ? 0.03 : 0.06);
@@ -36,7 +44,10 @@ export default {
       // part: as the opening's text scrolls up into the top of the screen, the character takes the free room below it
       // instead of shrinking to a dim mark under the header with the lower half empty. It never slides across the
       // text to get there: when the best band changes side, it fades, moves while unseen, and comes back.
-      const fh = rect.h, y0 = 60, y1 = c.vh - Math.max(16, m), pad = 14;   // 60: under the header
+      // (wave 7, STAGE) and never above the section's own top: in the home Obla comes up under Consulting's last block,
+      // whose text is not this scene's (c.texts): the band ran from the header down over it, and the character stood
+      // huge and grey across "WRITE TO ME", cut by that text's keep-outs. On Obla's own page the section starts at 0.
+      const fh = rect.h, y0 = Math.max(60, c.section ? c.section.y : 60), y1 = c.vh - Math.max(16, m), pad = 14;   // 60: under the header
       const cut = c.texts.filter((/** @type {any} */ t) => t.y < y1 && t.y + t.h > y0 && t.x < rect.x + rect.w && t.x + t.w > rect.x)
         .map((/** @type {any} */ t) => [t.y - pad, t.y + t.h + pad]).sort((/** @type {number[]} */ a, /** @type {number[]} */ b) => a[0] - b[0]);
       /** @type {number[][]} */ const free = [];
@@ -68,6 +79,9 @@ export default {
       rect = { x: rect.x, y: s.gy, w: rect.w, h: s.gh };
       const room = s.gh / fh;
       w = s.hop > 0 ? 0 : room < 0.3 ? 0 : room > 0.5 ? 1 : (room - 0.3) / 0.2;
+      // (wave 7, STAGE) in the home the character comes up as Obla's part takes the screen (its top above the upper
+      // third), not half seen under the screen's edge while Consulting's last block is read
+      w *= sstep(0.55, 0.25, (c.section ? c.section.y : 0) / c.vh);
       keepouts = c.texts.map((/** @type {any} */ r) => ({ x: r.x - 8, y: r.y - 6, w: r.w + 16, h: r.h + 12 }));
     }
     // ------------------------------------------------ the place in the room and the shot
@@ -92,6 +106,15 @@ export default {
       clear: clearOf(c, pose, piv, Math.min(rect.w, rect.h) * 0.62, Math.min(rect.w, rect.h) * 0.56, 0),
     });
     lookFor(c, R);
+    /* (wave 7, STAGE) THE MORNING COMES UP UNDER OBLA (the home's edge into Contact, and Obla's own close): its light
+       and its body go while the day's straight edge rises through the screen below the figure, before the edge reaches
+       it. The host lets a night scene's light go only once the edge passes the middle of the screen; Obla's figure
+       stands in the upper half, so at a reader's pace its report card was still lit when the edge reached it and
+       crossed into the day as an ink ghost on the paper, and its light blurred into a haze under the morning's sharp
+       camera. */
+    const day = c.dawn && c.dawn.length ? Math.min(...c.dawn.map((/** @type {any} */ d) => d.y)) : Infinity;
+    DAY.k = day < Infinity ? sstep(rect.y + rect.h, rect.y + rect.h + 0.12 * c.vh, day) : 1;
+    w *= DAY.k;
     return {
       swarm: [{ id: "obla", weight: w, rect: world }],
       keepouts: [...R.keepouts, ...keepouts],

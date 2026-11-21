@@ -31,7 +31,10 @@ function prefetchScenes() {
       if (NAME.test(n)) names.add(n);
     }
     if (document.querySelector("main[data-case]")) names.add("mist");
-    for (const n of names) import(new URL(`./scenes/${n}.js`, import.meta.url).href).catch(() => {});
+    // (wave 7, STAGE) a long page of many scenes (the home: nine) fetches only its first three here: the host imports
+    // the ones near the reader itself and the rest after the first frame (fx-stage.js loadScenes, loadLazy)
+    let i = 0;
+    for (const n of names) { if (names.size > 4 && i++ >= 3) break; import(new URL(`./scenes/${n}.js`, import.meta.url).href).catch(() => {}); }
     import(new URL("./scenes/lib/raster.js", import.meta.url).href).catch(() => {});
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go, { once: true });
@@ -42,6 +45,9 @@ function prefetchScenes() {
 export async function boot() {
   try {
     /** @type {any} */ const w = window;
+    // (wave 7, STAGE) the cosmos's web (CPU work in slices, no device needed) starts now, in the adapter's and the
+    // device's wait, so it is made before the field's pipelines are (field.js webEarly); the same module stage.js loads
+    import("./field/field.js").then((m) => { if (m && typeof m.webEarly === "function") m.webEarly(); }).catch(() => {});
     /** @type {GPUAdapter | null} */ let adapter = null;
     const k = w.__rvGpu;
     if (k && k.p && !k.used) { k.used = true; try { adapter = await k.p; } catch { adapter = null; } }

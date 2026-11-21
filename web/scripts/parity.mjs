@@ -4,7 +4,7 @@
 
      node scripts/parity.mjs [--live=<folder>] [--built=<folder>] [--json]
 
-   For each of the 32 pages (every .html assemble.mjs wrote in public/proto/rivista and it/) and fx.css, the page in
+   For each page (every .html assemble.mjs wrote in public/proto/rivista and it/: 34 since wave 7) and fx.css, the page in
    web/dist/proto/rivista against its assembled twin, three ways:
      · head   title, every meta, link and script in order (tag + all attributes), the inline scripts' text
      · body   the DOM in order: each element's tag, id, class, every data-* and aria-* attribute (and the rest of its

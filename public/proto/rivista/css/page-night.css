@@ -1,15 +1,16 @@
 /* css/page-night.css · consulting.html and obla.html (consult, obla), composed by the REST lane in wave 2 (spec 50 §4).
    The figures (gen, cut, code, agents; Obla's character) fill the figure's half unboxed; the text keeps one column on
    the other side. Here: the order of the Obla head (name, lead, then the kind of project as a quiet label, never an
-   eyebrow over the name), the measure of the step lines, the Consulting close. Scoped under html[data-page]. */
-html[data-page="obla"] .ob-kind { color: var(--mute); margin-top: var(--s4); }
-html[data-page="obla"] .ob-h { margin-left: -0.04em; }
-html[data-page="consult"] .stp-line, html[data-page="obla"] .stp-line { max-width: 26em; }
-html[data-page="consult"] .co-h .ln + .ln { margin-top: 0.02em; }
-html[data-page="consult"] .co-close { max-width: 15ch; }
+   eyebrow over the name), the measure of the step lines, the Consulting close. Scoped to each page's part (wave 7:
+   [data-part], the page's main and the home's part), each selector with the specificity it had under html[data-page]. */
+html [data-part="obla"] .ob-kind { color: var(--mute); margin-top: var(--s4); }
+html [data-part="obla"] .ob-h { margin-left: -0.04em; }
+html [data-part="consult"] .stp-line, html [data-part="obla"] .stp-line { max-width: 26em; }
+html [data-part="consult"] .co-h .ln + .ln { margin-top: 0.02em; }
+html [data-part="consult"] .co-close { max-width: 15ch; }
 /* the two fields of Obla's close: the key a label, the value in ink, on 1 px rules */
-html[data-page="obla"] .ob-fields { margin-top: 0; }
-html[data-page="obla"] .ob-fields dd { color: var(--ink); }
+html [data-part="obla"] .ob-fields { margin-top: 0; }
+html [data-part="obla"] .ob-fields dd { color: var(--ink); }
 @media (min-width: 1024px) {
-  html.sc-on:not(.gl-off)[data-page="obla"] .ob .sc-outro .sc-in { width: var(--col); }
+  html.sc-on:not(.gl-off) [data-part="obla"] .ob .sc-outro .sc-in { width: var(--col); }
 }

@@ -1,6 +1,6 @@
 ---
-/* Consulting's main: parts/c-main.consult.html. */
-import { partial, literal } from "../lib/site.mjs";
-const html = literal('<main id="main">') + partial("c-main.consult.html") + literal("</main>");
+/* Consulting's main: parts/c-main.consult.html, in main[data-part="consult"] (wave 7: the home holds the same part, so the page's styles hold in both). */
+import { pageMain } from "../lib/site.mjs";
+const html = pageMain("consult", "c-main.consult.html");
 ---
 <Fragment set:html={html} />

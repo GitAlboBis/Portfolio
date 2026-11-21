@@ -3,8 +3,10 @@
    cover's name is set the same way), then a foot of two columns, the sentence on the left, the address and its three
    controls on the right. The stage's threads (stage/scenes/contact.js) settle in the room over and under the line.
    The size that fills the measure: the line's width is 4.22 em in English and 3.08 em in Italian (measured in Chrome,
-   Sofia Sans Extra Condensed 800 capitals); a little over, so the full stop never touches the gutter. */
-html[data-page="contact"] .ct-in {
+   Sofia Sans Extra Condensed 800 capitals); a little over, so the full stop never touches the gutter.
+   Wave 7: scoped to Contact's part, [data-part="contact"] (the page's main, and the home's last part, where the same
+   screen is the home's morning); each selector keeps the specificity it had under html[data-page="contact"]. */
+html [data-part="contact"] .ct-in {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: minmax(var(--s5), 1fr) auto auto auto minmax(var(--s5), 0.7fr);
@@ -12,27 +14,27 @@ html[data-page="contact"] .ct-in {
   min-height: 100svh;
   padding: calc(var(--hdr) + var(--s5)) var(--gut) var(--s5);
 }
-html[data-page="contact"] .ct-h {
+html [data-part="contact"] .ct-h {
   grid-column: 1 / -1; grid-row: 2;
   margin-left: -0.035em;
   font-size: min(24rem, calc((100vw - 2 * var(--gut)) / 4.27));
   white-space: nowrap;
 }
-html[data-page="contact"][lang="it"] .ct-h { font-size: min(24rem, calc((100vw - 2 * var(--gut)) / 3.13)); }
-html[data-page="contact"] .ct-line { grid-column: 1; grid-row: 3; align-self: start; margin-top: clamp(var(--s6), 13vh, var(--s7)); max-width: 22em; }
-html[data-page="contact"] .ct-mail { grid-column: 2; grid-row: 3; justify-self: end; margin-top: clamp(var(--s6), 13vh, var(--s7)); text-align: right; }
+html[lang="it"] [data-part="contact"] .ct-h { font-size: min(24rem, calc((100vw - 2 * var(--gut)) / 3.13)); }
+html [data-part="contact"] .ct-line { grid-column: 1; grid-row: 3; align-self: start; margin-top: clamp(var(--s6), 13vh, var(--s7)); max-width: 22em; }
+html [data-part="contact"] .ct-mail { grid-column: 2; grid-row: 3; justify-self: end; margin-top: clamp(var(--s6), 13vh, var(--s7)); text-align: right; }
 /* the room between the line and the foot is where the lower threads settle */
-html[data-page="contact"] .ct-mail a { font-size: clamp(1.5rem, 3.2vw, 3rem); }
-html[data-page="contact"] .ct-act { grid-column: 2; grid-row: 4; justify-content: flex-end; margin-top: var(--s4); }
+html [data-part="contact"] .ct-mail a { font-size: clamp(1.5rem, 3.2vw, 3rem); }
+html [data-part="contact"] .ct-act { grid-column: 2; grid-row: 4; justify-content: flex-end; margin-top: var(--s4); }
 
 /* the phone: one column; the line still across the measure, the foot under it */
 @media (max-width: 1023.98px) {
-  html[data-page="contact"] .ct-in {
+  html [data-part="contact"] .ct-in {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(var(--s5), 1fr) auto auto auto auto minmax(var(--s4), 0.45fr);
   }
-  html[data-page="contact"] .ct-h { white-space: nowrap; }
-  html[data-page="contact"] .ct-line { grid-column: 1; grid-row: 3; margin-top: var(--s4); }
-  html[data-page="contact"] .ct-mail { grid-column: 1; grid-row: 4; justify-self: start; text-align: left; margin-top: var(--s5); }
-  html[data-page="contact"] .ct-act { grid-column: 1; grid-row: 5; justify-content: flex-start; }
+  html [data-part="contact"] .ct-h { white-space: nowrap; }
+  html [data-part="contact"] .ct-line { grid-column: 1; grid-row: 3; margin-top: var(--s4); }
+  html [data-part="contact"] .ct-mail { grid-column: 1; grid-row: 4; justify-self: start; text-align: left; margin-top: var(--s5); }
+  html [data-part="contact"] .ct-act { grid-column: 1; grid-row: 5; justify-content: flex-start; }
 }

@@ -2,13 +2,16 @@
    css/print.css · the printed page: black on white, every scene as plain flow with its real pictures, no chrome
    ========================================================================== */
 @media print {
-  :root, .dawn, html[data-ground="dawn"] main, .legal-page {
+  :root, .dawn, html[data-ground="dawn"] main, .legal-page, [data-part="contact"] {
     --ink: #000; --body: #222; --mute: #555; --line: #bbb; --accent: #2340c9; --night: #fff; --night-2: #fff; --dawn: #fff;
   }
-  html, body, .dawn, html[data-ground="dawn"] main { background: #fff !important; color: #222; }
+  html, body, .dawn, html[data-ground="dawn"] main, [data-part="contact"] { background: #fff !important; color: #222; }
   .hdr, .menu, .cut, .skip, .sc-view, .dawn-view, [data-stage-instr], .copy, .hero-instr { display: none !important; }
   [data-stage-poster] { display: block !important; }
-  [data-focus], [data-focus-lines] > .ln, .sc-step .sc-in, .rv-split .w, .rv-wipe .w, .rv-row, .rv-pic img, .rv-pic figcaption { opacity: 1 !important; filter: none !important; transform: none !important; clip-path: none !important; animation: none !important; }
+  /* (wave 7) printed after a read with the stage on, nothing is caught mid-way: no transition (the focus pull's blocks
+     were printed at 0.12 while their fade ran), no scroll-linked leave (the cover's foot), no letter left by a beat */
+  [data-focus], [data-focus-lines] > .ln, .sc-step .sc-in, .rv-split .w, .rv-wipe .w, .rv-row, .rv-pic img, .rv-pic figcaption,
+  .hero-foot, .mo-own, .mo-own > .ln, .mo-w, .mo-c { opacity: 1 !important; filter: none !important; transform: none !important; clip-path: none !important; animation: none !important; transition: none !important; }
   .sc, .sc-step { min-height: 0 !important; display: block !important; padding-block: 1.5rem !important; }
   .hero-in, .ct-in, .dawn { min-height: 0 !important; padding-block: 2rem !important; }
   .t-mega { font-size: 4.5rem; white-space: normal; }

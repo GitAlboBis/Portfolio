@@ -159,4 +159,6 @@ html.mo-on.rv-motion.menu-closing .menu { animation-timing-function: var(--ease-
 }
 @media print {
   .mo-hl, .hdr-read, .hdr-scene, .menu-go, .menu-hl, .copy-hl { display: none !important; }
+  /* (wave 7) what a parked beat still holds hidden (a part of the home not reached yet) is printed */
+  .mo-held { opacity: 1 !important; transform: none !important; clip-path: none !important; }
 }

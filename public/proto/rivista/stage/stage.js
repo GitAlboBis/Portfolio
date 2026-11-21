@@ -600,6 +600,15 @@ export async function createStage(o) {
   let drawNow = N;   // (lane o-router) the points drawn this frame: drawn, or half of it behind the cut's glass
   let halvings = 0;
   const budgetMs = o.budgetMs ?? TIER_BUDGET_MS[tier];
+  /* (wave 7, STAGE) the swarm comes back: see budget(). calm: seconds of moving frames in a row whose median sat under
+     the restore bar; need: the calm a restore takes (doubled after a restore that was halved again soon: never a
+     pumping); restoredAt / halvedAt: performance.now() of the last of each */
+  const RESTORE_K = 0.5, RESTORE_S = 4, REBOUND_S = 12;
+  let restores = 0, calm = 0, needCalm = RESTORE_S, restoredAt = -1e9;
+  /* inkFrom / inkAt: after a restore the ink per point (N / drawn) eases from the halved count's over the time the
+     points that came back take to fade in (the sim's default rise, 1.5 / s, on the stage's clock): the swarm's light
+     neither dips nor flashes */
+  let inkFrom = 0, inkAt = -1;
   const strands = Math.max(64, Math.round(TIER_COUNTS[tier] / look.perStrand));
 
   // ---------------------------------------------------------------- colours
@@ -779,6 +788,7 @@ export async function createStage(o) {
   // Off until a scene asks (set({ field })); a failure leaves the stage drawing without it (one line in the debug log).
   /** @type {any} */ let field = null;
   /** @type {any} */ let fieldHeld = null;
+  /** @type {any} */ let cosmosHeld = null;   // (wave 7) the page's place in the cosmos, until the field is in
   let fieldFailed = false, fieldBusy = false;
   /** @type {Promise<boolean>} */
   const fieldReady = Promise.resolve(kit.field).then((/** @type {any} */ fk) => {
@@ -786,7 +796,8 @@ export async function createStage(o) {
     if (st.destroyed) return false;
     field = fk.make({ device, tier, winBuf: res.winBuf, win: WIN, log, colors: { paper: enc.paper, accent: enc.accent, light: enc.nightAcc } });
     if (fieldHeld) field.set(fieldHeld);
-    log(`[stage] field ready: pipelines ${fk.ms.toFixed(0)} ms`);
+    if (cosmosHeld) field.journey(cosmosHeld);
+    log(`[stage] field ready: pipelines ${fk.ms.toFixed(0)} ms` + (fk.web ? `, the cosmos's web ${fk.web.ms.toFixed(0)} ms (${fk.web.nGal + fk.web.nStar} points)` : ""));
     st.dirty = true;
     return true;
   }, (/** @type {any} */ e) => { fieldFailed = true; if (!st.destroyed) log(`[stage] field off: ${(e && e.message) || e}`); return false; });
@@ -950,10 +961,16 @@ export async function createStage(o) {
       const t = { threshold: o.threshold ?? look.bloomThreshold, knee: o.knee ?? look.bloomKnee, plates: o.plates ?? look.bloomPlates };
       if (k !== st.bloom || JSON.stringify(t) !== JSON.stringify(st.bloomT)) { st.bloom = k; st.bloomT = t; st.dirty = true; }
     }
-    // the field: a scene's { lights, chips, wall } or a host's [{ field, weight }] (stage/field/field.js)
+    // the field: a scene's { lights, chips, cosmos } or a host's [{ field, weight }] (stage/field/field.js)
     if ("field" in s) {
       if (field) { try { if (field.set(s.field)) st.dirty = true; } catch (e) { fieldOff(e); } }
       else fieldHeld = s.field || null;
+    }
+    // (wave 7, COSMOS) where the page is in the cosmos: the host's { key, slug, y, vh, max, parts } (stage/cosmos/web.js
+    // journeyOf); kept across reset() (the room that arrives sets its own when it takes the stage, behind the door)
+    if ("cosmos" in s && s.cosmos) {
+      cosmosHeld = s.cosmos;
+      if (field) { try { if (field.journey(s.cosmos)) st.dirty = true; } catch (e) { fieldOff(e); } }
     }
     // the extra passes a scene asked for: { id: cfg } (null or absent id = off)
     if ("passes" in s) {
@@ -1442,7 +1459,13 @@ export async function createStage(o) {
     const p = st.pointer;
     put(FRAME.pointer, [p.x, p.y, p.down ? 1 : 0, p.present ? 1 : 0]);
     put(FRAME.pointerV, [st.pv[0], st.pv[1], look.pointerRadius, look.pointerStrength]);
-    const dnow = Math.min(drawNow, drawn);
+    let dnow = Math.min(drawNow, drawn);
+    // (wave 7, STAGE) the ink per point eases back after a restore (budget())
+    if (inkAt >= 0) {
+      const k = 1 - Math.exp(-Math.max(0, st.time - inkAt) * 1.5);
+      if (k > 0.995 || drawNow < drawn || inkFrom >= drawn) inkAt = -1;
+      else dnow = inkFrom + (dnow - inkFrom) * k;
+    }
     put(FRAME.wind, [st.wind, st.scrollV, N / dnow * (TIER_COUNTS[tier] / N), st.mist.ink]);
     put(FRAME.depth, [look.far, look.near, st.focusZ, look.maxRadius]);
     put(FRAME.free, [strands, st.mist.size, st.mist.flow, st.mist.wavelength]);
@@ -1616,7 +1639,9 @@ export async function createStage(o) {
     /** @type {any} */ let fOn = null;
     fieldBusy = false;
     if (draw && field) {
-      try { fOn = field.pack({ R: st.camR, P: st.camP, O: st.camO, scroll: { x: st.scrollX, y: st.scrollY }, view: { w: st.cssW, h: st.cssH }, D: st.D, time: st.time, allDawn }); fieldBusy = !!(fOn && fOn.busy); }
+      // (wave 7, COSMOS) eye: the projection's eye offset (frame.cam.yz), the cosmos's eye in the room; fly: no impulse
+      // starts in a flight
+      try { fOn = field.pack({ R: st.camR, P: st.camP, O: st.camO, scroll: { x: st.scrollX, y: st.scrollY }, view: { w: st.cssW, h: st.cssH }, D: st.D, time: st.time, allDawn, eye: st.eye, fly: !!st.fly }); fieldBusy = !!(fOn && fOn.busy); }
       catch (e) { fieldOff(e); fOn = null; }
     }
     const fWall = (/** @type {GPURenderPassEncoder} */ rp) => { if (fOn && field) field.encodeWall(rp); };
@@ -1764,24 +1789,49 @@ export async function createStage(o) {
     pass(kb.comp, view, L[0].group, true, tsEnd);
   }
 
-  /** Halve the drawn count when the frames stay over budget (only while moving). @param {number} dt */
+  /** Halve the drawn count when the frames stay over budget (only while moving); (wave 7, STAGE) and bring it back
+   *  when they stay well under it. @param {number} dt */
   function budget(dt) {
-    if (drawn <= FLOOR) return;
     // (lane o-router) the cut's flight is a few hundred ms of its own cost (the portal's plate over the whole frame), not
     // the page's: its frames never count toward halving the swarm, which now outlives the page
-    if (st.portal > 0.001 || st.portalTo > 0 || st.fly) { st.gpu = []; st.dts = []; return; }
-    let over = false;
+    if (st.portal > 0.001 || st.portalTo > 0 || st.fly) { st.gpu = []; st.dts = []; calm = 0; return; }
+    let over = false, under = false;
     if (tsOn) {
-      if (st.gpu.length >= 30) { const s = st.gpu.slice().sort((x, y) => x - y); over = s[15] > budgetMs; }
+      if (st.gpu.length >= 30) { const s = st.gpu.slice().sort((x, y) => x - y); over = s[15] > budgetMs; under = s[15] < budgetMs * RESTORE_K; }
     } else {
       st.dts.push(dt); if (st.dts.length > 90) st.dts.shift();
       if (st.dts.length >= 90 && st.frameIndex > 120) { const s = st.dts.slice().sort((x, y) => x - y); over = s[45] > 1 / 40; }
     }
-    if (over) {
+    if (over && drawn > FLOOR) {
       drawn = Math.max(FLOOR, Math.floor(drawn / 2)); halvings++;
-      st.gpu = []; st.dts = [];
+      st.gpu = []; st.dts = []; calm = 0;
+      // halved again soon after a restore: the next restore waits twice as long (up to a minute): never a pumping
+      if (performance.now() - restoredAt < REBOUND_S * 1000) needCalm = Math.min(60, needCalm * 2);
       log(`[stage] over budget: drawn count halved to ${drawn}`);
+      return;
     }
+    /* (wave 7, STAGE) THE WHOLE SWARM BACK. A halving used to hold for the rest of the page, and the home is one long
+       page: one dense part halved it and every part after drew half the points. Once the timed frames have stayed under
+       half the budget (the median of the last 30) through `needCalm` seconds of moving frames in a row, the drawn count
+       doubles back, a step at a time (the points it doubled with would cost what they cost before: the bar leaves them
+       the room). The points that come back start from nothing on their targets and fade in (their records zeroed: they
+       stood still, unsimulated, where the halving left them), never flying in from where they were. Only with the GPU's
+       own timestamps (without them a frame's length is the display's, not the GPU's: no room can be read). */
+    if (under && drawn < N) {
+      calm += dt;
+      if (calm >= needCalm) {
+        const d2 = Math.min(N, drawn * 2);
+        // ink 0 and a radius of -1: the sim lets each one appear on its target (sim.wgsl.js), never fly in
+        const rec = new Float32Array((d2 - drawn) * 8);
+        for (let j = 7; j < rec.length; j += 8) rec[j] = -1;
+        try { device.queue.writeBuffer(res.partBuf, drawn * 32, rec); } catch (e) { return; }
+        log(`[stage] under budget for ${calm.toFixed(1)} s: drawn count back to ${d2}`);
+        // the ink per point eases back as the points that came back take theirs (no dip of the swarm's light)
+        inkFrom = drawn; inkAt = st.time;
+        drawn = d2; restores++; restoredAt = performance.now();
+        st.gpu = []; calm = 0;
+      }
+    } else if (!under) calm = 0;
   }
 
   /** @param {number} dtSec @returns {boolean} drew */
@@ -1830,7 +1880,7 @@ export async function createStage(o) {
   function stats() {
     const s = st.gpu.slice().sort((x, y) => x - y);
     return {
-      simulated: drawn, drawn, capacity: N, tier, halvings, strands,
+      simulated: drawn, drawn, capacity: N, tier, halvings, restores, strands,
       gpuMs: s.length ? s[s.length >> 1] : st.gpuLast, gpuLastMs: st.gpuLast, timestamps: tsOn,
       awake: st.activity > 0, activity: st.activity, submits: st.submits, frames: st.frameIndex,
       backing: [st.bw, st.bh], dpr: st.dpr,
@@ -1854,7 +1904,7 @@ export async function createStage(o) {
     passCfg = {};   // a pass is drawn only while a scene asks for it (passList)
     if (plates) plates.setBackdrop(null, null); else bdHeld = null;
     // every page starts with the whole swarm, as on a load: a page that halved it does not halve the next one's
-    drawn = N; st.gpu = []; st.dts = [];
+    drawn = N; st.gpu = []; st.dts = []; calm = 0; needCalm = RESTORE_S; inkAt = -1;
     st.dirty = true;
   }
 

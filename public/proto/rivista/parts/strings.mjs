@@ -41,8 +41,6 @@ const S = {
   "menu.word": { en: "Menu", it: "Menu", same: true },
   "menu.word.close": { en: "Close", it: "Chiudi" },
   "menu.dialog": { en: "Menu", it: "Menu", same: true },
-  /* (lane n-sound) the header's sound toggle: its spoken name (aria-pressed says on or off) */
-  "chrome.sound": { en: "Sound", it: "Suono" },
   /* the pages: the nav words, the menu items and the names a cut prints on its sheet */
   "sec.work": { en: "Work", it: "Lavori" },
   "sec.caps": { en: "Capabilities", it: "Competenze" },
@@ -50,8 +48,7 @@ const S = {
   "sec.contact": { en: "Contact", it: "Contatti" },
   "sec.consult": { en: "Consulting", it: "Consulenza" },
   "sec.obla": { en: "Obla", it: "Obla", same: true },
-  "cut.index": { en: "Index", it: "Indice" },
-  /* (wave 7) the name a cut prints for the home, which holds no index any more (the 404's list keeps "cut.index") */
+  /* (wave 7) the name a cut prints for the home, which holds no index any more */
   "cut.home": { en: "Home", it: "Inizio" },
   "cta.write": { en: "Write to me", it: "Scrivimi" },
   "copy.label": { en: "Copy address", it: "Copia indirizzo" },
@@ -68,8 +65,6 @@ const S = {
     it: 'Dallo schema <span style="white-space:nowrap">del database</span> <span style="white-space:nowrap">al rendering</span> WebGPU <span style="white-space:nowrap">in tempo reale</span> <span style="white-space:nowrap">e al motion design.</span>',
   },
 
-  /* the scroll cue under the first screen (decoration: the scroll is the flight through the name) */
-  "hero.scroll": { en: "Scroll", it: "Scorri" },
 
   /* ---------------------------------------------------------------- the cover: now */
   "now.eyebrow": { en: "Now, since May 2026", it: "Oggi, da maggio 2026" },
@@ -90,7 +85,8 @@ const S = {
 
   /* ---------------------------------------------------------------- one sentence per page: the cover's index printed
      them until wave 7 (the index is gone); the 404's rows print them now (S404.pages, read by parts/c-main.404.mjs) */
-  "ix.work": { en: "Eleven works, and two sets of figures measured before and after.", it: "Undici lavori, e due serie di numeri misurati prima e dopo." },
+  /* (22 November) Work is its eleven works alone: the measured figures left the page (they stay on their cases) */
+  "ix.work": { en: "Eleven works, from the multi-agent system I built for SerSan to my personal project Obla.", it: "Undici lavori, dal sistema multi-agente che ho costruito per SerSan al mio progetto personale Obla." },
   "ix.about": { en: "Eight groups of tools, each tied to the work that proves it, and the path from Camerino to London.", it: "Otto gruppi di strumenti, ciascuno legato al lavoro che lo dimostra, e il percorso da Camerino a Londra." },
   "ix.consult": { en: "Four ways to work with me, for companies and for private individuals.", it: "Quattro modi di lavorare insieme, per aziende e per privati." },
   "ix.obla": { en: "My personal multi-agent system: it listens, works, asks, and reports every morning at 08:00.", it: "Il mio sistema multi-agente personale: ascolta, lavora, chiede e ogni mattina alle 08:00 fa rapporto." },
@@ -102,40 +98,6 @@ const S = {
   "work.lead": {
     en: "At SerSan, the multi-agent system I built for the studio, a trading platform and its AI mentor, a workshop ERP, a WebGPU studio site, a real-estate platform and a brand film. Then Obla, my personal project, and three projects from outside SerSan.",
     it: "In SerSan, il sistema multi-agente che ho costruito per lo studio, una piattaforma di trading e il suo mentor AI, un ERP d’officina, il sito WebGPU dello studio, una piattaforma immobiliare e un brand film. Poi Obla, il mio progetto personale, e tre progetti esterni.",
-  },
-
-  /* ---------------------------------------------------------------- Work: measured before and after */
-  "ev.h": { html: true, en: "Measured before and <em>after.</em>", it: "Misurato prima e <em>dopo.</em>" },
-  "ev.lead": {
-    en: "Two sets of figures with a before and an after: a 161-question bilingual evaluation set for Sphere AI, and page speed on real phones for Domus Tua.",
-    it: "Due serie di numeri con un prima e un dopo: un set di valutazione bilingue di 161 domande per Sphere AI e la velocità delle pagine su telefoni reali per Domus Tua.",
-  },
-  "work.lg1.eyebrow": { en: "Sphere AI · SerSan", it: "Sphere AI · SerSan", same: true },
-  "lg1.h": { html: true, en: "Answer reliability, before and after", it: 'Risposte affidabili, <span style="white-space:nowrap">prima e dopo</span>' },
-  "lg1.lead": {
-    en: "On a 161-question bilingual evaluation set. Citation correctness 100%, with zero locked-content leaks and zero fabricated citations.",
-    it: "Su un set di valutazione bilingue di 161 domande. Citazioni corrette al 100%, con zero fughe di contenuti bloccati e zero citazioni inventate.",
-  },
-  /* the metrics' names: the same words as the rows of cases.json (sphere-ai, domus-tua) */
-  "m.acc": { en: "Answer-policy accuracy", it: "Accuratezza della policy di risposta" },
-  "m.over": { en: "Over-answering on questions to withhold", it: "Risposte che andavano trattenute" },
-  "m.prec": { en: "Clarification precision", it: "Precisione dei chiarimenti" },
-  "m.rec": { en: "Clarification recall", it: "Recall dei chiarimenti" },
-  "m.uns": { en: "Unsupported claims", it: "Affermazioni senza riscontro" },
-  "m.lcp": { en: "Mobile Largest Contentful Paint", it: "Largest Contentful Paint su mobile" },
-  "m.tbt": { en: "Mobile blocking time", it: "Blocking time su mobile" },
-  /* figures with a decimal or a unit: the Italian comma and the no-break space; the number never changes */
-  "fig.1-9": { en: "1.9%", it: "1,9%" },
-  "fig.0-6": { en: "0.6%", it: "0,6%" },
-  "fig.4-75": { en: "4.75 s", it: "4,75 s" },
-  "fig.1-74": { en: "1.74 s", it: "1,74 s" },
-  "fig.572": { en: "572 ms", it: "572 ms" },
-  "fig.274": { en: "274 ms", it: "274 ms" },
-  "lg2.eyebrow": { en: "Domus Tua · real phones", it: "Domus Tua · telefoni reali" },
-  "lg2.h": { html: true, en: "Fast on the phone in your hand", it: 'Veloce <span style="white-space:nowrap">col telefono</span> <span style="white-space:nowrap">in mano</span>' },
-  "lg2.lead": {
-    en: "The mobile delay was traced to the cookie banner and the intro rebuilt to run in CSS rather than JavaScript. The cinematic experience stayed, with no layout shift.",
-    it: "Il ritardo su mobile veniva dal banner dei cookie, e l’intro è stata riscritta per girare in CSS invece che in JavaScript. L’esperienza cinematografica è rimasta, senza layout shift.",
   },
 
   /* ---------------------------------------------------------------- About: the stack */
@@ -159,10 +121,15 @@ const S = {
   "cap.8.brand": { en: "Brand identity & logo design", it: "Brand identity e logo design" },
   "cap.8.art": { html: true, en: "Art&nbsp;direction", it: "Direzione&nbsp;artistica" },
   "cap.8.type": { en: "Typography", it: "Tipografia" },
+  /* (wave 8, FIX2D) the term was written in the partial; it stays in English in Italian too */
+  "cap.8.sound": { html: true, en: "Sound&nbsp;design", it: "Sound&nbsp;design", same: true },
   "caps.proof": { en: "Proof", it: "Prova" },
 
   /* ---------------------------------------------------------------- About: the path */
   "path.h.3": { en: "London", it: "Londra" },
+  /* (wave 8, FIX2D) a scene's short name: the header prints it where the heading does not fit the room it leaves the
+     scene's name (a phone: about 200 px), never in a smaller type (data-scene-short, read by fx-motion.js) */
+  "path.short": { en: "Camerino to London", it: "Da Camerino a Londra" },
   "path.lead": {
     en: "A B.Sc. at Camerino, an M.Sc. in AI Systems at Trento, and professional work since November 2025, remote for a London studio since May 2026.",
     it: "Una laurea triennale a Camerino, una magistrale in AI Systems a Trento e, da novembre 2025, il lavoro: da maggio 2026 da remoto, per uno studio di Londra.",
@@ -193,6 +160,7 @@ const S = {
   /* ---------------------------------------------------------------- Consulting (spec 10 §6.1, as built) */
   "co.h.1": { en: "Four ways", it: "Quattro modi" },
   "co.h.2": { html: true, en: 'to work <span style="white-space:nowrap">with me</span>', it: "di lavorare insieme" },
+  "co.short": { en: "Working with me", it: "Lavorare insieme" },
   "co.lead": {
     en: "I help companies and private individuals put today's AI tools to work, from a first video to a team of agents that runs on its own. Each engagement starts from what you need to deliver, not from the tool.",
     it: "Aiuto aziende e privati a mettere al lavoro gli strumenti di AI di oggi, dal primo video a una squadra di agenti che lavora da sola. Ogni incarico parte da ciò che devi consegnare, non dallo strumento.",
@@ -284,7 +252,8 @@ const S = {
 
   /* ---------------------------------------------------------------- the case template's own words (UI) */
   "ui.work": { en: "Work", it: "Lavori" },
-  "ui.backIndex": { en: "Back to the index", it: "Torna all’indice" },
+  /* (wave 8, FIX2D) the 404's way back: the home holds no index any more (the cut's card calls it "cut.home") */
+  "ui.backHome": { en: "Back to the home page", it: "Torna alla pagina iniziale" },
   "ui.allWork": { en: "All works", it: "Tutti i lavori" },
   "ui.more": { en: "More work", it: "Altri lavori" },
   "ui.open": { en: "Open", it: "Apri" },
@@ -305,6 +274,8 @@ const S = {
     en: "The page you asked for does not exist. Every page and every work is listed below.",
     it: "La pagina che cerchi non esiste. Qui sotto trovi ogni pagina e ogni lavoro.",
   },
+  /* (wave 8, FIX2D) the title of the 404's list of pages (it was "Index": the home holds no index any more) */
+  "nf.pages": { en: "Pages", it: "Pagine" },
   /* the 404's own legal line (parts/c-footer.404.html): this page has no stage, so it draws nothing live */
   "nf.engine": {
     en: "This page is type alone. On every other page the light and the glass are drawn live by an engine written directly against the GPU API, in WebGPU.",
@@ -323,8 +294,8 @@ const S = {
     it: "Alberto Tuveri, Software & AI Engineer e Creative Lead: il nome attraverso la card in maiuscole condensate bianche su un fondo quasi nero, e la riga: dallo schema del database al rendering WebGPU in tempo reale e al motion design.",
   },
   "meta.work.desc": {
-    en: "Eleven works by Alberto Tuveri, from the multi-agent system he built for SerSan to a brand film and his personal project Obla, and two sets of figures measured before and after.",
-    it: "Undici lavori di Alberto Tuveri, dal sistema multi-agente che ha costruito per SerSan a un brand film e al suo progetto personale Obla, e due serie di numeri misurate prima e dopo.",
+    en: "Eleven works by Alberto Tuveri, from the multi-agent system he built for SerSan to a brand film and his personal project Obla.",
+    it: "Undici lavori di Alberto Tuveri, dal sistema multi-agente che ha costruito per SerSan a un brand film e al suo progetto personale Obla.",
   },
   "meta.about.desc": {
     en: "What Alberto Tuveri builds with, eight groups of tools each tied to the work that proves it, and his path from Camerino and Trento to a London studio.",
@@ -369,12 +340,12 @@ export const S404 = {
   over: S["nf.over"],
   title: S["nf.title"],
   lead: S["nf.lead"],
-  back: S["ui.backIndex"],
+  back: S["ui.backHome"],
   write: S["cta.write"],
-  pagesTitle: S["cut.index"],
+  pagesTitle: S["nf.pages"],
   open: S["ui.open"],
   work: S["ui.work"],
-  index: S["cut.home"],
+  home: S["cut.home"],
   /* the pages, each with its sentence ("ix.*", printed by the cover's index until wave 7, now by the 404 alone; the
      contact page: its own sentence) */
   pages: {
@@ -383,4 +354,4 @@ export const S404 = {
   },
 };
 /* ids a template module reads without a {{t:}} token: assemble.mjs counts them as printed */
-export const READ_BY_MODULES = ["ui.", "nf.", "meta.", "js.", "band.", "ix.", "cut.index"];
+export const READ_BY_MODULES = ["ui.", "nf.", "meta.", "js.", "band.", "ix."];

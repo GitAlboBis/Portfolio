@@ -6,8 +6,13 @@
     --ink: #000; --body: #222; --mute: #555; --line: #bbb; --accent: #2340c9; --night: #fff; --night-2: #fff; --dawn: #fff;
   }
   html, body, .dawn, html[data-ground="dawn"] main, [data-part="contact"] { background: #fff !important; color: #222; }
-  .hdr, .menu, .cut, .skip, .sc-view, .dawn-view, [data-stage-instr], .copy, .hero-instr { display: none !important; }
+  .hdr, .menu, .cut, .skip, .sc-view, .dawn-view, [data-stage-instr], .copy { display: none !important; }
   [data-stage-poster] { display: block !important; }
+  /* (wave 8, INTEGRATE) printed after a read with the stage on: the stage's canvas is not paper (fixed over the page,
+     it laid its plates over the text of every printed sheet), and the home's name, light while the stage drew it,
+     prints as type */
+  canvas.fx-stage { display: none !important; }
+  html[data-page="home"] .hero-name { color: var(--ink) !important; animation: none !important; }
   /* (wave 7) printed after a read with the stage on, nothing is caught mid-way: no transition (the focus pull's blocks
      were printed at 0.12 while their fade ran), no scroll-linked leave (the cover's foot), no letter left by a beat */
   [data-focus], [data-focus-lines] > .ln, .sc-step .sc-in, .rv-split .w, .rv-wipe .w, .rv-row, .rv-pic img, .rv-pic figcaption,

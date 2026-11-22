@@ -133,11 +133,35 @@ html.sc-on.stage-on:not(.gl-off) main[data-case] .cs-ch:is([data-ch="measured"],
 .tr-base.is-tracing :is(.umld-cn, .umld-arr, .umld-tri, .umld-dia-c, .umld-dia-s, .umld-verb, .umld-end) { visibility: hidden; }
 .tr-ink { position: absolute; inset: 0; }
 .tr-ink > svg { position: absolute; left: 0; top: 0; overflow: visible; }
-.tr-host.tr-on > .tr { visibility: visible; }
-.tr-host.tr-on > img { visibility: hidden; }
-html.rv-motion .rv-pic > .tr { transform: scale(1.06); clip-path: inset(100% 3% 3% 3%); }
-html.rv-motion .rv-pic.st-on > .tr { transform: none; clip-path: inset(0 0 0 0); transition: clip-path 1.05s var(--ease-rise), transform 1.4s var(--ease-rise); }
-@media print { .tr { display: none !important; } .tr-host > img { visibility: visible !important; } }
+.tr-host.tr-on .tr { visibility: visible; }
+.tr-host.tr-on img { visibility: hidden; }
+html.rv-motion .rv-pic .tr { transform: scale(1.06); clip-path: inset(100% 3% 3% 3%); }
+html.rv-motion .rv-pic.st-on .tr { transform: none; clip-path: inset(0 0 0 0); transition: clip-path 1.05s var(--ease-rise), transform 1.4s var(--ease-rise); }
+@media print { .tr { display: none !important; } .tr-host img { visibility: visible !important; } }
+
+/* ---------------------------------------------------------------- (wave 8, FIX2D) a still shown through a window of
+   its picture (cases.json "crop", parts/c-main.case.mjs still()): the class diagram's frame margins go, so its classes
+   stand larger. The frame has the window's proportions (--fa) and clips; the picture, and live the drawing traced over
+   it (.tr, the same box: fx-motion.js measures the pen from it), are --fw of the frame, shifted by --fx, --fy. From
+   1024 px the frame is never taller than the screen under the header (a drawing is seen whole). Every printed state
+   shows the window: nothing of the drawing lies outside it. */
+.cs-frame { position: relative; overflow: hidden; aspect-ratio: var(--fa); background: var(--night-2); }
+.cs-frame > img, .cs-frame > .tr { position: absolute; left: var(--fx); top: var(--fy); width: var(--fw); max-width: none; height: auto; aspect-ratio: 16 / 10; }
+/* the drawing set wide (.cs-stills.is-wide, the chapter .cs-wide): from 1024 px the figure spans the page's measure,
+   from the left gutter (the chapter index's edge) to the right one; its caption stands back on the text's line. The
+   chapter's index stays at the chapter's top (held in the margin it slid over the drawing). With the stage the
+   chapter's text column is narrower (three columns: 2fr 5.4fr 4.6fr), so the same span is reached from it; the room
+   keeps the drawing's whole box (the chapter's own blocks, stage/scenes/case/figures.js), so no figure of light stands
+   over it */
+@media (min-width: 1024px) {
+  /* (on a phone held sideways the drawing keeps the column's width: smaller to fit the short screen it would read worse) */
+  .cs-frame { max-width: calc((100svh - var(--hdr) - var(--s5)) * var(--fa)); }
+  .cs-stills.is-wide { width: calc(100% * 12 / 9 + var(--s6)); margin-left: calc(-100% / 3 - var(--s6)); }
+  .cs-stills.is-wide .cs-cap { margin-left: calc((100% - var(--s6)) / 4 + var(--s6)); max-width: 40rem; }
+  .cs-ch.cs-wide > .cs-folio { position: static; }
+  html.sc-on:not(.gl-off) main[data-case] .cs-stills.is-wide { width: calc(100% * 12 / 5.4 + 2 * var(--s6)); margin-left: calc(-100% * 2 / 5.4 - var(--s6)); }
+  html.sc-on:not(.gl-off) main[data-case] .cs-stills.is-wide .cs-cap { margin-left: calc((100% - 2 * var(--s6)) / 6 + var(--s6)); }
+}
 
 /* the record */
 .cs-dl > div { display: grid; grid-template-columns: minmax(7rem, 3fr) minmax(0, 7fr); gap: var(--s4); padding-block: var(--s3); }

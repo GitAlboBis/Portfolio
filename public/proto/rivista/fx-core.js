@@ -4,12 +4,12 @@
    The FX namespace: flags, event bus, Lenis on the single GSAP ticker, the
    ref-counted lock, fonts, module registry and the boot order.
 
-   Script order (spec 50): gsap, ScrollTrigger, lenis, fx-core, fx-scroll, fx-nav, fx-stage. The head script's loader
-   inserts them after the first frame with async=false, which keeps this order; they run after the document is parsed.
-   SplitText, CustomEase and fx-hero.js left with the magazine: the eases are GSAP's core ones.
+   Script order (parts/head.html): gsap, ScrollTrigger, lenis, fx-core, fx-scroll, fx-nav, fx-motion, fx-stage. The
+   head script's loader inserts them after the first frame with async=false, which keeps this order; they run after the
+   document is parsed. SplitText, CustomEase and fx-hero.js left with the magazine: the eases are GSAP's core ones.
    At load a module only calls FX.register(name, { init, build, onResize }).
 
-   Boot, once all ten scripts have settled (window.__rvJs, MC-33; DOMContentLoaded on a page without the loader):
+   Boot, once all eight scripts have settled (window.__rvJs, MC-33; DOMContentLoaded on a page without the loader):
      1 flags, link sync, plugins, CustomEase domus / domus.inOut / rv.out / dtIn,
        ScrollTrigger.config({ ignoreMobileResize: true }), FX.motion read from css/tokens.css
      2 Lenis on gsap.ticker, with the wheel lead clamp (MC-14); FX.lock("entry") under data-arrive

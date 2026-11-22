@@ -17,7 +17,7 @@
   var d=document.documentElement, q=null;
   try{ q=new URLSearchParams(location.search); }catch(e){}
   if(d.hasAttribute('data-home') && location.hash){
-    var OLD={work:'work.html',measured:'work.html#evidence',evidence:'work.html#evidence',capabilities:'about.html',stack:'about.html',path:'about.html#path',consult:'consulting.html',obla:'obla.html',contact:'contact.html'},
+    var OLD={work:'work.html',measured:'work.html',evidence:'work.html',capabilities:'about.html',stack:'about.html',path:'about.html#path',consult:'consulting.html',obla:'obla.html',contact:'contact.html'},
         go=OLD[location.hash.slice(1)];
     if(go){ var gp=go.split('#'); try{ location.replace(gp[0]+location.search+(gp[1] ? '#'+gp[1] : '')); return; }catch(e){} }
   }
@@ -50,7 +50,7 @@
   try{ F.forEach(function(u){ var l=document.createElement('link'); l.rel='preload'; l.as='font'; l.type='font/woff2'; l.crossOrigin='anonymous'; l.href=G+u; document.head.appendChild(l); }); }catch(e){}
   var J=window.__rvJs={done:false,boot:null,t0:0,t1:0}, jf=false,
       JS=['https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js','https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js',
-          'https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js','/proto/rivista/fx-core.js','/proto/rivista/fx-scroll.js','/proto/rivista/fx-nav.js','/proto/rivista/fx-motion.js','/proto/rivista/fx-stage.js','/proto/rivista/fx-sound.js'];
+          'https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js','/proto/rivista/fx-core.js','/proto/rivista/fx-scroll.js','/proto/rivista/fx-nav.js','/proto/rivista/fx-motion.js','/proto/rivista/fx-stage.js'];
   J.list=JS;
   var AN='https://cdn.jsdelivr.net/npm/animejs@4.5.0/', anim=function(){
     if(rm || window.__rvAnime) return;
@@ -91,7 +91,6 @@
     <span class="lang" role="group" aria-label="Language"><span class="lang-now" aria-current="true"><b aria-hidden="true">EN</b><span class="sr-only">English, current language</span></span><span class="lang-sep" aria-hidden="true"> / </span><a class="lang-alt" href="/proto/rivista/it/404.html" hreflang="it" lang="it" data-lang="it" data-pt-label="Italiano" data-pt-sub="Edizione italiana">IT<span class="sr-only"> · Italiano</span></a></span>
     <span class="hdr-rule is-idle" aria-hidden="true" data-hdr-rule></span>
   </nav>
-  <button class="hdr-snd" type="button" aria-pressed="true" aria-label="Sound" title="Sound" data-snd data-snd-state="armed"><span class="snd-bars" aria-hidden="true"><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span></span></button>
   <button class="hdr-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open the menu" data-nv-open="Open the menu" data-nv-close="Close the menu" data-menu-btn><span class="m-open" aria-hidden="true">Menu</span><span class="m-close" aria-hidden="true">Close</span></button>
   <span class="hdr-read" aria-hidden="true"></span>
 </header>
@@ -120,13 +119,13 @@
     <p class="t-label t-acc nf-over" data-focus="load">Error 404</p>
     <h1 id="nf-h" class="t-mega nf-h" data-focus="load" style="--fd:80ms">Not found.</h1>
     <p class="t-lead nf-lead" data-focus="load" style="--fd:160ms">The page you asked for does not exist. Every page and every work is listed below.</p>
-    <p class="nf-act" data-focus="load" style="--fd:240ms"><a class="btn" href="/proto/rivista/index.html" data-back data-pt-label="Home" data-pt-sub="Alberto Tuveri">Back to the index <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a><a class="q" href="mailto:albertotuveri@gmail.com">Write to me <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></p>
+    <p class="nf-act" data-focus="load" style="--fd:240ms"><a class="btn" href="/proto/rivista/index.html" data-back data-pt-label="Home" data-pt-sub="Alberto Tuveri">Back to the home page <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a><a class="q" href="mailto:albertotuveri@gmail.com">Write to me <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></p>
   </section>
 
   <section class="nf-ix" aria-labelledby="nf-ix">
-    <h2 id="nf-ix" class="t-label">Index</h2>
+    <h2 id="nf-ix" class="t-label">Pages</h2>
     <ol class="ix-rows rows nf-rows">
-        <li><a class="ix-a" href="/proto/rivista/work.html" data-pt-label="Work" data-pt-sub="01"><span class="t-label ix-n">01</span><span class="t-d2 ix-t">Work</span><span class="t-body ix-k">Eleven works, and two sets of figures measured before and after.</span><span class="q ix-v">Open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>
+        <li><a class="ix-a" href="/proto/rivista/work.html" data-pt-label="Work" data-pt-sub="01"><span class="t-label ix-n">01</span><span class="t-d2 ix-t">Work</span><span class="t-body ix-k">Eleven works, from the multi-agent system I built for SerSan to my personal project Obla.</span><span class="q ix-v">Open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>
         <li><a class="ix-a" href="/proto/rivista/about.html" data-pt-label="About" data-pt-sub="02"><span class="t-label ix-n">02</span><span class="t-d2 ix-t">About</span><span class="t-body ix-k">Eight groups of tools, each tied to the work that proves it, and the path from Camerino to London.</span><span class="q ix-v">Open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>
         <li><a class="ix-a" href="/proto/rivista/consulting.html" data-pt-label="Consulting" data-pt-sub="03"><span class="t-label ix-n">03</span><span class="t-d2 ix-t">Consulting</span><span class="t-body ix-k">Four ways to work with me, for companies and for private individuals.</span><span class="q ix-v">Open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>
         <li><a class="ix-a" href="/proto/rivista/obla.html" data-pt-label="Obla" data-pt-sub="04"><span class="t-label ix-n">04</span><span class="t-d2 ix-t">Obla</span><span class="t-body ix-k">My personal multi-agent system: it listens, works, asks, and reports every morning at 08:00.</span><span class="q ix-v">Open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a></li>

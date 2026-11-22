@@ -8,6 +8,7 @@
  */
 import obla from "../night/obla.js";
 import { DEPTH, eyeD, home, shot, stations, lookFor, roomFor, bloomOf, SEED, LIT, clearOf } from "../night/shot.js";
+import { follow } from "./lib/camera.js";
 /** @param {number} a @param {number} b @param {number} x */
 const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
@@ -54,7 +55,7 @@ export default {
       let at = y0;
       for (const [a, b] of cut) { if (a > at) free.push([at, a]); at = Math.max(at, b); }
       if (y1 > at) free.push([at, y1]);
-      const s = c.state, dt = Math.min(0.1, c.dt || 0), k = 1 - Math.exp(-dt / 0.14);
+      const s = c.state, dt = Math.min(0.1, c.dt || 0);
       const size = (/** @type {number[]} */ b) => b[1] - b[0];
       let best = free.reduce((p, q) => (size(q) > size(p) ? q : p), [y0, y0]);
       // keep to the band that holds the character unless another is clearly larger (no flicker between two equal ones)
@@ -68,13 +69,16 @@ export default {
       if (s.gy == null) { s.gy = gy; s.gh = gh; s.hop = 0; }
       // a band that does not hold the character's centre is on the other side of a text block: hop, do not slide
       const mid = s.gy + s.gh / 2, far = mid < best[0] || mid > best[1];
-      if (far) s.hop += dt; else s.hop = 0;
-      if (s.hop > 0.3) { s.gy = gy; s.gh = gh; s.hop = 0; }
+      // (while it waits to hop it holds still: its springs at rest)
+      if (far) { s.hop += dt; s.gyV = 0; s.ghV = 0; } else s.hop = 0;
+      // (the hop: it moved while unseen and comes back at rest there)
+      if (s.hop > 0.3) { s.gy = gy; s.gh = gh; s.gyV = 0; s.ghV = 0; s.hop = 0; }
       else if (!far) {
-        s.gy += (gy - s.gy) * k; s.gh += (gh - s.gh) * k;
-        // (wave 2) settle exactly (a creeping value keeps the stage awake)
-        if (Math.abs(gy - s.gy) < 0.05) s.gy = gy;
-        if (Math.abs(gh - s.gh) < 0.05) s.gh = gh;
+        // (wave 8, lane SMOOTH) the band rides critically damped springs (lib/camera.js follow), landing exactly (a
+        // creeping value keeps the stage awake): the first-order lag it rode set off at full speed in one frame when a
+        // text entered the band or left it, and braked with a corner in its speed as the page stopped
+        follow(s, "gy", gy, dt, 0.07, 0.05);
+        follow(s, "gh", gh, dt, 0.07, 0.05);
       }
       rect = { x: rect.x, y: s.gy, w: rect.w, h: s.gh };
       const room = s.gh / fh;
@@ -86,7 +90,10 @@ export default {
     }
     // ------------------------------------------------ the place in the room and the shot
     const D = eyeD(c.vw, c.vh), ph = c.phone;
-    const x = c.step ? c.step + c.local - 0.5 : 0;
+    // (wave 8, lane SMOOTH) one count through every step, the intro's too: station k stands at the middle of step k and
+    // the walk to the next crosses its boundary. The intro (step 0) was held at 0 to its end, so the first walk began
+    // halfway through, in one frame: the eye jumped about 100 px (6236 px/s for a frame on the live site, rec/live-obla)
+    const x = c.step + c.local - 0.5;
     const kf = stations(Math.max(0, x), 6);
     const P = (ph ? PLACES.phone : PLACES.desk).map((p) => [p[0] * c.vw, p[1] * c.vh, p[2] * D]);
     const i0 = Math.min(4, Math.floor(kf)), fk = kf - i0;

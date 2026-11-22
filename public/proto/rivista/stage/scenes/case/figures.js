@@ -15,7 +15,8 @@
  *              from the first node to the node being read (that node lit and near)
  *   measured   bars of light on the rows' lines, the before dim and the after bright, as long as the row's own bars
  *              (the template's --w, read from the page: no number typed here)
- *   list       a stack of thin plates, one per item, the item being read lifted toward the reader, lit, its number etched
+ *   list       a stack of thin plates, one per item, the item being read lifted toward the reader, lit ((wave 8, k-fix3d)
+ *              no plate carries a number: a rectangle with "01" on it is the floating card Alberto hated)
  *              ((wave 6) a phone, past its band: a thread of light down the numbers' column, lit row by row; a
  *              schematic's too)
  *   the record the work's plate again, far back in the room and turned the other way: the shot ends on the plate it
@@ -42,15 +43,15 @@
 import { etchCanvas } from "./etch.js";
 import { lifted } from "./lift.js";
 import { CASE } from "../case.js";
+import { follow } from "../lib/camera.js";
 
 const clamp = (/** @type {number} */ x, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, x));
 const sm = (/** @type {number} */ e0, /** @type {number} */ e1, /** @type {number} */ x) => { const t = clamp((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 const mix = (/** @type {number} */ a, /** @type {number} */ b, /** @type {number} */ t) => a + (b - a) * t;
-/** damped and settling exactly (a value that creeps by an ulp a frame keeps the stage awake) */
-const ease = (/** @type {number} */ cur, /** @type {number} */ to, /** @type {number} */ dt, /** @type {number} */ tau, eps = 1e-3) => {
-  const v = cur + (to - cur) * (1 - Math.exp(-dt / Math.max(tau, 1e-4)));
-  return Math.abs(to - v) < eps ? to : v;
-};
+// (wave 8, lane SMOOTH) every value the reading drives (the item being read, the ray's row, the prism's turn, the
+// sweeps, a plate's way back after a text) rides a critically damped spring that lands exactly (lib/camera.js follow):
+// the first-order lag they rode set off at full speed in one frame each time its target stepped (a new row being read,
+// a new cued row) and braked with a corner in its speed
 const persp = (/** @type {number} */ D, /** @type {number} */ z) => D / Math.max(D - z, 1);
 const txt = (/** @type {Element | null | undefined} */ el) => (el ? (el.textContent || "").replace(/\s+/g, " ").trim() : "");
 
@@ -202,8 +203,8 @@ export const FIG = {
 // (lane FIXCASES) room for two boards of a hundred units (sersan-io's two Lighthouse rows): 6,000 segments
 const CAP = 12000, SEG = 10;
 const BAR_SHARE = 0.2, BAR_INK = 0.34 * 0.085 / 0.24;
-/** the bars as strands of short segments, sorted by their left end (a reveal sweeps them from the left), as
- *  evidence.js draws its sets @param {any} g */
+/** the bars as strands of short segments, sorted by their left end (a reveal sweeps them from the left), as the
+ *  Work page's evidence scene drew its sets until it was removed (22 November) @param {any} g */
 function barSet(g) {
   /** @type {number[][]} */ const segs = [];
   const strand = (/** @type {number} */ a, /** @type {number} */ b, /** @type {number} */ y, /** @type {number} */ ink, /** @type {number} */ seg) => {
@@ -478,8 +479,9 @@ export function chapterFigures(c, EYE) {
   const aT = !nI ? 0 : flow ? readingT(items, sy, Y) : reading(items, sy, Y);
   const a = Math.round(aT);
   const ck = ch.ci + (inList ? ":l" : "");
-  if (S.ci !== ck) { S.ci = ck; S.av = aT; }
-  if (dt > 0) S.av = ease(S.av, aT, dt, flow ? 0.12 : 0.22);
+  if (S.ci !== ck) { S.ci = ck; S.av = aT; S.avV = 0; }
+  follow(S, "av", aT, dt, flow ? 0.06 : 0.11, 1e-3);
+  if (S.dbg ??= /[?&]debug=1/.test(location.search)) /** @type {any} */ (window).__fig = { kind, ci: ck, aT, av: S.av, p };
   if (S.lastA !== a + ":" + ck) { if (S.lastA != null && !flow) S.swap = 1; S.lastA = a + ":" + ck; }
   if (dt > 0) S.swap *= Math.exp(-dt / 0.25);
   if (S.swap < 1e-3) S.swap = 0;
@@ -497,15 +499,18 @@ export function chapterFigures(c, EYE) {
    *  @param {string} id @param {any} P @param {number} hwK @param {number} hhK */
   const clearOf = (id, P, hwK, hhK) => {
     const hw = (P.sw * hwK) / 2 + 16, hh = (P.sh * hhK) / 2 + 16, X = P.X, Yc = P.Y + shiftY;
+    // (wave 8, SMOOTH) the boxes padded by 28 px between them: the plate goes as the first 14 of them close (it went
+    // whole in one frame the moment the padded boxes met), and is gone while 14 px still part them
     let hit = 0;
     for (const r of L.blocks) {
       const ty = r.y - sy;
       if (ty > vh || ty + r.h < 0) continue;
       const ix = Math.min(X + hw, r.x + r.w + 12) - Math.max(X - hw, r.x - 12), iy = Math.min(Yc + hh, ty + r.h + 12) - Math.max(Yc - hh, ty - 12);
-      if (ix > 0 && iy > 0) { hit = 1; break; }
+      if (ix > 0 && iy > 0) { hit = Math.max(hit, clamp(Math.min(ix, iy) / 14)); if (hit >= 1) break; }
     }
-    const h0 = S.hide[id] ?? hit;
-    S.hide[id] = dt > 0 ? ease(h0, hit, dt, hit > h0 ? 0.04 : 0.12) : hit;
+    // the way back after the text has passed rides a spring; going, the text's own measure leads
+    const h0 = typeof S.hide[id] === "number" ? S.hide[id] : hit;
+    follow(S.hide, id, hit, dt, hit > h0 ? 0.02 : 0.06, 1e-3);
     return 1 - Math.max(hit, S.hide[id]);
   };
   const Xc = R.x + R.w / 2, Yc = R.y + R.h / 2;
@@ -609,7 +614,8 @@ export function chapterFigures(c, EYE) {
     if (lit) subj = { X: lit.X, Y: lit.Y, z: lit.z, w: lit.sw * 1.6, h: R.h * 0.6 };
   } else if (kind === "list") {
     // ------------------------------------------------ the stack: thin plates lying one over the other, seen from three
-    // quarters; the item being read lifts out toward the reader, lit, its number etched
+    // quarters; the item being read lifts out toward the reader, lit. (wave 8, k-fix3d) Clear glass, nothing etched: its
+    // number on the plate made each layer a card carrying a number (CLAUDE.md §1); the row's number stands in the text
     const n = Math.max(1, items.length);
     // (lane FIXCASES) inside a facts chapter the stack comes in with the list's own rows
     const pl = inList ? sm(-0.02 * vh, 0.16 * vh, Y - (items[0].r.y - sy - 0.08 * vh)) : 1;
@@ -630,13 +636,9 @@ export function chapterFigures(c, EYE) {
       const alpha = p * pl * far * clearOf("l" + i, P, Math.abs(Math.cos(yaw)) + 0.2, Math.abs(Math.cos(pitch)) + 0.3);
       if (alpha < 0.005) continue;
       drawn++;
-      const num = items[i] ? items[i].num : "";
-      // its number etched: full in the layer being read, faint in the others (two textures, as About's stack)
-      const strong = lit > 0.5;
-      const etch = num ? c.etch((strong ? "l" : "lf") + ch.ci + "-" + i, [num], { w: Math.round(lw), h: Math.round(ld), pad: lw * 0.12, colour: strong ? "#ffffff" : "rgba(255,255,255,0.2)" }) : null;
       slabs.push({
         id: "l" + i, ...place(P), yaw, pitch, roll: 0, t: phone ? 8 : 14,
-        tex: null, etch: etch || undefined, bevel: phone ? 3 : 4, sheen: 0.22 + 0.1 * lit, edge: (phone ? 0.16 : 0.22) + 0.3 * lit,
+        tex: null, bevel: phone ? 3 : 4, sheen: 0.22 + 0.1 * lit, edge: (phone ? 0.16 : 0.22) + 0.3 * lit,
         alpha, glow: clamp(0.5 + 0.5 * lit), sharp: soft * (0.82 + 0.18 * lit),
       });
     }
@@ -664,10 +666,11 @@ export function chapterFigures(c, EYE) {
     const it = items[S.mAt], v = it.v || it.r, ty = (it.t || it.r);
     // the cued row's line (its verb's middle), damped: the ray swings to a row in about a quarter of a second
     const ry = v.y - sy + v.h / 2;
-    S.mY = S.mY == null || dt <= 0 || phone ? ry : ease(S.mY, ry, dt, 0.08, 0.25);
+    // (a phone's prism fades out and comes back by the new row: there the line is the row's at once)
+    if (phone) { S.mY = ry; S.mYV = 0; } else follow(S, "mY", ry, dt, 0.05, 0.25);
     // the hand turns the prism a few degrees (damped, settling exactly)
     const hand = hov ? clamp(c.pointer.nx ?? 0, -1, 1) : 0;
-    S.hy = S.hy == null || dt <= 0 ? hand : ease(S.hy, hand, dt, 0.5, 1e-4);
+    follow(S, "hy", hand, dt, 0.25, 1e-4);
     /** @type {any} */ let P = null, ok = 1;
     if (!phone) {
       const T = Math.min(vh * 0.34, R.w * 0.46);
@@ -705,7 +708,7 @@ export function chapterFigures(c, EYE) {
       // (a phone draws the prism alone: the few px to its verb hold no ray worth the name)
       if (!phone) {
         const end = pt(ch.right + 12, S.mY, 0), PAPER = [0.957, 0.945, 0.918];
-        S.mk = S.mk == null || dt <= 0 ? (handed ? 1 : 0.62) : ease(S.mk, handed ? 1 : 0.62, dt, 0.1);
+        follow(S, "mk", handed ? 1 : 0.62, dt, 0.05, 1e-3);
         const from = pt(P.X + 0.14 * vw, -0.35 * vh, P.z + 0.06 * D);
         passes = { rays: { rays: [
           { a: exit, b: end, w: 1.7, k: Math.round(S.mk * alpha * 1e4) / 1e4, rgb: PAPER },
@@ -749,7 +752,7 @@ function rowsFor(c, L, S, EYE, phone, dt) {
   const out = Rw.ci !== pick.ci;
   // (the old light is out, or already off the frame: a reader who scrolls on never waits for a fade he cannot see)
   const prev = FIG.bars, gone = !prev || prev.rect.y + prev.rect.h < -20 || prev.rect.y > vh + 20;
-  if (out && ((Rw.grow < 0.02 && Rw.cnt < 0.5) || gone)) { Rw.ci = pick.ci; Rw.grow = 0; Rw.cnt = 0; Rw.done = []; }
+  if (out && ((Rw.grow < 0.02 && Rw.cnt < 0.5) || gone)) { Rw.ci = pick.ci; Rw.grow = 0; Rw.growV = 0; Rw.cnt = 0; Rw.done = []; }
   const ch = L.chs.find((/** @type {any} */ k) => k.ci === Rw.ci) || pick;
   const top = ch.box.y - sy, bot = top + ch.box.h;
   const near = bot > -vh * 0.5 && top < vh * 1.5;
@@ -763,10 +766,10 @@ function rowsFor(c, L, S, EYE, phone, dt) {
     const rows = ch.items.map((/** @type {any} */ it, /** @type {number} */ i) => ({ y: ys[i] - cy, bars: it.bars }));
     // grow while the chapter holds the frame: the sweep from the left edge (a phone: as its rows come on screen)
     const want = out ? 0 : phone ? sm(0.95 * vh, 0.6 * vh, y0 - sy) : sm(0.95 * vh, 0.55 * vh, y0 - sy) * (1 - sm(0, -0.3 * vh, y1 - sy));
-    Rw.grow = dt > 0 ? ease(Rw.grow, want, dt, 0.3) : want;
+    follow(Rw, "grow", want, dt, 0.15, 1e-3);
     const key = `b${ch.ci}:${phone ? "p" : "d"}:${Math.round(len)}:${rows.map((r) => Math.round(r.y)).join(",")}`;
     // at the page plane: the eye's lateral travel is a shift (exact)
-    FIG.bars = { key, kind: "bars", rows, len, phone, grow: Rw.grow, near, rect: { x: x0 + EYE.d[0], y: y0 - sy + EYE.d[1], w: len, h: H } };
+    FIG.bars = { key, kind: "bars", rows, len, phone, grow: clamp(Rw.grow), near, rect: { x: x0 + EYE.d[0], y: y0 - sy + EYE.d[1], w: len, h: H } };
     return;
   }
   // ------------------------------------------------ the counts: each row's on its own line (document px)

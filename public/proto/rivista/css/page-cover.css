@@ -31,35 +31,12 @@ html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-name {
 html[data-page="home"].sc-on.stage-on:not(.gl-off):not(.stage-dead) .hero-name { animation: none; }
 @keyframes cover-name-show { from { color: transparent; } to { color: var(--ink); } }
 
-/* ---------------------------------------------------------------- hero: the scroll cue (scene mode only: the scroll
-   is the flight). A label over a short straight line; a mark travels down it twice and rests. Nothing moves forever. */
-.hero-cue { display: none; }
-html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue {
-  display: flex; flex-direction: column; align-items: center; gap: var(--s2);
-  position: absolute; left: 50%; bottom: var(--s4); transform: translateX(-50%);
-  color: var(--mute); pointer-events: none;
-}
-html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-in { padding-bottom: max(clamp(var(--s6), 9vh, var(--s7)), calc(var(--s4) + 6.25rem)); }
-.hero-cue-l { position: relative; display: block; width: 1px; height: 2rem; background: var(--line); overflow: hidden; }
-.hero-cue-l i { position: absolute; left: 0; top: 0; width: 1px; height: 0.75rem; background: var(--ink); transform: translateY(-0.75rem); }
-html.rv-motion[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue-t,
-html.rv-motion[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue-l { animation: rv-focus var(--focus-in) var(--ease-out) 3100ms both; }
-html.rv-motion[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue-l i { animation: cover-cue 1.5s var(--ease-io) 3500ms 2 forwards; }
-@keyframes cover-cue {
-  0% { transform: translateY(-0.75rem); }
-  70%, 100% { transform: translateY(2rem); }
-}
-/* a phone: the instrument line holds the bottom right; the cue stands above its row */
-@media (max-width: 759.98px) {
-  html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue { bottom: calc(var(--s4) + 2.5rem); }
-  html[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-in { padding-bottom: calc(var(--s4) + 9rem); }
-}
+/* (wave 8, 21 November) the scroll cue and the instrument line under the first screen are gone, with the room the
+   hero kept for them at its foot (Alberto: «togli questo dalla home : Scroll / 160,000 points · 0.92 ms GPU»). */
 
 /* ---------------------------------------------------------------- hero: leaving, the lines under the name lose focus */
 @supports (animation-timeline: scroll()) {
-  html[data-page="home"].sc-on.stage-on:not(.gl-off) .hero-foot,
-  html[data-page="home"].sc-on.stage-on:not(.gl-off) .hero-instr,
-  html[data-page="home"].sc-on.stage-on:not(.gl-off) .hero-cue {
+  html[data-page="home"].sc-on.stage-on:not(.gl-off) .hero-foot {
     animation: cover-leave linear both;
     animation-timeline: scroll(root);
     animation-range: 2vh 16vh;   /* gone before the letters come at the eye through its place */
@@ -69,6 +46,10 @@ html.rv-motion[data-page="home"].sc-on:not(.gl-off):not(.stage-dead) .hero-cue-l
   from { opacity: 1; filter: blur(0); }
   to { opacity: 0; filter: blur(var(--focus-blur)); }
 }
-@media print { html[data-page="home"] .hero-cue { display: none !important; } }
 /* (wave 7) the cover's index is gone: after Now the home goes on through every page's part, styled by the page's own
    sheet (css/page-*.css, scoped to [data-part]) */
+
+/* ---------------------------------------------------------------- now: its two ways on (wave 8, FIX2D): the studio's
+   site and the case of the multi-agent system the text names (SerSan Agent OS), side by side, a line each when the
+   column is narrow */
+.now-go { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s3) var(--s5); }

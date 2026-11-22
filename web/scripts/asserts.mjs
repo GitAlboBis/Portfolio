@@ -69,9 +69,9 @@ if (extraPages.length) F("pages nobody listed: " + extraPages.join(", "));
 /* ------------------------------------------------------------ asserts() */
 const WATER = /data-gl-host|'fx-water\.js'|hr-poster|\sdata-pre[\s>]|fx-plate-v\d|data-rail\b|data-band\b|class="ornament/;
 /* where each section lives (assemble.mjs, wave 7): Now on the home alone, every page's sections on the page and in the
-   home's part of it, the cover's index nowhere */
-const CHAPTERS = { now: ["home"], work: ["work", "home"], evidence: ["work", "home"], stack: ["about", "home"], path: ["about", "home"],
-  consult: ["consult", "home"], obla: ["obla", "home"], contact: ["contact", "home"], index: [] };
+   home's part of it, the cover's index nowhere, nor Work's evidence (removed on 22 November) */
+const CHAPTERS = { now: ["home"], work: ["work", "home"], stack: ["about", "home"], path: ["about", "home"],
+  consult: ["consult", "home"], obla: ["obla", "home"], contact: ["contact", "home"], index: [], evidence: [] };
 for (const lang of LANG_IDS) {
   const dir = LANGS[lang].dir;
   const work = built[dir + "work.html"] || "";

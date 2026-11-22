@@ -53,13 +53,19 @@ if (typeof document !== "undefined" && document.fonts && typeof location !== "un
       const touch = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
       const tier = q && /^[ABC]$/.test(q) ? q : touch || innerWidth < 768 ? "B" : "A";
       // (lane n-fix-flight) reached by a flight (the router): in slices between the flight's frames, never one long task
-      const W = /** @type {any} */ (window);
-      if (vw > 0 && vh > 0) { if (W.__rvRouter && W.__rvArrive && W.__rvArrive.fly) prepareWorld({ vw, vh, phone: vw < 760, tier }); else ensureWorld({ vw, vh, phone: vw < 760, tier }); }
+      // (k-fix3d) a cold load too: the sets at once were one task of about 70 ms when the fonts came in, the main thread
+      // held while the adapter, the device and the page's own boot were answered (the home's first frame 387 ms against
+      // the cover's 331). In slices they are done before the device is; the host waits for them before the first frame
+      if (vw > 0 && vh > 0) prepareWorld({ vw, vh, phone: vw < 760, tier });
       // (lane NAME, ?name=splat only) the name's blocks are built from here, beside the stage's boot
       if (NAME_SPLAT) import("./cover/splatname.js").then((m) => m.prebuild(), () => {});
     } catch { /* built on the first frame instead */ }
   };
-  document.fonts.load('800 100px "Sofia Sans Extra Condensed"').then(() => setTimeout(pre, 0), () => {});
+  // (k-fix3d) after a frame: the name's raster is one task of about 40 ms (the face's first use in a canvas) and, run as
+  // the fonts came in, it held the page's first paint, which is what the head's loader waits for before it asks for
+  // the libraries and the fx-* scripts (every cold load's fx:ready, and so its first frame, came 40 ms later)
+  const afterPaint = () => { try { requestAnimationFrame(() => setTimeout(pre, 0)); } catch { setTimeout(pre, 0); } };
+  document.fonts.load('800 100px "Sofia Sans Extra Condensed"').then(afterPaint, () => {});
 }
 
 // a key during the opening runs it to its end (the pointer and the scroll are read from ctx)

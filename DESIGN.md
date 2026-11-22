@@ -1,6 +1,6 @@
 ---
 name: Lo studio di notte — Alberto Tuveri
-description: Every page is a room of the same lit studio at night, seen by one travelling eye, and the home is one continuous journey through every page. A near-black blue ground, warm white type in one condensed grotesk family set like film titles, a neural cosmos behind every room (the cosmic web, galaxies strung along filaments between bright nodes like a neural network), chips of cut glass shaped as the letter A and the SerSan mark catching key lights, one swarm of points that becomes every figure, thick plates of clear cut glass that hold the work and bend the light and the type behind them, a flight through a door of glass between pages, a synthesized room sound, and a straight edge at the end of every page where the night becomes morning.
+description: Every page is a room of the same lit studio at night, seen by one travelling eye, and the home is one continuous journey through every page. A near-black blue ground, warm white type in one condensed grotesk family set like film titles, a neural cosmos behind every room (the cosmic web, galaxies strung along filaments between bright nodes like a neural network), chips of cut glass shaped as the letter A and the SerSan mark catching key lights, one swarm of points that becomes every figure, thick plates of clear cut glass that hold the work and bend the light and the type behind them, a flight through a door of glass between pages, no sound, and a straight edge at the end of every page where the night becomes morning.
 colors:
   night: "#0c0e14"
   night-2: "#12151d"
@@ -124,13 +124,6 @@ components:
     backgroundColor: "{colors.dawn}"
     textColor: "{colors.dawn-ink}"
     height: "{spacing.hdr}"
-  sound-toggle:
-    textColor: "{colors.body}"
-    typography: "{typography.nav}"
-    height: "{spacing.target-min}"
-    width: "{spacing.target-min}"
-  sound-toggle-off:
-    textColor: "{colors.mute}"
   menu:
     backgroundColor: "{colors.night-2}"
     textColor: "{colors.ink}"
@@ -174,7 +167,9 @@ components:
      them: docs/redesign/rivista-story/60-as-built.md. Numbers quoted from a lane's measures name the lane's notes;
      everything else was read in the file it cites. Corrected in place by the DOCS lanes of wave 6 (2026-11-20) and
      wave 7 (2026-11-21, notes build/l-docs.md: the home as one continuous journey through every page, the neural
-     cosmos where the wall's grid was, the cover's index gone, eleven works and ten case pages). -->
+     cosmos where the wall's grid was, the cover's index gone, eleven works and ten case pages) and wave 8 (2026-11-22,
+     notes build/k-docs.md: the sound removed entirely, every slide ending on springs, wave 7's 2D and stage defects
+     closed, the hero's scroll cue and instrument line gone). -->
 # Design System: Lo studio di notte — Alberto Tuveri
 
 > **Source of truth.** The prototype `public/proto/rivista/` (abbreviated `rv/`), in two editions: English at the root,
@@ -201,7 +196,7 @@ points with a memory becomes every figure the story needs (a name, a line throug
 the agents of a system, Obla's outline), and thick plates of clear cut glass with straight edges hold the real work
 and bend the light and the display type behind them. The type is warm white, one condensed grotesk family set in
 capitals like the titles of a film, and the page's 2D layer moves like a title sequence. Between pages the eye flies
-through a door of glass. The room has a sound. Every page ends at a straight edge where the night becomes morning: a
+through a door of glass. The studio is silent. Every page ends at a straight edge where the night becomes morning: a
 white ground, the same points as cobalt ink, and the address to write to.
 
 With all content removed: a dark room open onto a lace of faint galaxies strung between bright nodes at every depth,
@@ -217,6 +212,9 @@ a few chips of glass in the air catching the key lights, and standing plates cat
 - One accent for marks (`--accent`, a light periwinkle) and one cobalt surface (`--cobalt`, the filled button; the ink
   at dawn).
 - Every page is one continuous shot: a scene never swaps a figure in place, the eye travels from one to the next.
+- Every slide ends with its speed coming down in one smooth curve, never a snap: whatever a slide moves rides a
+  critically damped spring and lands exactly (Alberto, 21 November: «alla fine dello slide diciamo scatta un può il
+  movimento»; fixed in wave 8).
 - One cosmos behind every room, seeded once: every page is a place in it, the home's scroll is one journey through it,
   and a flight between pages travels through it. It is points and threads of physical light (few bright, many faint),
   never a picture of space: no nebula colours, no planet, no sun, no swirl.
@@ -228,12 +226,12 @@ a few chips of glass in the air catching the key lights, and standing plates cat
   the home is one continuous scroll through every page's part, in the menu's order (the cases open from the gallery's
   plates). On the Astro build, the one that goes online, the stage stays alive between pages and the cut is a flight
   through a door of cut glass; on the assembled pages it is a push into a portal of glass under a rising sheet.
-- A synthesized sound, on by default from the visitor's first press, with a toggle in the header; a first press on a
-  link flies at once and silent, and the room comes in after the arrival.
+- No sound (Alberto, 21 November: «Il suono è orribile, togli tutti i sound effects»): no audio engine and no toggle
+  since wave 8; a first press on a link flies at once.
 
 **Refused** (spec 50 §0–§1, and Alberto's words since): a page with effects laid over it; organic blobs and anything
-liquid, to the eye or to the ear (no drop, bead, pool, drip, ripple, wave, wet edge, reflecting floor or horizon line;
-no surf, drip or bubble in the sound); large soft round discs, round spots or rings of light, rain-like lines; light
+liquid (no drop, bead, pool, drip, ripple, wave, wet edge, reflecting floor or horizon line); any sound effect (gone
+in wave 8, after waves 5 to 7 built a synthesized room); large soft round discs, round spots or rings of light, rain-like lines; light
 that draws a figure (an X, a V, a cross); rainbows; the anonymous particle galaxy and the space screensaver (the cosmos
 is the web's structure in restrained, physical light: no swirl, no nebula colours, no planet or sun); the ruled grid
 wall behind the rooms (Alberto, 20 November: «non mi piace lo sfondo a griglia»; gone in wave 7); glassmorphism
@@ -253,7 +251,7 @@ Thirteen tokens in `rv/css/tokens.css` (`:root`), unchanged since the build from
 | `--night-2` | `#12151d` | oklch(19.6% 0.017 268.8) | the header once scrolled, the menu, the cut's sheet, the picture well |
 | `--ink` | `#f4f1ea` | oklch(95.9% 0.010 87.5) | display type, values, the button's label |
 | `--body` | `#cfcabf` | oklch(84.0% 0.016 86.4) | running text, the header's items at rest |
-| `--mute` | `#9a958a` | oklch(67.1% 0.017 86.4) | labels, meta, the "before" of a figure, the instrument line, the scene's name in the header |
+| `--mute` | `#9a958a` | oklch(67.1% 0.017 86.4) | labels, meta, the "before" of a figure, the scene's name in the header |
 | `--line` | `#262a36` | oklch(28.6% 0.023 270.5) | rules, the scrollbar |
 | `--accent` | `#8fa2ff` | oklch(73.6% 0.136 273.8) | indices, the role line, marks, the hovered quiet link, focus, selection, the reading line, the hairline that draws |
 | `--cobalt` | `#2340c9` | oklch(45.1% 0.213 267.0) | the filled button; the address at dawn; the swarm's ink at dawn and its thin light at night |
@@ -306,7 +304,7 @@ script preloads the three latin files). The recorded fallback is Barlow with Bar
 | text | Sofia Sans 400 and 500 | `.t-lead`, `.t-body`, the address |
 | labels | Sofia Sans Condensed 600, capitals, tracking 0.06em (`--tr-label`) | `.t-label`, meta, counters, captions, the scene's name in the header |
 | actions | Sofia Sans Condensed 700, capitals, tracking 0.04em (`--tr-btn`) | `.btn`, `.q` |
-| the header | Sofia Sans Condensed 700, capitals, tracking 0.06em; the name 1.12 × and 0.04em | `.hdr-name`, `.hdr-nav a`, `.hdr-menu`, `.lang`, `.hdr-snd` |
+| the header | Sofia Sans Condensed 700, capitals, tracking 0.06em; the name 1.12 × and 0.04em | `.hdr-name`, `.hdr-nav a`, `.hdr-menu`, `.lang` |
 
 ### Scale (`rv/css/tokens.css`)
 
@@ -323,10 +321,10 @@ size is `clamp(rem floor, rem + vw, rem cap)`, growing with the screen from abou
 | `--t-lead` | `clamp(1.375rem, min(1.9vw, 1.07rem + 0.714vw), 2.125rem)` / 1.38 | the same | 27 / 31 / 34 | leads, measure 32em |
 | `--t-body` | `1.125rem` (18 px) | `clamp(1.25rem, 0.78125rem + 0.5208vw, 1.5rem)` | 20 / 22.5 / 24 | running text, line-height 1.55, measure 36em |
 | `--t-btn` | `1.125rem` (18 px) | `clamp(1.25rem, 0.6875rem + 0.625vw, 1.625rem)` | 20 / 23 / 26 | the filled button and the quiet links, weight 700; the cut's index line |
-| `--t-nav` | `1.125rem` (18 px) | `clamp(1.125rem, 0.5rem + 0.8333vw, 1.75rem)` | 20 / 24 / 28 | the header's items, the phone's MENU, the sound toggle |
+| `--t-nav` | `1.125rem` (18 px) | `clamp(1.125rem, 0.5rem + 0.8333vw, 1.75rem)` | 20 / 24 / 28 | the header's items, the phone's MENU |
 | `--t-lang` | `1.125rem` (18 px) | `clamp(1.125rem, 0.375rem + 0.8333vw, 1.5rem)` | 18 / 22 / 24 | EN / IT in the header |
 | `--t-small` | `1rem` (16 px) | `clamp(1.0625rem, 0.5625rem + 0.625vw, 1.4375rem)` | 18 / 21 / 23 | the rows' secondary lines, the tool lists' notes, the legal line |
-| `--t-label` | `1rem` (16 px) / 1.35 | `clamp(1rem, 0.5rem + 0.625vw, 1.375rem)` | 17 / 20 / 22 | overlines, fields, counters, captions, the role line, the instrument line |
+| `--t-label` | `1rem` (16 px) / 1.35 | `clamp(1rem, 0.5rem + 0.625vw, 1.375rem)` | 17 / 20 / 22 | overlines, fields, counters, captions, the role line, the scene's name in the header |
 
 (The px columns are the stylesheet's own table, in its comment.) Heights that go with it: the header `--hdr` 4rem on a
 phone, `clamp(4.5rem, 1.8rem + 3vw, 6rem)` from 1024 px; the filled button `--btn-h` 3.5rem, then
@@ -342,9 +340,11 @@ Page-level sizes outside the scale: the key words of a work without a capture `c
 Every number on the site uses tabular lining figures. The arrow between a before and an after is the text face's
 glyph, in `--accent`. A numeral that changes (the gallery's counter, the cut's index line) is an odometer: columns of
 0–9 moved by transform (`.od`, `rv/css/motion.css`), with the printed figure kept beside it for readers. A count
-counts up once from zero to its printed figure (the measured rows; the counts of a case's record). **A year never
+counts up once from zero to its printed figure (a case's measured rows; the counts of its record). **A year never
 counts**: beside About's path and in a case's record it snaps to its value, each digit's column turning from 0
-(`fx-motion.js` `snap`). The instrument line prints "{n} points · {ms} ms GPU" through `FX.t` / `FX.num`, only while the stage draws.
+(`fx-motion.js` `snap`). No page prints the instrument line any more (wave 8, Alberto: «togli questo dalla home :
+Scroll / 160,000 points · 0.92 ms GPU»): `fx-stage.js` would still write "{n} points · {ms} ms GPU" through `FX.t` /
+`FX.num` into a `[data-stage-instr]`, but no partial carries one.
 
 ### The Italian edition
 
@@ -422,8 +422,8 @@ One gutter, `--gut` = `clamp(1rem, 3vw, 3rem)`, and one rhythm on a 4 px base wh
 
 | width | what changes |
 |---|---|
-| ≥ 1024 px | the header shows its five pages, EN / IT, the scene's name and the sound toggle after the language; scenes put text and figure side by side; the reading sizes turn fluid |
-| < 1024 px | the five pages live in the menu (a full sheet); the sound toggle sits beside MENU; the scene's name stands under the header's name; scenes stack the figure over the text |
+| ≥ 1024 px | the header shows the scene's name after the header's name, then its five pages and EN / IT, the language last on the gutter; scenes put text and figure side by side; the reading sizes turn fluid |
+| < 1024 px | the five pages live in the menu (a full sheet) behind MENU, on the gutter; the scene's name stands under the header's name; scenes stack the figure over the text |
 | < 768 px | the stage takes tier B; a flight is shorter (430 ms out, 400 in) |
 | < 760 px | the cover's name breaks into two lines; a scene's `ctx.phone` is true |
 
@@ -456,7 +456,7 @@ has passed. Proof: 1:1 crops with the stage on and with `?stage=0`.
 
 Every corner is square (`rounded.none`); the button, the menu, the cut's sheet and every picture well are rectangles.
 Strokes are 1 px (the hairline that draws, the reading line) or 2 px (the header's travelling rule, a link's drawn
-rule). The sound toggle is four straight bars. On the stage: plates are boxes with straight edges and a rounded arris
+rule). On the stage: plates are boxes with straight edges and a rounded arris
 a few pixels wide; the prism is a triangular prism; the door of a flight is a deep block; chips are cut as the letter
 A, the SerSan mark or a facet; blades of light have straight sides (a section 1.8 times as wide as tall by default:
 a round section reads as a spotlight disc). The cosmos is points and threads: a galaxy is a point no larger than the
@@ -469,7 +469,8 @@ large disc or a drop.
 ### Header and language (`rv/css/chrome.css`, `rv/css/motion.css`, `rv/parts/a-header.html`, `rv/fx-nav.js`)
 
 The name as a label at left; the name of the scene in view after it (from 1024 px; below, under it), then Work, About, Consulting, Obla,
-Contact, EN / IT and the sound toggle at right. No ground until the reader scrolls (`html.is-scrolled`), then
+Contact and EN / IT at right, the language group last, on the gutter (below 1024 px: MENU on the gutter; since wave 8
+the header has no sound toggle). No ground until the reader scrolls (`html.is-scrolled`), then
 `--night-2` with a bottom rule. The current page is `--ink` with a rule under it (`aria-current="page"`); the others
 `--body`, hover `--ink`. EN / IT: the edition being read in ink, the other a link in `--mute`; it lands on the same
 page of the other edition at the reader's place (the same section and the same share of it: in the home, the same
@@ -482,15 +483,21 @@ page's dawn close, in the home Contact's part); the open menu keeps it night.
   viewport's middle line marks its page quietly, the item in ink with the travelling rule resting under it and the
   menu's row with its hairline drawn; no `aria-current` (the link leads to the page, not to this part of the home). On
   the cover's own screens (the hero and Now) no item is marked. `FX.nav.part` says which part; `fx:part { part, from }`
-  goes out when it changes (the sound takes that part's room). A click on the item flies to the page.
+  goes out when it changes (since the sound went no module listens to it). A click on the item flies to the page.
 - **The scene's name** (`.hdr-scene`): the heading of the scene in view, the page's own words, set as a label
   in `--mute` after a short rule; it changes behind a straight mask (`fx-motion.js`). It stands only while the scene's
   own heading is off the screen and has gone up (in the home the gallery's top passes the middle while its heading is
   still to come from below: no name yet). Decoration (`aria-hidden`).
   From 1024 px it follows the header's name on its line. Below 1024 px it stands under the header's name, which rises
   0.6em to make room (`.hdr.has-scene`, by `translate`: the header's entrance owns `transform`), behind a 1rem rule;
-  it ends 7.75rem plus the gutter from the right edge, clear of the sound toggle and MENU, and hides while the menu is
-  open, the name coming back down. A name longer than its room ends in an ellipsis.
+  it ends 5rem plus the gutter from the right edge, clear of MENU, and hides while the menu is open, the name coming
+  back down. **A name longer than its room gives way to the scene's short form** (wave 8): `data-scene-short` on the
+  section (`ev.short`, `path.short`, `co.short` in `parts/strings.mjs`; a chapter's `short` twin in `parts/cases.json`;
+  a case opener the work's own label where its title is longer), never to a smaller type. The full name stands wherever
+  it fits: `fx-motion.js` measures it in the label's own face against the room the box leaves after its rule (`fits`),
+  once per name shown and again after a resize; every scene name over 180 px has a short form, so none is cut at 390 px
+  in either edition (the ellipsis stays only as a last resort). A case's record is named "The record", without its
+  index.
 - **The reading line** (`.hdr-read`): a 1 px `--accent` line along the header's foot, drawn as far as the page has
   been read; linked to the scroll on the compositor (`animation-timeline: scroll(root)`), only where the browser can.
 - **The travelling rule** (`.hdr-rule`): one 2 px rule under the page being read that travels to the item under the
@@ -498,17 +505,6 @@ page's dawn close, in the home Contact's part); the open menu keeps it night.
 - **Step-away:** on a long page the header steps away while the reader goes down (past 0.8 of the first screen, after
   48 px of travel) and comes back as soon as they go up 24 px, over the morning, at the top, or while the menu or a
   cut holds the page (`html.hdr-away`).
-
-### The sound toggle (`.hdr-snd`, `rv/css/chrome.css`; `rv/fx-sound.js`)
-
-A real button with `aria-pressed`, an `aria-label` and the same word as `title` ("Sound" / "Suono",
-`chrome.sound`), at least 2.75rem to touch. Four straight bars as tall as the header's capitals, standing on their
-baseline, square, no glow, in the header's own colour. Three states (`data-snd-state`): **armed** (before the first
-gesture: the bars stand still at their heights), **run** (they move, transform only), **off** (`aria-pressed="false"`:
-they lie down as one flat rule and the button turns `--mute`). On a phone it sits beside MENU; from 1024 px after the
-language group, behind a rule like the language's own. At dawn it takes the dawn greys and hovers cobalt. Shown only
-with script and only while the sound's module runs (hidden under `html.fx-off-sound` and in print). Under reduced
-motion the bars do not move.
 
 ### Menu (below 1024 px)
 
@@ -536,13 +532,15 @@ Since wave 7 the home is one continuous scroll through every page's experience, 
 and Now, then Work, About, Consulting, Obla, and Contact's morning as the end (the director's decisions after
 Alberto's «vorrei che fosse una pagina singola con uno scroll continuo, tutta un unica esperienza nella home»). The
 pages stay separate documents; the ten case pages are not in the home (the gallery's plates open them).
-An old address of a section of the long home (`index.html#work`, `#evidence`, `#stack`, `#path`, `#consult`, `#obla`,
-`#contact`) is still sent to its page before the first paint (`rv/parts/head.html`).
+An old address of a section of the long home (`index.html#work`, `#stack`, `#path`, `#consult`, `#obla`, `#contact`)
+is still sent to its page before the first paint (`rv/parts/head.html`); `#evidence` and `#measured`, whose section
+left the site on 22 November, go to the top of Work.
 
 - **Hero: the lit hall** (`rv/stage/scenes/cover/world.js`, `hero.js`; `rv/parts/b-hero.html`,
   `rv/css/page-cover.css`). In the DOM: the name, `h1`, on one line across the measure (two on a phone); under it the
-  role line in `--accent` and the sentence, "Write to me" and two quiet links, the instrument line, and a scroll cue
-  (a label over a short straight line). In scene mode the hero is 190svh tall (the flight) and the name is never flat
+  role line in `--accent` and the sentence, "Write to me" and two quiet links. Since wave 8 there is no scroll cue and
+  no instrument line under the first screen, and no room kept for them at the hero's foot (Alberto: «togli questo dalla
+  home : Scroll / 160,000 points · 0.92 ms GPU»). In scene mode the hero is 190svh tall (the flight) and the name is never flat
   type: the `h1` is transparent from the first paint and stays the accessible name; it shows as printed type only if
   the stage dies (`html.stage-dead`) or has not drawn by 6 s. On the stage:
   - **The name** stands 2 D in front of the page plane as a volume of light: a front face that takes most of the swarm
@@ -565,12 +563,15 @@ An old address of a section of the long home (`index.html#work`, `#evidence`, `#
     shared by `hero.js` and `now.js`).
   - Behind `?name=splat` the name is built of solid blocks of Gaussian splats instead (`cover/splatname.js`); the
     default is the name of points.
-- **Now.** "Now at SerSan": the date label, title, lead, body, link. Its plate is in the hall from the first frame,
+- **Now.** "Now at SerSan": the date label, title, lead, body, and two links side by side (`.now-go`): "sersan.io",
+  out to the studio's site, and, since wave 8, "SerSan Agent OS", the work's case page (the body names it). Its plate
+  (Alberto, 21 November: «non mi piace la card con lo screenshot del sito»; a replacement figure is being built outside
+  the tree, `build/k-orrery.md`) is in the hall from the first frame,
   the far lit window, and stands exactly in its place, sharp, when Now's view reaches the top; it then rides up with
   Now. The pointer turns it a few degrees with inertia. The cosmos runs on behind Now into the gallery's room; only
   the chips thin out as Now leaves (`now.js`).
 - **The parts.** After Now the journey goes on through every page's own part (see "The home's parts" under Layout):
-  Work (the gallery's head and its eleven plates, then "Measured before and after."), About (the stack's head and eight
+  Work (the gallery's head and its eleven plates), About (the stack's head and eight
   layers, the path's head and five panes), Consulting (its six blocks), Obla (its seven blocks), Contact. Each part
   keeps its page's own figures and shot; none is carried across, and between two parts the frame is the cosmos
   travelling, never empty. The night's temperature follows the whole journey, cool at the hero and warm toward Contact
@@ -578,15 +579,18 @@ An old address of a section of the long home (`index.html#work`, `#evidence`, `#
   part: while it rises the stage draws the dawn close's threads at that edge with the dawn close's sharp straight
   camera (`contact.js`), and Obla's light, body and points go as the day comes up under it (`obla.js`). Each part
   opens with its page's own title sequence where the reader meets it (see "Motion"); the header marks the part's page
-  (see "Header and language"); the sound takes the part's room (see "Sound").
+  (see "Header and language").
 - **The index is gone** (wave 7, the director's decision 2): its four rows and its prism left the home, and with them
   the scene `index.js`. The prism stands only under "More work" in the cases; the 404 still lists every page and work
   as rows; the header's menu stays.
 
-### Work (`work.html`: scenes `gallery`, `evidence`)
+### Work (`work.html`: scene `gallery`)
 
 One continuous shot for the page (`gallery.js` `workEye`): the eye starts a little back, low and left, pushes in and
-pans right along the gallery, and holds square to the page by the measured rows.
+pans right along the gallery, and reaches the straight view's depth as the last plate leaves; the dawn's edge comes up
+under that plate (in the home, About's head does). Nothing stands between the gallery and the dawn. A plate goes while
+the day's straight edge rises toward it, gone before the edge reaches its foot, so no glass crosses onto the paper
+(`gallery.js`, as `obla.js` does with its figure).
 
 - **Gallery.** Head "Eleven works" and the lead, then one step per work, tiles 01 to 11 (since wave 7: SerSan Agent
   OS, the multi-agent system he built for SerSan, leads the SerSan works; Obla, his personal project, opens the work
@@ -594,35 +598,57 @@ pans right along the gallery, and holds square to the page by the measured rows.
   `obla.html`, its page on the site; it has no case page). Eleven plates in depth; the plate in step near and sharp,
   the others queued deeper and softer; the pointer tilts the near plate. Six plates hold their capture; five are clear
   glass with the work's key words etched (frosted) in the display face, the line under them set in balanced rows and
-  never under a size floor (`case/etch.js`, the same drawing as the case's opening plate). In the opening row a plate
-  standing behind an etched one steps back from its face, so no capture reads through the etched words. A plate gives
-  way where another scene's text crosses it (`yields`).
-- **Evidence.** "Measured before and after." and the lead; then the two sets of figures as rows: label, before →
-  after. Per row the swarm draws two bars of light to the exact lengths (before dim, after bright, a faint full-length
-  guide) on the row's line, the cosmos far behind them. On a phone the bars are drawn inside the row. The printed bars
-  (`.mx-bars`) keep their place and turn invisible while the stage draws.
+  never under a size floor (`case/etch.js`, the same drawing as the case's opening plate). No plate carries a number:
+  since wave 8 Maintech OMA's reads "DEFAULT-DENY" over "on every table, permissions held in the database", and
+  Badante24h's line ends "on PostGIS". In the opening row a plate standing behind an etched one steps back from its
+  face, so no capture reads through the etched words. A plate gives way where another scene's text crosses it
+  (`yields`).
+- **The slide** (wave 8, `gallery.js`; Alberto: «quando scorrono le carte dei work, alla fine dello slide diciamo scatta
+  un può il movimento»). Between two steps the plates glide in one bell of speed: a sixth of the travel runs evenly
+  through the step and the rest is one quintic across the middle half of the boundary (`glideK`, no speed and no
+  acceleration at its ends), and the plates ride a critically damped spring to it (`follow`, 0.09 s), so a slide starts
+  from the speed it had and lands with no corner. The hand's orbit, the subject's light and the focus turn about the
+  apex itself, never a plate that takes over at the halfway mark. On a phone the apex keeps to the free band it stands
+  in (another band only when its own falls under four fifths of the tallest, or under 150 px) and rides springs into
+  it.
+- **No measured figures** (22 November; Alberto, looking at the site: «queste due sezioni son da eliminare , perchè non
+  hanno senso . prima facciamo vedere tutti i work , e poi dei dati su sphere ai e su domus tua , che sono inutili»).
+  The scene `evidence` ("Measured before and after.", Sphere AI's and Domus Tua's figures as rows with bars of light)
+  left the page and the home's Work part, and nothing replaced it. Those figures stay on their case pages, in the
+  measured and teaser chapters with their bars (see "The case template").
 
 ### About (`about.html`: scenes `stack`, `path`)
 
-- **Stack.** "Capabilities": eight layers seen from three quarters. Only the layer in step and its neighbours are
-  glass; the far layers are outlines of light (eight traced plates halved the swarm). The layer in step slides toward
-  the reader with its group's name etched.
+- **Stack.** "Capabilities": eight layers seen from three quarters. The layer in step alone is glass while it is read,
+  two across a boundary, and those two dissolve into each other (their presences sum to one all the way); the other
+  layers are outlines of light (eight traced plates halved the swarm). The layer in step slides toward the reader with
+  its group's name etched. Since wave 8 every glass layer carries its name bright, one texture per layer, the eight made
+  ahead one a frame from the first frame, so no name is ever asked for the first time while it is seen (a blank frame
+  of glass came between "CORE" and "FRONT-END"); the slide rides springs (`follow`). On a phone the stack keeps to the
+  free band it stands in: a text pushes it with a cushion (`softClamp`, `softMin`) from before it arrives, and the glass
+  steps back while it lies over a text.
 - **Path.** One line of light through five upright panes, each etched with the month and year of its step. The line
   stands still and the eye flies along it: each pane passes close and lit, the passed ones go out past the eye. On a
   wide screen the line bows (each step to the next node a little longer than the last) and ends, feathered, inside
   the figure's half; every frame each pane's box is projected with the frame's real eye (the drift, the hand's orbit,
   the speed lens), and a pane that would come within 6 to 30 px of a shown one steps back, nearest its step first, no
-  station skipped: the dates never collide (`path.js`). On a phone one pane at a time, as before. Beside the text the
-  step's years snap to their value each time it comes into focus.
+  station skipped: the dates never collide (`path.js`). On a phone one pane at a time, as before; since wave 8 the line
+  begins 0.2 of its length past the pane in step, its points fade from 3 css px of blur (gone at 5), the scroll's wind
+  barely moves them, and the whole line dims on a spring while its first two nodes come within 72 css px of a block of
+  text: no band of blurred blue over the words. The walk from pane to pane is a quintic (`stations`). Beside the text
+  the step's years snap to their value each time it comes into focus.
 
 ### Consulting and Obla (`consulting.html`, `obla.html`: scenes `consult`, `obla`)
 
 Consulting's four figures of light (`gen`, `cut`, `code`, `agents`) each stand at their own place in the room's depth
 and the eye walks from one to the next, never a cut and never a figure swapping in place; the same points leave the
-figure behind and gather at the next. `gen`'s made mark is a thin block of Gaussian splats laid over the points'
+figure behind and gather at the next. Each walk is a quintic between stations (`night/shot.js` `stations`, since wave
+8: the smoothstep before it stopped the deceleration dead at the landing), so the eye leaves and lands without a
+corner. `gen`'s made mark is a thin block of Gaussian splats laid over the points'
 picture. Obla's character in light follows its state through the page's steps (idle, listening, thinking, working,
-approval, sleeping, then the morning report). Obla carries no status line. On a phone its band stays under its own
-section's top; in the home the character comes up as Obla's part takes the screen, and on both its light, body and
+approval, sleeping, then the morning report); its state weights, body, colour and gaze ride springs (wave 8). Obla
+carries no status line. Its fields table keeps the stage out (`data-stage-keepout`). On a phone its band stays under
+its own section's top; in the home the character comes up as Obla's part takes the screen, and on both its light, body and
 points go as the morning's edge rises under it (`obla.js`). Plain flow prints Obla's still as inline SVG.
 
 ### The dawn close (`rv/parts/c-footer.html`, `rv/css/dawn.css`, scene `dawn`)
@@ -666,6 +692,10 @@ glass, `day` the morning in the view being left: 0 none, 1 the dawn close on scr
   ray is carried on to the plane of the back face and leaves there flat (nothing mirrored: the name is never doubled,
   no corridor appears); the pane's two tall sides are bands a little denser and cooler, the room stretched outward
   from the seam, each with one straight lit seam carrying the faint split; the top and bottom walls draw nothing.
+  As the door stands taller than the frame its lit lines, the arrises and the seams, fade to a hair, and only the
+  glass's faint edges stay (the groove, the band's denser glass): from 400 to 500 ms into a flight they ran the frame's
+  height as two bright bars (wave 8; `stage.js` `doorSlab` sets the edge light every frame on the CPU, carried in
+  thousandths to `plates.wgsl.js` `edgeLine`; inside the block the seams keep the light they had from outside).
   Never a pane of flat grey glass, never a blank. The card (the destination's index line, a hairline, its name) is
   read as light type over the room while the door is ahead and clears before the eye is through (no card over a view
   with the morning in it). The eye goes on inside the glass, slowing and never still, while the block falls away in
@@ -673,16 +703,22 @@ glass, `day` the morning in the view being left: 0 none, 1 the dawn close on scr
   desktop, 430 and 400 on a phone. Back runs the same path backward; a flight from or toward the morning is always
   flown forward. **Toward Contact** the morning arrives as a straight edge of day that crosses the frame from the
   bottom in 200 ms from the takeover, seen through the door's glass (`fx-stage.js` `DAY_MS`; `css/cuts.css`
-  `.cut-ground` keeps the old ground under the canvas until then): never a sheet of blank paper. **A view already in
+  `.cut-ground` keeps the old ground under the canvas until then): never a sheet of blank paper. The door stops at
+  that edge (wave 8; `stage.js` `dayY`, cut in `plates.js`): below it the page itself is seen, its paper and "WRITE TO
+  ME." rising with the morning, since the title settles with the edge's first frame, not after it (`fx-stage.js`
+  `dayRose`; from 650 to 800 ms the frame had been Contact's paper with only its faint strokes). **A view already in
   the morning** (Contact, a page's dawn close) flies too: its door is the night standing on the paper, opening from
   0.13 s as a straight slit that widens. While the eye travels fast, red and blue part toward the frame's corners
-  (the aberration in speed, under "The post"). A first press of a visit flies at once and silent (see "Sound").
+  (the aberration in speed, under "The post"). A first press of a visit flies at once (`fx:nav:start` about 6 ms
+  after the press: nothing else is made in it). On a flight the router starts the new page's scripts one frame after
+  the swap (wave 8, `rv-router.js`): the swap's style and layout and the boot's own work had been one frame of 49 to
+  70 ms from Contact to the home.
   The cosmos is the room the eye crosses: the flight travels through it and the door shows the new room's place in it.
   **From the home** every link that leaves flies (the menu, a part's own links, the gallery's plates); the card's
   numeral counts from the part being read (its page's index; `00` on the hero and Now), and Back lands where the
   reader was in the home (the router hands the place back, `window.__rvSoftY`, and the arriving host prepares the
   scenes near it first). The card names the home "Home" ("Inizio"; `cut.home`, since wave 7: "Index" was left from
-  the cover's index and now only titles the 404's list).
+  the cover's index). Since wave 8 no visible word names an index: the 404's list is titled "Pages" ("Pagine").
 - **The portal and the sheet** (the assembled pages, where every cut is a new document; they are not published). The camera pushes in toward
   the leading scene's subject (0.24 D, the focus going soft, 0.34 s) and the eye flies into a tall plate of glass that
   swings in from the clicked link's side (`stage.portal`, 300 ms); once the glass fills the frame the straight-edged
@@ -704,7 +740,12 @@ marked and Obla's row leading to its page; the next case skips Obla; asserted). 
   On the stage the picture is the work's plate, the same plate as its step in the Work gallery (its capture held at
   mid-thickness, or its key words etched). It arrives once per load from deep in the room; in step 1 it stands in the
   figure's half beside the title, turned some twenty degrees; in step 2 it turns square and comes near above its
-  caption. A wide picture can carry a framing (`plateCrop` in `cases.json`).
+  caption. A wide picture can carry a framing (`plateCrop` in `cases.json`). Since wave 8 the turn is one quintic
+  (`glideK`) over the same scroll, counted at one rate on both sides of the steps' boundary, and the plate rides
+  critically damped springs to its place, its size and its way back after a text has passed (`case.js`, `follow`): on
+  a phone it no longer stops dead under its caption, on a desktop it no longer jumps mid-turn. The caption, held at the
+  foot of the view (a sticky box held by its bottom), is measured where it stands, so the cosmos keeps clear of it
+  (`fx-stage.js`).
 - **Every chapter has a figure of light** in the room beside its text, the same figure for the same chapter type on
   all ten cases (`section[data-ch]`, asserted by both builds):
 
@@ -714,14 +755,15 @@ marked and Obla's row leading to its page; the next case skips Obla; asserted). 
 | `facts` | **the count**: each row's number as units of light on the row's own line (on a phone, under the number), lit one by one as the row comes up; "21/49" is 49 units with 21 bright, zero an empty rule, thousands a fine field of dots; a value that is not a count ("4K") has none |
 | `teaser`, `measured` | bars of light on the rows, the before dim and the after bright, as long as the row's own printed bars |
 | `schematic` | one plate per node, its name etched, joined by a line of light that runs to the node being read |
-| `list` | a stack of thin plates, one per item, the item being read lifted toward the reader with its number etched |
+| `list` | a stack of thin plates of clear glass, one per item, the item being read lifted toward the reader and lit; nothing is etched on them (since wave 8: a plate with "01" on it was the floating card), the row's number stands in the text |
 | the record | the work's plate again, far back in the room and turned the other way: the shot ends on the plate it opened with (a phone: in its band, smaller, further back) |
 | "More work" | the figure of the old cover index, whose only place it is since wave 7 (More work is the index of the works): a prism of cut glass with the cover's values in the free third, the room's shaft into it from above, the light turning inside it, and one ray out of it to the verb of the row under the hand or with focus, else the row being read (three paper-white rays of the `rays` pass; the prism carries no beam of its own); on a phone the prism alone, small, centred in the gap between the cued row's title and its verb, 8 px clear of its glyphs (a row with no room has none), hopping rows with a 0.2 s fade. No plate carries a word |
 
   Two figures never share the frame (at most six plates). No figure is a rectangle carrying a number: the page prints
-  the numbers. On a phone `measured`, `teaser` and `facts` carry their light on the rows with no band, and past its
-  band a `list`'s or a `schematic`'s rows carry a thread of light down the numbers' column, from under each number to
-  above the next, lit row by row as the rows pass 72 % of the frame.
+  the numbers. Since wave 8 whatever a figure slides (the node being read, its presence, the phone's band, the bars'
+  growth) rides a critically damped spring (`follow`). On a phone `measured`, `teaser` and `facts` carry their light
+  on the rows with no band, and past its band a `list`'s or a `schematic`'s rows carry a thread of light down the
+  numbers' column, from under each number to above the next, lit row by row as the rows pass 72 % of the frame.
 - **The record's numbers** (`.cs-dl`, `fx-scroll.js` `record`), once as it comes into view, in scene mode only: a
   count ("161", "circa 50") counts up from zero in its held box, from the left; a year snaps to its value; with the
   row's stagger. The text ends byte for byte as printed; the printed states print the values.
@@ -732,14 +774,22 @@ marked and Obla's row leading to its page; the next case skips Obla; asserted). 
   after another as a pen would (the grey structure first, then the accent thread of the traceability as one line),
   heads and labels appearing as the pen reaches them; then the drawing's own connectors take over (the same vector:
   the rest state is the printed picture). Live scene mode only; a drawing not in within 0.8 s of the entrance opens
-  as printed. Every printed state shows the picture.
+  as printed. Every printed state shows the picture. Since wave 8 the figure shows only the window its drawing is
+  clipped to (`crop` in `cases.json`: a frame of the window's proportions, `.cs-frame`, the picture and the traced
+  drawing set larger inside it), and from 1024 px it spans the page's measure from gutter to gutter under its
+  chapter's title, its caption back on the text's line (`.cs-stills.is-wide`, never taller than the screen under the
+  header): its classes stand about 8.5 px tall at 1440 and 12 at 1920, where they stood about 3 in the text column.
+  The room keeps the drawing's whole box, so the chapter's figure of light gives way on a wide screen. On a phone it
+  stays an overview the reader can pinch.
 - A picture the stage does not draw (a chapter's still) enters once: a straight edge rises from its foot and opens it
   while it settles from 106 % (`.rv-pic`, `rv/css/type.css`). Plain flow prints every picture as a plain image.
 
 ### The 404 (`rv/parts/c-main.404.mjs`, `rv/parts/c-footer.404.html`)
 
-The type alone: "Error 404", "Not found.", the lead, every page and every work listed. No stage (`data-nogl`): the head
-script never asks for the adapter. Its close is the dawn close with its own engine line. Its paths are rooted.
+The type alone: "Error 404", "Not found.", the lead, the way back ("Back to the home page" / "Torna alla pagina
+iniziale", `ui.backHome`, since wave 8) beside "Write to me", then the list titled "Pages" ("Pagine", `nf.pages`):
+every page and every work as rows. No stage (`data-nogl`): the head script never asks for the adapter. Its close is
+the dawn close with its own engine line. Its paths are rooted.
 
 ### Head, favicon and share cards
 
@@ -751,9 +801,11 @@ studio. The Astro build adds only the router: two `astro-view-transitions` metas
 
 ### Print (`rv/css/print.css`)
 
-Black on white, every scene as plain flow with its real pictures, no header, menu, cut, stage, sound toggle or copy
-control; the button becomes an outlined label. Printed after a read with the stage on, nothing is caught mid-fade
-(since wave 7 the reset also takes the transitions, the cover's foot and the home's held openers).
+Black on white, every scene as plain flow with its real pictures, no header, menu, cut, stage or copy control; the
+button becomes an outlined label. Printed after a read with the stage on, nothing is caught mid-fade
+(since wave 7 the reset also takes the transitions, the cover's foot and the home's held openers), and since wave 8
+the stage's canvas is never on the paper (fixed over the page, it laid its plates over the printed text) and the
+home's name, light while the stage drew it, prints as type.
 
 ## The stage
 
@@ -767,11 +819,18 @@ joins when its two are. The canvas comes up in 250 ms at its first drawn frame (
 `html.stage-on` while it draws; `html.stage-lit` and `fx:stage:lit` once the subject is lit (a scene with
 `litSignal`, else the first frame); `html.stage-dead` if it stops, which returns the scenes to the printed page. The
 cosmos's web is made in slices while the adapter and the device are asked for (`field.js` `webEarly`, started by
-`stage/boot.js`), off the first frame's path. A page of many scenes (the home has nine) has only its first three scene
+`stage/boot.js`), off the first frame's path. A page of many scenes (the home has eight) has only its first three scene
 modules fetched by the boot; the host imports the ones within a few screens of the reader before the first frame and
 registers their formations, and the rest after it, one formation a task, those the reader comes near first
 (`fx-stage.js` `AHEAD`: 1.5 screens up, 3 down; `loadScenes`, `loadLazy`, the pump); a scene runs its frame once its
-formations are in, each keeping the order it has in the page.
+formations are in, each keeping the order it has in the page. Since wave 8 (`build/k-fix3d.md`) a cold load's first
+frame registers only the scenes of the first screen and half a screen round it (`FIRST`: the home's hero alone), the
+pump bringing the rest right after; a cold load that nothing has moved yet starts at `fx:ready` itself (`whenReady`);
+the boot fetches `tier.js` too; the field and the glow read their error scopes beside their pipelines; and what the
+first screen builds ahead runs in slices, waited for under the same half-second cap: the cover's name (`hero.js`
+`prepare`, `cover/world.js`, a generator that pauses every 16 rows), its raster after the first paint, and the chips'
+shapes, 4 ms at a time (`atlas.js` `cellBytesGen`, `sliced`; each shape had been one task of 25 to 35 ms). The home's
+first frame: 364 ms, median of seven, against HEAD's 385.
 
 **The stage between pages.** Under the Astro build's router the page leaves and the stage stays (`stage.reset()`
 lets go of the page's formations, slabs and keep-outs; the device, pipelines, swarm, eye and clock remain;
@@ -872,6 +931,19 @@ and the name hung in Work's room for a second after a flight from the home). The
 it about the subject (the pointer on a desktop, a horizontal drag on a touch screen). Nothing in the DOM follows the
 pointer.
 
+**A slide ends without a jerk** (wave 8, `build/k-smooth.md`; Alberto, 21 November: «alla fine dello slide diciamo
+scatta un può il movimento»). Whatever a scene slides rides a critically damped spring (`lib/camera.js` `follow`: it
+carries its speed, starts from the one it had and lands exactly, never past a target at rest, so the stage sleeps); a
+walk between two stations is a quintic (`glideK`: no speed and no acceleration at its ends; `night/shot.js`
+`stations`); a limit that a text pushes is soft (`softMin`, `softClamp`); a pivot that jumps is handed to the orbit on
+a spring (`stage.js` `pivotStep`), and the host mixes the scenes' pivots by weight. A plate's window grows with its
+presence, so the next plate's glass does not flash at a slide's ends, and a texture that has lost its layer is made
+again by the scene on screen (`fx-stage.js` `held`, `TEXFROM`). When two scenes on screen need more than the plates'
+sixteen layers (the home's gallery and About's stack), the one given up is never a texture a plate drew in the latest
+frame (`plates.js`, 22 November), and a gallery plate's lifted picture does not wait on its raw capture. Never a
+first-order lag on a target that jumps, never two mirrored smoothsteps round the boundary between two steps (the speed
+fell just where the plates trade places).
+
 Up to two viewport rectangles are day (`dawn`): inside them a point is ink. On Contact the whole viewport is day; in
 the home the two are Contact's part and the legal line under it.
 
@@ -931,7 +1003,14 @@ asleep, 0 frames. Still over HEAD: the home's first frame, 387 ms (median of sev
 the cover's 331; at 1920 DPR 1 the join from Now into the gallery's eleven plates, single frames of 2.72–2.84 ms (p95
 2.25–2.58) against HEAD's Now at 2.52–2.67 and the limit of 2.4; the gallery's opening row at rest, 1.70 ms at 1440 and
 1.55 at 1920 against HEAD's nine plates at 1.59–1.65 and 1.24 (under the limits); the phone's peaks, 0.05–0.16 ms over
-HEAD's and under 1.5. The final stills and films of wave 5 are in `.shots/n-final/`, wave 6's in `.shots/m-final/`.
+HEAD's and under 1.5. Wave 8 (`build/k-smooth.md`, `build/k-fix3d.md`; the live site answering 404, HEAD's own build
+served beside the lane's in the same minutes, two rounds each): everything under the limits, the swarm never halved, the
+stage asleep. The springs leave the gallery at rest a little over HEAD (1.72–1.75 ms against 1.66–1.68 at 1440,
+1.34–1.35 against 1.30–1.32 at 1920) and its peak 0.2 to 0.3 ms under; at 1920 Now with its join into the gallery peaks at
+2.15–2.25 against HEAD's 2.76–2.93; on a phone About's path rests at 0.47 against 0.57 and peaks at 0.95 against 1.28;
+from Contact to the home no rAF gap over 34 ms in three flights (HEAD 63, 49 + 35, 56); the home's first frame 364 ms
+against 385. The final stills and films of wave 5 are in `.shots/n-final/`, wave 6's in `.shots/m-final/`, wave 7's
+in `.shots/l-final/`, wave 8's in `.shots/k-final/`.
 
 ## Motion
 
@@ -993,44 +1072,12 @@ Tokens in `rv/css/tokens.css`; read by `fx-core.js` as `FX.motion`.
 
 ## Sound
 
-`rv/fx-sound.js` (plan 70 §3.6; Alberto: «acceso di default.»). Everything is synthesized with the Web Audio API: no
-audio file, nothing from the network. **No `AudioContext` exists before the visitor's first click, touch or key
-press** (a scroll does not count), and it is never made by reading the visitor's media devices to warm the audio
-service. A key that only moves the focus (Tab, Shift…) makes the engine and leaves it silent, so a keyboard reaches
-the toggle before any sound. At a press or a key that acts, the room fades in over 1.5 s to a low level. The toggle
-turns it off at once and on again; the choice is remembered (`localStorage` "rv-sound"); a hidden tab is silent.
-`?sound=0` keeps it off for the visit.
-
-**The first press that leaves** (wave 6; the director's choice of 17 November). A document's first `AudioContext` is
-one task of the browser's own (50 to 160 ms on a cold or busy machine). When the visit's first press, tap or Enter is
-on a link to another page, nothing is made in it: the flight starts at once and silent (3 ms after the press, as with
-`?sound=0`). Under the router the document stays, so once the new room stands (`fx:nav:arrived`; `fx:ready` after a
-plain swap) and its opening has played, the context is made in an idle moment on the activation the page already
-has, and the room fades in over 2.4 s; a browser that will not run it without a fresh gesture keeps it suspended,
-silently, until the next one. On the assembled pages that click ends the document: nothing is made, and the next
-page starts at its first gesture (once a visit). No press makes a context while a cut is in flight. Any other first
-gesture starts the room in the gesture, as before (`build/m-sound.md`).
-
-**The home's rooms** (wave 7, `build/l-motion.md`). The home is one journey through every page's part, and its room is
-the room of the part being read: as the reader passes into a part (`fx:part`, taken 220 ms after it settles) the room
-cross-fades from one bank of tones to a new one tuned to that page over about 2.4 s, the two chords never both whole,
-with a breath of 3 to 5 dB for about a second; set at once while the sound is silent; never during a cut, which brings
-its own room, and taken up again after one. Contact's part has the morning's room.
-
-| role | what plays |
-|---|---|
-| room | a chord of up to four pure tones between 220 and 790 Hz, each page its own, over a soft air; Contact brighter; every page as loud to the ear as the cover; in the home, the room of the part being read |
-| eye | the scroll lights two overtones of the room's chord, as loud as it is fast, silent at rest; no noise |
-| glass | a scene's step, when the reader's own scroll brought it: a short touch of glass, its pitch a degree of the page's mode, panned a little toward the figure's side |
-| index | the rows of a list of pages (since wave 7 only the 404's: the cover's index left the home): notes of one chord, the row under the hand held softly |
-| cut | a rising rush of air that tops when the eye is in the door's glass, and there the door: a low touch of glass and two bright ones leaving the centre; the largest gesture of the site, scheduled whole at the click |
-| hand | a press: a tick one almost does not hear; the copy control: two rising notes; the menu's sheet: a short breath |
-| Obla | each of its five states: a two-note motif in the character's voice |
-
-A limiter and a ceiling end the chain. Under the Astro build's router one engine survives the navigations; on the
-assembled pages each page starts again. **Nothing here has been heard**: every level is a measure
-(`build/n-fix-sound.md`, `build/m-sound.md`), and whether it sounds right is Alberto's to judge by ear. Nothing may read as water to the
-ear: no surf, drip or bubble.
+None. Waves 5 to 7 built a synthesized room (`fx-sound.js`, a toggle of four bars in the header, `?sound=0`, the
+offline renderer `sound/render.mjs`); after hearing it on the live site Alberto asked for every sound effect to go
+(21 November: «Il suono è orribile, togli tutti i sound effects»), and wave 8 removed all of it (`build/k-sound.md`): no
+audio module, no toggle, no switch, no `AudioContext` ever made, no audio file, no tool that renders sound. A press
+does only what it says; the visit's first press on a link flies at once. "Sound design" stays among Alberto's
+capabilities on About (`cap.8.sound`): it is his craft, not the site's.
 
 ## Do's and Don'ts
 
@@ -1052,14 +1099,17 @@ ear: no surf, drip or bubble.
 - **Do** keep everything a visitor reads at 15 px or more on a phone, 16 px on a desktop, 18 px at 1920, on the scale
   tokens; buttons and the header first.
 - **Do** drive anything that moves at rest with the stage's clock, and let it settle exactly, so the stage sleeps.
+- **Do** put whatever a slide moves on a critically damped spring (`follow`) and a walk between stations on a quintic
+  (`glideK`), so every slide ends with its speed coming down, never a snap.
 - **Do** move the DOM on the compositor only (transform, opacity, straight clips), through `fx-motion.js`.
 - **Do** look at 1440×900 and 390×844 at DPR 2, 1920×1080 at DPR 1, both editions and both builds before calling a
-  change done; judge motion on strips of frames (50 ms for a cut).
+  change done; judge motion on strips of frames (50 ms for a cut, 16 ms where a jerk or a seam is in question).
 
 ### Don't
 
-- **Don't** bring back anything that reads as water, to the eye or to the ear: a drop, bead, pool, drip, ripple, wave,
-  wet edge, reflecting floor or horizon line; surf, a drip or a bubble in the sound.
+- **Don't** bring back anything that reads as water: a drop, bead, pool, drip, ripple, wave, wet edge, reflecting floor
+  or horizon line.
+- **Don't** bring back sound in any form: no audio module, toggle, switch, `AudioContext` or audio file.
 - **Don't** draw large soft round discs, round spots or rings of light, or rain-like lines; **don't** let light draw a
   figure (an X, a V, a cross); no rainbow.
 - **Don't** bring back the ruled grid wall, or a picture of space beside the one cosmos: no nebula colours, no planet,
@@ -1072,8 +1122,8 @@ ear: no surf, drip or bubble.
 - **Don't** box a scene's view (no border, frame or caption inside it).
 - **Don't** slide text in from a side; **don't** move display type the stage bends (`[data-refract]`).
 - **Don't** let anything in the DOM follow the pointer.
-- **Don't** make the `AudioContext` before a real activation, add an audio file, or warm the audio service by reading
-  the visitor's media devices.
+- **Don't** end a slide on a snap: no first-order lag on a target that jumps, no two smoothsteps mirrored round a
+  step's boundary.
 - **Don't** add a second canvas, a 3D library or a second family.
 
 ## Changing the system
@@ -1091,18 +1141,23 @@ ear: no surf, drip or bubble.
 - The home: `rv/parts/c-main.home.mjs` (`HOME`, `partMain`, `asPart`, `homeMain`), read by both builds
   (`rv/assemble.mjs`, `web/src/lib/site.mjs`); a page's part styles in `rv/css/page-*.css` under `[data-part]`; the
   home's asserts in `assemble.mjs` and `web/scripts/asserts.mjs`; the part's mark and `fx:part` in `rv/fx-nav.js`, its
-  opener in `rv/fx-motion.js`, its room in `rv/fx-sound.js`, its place in the cosmos in `rv/fx-stage.js` (`M.cosmos`).
+  opener in `rv/fx-motion.js`, its place in the cosmos in `rv/fx-stage.js` (`M.cosmos`).
 - A work: `rv/parts/cases.json` (every work in the gallery's order; `"page"` for a work that is a page of the site),
   both builds, `scripts/check-claims-proto.mjs` (`SCOPE_TABLE`), the share cards (`node scripts/media/og-cards.mjs`).
 - The glass: `PLATE_LOOK` in `rv/stage/plates/plates.js` and the shader in `plates.wgsl.js`; the bench
-  `rv/stage/dev.html?view=cover|gallery|stack|dawn`.
+  `rv/stage/dev.html?view=cover|gallery|stack|dawn`. A new value carried through the shader's `shadeAt` (run once per
+  colour channel) or to the end of `fsPlate` cost every plate of every page 0.45 ms (wave 8, Work at rest 2.20 ms
+  against 1.67): work it out on the CPU and carry it as a field of the slab (`plates.js`, as the door's edge in
+  thousandths); a comment or a changed constant costs nothing.
+- A slide: `rv/stage/scenes/lib/camera.js` (`follow`, `glideK`, `softMin`, `softClamp`), `stage.js` (`pivotStep`), the
+  scene's own values on springs.
 - The cut: `rv/fx-nav.js` (events, the card, the text's exit), `rv/fx-stage.js` (push, portal, flight, the hand-over),
-  `rv/stage/stage.js` (`cut`, `portal`, `fly`, `LOOK.fly*`), `rv/css/cuts.css`, `web/src/router/rv-router.js`;
-  `rv/fx-sound.js` reads the same event.
+  `rv/stage/stage.js` (`cut`, `portal`, `fly`, `LOOK.fly*`, `doorSlab`, `dayY`), `rv/css/cuts.css`,
+  `web/src/router/rv-router.js`.
 - A case's chapter figure: `rv/stage/scenes/case/figures.js`, `rv/css/case.css` (the free third, the phone's band),
   `data-ch` in `rv/parts/c-main.case.mjs`.
-- The sound: `rv/fx-sound.js`; `node public/proto/rivista/sound/render.mjs` renders a list of cues to a WAV without a
-  browser window (a tool, not a page of the site).
+- The chips' shapes: `rv/stage/field/atlas.js`; a new mark goes through the slices (`cellBytesGen`, `sliced`), never
+  one distance transform in one task.
 - The post: `rv/stage/stage.js` ("THE POST": `ABER_PX`, `HDR_CEIL`), `rv/stage/wgsl/frame.wgsl.js` (the grain),
   `rv/stage/gpu.js` (`canvasSetup`); a pass that writes smooth dark light calls `stageGrainLight` before its write.
 - The release: `web/scripts/release.mjs` (`ORIGIN`, `LEFT_OUT`: a new file no visitor loads goes there; one a page

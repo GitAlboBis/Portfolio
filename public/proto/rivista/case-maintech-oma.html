@@ -26,19 +26,19 @@
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Maintech OMA, a work by Alberto Tuveri, set in white condensed capitals on a near-black ground beside its picture: 9 roles, default-deny on every table, set large as the case's key words">
+<meta property="og:image:alt" content="Maintech OMA, a work by Alberto Tuveri, set in white condensed capitals on a near-black ground beside its picture: Default-deny on every table, permissions held in the database, set large as the case's key words">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Maintech OMA — Alberto Tuveri">
 <meta name="twitter:description" content="Custom ERP for a heavy-vehicle workshop of about 50 staff, founded from the application scaffold to the first database schema.">
 <meta name="twitter:image" content="og/og-maintech-oma.jpg">
-<meta name="twitter:image:alt" content="Maintech OMA, a work by Alberto Tuveri, set in white condensed capitals on a near-black ground beside its picture: 9 roles, default-deny on every table, set large as the case's key words">
+<meta name="twitter:image:alt" content="Maintech OMA, a work by Alberto Tuveri, set in white condensed capitals on a near-black ground beside its picture: Default-deny on every table, permissions held in the database, set large as the case's key words">
 <script type="application/json" id="rv-i18n">{"instr.gpu":"{ms} ms GPU","stage.points":"{n} points"}</script>
 <script>
 (function(){
   var d=document.documentElement, q=null;
   try{ q=new URLSearchParams(location.search); }catch(e){}
   if(d.hasAttribute('data-home') && location.hash){
-    var OLD={work:'work.html',measured:'work.html#evidence',evidence:'work.html#evidence',capabilities:'about.html',stack:'about.html',path:'about.html#path',consult:'consulting.html',obla:'obla.html',contact:'contact.html'},
+    var OLD={work:'work.html',measured:'work.html',evidence:'work.html',capabilities:'about.html',stack:'about.html',path:'about.html#path',consult:'consulting.html',obla:'obla.html',contact:'contact.html'},
         go=OLD[location.hash.slice(1)];
     if(go){ var gp=go.split('#'); try{ location.replace(gp[0]+location.search+(gp[1] ? '#'+gp[1] : '')); return; }catch(e){} }
   }
@@ -71,7 +71,7 @@
   try{ F.forEach(function(u){ var l=document.createElement('link'); l.rel='preload'; l.as='font'; l.type='font/woff2'; l.crossOrigin='anonymous'; l.href=G+u; document.head.appendChild(l); }); }catch(e){}
   var J=window.__rvJs={done:false,boot:null,t0:0,t1:0}, jf=false,
       JS=['https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js','https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js',
-          'https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js','fx-core.js','fx-scroll.js','fx-nav.js','fx-motion.js','fx-stage.js','fx-sound.js'];
+          'https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js','fx-core.js','fx-scroll.js','fx-nav.js','fx-motion.js','fx-stage.js'];
   J.list=JS;
   var AN='https://cdn.jsdelivr.net/npm/animejs@4.5.0/', anim=function(){
     if(rm || window.__rvAnime) return;
@@ -112,7 +112,6 @@
     <span class="lang" role="group" aria-label="Language"><span class="lang-now" aria-current="true"><b aria-hidden="true">EN</b><span class="sr-only">English, current language</span></span><span class="lang-sep" aria-hidden="true"> / </span><a class="lang-alt" href="it/case-maintech-oma.html" hreflang="it" lang="it" data-lang="it" data-pt-label="Italiano" data-pt-sub="Edizione italiana">IT<span class="sr-only"> · Italiano</span></a></span>
     <span class="hdr-rule is-idle" aria-hidden="true" data-hdr-rule></span>
   </nav>
-  <button class="hdr-snd" type="button" aria-pressed="true" aria-label="Sound" title="Sound" data-snd data-snd-state="armed"><span class="snd-bars" aria-hidden="true"><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span></span></button>
   <button class="hdr-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open the menu" data-nv-open="Open the menu" data-nv-close="Close the menu" data-menu-btn><span class="m-open" aria-hidden="true">Menu</span><span class="m-close" aria-hidden="true">Close</span></button>
   <span class="hdr-read" aria-hidden="true"></span>
 </header>
@@ -156,15 +155,15 @@
       <div class="sc-step cs-look" data-stage-step="2">
         <div class="sc-in">
           <figure class="cs-pic is-words">
-            <div class="cs-words" data-slab-words="maintech-oma" data-stage-poster><div class="cs-plate"><p class="cs-plate-fig">9</p><p class="t-label cs-plate-line">roles, default-deny on every table</p></div></div>
-            <figcaption class="t-label cs-cap">Nine roles<span> Permissions held in the database, not in tokens.</span></figcaption>
+            <div class="cs-words" data-slab-words="maintech-oma" data-stage-poster><div class="cs-plate"><p class="cs-plate-fig">Default-deny</p><p class="t-label cs-plate-line">on every table, permissions held in the database</p></div></div>
+            <figcaption class="t-label cs-cap">The security model<span> Nine roles, and it cannot be bypassed from the client.</span></figcaption>
           </figure>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="c1" data-ch="what" class="cs-ch cs-what" aria-labelledby="c1-h">
+  <section id="c1" data-ch="what" class="cs-ch cs-what" aria-labelledby="c1-h" data-scene-short="From the scaffold">
     <p class="t-label cs-folio"><span class="t-acc">01</span> What it is</p>
     <div class="cs-body">
       <h2 id="c1-h" class="t-d2 cs-h"><span class="ln">Founded</span><span class="ln">from the scaffold</span></h2>
@@ -173,7 +172,7 @@
     </div>
   </section>
 
-  <section id="c2" data-ch="schematic" class="cs-ch cs-schematic" aria-labelledby="c2-h">
+  <section id="c2" data-ch="schematic" class="cs-ch cs-schematic" aria-labelledby="c2-h" data-scene-short="Customer to order">
     <p class="t-label cs-folio"><span class="t-acc">02</span> The domain core</p>
     <div class="cs-body">
       <h2 id="c2-h" class="t-d2 cs-h"><span class="ln">Customer</span><span class="ln">to purchase order</span></h2>
@@ -189,7 +188,7 @@
     </div>
   </section>
 
-  <section id="c3" data-ch="facts" class="cs-ch" aria-labelledby="c3-h">
+  <section id="c3" data-ch="facts" class="cs-ch" aria-labelledby="c3-h" data-scene-short="At the database">
     <p class="t-label cs-folio"><span class="t-acc">03</span> Security</p>
     <div class="cs-body">
       <h2 id="c3-h" class="t-d2 cs-h"><span class="ln">What holds</span><span class="ln">at the database</span></h2>

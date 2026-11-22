@@ -12,8 +12,8 @@
      their line; .rv-wipe for the type the stage bends, [data-refract], whose glyph boxes must never move); the rows of
      the lists and the parts of a gallery step are marked .rv-row (--ri their place). A group comes in when .st-on is on
      it or on its step: in scene mode a step is .st-on while it is the step in focus (it leaves, faster, when it is not);
-     outside scene mode each group comes in once, when it enters the viewport. Evidence's figures count up once to the
-     printed value (the visible text ends byte-identical; a reader of the page meets only the printed value).
+     outside scene mode each group comes in once, when it enters the viewport. A case's measured figures count up once to
+     the printed value (the visible text ends byte-identical; a reader of the page meets only the printed value).
    html.fs-on says the module is running (until then the hidden states hold only 4 s, css/type.css).
    Nothing runs on an idle clock: one passive scroll listener, one rAF per change; the count is one rAF loop of ~1 s.
    Reduced motion: nothing is split or marked, nothing moves.
@@ -60,7 +60,7 @@
         const dist = Math.abs(r.top + r.height / 2 - mid);
         if (dist < bd) { bd = dist; best = el; }
       }
-      /* (lane n-sound) the contract between lanes: fx:step {scene, step, of} when a scene's active step changes */
+      /* the contract between lanes: fx:step {scene, step, of} when a scene's active step changes */
       if (best && best !== s.cur) {
         s.cur = best;
         FX.emit("fx:step", { scene: s.sc.getAttribute("data-stage") || "", step: +best.getAttribute("data-stage-step"), of: s.steps.length });
@@ -82,7 +82,7 @@
   const schedule = () => { if (!raf) raf = requestAnimationFrame(pick); };
 
   /* ---------------------------------------------------------------- 3 · entrances */
-  const TITLES = ".sc-step .stp-t, .sc-step .wk-name, .sc-step .ev-set, .sc-step .ev-h, .sc-step .co-close, .cs-h, .cs-more-t, .dawn-h, .nf-ix .ix-t";
+  const TITLES = ".sc-step .stp-t, .sc-step .wk-name, .sc-step .co-close, .cs-h, .cs-more-t, .dawn-h, .nf-ix .ix-t";
   const LISTS = ".tools, .mx, .cs-more-list, .cs-dl, .ob-fields, .cs-facts, .cs-list, .cs-flow, .cs-rep, .nf-rows";
   const PARTS = ".wk .sc-in, .cs-side-act, .dawn-in, .stp-proof";
   /* round 11: the pictures the stage does not draw (a case's chapter stills; never a [data-stage-poster] plate) */
@@ -192,9 +192,10 @@
     if (img.decode) img.decode().then(go, go); else { img.addEventListener("load", go, { once: true }); img.addEventListener("error", go, { once: true }); }
   }
 
-  /* Evidence's figures count up once, from zero to the printed value, in the language's own way of writing it. The
-     printed text node is put back at the end, byte for byte; while it counts, the box is held at its printed width (no
-     column moves) and the screen reader's text is the printed value (the counting copy is aria-hidden). */
+  /* A case's measured figures (its measured and teaser rows) count up once, from zero to the printed value, in the
+     language's own way of writing it. The printed text node is put back at the end, byte for byte; while it counts,
+     the box is held at its printed width (no column moves) and the screen reader's text is the printed value (the
+     counting copy is aria-hidden). */
   const counted = new WeakSet();
   function counts(root) {
     if (!FX.flags.motion || !root || !root.querySelectorAll) return;

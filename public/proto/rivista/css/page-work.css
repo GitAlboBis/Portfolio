@@ -1,19 +1,17 @@
 /* ==========================================================================
-   css/page-work.css · work.html (gallery, evidence), composed by the WORK lane (spec 50 §4, §7)
+   css/page-work.css · work.html (the gallery), composed by the WORK lane (spec 50 §4, §7)
    Comes after the system files in fx.css; every rule is scoped to Work's part, [data-part="work"]: the page's main and
    the home's part (wave 7). Each selector keeps the specificity it had under html[data-page="work"] (the attribute
    moved from <html> to the part, html kept), so the cascade is the same.
 
    The gallery step is a title card: its text sits low in the left column (the counter, the kind, the name large, one
    line, the link), the glass stands high in the figure's half (stage/scenes/gallery.js), so the frame reads as one
-   diagonal from the type to the plate. The evidence rows keep their text in the left column; the swarm draws their
-   bars in the figure's half on the same lines (stage/scenes/evidence.js). On a phone the bars are drawn inside each
-   row, under its numbers: the row keeps that strip empty while the stage draws.
+   diagonal from the type to the plate. The gallery is the whole page: the measured rows of the scene "evidence" left
+   it on 22 November (Alberto: «queste due sezioni son da eliminare»), and with them their rules here.
    ========================================================================== */
 html [data-part="work"] .wk-n { font-variant-numeric: tabular-nums lining-nums; }
 html [data-part="work"] .wk-name { font-size: clamp(2.75rem, 6.2vw, 6.5rem); line-height: 0.86; }
 html [data-part="work"] .wk-line { margin-top: var(--s3); }
-html [data-part="work"] .mx-n { font-variant-numeric: tabular-nums lining-nums; }
 
 /* scene mode, a wide screen: the gallery's text low in the column, like a title over the picture */
 @media (min-width: 1024px) {
@@ -22,17 +20,3 @@ html [data-part="work"] .mx-n { font-variant-numeric: tabular-nums lining-nums; 
   html.sc-on:not(.gl-off) [data-part="work"] .gal .wk-name { margin-top: var(--s3) !important; }
 }
 
-/* the measured rows: while the stage draws, the bars are the swarm's. The printed bars keep their place in scene mode
-   (the rows never change height when the stage comes on, so the light lands on the rows the host measured) and turn
-   invisible under html.stage-on: on a wide screen the light stands in the figure's half, on a phone it is drawn in
-   that same strip, under each row's numbers. If the stage never comes on, the printed bars show. */
-html.sc-on:not(.gl-off) [data-part="work"] .ev .mx-bars[data-stage-poster] { display: grid; }
-html.stage-on [data-part="work"] .ev .mx-bars[data-stage-poster] { visibility: hidden; }
-@media (max-width: 1023.98px) {
-  html.sc-on:not(.gl-off) [data-part="work"] .ev .mx-bars[data-stage-poster] { padding-block: 3px; }
-  /* the five rows of the first set must fit one phone screen under the header: in Italian (longer labels, two lines
-     each) the step was 809 px for 716 px of room, so its title sat under the header (PAGE lane, round y) */
-  html.sc-on:not(.gl-off) [data-part="work"] .ev .metric { padding-block: var(--s2); }
-  html.sc-on:not(.gl-off) [data-part="work"] .ev .mx { margin-top: var(--s3) !important; }
-  html.sc-on:not(.gl-off) [data-part="work"] .ev .sc-step { padding-bottom: max(var(--s4), env(safe-area-inset-bottom)); }
-}

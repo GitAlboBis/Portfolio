@@ -90,7 +90,7 @@
   /**
    * a loaded scene: its module, the global ids of its formations, its scratch state, its blend weight
    * @typedef {{ name: string, el: Element, def: any, ids: Record<string, string>, state: any, w: number, broken: boolean,
-   *   texAsked: boolean, k: number, ready?: boolean, lazy?: boolean }} Scene
+   *   texAsked: boolean, texChk?: number, k: number, ready?: boolean, lazy?: boolean }} Scene
    */
   /** @type {Scene[]} */ let scenes = [];
   /** @type {Record<string, number>} */ const W = {};           // smoothed formation weights by global id
@@ -98,6 +98,17 @@
   /** @type {Set<string>} */ const registered = new Set();      // global formation ids the stage holds
   /** @type {Set<string>} */ const texReady = new Set();        // slab textures the stage holds
   /** @type {Set<string>} */ const texPending = new Set();
+  /* (wave 8, SMOOTH) WHAT A TEXTURE WAS MADE FROM, to make it again. The plates hold 16 layers and hand the least
+     recently drawn one to a new texture: in the home the stack's etched names took the gallery's captures, and back in
+     the gallery every plate was empty glass (texReady still named them). held() asks the stage; a texture it no longer
+     holds is made again from its source (each at most once in 1.5 s, so two scenes that together need more than 16
+     never trade layers every frame), and the textures of a scene near the screen are looked at a few times a second,
+     so they are back before their plates are seen */
+  /** @type {Map<string, { el?: HTMLImageElement, src?: any, etch?: any[] }>} */ const TEXFROM = new Map();
+  /** @type {Map<string, number>} */ const revivedAt = new Map();
+  // only a scene on screen makes its textures again (a scene below the one read, near enough to be framed, took its
+  // layers back one by one: the home's stack evicted the gallery's captures again as fast as they came)
+  let reviveOK = true;
   let lastT = 0, lastY = 0, sv = 0, instrT = 0, instrText = "", time = 0;
   /* (wave 1, KIT) the reader's speed, 0..1 (ctx.speed): |scroll velocity| over SPEED_PX, rising in 0.12 s and falling
      in 0.7 s (a train of wheel steps is one long push, no pumping); exactly 0 at rest */
@@ -158,6 +169,11 @@
      the bottom (DAY_MS from the takeover), seen through the door's glass; never a blank sheet of paper */
   const DAY_MS = 200;
   let dayAt = 0;
+  /* (k-fix3d) the day's edge has begun to rise: the title may rise (settle) with the morning, not after it (from 650 to
+     800 ms the frame was Contact's paper with only its faint strokes: an empty sheet). Its letters take about 0.1 s to
+     show above their masks, which is when the edge reaches them; the door's glass is clear over the paper
+     (plates.wgsl.js), so they are seen as they come */
+  let dayRose = false;
   /** the ground the page before stood on, kept under the canvas since the page changed (rv-router.js): it goes when the
    *  door hides the frame and this page's room takes the stage */
   const dropGround = () => { try { document.querySelectorAll(".cut-ground").forEach((e) => e.remove()); } catch (e) { /* ignore */ } };
@@ -177,7 +193,8 @@
 
   /* ================================================================ measuring (document space, stickies flattened) */
   /** @typedef {{ x: number, y: number, w: number, h: number }} Rect */
-  /** @typedef {{ top: number, h: number, T: number, cbB: number, mb: number }} Stick */
+  /** @typedef {{ top: number, h: number, T: number, cbB: number, mb: number, B?: number, cbT?: number, mt?: number, vh?: number }} Stick
+   *  (k-fix3d) B: a box held by its bottom (top: auto, bottom: B), cbT its containing block's top, vh the scrollport */
   /** @typedef {{ el: Element, nat: Rect, chain: Stick[] }} Rec */
   /** @type {any} */ let M = null;   // the last measure
   /** @typedef {{ kx: number, ky: number, tx: number, ty: number, ox: number, oy: number }} Aff  an axis-aligned
@@ -256,8 +273,14 @@
     const sticky = new Set();
     /** @type {Map<Element, Element[]>} */ const chains = new Map();
     for (const el of all) { const c = stickyChain(el, cache); chains.set(el, c); c.forEach((s) => sticky.add(s)); }
-    /** @type {Map<Element, { T: number, mb: number }>} */ const stickProps = new Map();
-    for (const s of sticky) { const cs = getComputedStyle(s); stickProps.set(s, { T: parseFloat(cs.top) || 0, mb: parseFloat(cs.marginBottom) || 0 }); }
+    /* (k-fix3d) a box held by its BOTTOM (top: auto, bottom: B: a case opener's caption at the foot of the view) was read
+       as held at the top with T 0: its text was kept at its natural place, a screen below where it stood, and the
+       cosmos's filaments crossed the caption at rest. B, with its containing block's top (it rises no further) */
+    /** @type {Map<Element, { T: number, mb: number, B: number, mt: number }>} */ const stickProps = new Map();
+    for (const s of sticky) {
+      const cs = getComputedStyle(s), T = parseFloat(cs.top), Bt = parseFloat(cs.bottom), byB = !Number.isFinite(T) && Number.isFinite(Bt);
+      stickProps.set(s, { T: Number.isFinite(T) ? T : 0, mb: parseFloat(cs.marginBottom) || 0, B: byB ? Bt : NaN, mt: parseFloat(cs.marginTop) || 0 });
+    }
     /** @type {any[]} */ const saved = [];
     for (const s of sticky) { const h = /** @type {HTMLElement} */ (s); saved.push([h, h.style.getPropertyValue("position"), h.style.getPropertyPriority("position")]); h.style.setProperty("position", "static", "important"); }
     const sy = window.scrollY, sx = window.scrollX;
@@ -349,19 +372,23 @@
       }
       return x1 > x0 ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : rectOf(el);
     };
-    /** @type {Map<Element, number>} */ const cbB = new Map();
+    /** @type {Map<Element, number>} */ const cbB = new Map(), cbT = new Map();
     for (const s of sticky) {
       const p = s.parentElement;
       if (!p) continue;
       const pr = rectOf(p), pcs = getComputedStyle(p);
       cbB.set(s, pr.y + pr.h - (parseFloat(pcs.paddingBottom) || 0) - (parseFloat(pcs.borderBottomWidth) || 0));
+      cbT.set(s, pr.y + (parseFloat(pcs.paddingTop) || 0) + (parseFloat(pcs.borderTopWidth) || 0));
     }
+    const svh = D.clientHeight;
     /** @param {Element | null | undefined} el @param {boolean} [g] @returns {Rec | null} */
     const rec = (el, g) => {
       if (!el) return null;
       const r = g ? glyphs(el) : rectOf(el), chain = (chains.get(el) || []).map((s) => {
-        const sr = rectOf(s), sp = stickProps.get(s) || { T: 0, mb: 0 };
-        return { top: sr.y, h: sr.h, T: sp.T, cbB: cbB.get(s) ?? sr.y + sr.h, mb: sp.mb };
+        const sr = rectOf(s), sp = stickProps.get(s) || { T: 0, mb: 0, B: NaN, mt: 0 };
+        /** @type {Stick} */ const k = { top: sr.y, h: sr.h, T: sp.T, cbB: cbB.get(s) ?? sr.y + sr.h, mb: sp.mb };
+        if (Number.isFinite(sp.B)) { k.B = sp.B; k.cbT = cbT.get(s) ?? sr.y; k.mt = sp.mt; k.vh = svh; }
+        return k;
       });
       return { el, nat: { ...r }, chain };
     };
@@ -431,7 +458,10 @@
     let d = 0;
     for (const s of r.chain) {
       const nt = s.top + d;
-      const stuck = Math.max(nt, Math.min(y + s.T, s.cbB + d - s.h - s.mb));
+      // held by its bottom (k-fix3d): it rises from its place to keep B over the scrollport's foot, never above its
+      // containing block's top; else held by its top, never below its containing block's bottom
+      const stuck = s.B !== undefined ? Math.min(nt, Math.max(y + (s.vh || 0) - s.B - s.h, (s.cbT ?? nt) + d + (s.mt || 0)))
+        : Math.max(nt, Math.min(y + s.T, s.cbB + d - s.h - s.mb));
       d = stuck - s.top;
     }
     return d ? { x: r.nat.x, y: r.nat.y + d, w: r.nat.w, h: r.nat.h } : r.nat;
@@ -544,6 +574,7 @@
   async function loadTex(id, img) {
     const st0 = stage || shadow;
     if (!id || texReady.has(id) || texPending.has(id) || !st0 || typeof st0.slabTexture !== "function") return;
+    if (img) TEXFROM.set(id, { el: img });
     texPending.add(id);
     const g = gen;
     try {
@@ -562,11 +593,34 @@
     } catch (e) { log(`[stage] slab texture ${id} failed: ${e && /** @type {any} */ (e).message || e}`); }
     texPending.delete(id);
   }
+  /** (wave 8, SMOOTH) a texture this page's stage holds now; one whose layer went to another texture is dropped from
+   *  texReady and made again from what it was made from (TEXFROM: the image, the etched words, the canvas), by a scene
+   *  on screen, each at most once in 1.5 s (asked again later if it could not be then) @param {string} id
+   *  @returns {boolean} */
+  function held(id) {
+    if (texReady.has(id)) {
+      if (!stage || typeof stage.hasTexture !== "function" || stage.hasTexture(id)) return true;
+      texReady.delete(id);
+    }
+    const f = TEXFROM.get(id);
+    if (!f || !reviveOK || !stage || texPending.has(id)) return false;
+    const now = performance.now();
+    if (now - (revivedAt.get(id) ?? -1e9) <= 1500) return false;
+    revivedAt.set(id, now);
+    log(`[stage] texture ${id} lost its layer: made again`);
+    try {
+      if (f.el) loadTex(id, f.el);
+      else if (f.etch && raster) addTex(id, raster.etch(f.etch[0], f.etch[1]));
+      else if (f.src) addTex(id, f.src);
+    } catch (e) { /* asked again in 1.5 s */ }
+    return false;
+  }
   /** a texture a scene made (etched words, a canvas of its own) @param {string} id @param {any} source */
   function addTex(id, source) {
     const st0 = stage || shadow;
     if (!st0 || typeof st0.slabTexture !== "function" || !source) return null;
-    if (texReady.has(id)) return id;
+    if (held(id)) return id;
+    TEXFROM.set(id, { src: source });
     // (lane m-fly) before the takeover a layer the room on stage still shows is not written: once, after it
     if (!stage && typeof st0.hasTexture === "function" && st0.hasTexture(id)) {
       if (!texPending.has(id)) { texPending.add(id); HELD.tex.push(() => { texPending.delete(id); addTex(id, source); }); }
@@ -583,7 +637,7 @@
    *  @param {string[]} lines @param {any} [o] */
   function etch(id, lines, o) {
     const tid = "etch:" + id;
-    if (texReady.has(tid)) return tid;
+    if (held(tid)) return tid;
     const st0 = stage || shadow;
     if (texPending.has(tid) || !raster || !st0 || typeof st0.slabTexture !== "function") return null;
     if (document.fonts && document.fonts.status !== "loaded") return null;   // drawn once the face is in
@@ -591,7 +645,13 @@
     let sig = "";
     try { sig = "etch|" + JSON.stringify([lines, o || {}]); } catch (e) { sig = ""; }
     if (sig && TEXSRC.get(tid) === sig && typeof st0.hasTexture === "function" && st0.hasTexture(tid)) { texReady.add(tid); return tid; }
-    try { const r = addTex(tid, raster.etch(lines, o || {})); if (sig) TEXSRC.set(tid, sig); return r; } catch (e) { log("[stage] etch failed: " + (e && /** @type {any} */ (e).message || e)); return null; }
+    try {
+      const r = addTex(tid, raster.etch(lines, o || {}));
+      if (sig) TEXSRC.set(tid, sig);
+      // (wave 8, SMOOTH) the words to etch again, not the canvas (a canvas kept per etched plate held tens of MB)
+      TEXFROM.set(tid, { etch: [lines, o || {}] });
+      return r;
+    } catch (e) { log("[stage] etch failed: " + (e && /** @type {any} */ (e).message || e)); return null; }
   }
 
   /* ================================================================ the tick */
@@ -721,6 +781,7 @@
     if (gnd === "dawn") {
       // (lane m-fly) reached by a flight from a night view: the day rises as a straight edge from the bottom of the frame
       const k = dayAt ? clamp((now - dayAt) / DAY_MS, 0, 1) : 1, e = k * k * (3 - 2 * k);
+      if (dayAt) dayRose = true;
       if (e > 0.002) dawn.push({ x0: 0, y0: Math.round(vh * (1 - e)), x1: vw, y1: vh });
       if (k >= 1) dayAt = 0;
     }
@@ -770,7 +831,14 @@
       S.w = first ? share[k] : damp(S.w, share[k], SCENE_S, dt);
       if (S.w < 1e-4 && share[k] === 0) S.w = 0;
       const near = sec.y < y + vh * 1.6 && sec.y + sec.h > y - vh * 0.6;
+      reviveOK = share[k] > 0 || S.w > 0.02;
       if (near && !S.texAsked) { S.texAsked = true; for (const im of m.imgs) loadTex(im.id, im.el); }
+      // (wave 8, SMOOTH) on screen, a few times a second: the scene's own textures held again (held) before its
+      // plates are seen (its page images are looked at every frame below, in ctx.imgs)
+      else if (reviveOK && (S.texChk = (S.texChk || 0) + 1) % 20 === 0) {
+        const pre = S.name + ":", pe = "etch:" + pre;
+        for (const id of TEXFROM.keys()) if (id.startsWith(pre) || id.startsWith(pe)) held(id);
+      }
       if (!near && share[k] <= 0 && S.w < 0.002) return;
       const view = vat(m.view, y) || { x: 0, y: sec.y - y, w: vw, h: sec.h };
       const fig = figOf(m, view, vw);
@@ -780,7 +848,7 @@
       /** @type {Record<string, any>} */ const imgs = {};
       for (const im of m.imgs) {
         const el = /** @type {HTMLImageElement} */ (im.el);
-        imgs[im.id] = { tex: texReady.has(im.id) ? im.id : null, w: el.naturalWidth || 0, h: el.naturalHeight || 0,
+        imgs[im.id] = { tex: held(im.id) ? im.id : null, w: el.naturalWidth || 0, h: el.naturalHeight || 0,
           aspect: el.naturalWidth && el.naturalHeight ? el.naturalWidth / el.naturalHeight : 16 / 10, rect: vat(im.r, y), el };
       }
       const texts = m.texts.map((/** @type {any} */ t) => ({ tag: t.tag, ...vat(t.r, y) })).filter((/** @type {any} */ t) => t.y + t.h > -40 && t.y < vh + 40);
@@ -835,7 +903,7 @@
       for (const s of glass.ready ? o.slabs || [] : []) {
         const alpha = clamp((s.alpha ?? 1) * bw * pk, 0, 1);
         if (alpha < 0.004) continue;
-        const tex = s.tex && texReady.has(s.tex) ? s.tex : null, etchT = s.etch && texReady.has(s.etch) ? s.etch : null;
+        const tex = s.tex && held(s.tex) ? s.tex : null, etchT = s.etch && held(s.etch) ? s.etch : null;
         /** @type {any} */ const slab = { id: S.name + ":" + s.id, cx: r2(s.cx), cy: r2(s.cy), cz: r2(s.cz || 0), yaw: r4(s.yaw || 0), pitch: r4(s.pitch || 0), roll: r4(s.roll || 0),
           w: r2(s.w), h: r2(s.h), t: r2(s.t ?? 24), tex, alpha: r4(alpha), glow: r4(clamp(s.glow ?? 0.5, 0, 1)), sharp: r4(clamp((s.sharp ?? 1) * (own ? 1 : 0.3 + 0.7 * pk), 0, 1)) };
         // the stage's added fields pass through as given (etch only once its texture is held)
@@ -869,6 +937,7 @@
         else cur.sum += bw;
       }
     });
+    reviveOK = true;
 
     // (wave 7, STAGE) the frame's look: the scenes' asks mixed by weight (lookOf)
     { const l = lookOf(lookIn, lookAsk); if (l) setLook(l); }
@@ -1009,13 +1078,13 @@
     // (lane n-flight) arriving: the eye nearly still (the title rises), then still (the room stands)
     if (ARR_FLY && stage.flyState) {
       const fs = stage.flyState;
-      if (fs.phase !== "in" || fs.u >= (fs.dir < 0 ? 0.6 : 0.46)) SIGX.res.settle();
+      if (fs.phase !== "in" || fs.u >= (fs.dir < 0 ? 0.6 : 0.46) || dayRose) SIGX.res.settle();
       if (fs.phase !== "in") SIGX.res.stood();
     }
     // the subject lit: a scene with litSignal says so (lit: true); a page without one is lit at its first frame
     if (on && !litSent && (litSaid || !litAsked || time - drawnT > 4)) { litSent = true; D.classList.add("stage-lit"); signal("fx:stage:lit", { arrival: ARRIVED, under: sheetUp }); }
     if (drew && (instrT += dt) >= INSTR_S) { instrT = 0; writeInstr(); }
-    if (DEBUG) /** @type {any} */ (window).__stageHost.last = { formations, slabs: slabs.map((s) => s.id + ":" + s.alpha), dawn, keepouts: keepouts.length,
+    if (DEBUG) /** @type {any} */ (window).__stageHost.last = { formations, slabs: slabs.map((s) => s.id + ":" + s.alpha), dawn, keepouts: keepouts.length, keepRects: keepouts,
       share: Object.fromEntries(scenes.map((S, k) => [S.name, r4(share[k])])), weights: Object.fromEntries(scenes.map((S) => [S.name, r4(S.w)])),
       camera: { ...cam }, focus, sv: Math.round(sv), speed: r4(spd), aim: touch ? drag.nx : null, drew,
       fields: fields.map((f) => f.name + ":" + r4(f.weight) + ":" + (f.field.lights ? f.field.lights.length : 0)) };
@@ -1029,21 +1098,27 @@
   function freeBlend(cams, cw, vw, vh) {
     const D0 = Math.min(2600, Math.max(1100, ((mod && mod.LOOK && mod.LOOK.eye) || 1.25) * Math.hypot(vw, vh)));
     const n = cw > 1e-4 ? 1 / cw : 0;
-    const pos = [0, 0, 0], target = [0, 0, 0];
-    let roll = 0, lens = 0, aperture = 0, focus = 0, oy = 0, op = 0, heavy = -1;
+    const pos = [0, 0, 0], target = [0, 0, 0], pivot = [0, 0, 0];
+    let roll = 0, lens = 0, aperture = 0, focus = 0, oy = 0, op = 0, heavy = -1, pivots = 0;
     /** @type {any} */ let lead = null;
+    const P = (/** @type {any} */ v, /** @type {number[]} */ d) => (Array.isArray(v) ? v : v && typeof v === "object" ? [v.x, v.y, v.z] : d);
     for (const { o, w } of cams) {
       const c = o.camera || {};
       const free = !!(c.pos || c.position);
       /** @type {any} */ let p;
       if (free) {
-        const P = (/** @type {any} */ v, /** @type {number[]} */ d) => (Array.isArray(v) ? v : v && typeof v === "object" ? [v.x, v.y, v.z] : d);
         const ps = P(c.pos || c.position, [vw / 2, vh / 2, D0]);
         p = { pos: ps, target: P(c.target, [ps[0], ps[1], 0]) };
         if (w > heavy) { heavy = w; lead = c; }
       } else p = mod.orbitPose({ yaw: c.yaw || 0, pitch: c.pitch || 0, dolly: c.dolly || 0 }, { w: vw, h: vh }, D0);
       const dist = Math.hypot(p.target[0] - p.pos[0], p.target[1] - p.pos[1], p.target[2] - p.pos[2]);
       for (let i = 0; i < 3; i++) { pos[i] += w * (+p.pos[i] || 0); target[i] += w * (+p.target[i] || 0); }
+      // (wave 8, SMOOTH) the hand's orbit turns about the scenes' pivots mixed by weight (a scene without one: its
+      // target). It was the heaviest scene's own: where two scenes trade the frame the pivot jumped, and with the
+      // pointer off-centre the eye jumped with it
+      const pv = free && c.orbit && c.orbit.pivot ? P(c.orbit.pivot, p.target) : p.target;
+      if (free && c.orbit && c.orbit.pivot) pivots++;
+      for (let i = 0; i < 3; i++) pivot[i] += w * (+pv[i] || 0);
       roll += w * (free ? +c.roll || 0 : 0);
       lens += w * (free ? c.lens ?? 1 : 1);
       aperture += w * (free ? c.aperture ?? 1 : 1);
@@ -1055,7 +1130,7 @@
     /** @type {any} */ const out = {
       pos: pos.map((v) => r2(v * n)), target: target.map((v) => r2(v * n)), roll: r4(roll * n), lens: r4(lens * n),
       aperture: r4(aperture * n), focus: r2(focus * n),
-      orbit: { yaw: r4(oy * n), pitch: r4(op * n), damp: L.orbit && L.orbit.damp, pivot: L.orbit && L.orbit.pivot },
+      orbit: { yaw: r4(oy * n), pitch: r4(op * n), damp: L.orbit && L.orbit.damp, pivot: pivots ? pivot.map((v) => r2(v * n)) : undefined },
     };
     for (const k of ["near", "nearFull", "fog", "bokeh", "damp", "parallax", "plateFocus", "snap"]) if (L[k] !== undefined) out[k] = L[k];
     return out;
@@ -1137,7 +1212,7 @@
     log("[stage] off: " + why);
     try { if (stage) stage.destroy(); } catch (e) { /* the device may be gone */ }
     stage = null; on = false; building = false; glassT = -1; glassLate = false; drawnT = -1;
-    registered.clear(); texReady.clear(); texPending.clear(); later.clear(); idleAsked = false;
+    registered.clear(); texReady.clear(); texPending.clear(); TEXFROM.clear(); revivedAt.clear(); later.clear(); idleAsked = false;
     for (const S of scenes) { S.texAsked = false; S.state = {}; }
     BD.key = ""; BD.timers.forEach((t) => clearTimeout(t));
     D.classList.remove("stage-on");
@@ -1308,7 +1383,7 @@
     return true;
   }
 
-  /* (wave 7, STAGE) SCENES PREPARED AHEAD OF THE READER. The home holds every page's scenes (nine of them): registering
+  /* (wave 7, STAGE) SCENES PREPARED AHEAD OF THE READER. The home holds every page's scenes (eight today): registering
      all their formations before the first frame put it ~0.14 s later on a cold load (and a flight into the home would
      have prepared all nine behind the door). Now the build registers only the scenes within AHEAD screens of the place
      the reader stands (the first screen's room stands as on a page of its own); the others wait in `later`, and a pump
@@ -1320,14 +1395,18 @@
   /** @type {Map<string, number>} */ const orderOf = new Map();
   /** @type {Set<Scene>} */ const later = new Set();
   let pumping = false, idleAsked = false;
-  /** the scenes within AHEAD screens of y (document px): the ones a first frame at y needs @param {number} y */
-  function nearAt(y) {
+  /* (k-fix3d) a cold load's first frame registers only the scenes of the first screen and half a screen round it (the
+     home's hero alone, not Now's forty thousand targets or the gallery's mist): the pump brings the rest right after */
+  const FIRST = { up: 0.5, down: 0.5 };
+  /** the scenes within AHEAD screens of y (document px): the ones a first frame at y needs @param {number} y
+   *  @param {{ up: number, down: number }} [w] */
+  function nearAt(y, w = AHEAD) {
     /** @type {Set<Scene>} */ const out = new Set();
     if (!M) return new Set(scenes);
     const vh = M.ch;
     scenes.forEach((S, k) => {
       const m = M.scenes[k], sec = m ? at(m.r, y) : null;
-      if (!sec || (sec.y < y + vh * (1 + AHEAD.down) && sec.y + sec.h > y - vh * AHEAD.up)) out.add(S);
+      if (!sec || (sec.y < y + vh * (1 + w.down) && sec.y + sec.h > y - vh * w.up)) out.add(S);
     });
     return out;
   }
@@ -1672,13 +1751,21 @@
       if (lookWant && typeof s.look === "function") s.look(lookWant);   // a scene's look survives a rebuilt stage
       // (wave 7, STAGE) the scenes near the reader now; the others ahead of the reader (pump)
       measure();
-      if (!(await registerScenes(dev, g, null, nearAt(window.scrollY)))) return;
+      if (!(await registerScenes(dev, g, null, nearAt(window.scrollY, FIRST)))) return;
       for (const k of Object.keys(W)) delete W[k];
       for (const S of scenes) S.w = 0;
       /* (wave 2, ARRIVE) the room before the first frame: the field's pipelines (the wall, the blades, the chips) are in
          by now on most loads; wait for them a little (at most 0.5 s) so the first frame is the lit room, never an empty
          canvas that lights later. The swarm joins when its own pipelines are in (stage.js). */
-      if (s.whenField) { await Promise.race([s.whenField, new Promise((r) => setTimeout(r, 500))]); if (g !== gen || dead) return; }
+      /* (k-fix3d) ... and for what the first screen's scenes build ahead in slices (the cover's name, hero.js prepare: no
+         longer one task of 70 ms at the fonts' arrival), under the same cap: the first frame is the lit room with its name */
+      const preps = scenes.filter((S) => S.ready === true && S.def && typeof S.def.prepare === "function").map((S) => {
+        try { return S.def.prepare({ vw: D.clientWidth, vh: D.clientHeight, phone: innerWidth < 760, tier }); } catch (e) { return null; }
+      });
+      if (s.whenField || preps.length) {
+        await Promise.race([Promise.all([s.whenField || null, ...preps]).catch(() => null), new Promise((r) => setTimeout(r, 500))]);
+        if (g !== gen || dead) return;
+      }
       measure();
       lastT = 0; lastY = window.scrollY;
       // (lane PORTAL) an arrival after a portal opens with the eye still in the glass: pushed in, the portal whole
@@ -1814,7 +1901,14 @@
    *  again by the observers below) */
   function whenReady(/** @type {() => void} */ fn) {
     if (ARRIVED && D.hasAttribute("data-arrive")) { fn(); return; }
-    const still = () => { if (typeof FX.whenStill === "function") FX.whenStill(fn, { timeout: 6000 }); else fn(); };
+    /* (k-fix3d) a cold load that nothing has moved yet (no scroll in the last 120 ms, no cover, no lock, Lenis at rest:
+       fx-core.js isStill's own rule) starts at fx:ready itself: whenStill's two quiet ticks of the ticker were 35 to 45
+       ms between fx:ready and the stage taking its device, on the home's first frame. Anything else waits as before */
+    let scrolled = -1e9;
+    addEventListener("scroll", () => { scrolled = performance.now(); }, { passive: true });
+    const quiet = () => performance.now() - scrolled >= 120 && !D.hasAttribute("data-arrive") && !D.hasAttribute("data-fx-locked")
+      && !(FX.lenis && /** @type {any} */ (FX.lenis).isScrolling === "smooth");
+    const still = () => { if (!ARRIVED && quiet()) fn(); else if (typeof FX.whenStill === "function") FX.whenStill(fn, { timeout: 6000 }); else fn(); };
     if (typeof FX.once === "function") FX.once("fx:ready", still); else if (document.readyState === "complete") still(); else window.addEventListener("load", still, { once: true });
   }
 

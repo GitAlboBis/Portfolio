@@ -55,7 +55,7 @@ html:not(.nv-rule) .hdr-nav a.is-here { text-decoration-color: currentColor; }
 .hdr-menu:hover { color: var(--accent); transition-duration: var(--d-hover); }
 /* the header enters on load: its words come down into place, the name first, a breath apart (held under a cut's
    sheet like the first screen) */
-html.rv-motion .hdr-name, html.rv-motion .hdr-nav > a, html.rv-motion .hdr-nav > .lang, html.rv-motion .hdr-menu, html.rv-motion .hdr-snd {
+html.rv-motion .hdr-name, html.rv-motion .hdr-nav > a, html.rv-motion .hdr-nav > .lang, html.rv-motion .hdr-menu {
   animation: hdr-in 0.7s var(--ease-rise) both;
 }
 html.rv-motion .hdr-nav > a:nth-of-type(1) { animation-delay: 80ms; }
@@ -65,8 +65,7 @@ html.rv-motion .hdr-nav > a:nth-of-type(4) { animation-delay: 215ms; }
 html.rv-motion .hdr-nav > a:nth-of-type(5) { animation-delay: 260ms; }
 html.rv-motion .hdr-nav > .lang { animation-delay: 305ms; }
 html.rv-motion .hdr-menu { animation-delay: 120ms; }
-html.rv-motion .hdr-snd { animation-delay: 345ms; }
-html.rv-motion[data-arrive] :is(.hdr-name, .hdr-nav > a, .hdr-nav > .lang, .hdr-menu, .hdr-snd) { animation-play-state: paused; }
+html.rv-motion[data-arrive] :is(.hdr-name, .hdr-nav > a, .hdr-nav > .lang, .hdr-menu) { animation-play-state: paused; }
 @keyframes hdr-in {
   from { opacity: 0; transform: translate3d(0, -0.9em, 0); }
   to { opacity: 1; transform: none; }
@@ -82,50 +81,12 @@ html.rv-motion[data-arrive] :is(.hdr-name, .hdr-nav > a, .hdr-nav > .lang, .hdr-
 .hdr-menu .m-close { display: none; }
 html.menu-open .hdr-menu .m-open { display: none; }
 html.menu-open .hdr-menu .m-close { display: inline; }
+/* the header's right end: from 1024 px the five pages and EN / IT, the language group last, on the gutter (margin-left:
+   auto keeps the nav there when the scene's name is not shown); below 1024 px MENU alone, on the gutter */
 @media (min-width: 1024px) {
-  .hdr-nav { display: flex; }
+  .hdr-nav { display: flex; margin-left: auto; }
   .hdr-menu { display: none; }
 }
-
-/* (lane n-sound) the sound's toggle (fx-sound.js): four straight bars as tall as the header's capitals and standing
-   on their baseline (sizes in em of the header's own face, on whole pixels); square, no glow. They move (WAAPI,
-   transform only) while the sound plays; before the first gesture they stand still at their heights; off, they lie
-   flat as one rule. A real button with aria-pressed, 44 px and more to touch. Shown only with script (rv-js) and only
-   while the sound's module runs. On a phone it sits beside MENU (margin-left: auto takes the free space); from
-   1024 px after the language group, behind a rule like the language's own. */
-.hdr-snd {
-  display: none; position: relative; flex: none;
-  align-items: center; justify-content: center;
-  min-width: 2.75rem; min-height: 2.75rem; padding: 0 var(--s2);
-  margin-left: auto;
-  font: 700 var(--t-nav)/1 var(--f-label);
-  color: var(--body);
-  transition: color var(--d-hover-out) var(--ease-out);
-}
-html.rv-js .hdr-snd { display: inline-flex; }
-.hdr-snd[hidden], html:is(.fx-off-sound, .fx-fail-sound) .hdr-snd { display: none !important; }
-.hdr-snd:hover { color: var(--ink); transition-duration: var(--d-hover); }
-.snd-bars { display: flex; align-items: flex-end; gap: 3px; gap: round(0.16em, 1px); height: 0.8125rem; height: round(0.72em, 1px); margin-bottom: 2px; margin-bottom: round(0.1em, 1px); }
-.snd-b { display: block; width: 3px; width: round(0.16em, 1px); height: 100%; background: currentColor; transform-origin: 50% 100%; transform: scale(var(--sx, 1), var(--sb, 1)); transition: transform 0.24s var(--ease-rise); }
-.snd-b:nth-child(1) { --sb: 0.5; }
-.snd-b:nth-child(2) { --sb: 1; }
-.snd-b:nth-child(3) { --sb: 0.7; }
-.snd-b:nth-child(4) { --sb: 0.85; }
-/* off: every bar lies down and reaches its neighbour, one flat rule two pixels thick */
-.hdr-snd[aria-pressed="false"] .snd-b { --sb: 0.14; --sx: 2.04; }
-.hdr-snd[aria-pressed="false"] { color: var(--mute); }
-.hdr-snd[aria-pressed="false"]:hover { color: var(--ink); }
-@media (min-width: 1024px) {
-  .hdr-nav { margin-left: auto; }
-  .hdr-snd { margin-left: calc(var(--s2) - var(--s4)); padding-left: var(--s4); border-left: 1px solid var(--line); min-height: 2.75rem; }
-}
-:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-snd { color: var(--dawn-body); border-color: var(--dawn-line); }
-:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-snd[aria-pressed="false"] { color: var(--dawn-mute); }
-:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]) .hdr-snd:hover { color: var(--cobalt); }
-:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).menu-open .hdr-snd { color: var(--body); border-color: var(--line); }
-:is(html[data-ground="dawn"], html[data-hdr-ground="dawn"]).menu-open .hdr-snd[aria-pressed="false"] { color: var(--mute); }
-@media (prefers-reduced-motion: reduce) { .snd-b { transition: none; } }
-@media print { .hdr-snd { display: none !important; } }
 
 /* EN / IT: the edition being read in ink, the other a link */
 .lang { display: inline-flex; align-items: center; gap: 0.4em; color: var(--mute); }
@@ -197,7 +158,7 @@ html.rv-motion .menu:not([hidden]) .menu-foot { animation-delay: 360ms; }
 @keyframes menu-row { from { opacity: 0; transform: translate3d(0, 0.9rem, 0); } to { opacity: 1; transform: none; } }
 @media (min-width: 1024px) { .menu { display: none !important; } }
 @media (prefers-reduced-motion: reduce) {
-  .hdr, .hdr-rule, .hdr-name, .hdr-nav > *, .hdr-menu, .hdr-snd, .menu, .menu * { animation: none !important; transition: none !important; }
+  .hdr, .hdr-rule, .hdr-name, .hdr-nav > *, .hdr-menu, .menu, .menu * { animation: none !important; transition: none !important; }
   html.hdr-away .hdr { transform: none !important; }
 }
 

@@ -1,23 +1,23 @@
 # Alberto Tuveri — portfolio
 
-The portfolio of Alberto Tuveri, Software & AI Engineer and Creative Lead at SerSan: a studio at night. Every page is a room of the same lit studio, seen by one travelling eye; a click flies the eye through a door of cut glass into the next room. Six pages, nine case studies and a 404, in English (at the root) and Italian (under `it/`).
+The portfolio of Alberto Tuveri, Software & AI Engineer and Creative Lead at SerSan: a studio at night. Every page is a room of the same lit studio, seen by one travelling eye, with a neural cosmos beyond its walls; the home is one continuous journey through every page, and a click flies the eye through a door of cut glass into the next room. Six pages, ten case studies and a 404, in English (at the root) and Italian (under `it/`).
 
-Live at <https://portfolio-jet-eta-24.vercel.app>.
+Live at <https://albertotuveri.sersan.io>.
 
 ## How it is made
 
-Hand-written HTML, CSS and JavaScript. One WebGPU canvas is drawn over each page (raw WebGPU and hand-written WGSL, no 3D library); GSAP, Lenis and Anime.js move the 2D; the sound is synthesized with the Web Audio API. Without WebGPU, with reduced motion or without scripts every page is still complete, as plain flow.
+Hand-written HTML, CSS and JavaScript. One WebGPU canvas is drawn over each page (raw WebGPU and hand-written WGSL, no 3D library); GSAP, Lenis and Anime.js move the 2D. The site has no sound. Without WebGPU, with reduced motion or without scripts every page is still complete, as plain flow.
 
 | Folder | What it holds |
 |---|---|
-| `public/proto/rivista/` | the site's sources: `parts/` (the partials, `strings.mjs` with every word in both languages, `cases.json` with the nine cases), `css/`, the page scripts `fx-*.js`, the stage in `stage/` |
+| `public/proto/rivista/` | the site's sources: `parts/` (the partials, `strings.mjs` with every word in both languages, `cases.json` with the eleven works, ten of them with a case page), `css/`, the page scripts `fx-*.js`, the stage in `stage/` |
 | `public/captures/` | the pictures of the work |
 | `web/` | the Astro project that builds the pages for the release |
 | `scripts/` | the gates, the probes (headless Chrome through Playwright) and the media pipelines (sharp) |
 
 ## The two builds
 
-Both read the same partials and print the same 32 pages.
+Both read the same partials and print the same 34 pages.
 
 - **Assembled**: `node public/proto/rivista/assemble.mjs` writes the pages and `fx.css` next to their sources. No dependencies; every navigation is a new document.
 - **Astro** (`web/`): the same pages plus a client router that keeps the canvas, the GPU device and the swarm alive between pages, so a navigation is one flight. This is the build that goes online.

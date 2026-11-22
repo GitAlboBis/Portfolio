@@ -31,11 +31,14 @@ function prefetchScenes() {
       if (NAME.test(n)) names.add(n);
     }
     if (document.querySelector("main[data-case]")) names.add("mist");
-    // (wave 7, STAGE) a long page of many scenes (the home: nine) fetches only its first three here: the host imports
+    // (wave 7, STAGE) a long page of many scenes (the home: eight) fetches only its first three here: the host imports
     // the ones near the reader itself and the rest after the first frame (fx-stage.js loadScenes, loadLazy)
     let i = 0;
     for (const n of names) { if (names.size > 4 && i++ >= 3) break; import(new URL(`./scenes/${n}.js`, import.meta.url).href).catch(() => {}); }
     import(new URL("./scenes/lib/raster.js", import.meta.url).href).catch(() => {});
+    // (k-fix3d) and the tiers, which the host imports the moment it takes the device (fetched then, it was a round
+    // trip to the server between fx:ready and the first frame)
+    import(new URL("./tier.js", import.meta.url).href).catch(() => {});
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go, { once: true });
   else go();

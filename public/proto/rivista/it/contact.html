@@ -38,7 +38,7 @@
   var d=document.documentElement, q=null;
   try{ q=new URLSearchParams(location.search); }catch(e){}
   if(d.hasAttribute('data-home') && location.hash){
-    var OLD={work:'work.html',measured:'work.html#evidence',evidence:'work.html#evidence',capabilities:'about.html',stack:'about.html',path:'about.html#path',consult:'consulting.html',obla:'obla.html',contact:'contact.html'},
+    var OLD={work:'work.html',measured:'work.html',evidence:'work.html',capabilities:'about.html',stack:'about.html',path:'about.html#path',consult:'consulting.html',obla:'obla.html',contact:'contact.html'},
         go=OLD[location.hash.slice(1)];
     if(go){ var gp=go.split('#'); try{ location.replace(gp[0]+location.search+(gp[1] ? '#'+gp[1] : '')); return; }catch(e){} }
   }
@@ -71,7 +71,7 @@
   try{ F.forEach(function(u){ var l=document.createElement('link'); l.rel='preload'; l.as='font'; l.type='font/woff2'; l.crossOrigin='anonymous'; l.href=G+u; document.head.appendChild(l); }); }catch(e){}
   var J=window.__rvJs={done:false,boot:null,t0:0,t1:0}, jf=false,
       JS=['https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js','https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js',
-          'https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js','../fx-core.js','../fx-scroll.js','../fx-nav.js','../fx-motion.js','../fx-stage.js','../fx-sound.js'];
+          'https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js','../fx-core.js','../fx-scroll.js','../fx-nav.js','../fx-motion.js','../fx-stage.js'];
   J.list=JS;
   var AN='https://cdn.jsdelivr.net/npm/animejs@4.5.0/', anim=function(){
     if(rm || window.__rvAnime) return;
@@ -112,7 +112,6 @@
     <span class="lang" role="group" aria-label="Lingua"><a class="lang-alt" href="../contact.html" hreflang="en" lang="en" data-lang="en" data-pt-label="English" data-pt-sub="English edition" data-pt-dawn>EN<span class="sr-only"> · English</span></a><span class="lang-sep" aria-hidden="true"> / </span><span class="lang-now" aria-current="true"><b aria-hidden="true">IT</b><span class="sr-only">Italiano, lingua attuale</span></span></span>
     <span class="hdr-rule is-idle" aria-hidden="true" data-hdr-rule></span>
   </nav>
-  <button class="hdr-snd" type="button" aria-pressed="true" aria-label="Suono" title="Suono" data-snd data-snd-state="armed"><span class="snd-bars" aria-hidden="true"><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span></span></button>
   <button class="hdr-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Apri il menu" data-nv-open="Apri il menu" data-nv-close="Chiudi il menu" data-menu-btn><span class="m-open" aria-hidden="true">Menu</span><span class="m-close" aria-hidden="true">Chiudi</span></button>
   <span class="hdr-read" aria-hidden="true"></span>
 </header>

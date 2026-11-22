@@ -150,10 +150,12 @@ function alphaAt(r, x, y) {
  * The 0.5 iso-contour of a raster line as segments (marching squares on pixel centres), each tagged with its letter.
  * @param {ReturnType<typeof raster>[0]} r
  */
-function contour(r) {
+function* contour(r) {
   /** @type {number[][]} */ const segs = [];
   const v = (/** @type {number} */ i, /** @type {number} */ j) => r.a[j * r.W + i] - 0.5;
+  // (k-fix3d) a generator: it pauses every 16 rows (a desktop's name is one raster line of the whole name, 10 ms)
   for (let j = 0; j < r.H - 1; j++) for (let i = 0; i < r.W - 1; i++) {
+    if (i === 0 && j > 0 && (j & 15) === 0) yield;
     const a = v(i, j), b = v(i + 1, j), c = v(i + 1, j + 1), d = v(i, j + 1);
     const k = (a > 0 ? 1 : 0) | (b > 0 ? 2 : 0) | (c > 0 ? 4 : 0) | (d > 0 ? 8 : 0);
     if (k === 0 || k === 15) continue;
@@ -188,7 +190,7 @@ function* nameSetsGen(m, L, T, nFace, nDeep, nSheen) {
   let li = -1;
   for (const r of R) {
     li++;
-    const segs = contour(r);
+    const segs = yield* contour(r);
     const oy = (li - (R.length - 1) / 2) * lineH;        // lines stacked about the centre
     const ox = -r.width * sc / 2;                         // each line centred
     for (const lt of r.letters) {
@@ -201,6 +203,7 @@ function* nameSetsGen(m, L, T, nFace, nDeep, nSheen) {
       letters.push({ r, lt, segs: mine, area, len, y0, y1, li,
         // raster -> local world px (y: the capitals' middle of the line at oy)
         X: (/** @type {number} */ x) => ox + (x - r.pad) * sc, Y: (/** @type {number} */ y) => oy + (y - (r.base - P * 0.35)) * sc });
+      yield;   // (k-fix3d) each letter's scan of its columns is a slice of its own
     }
     yield;
   }

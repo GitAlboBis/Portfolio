@@ -232,11 +232,18 @@ export function makePlates(o, kit) {
       for (let i = 0; i < layers; i++) if (!taken.has(i)) { layer = i; break; }
       if (layer < 0 && layers < MAX_LAYERS) { const n = Math.min(MAX_LAYERS, Math.max(2, layers * 2)); const at = layers; growImages(n); rebind(); layer = at; }
       if (layer < 0) {
+        // (k-evidence, 22 November) the least recently DRAWN, never one a plate drew in the latest frame while another
+        // will do. Two scenes on screen together can need more textures than layers (in the home the gallery's last
+        // plate and About's stack, since Work's measured figures no longer stand between them): each makes again what
+        // it lost (fx-stage.js held), what was just made counted as just drawn, and a tie went to the oldest entry,
+        // the plate on screen, whose picture was gone for a few frames
         let lru = /** @type {string | null} */ (null), u = Infinity;
-        for (const [k, r] of tex) if (r.used < u) { u = r.used; lru = k; }
+        for (const [k, r] of tex) if (r.used < useClock && r.used < u) { u = r.used; lru = k; }
+        if (lru === null) for (const [k, r] of tex) if (r.used < u) { u = r.used; lru = k; }
         layer = /** @type {any} */ (tex.get(/** @type {string} */ (lru))).layer; tex.delete(/** @type {string} */ (lru));
       }
-      rec = { layer, aspect: sw / sh, used: useClock };
+      // a texture made now ranks behind every one drawn in the latest frame and ahead of all drawn before it
+      rec = { layer, aspect: sw / sh, used: useClock - 0.5 };
       tex.set(id, rec);
     }
     rec.aspect = sw / sh;
@@ -342,7 +349,12 @@ export function makePlates(o, kit) {
       const sharp = clamp01((s.sharp ?? 1) * focusK * (1 - 0.75 * (f.soften || 0)));
       const pad = 3 + (1 - sharp) * 18;
       x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
-      if (x1 < 0 || y1 < 0 || x0 > f.view.w || y0 > f.view.h) continue;
+      // (k-fix3d) a door whose room beyond is the morning (not s.night) stops at the edge of day risen from the frame's
+      // foot (f.dayY, stage.js): below it the page itself is seen, its paper and its words rising, not the glass's
+      // picture of an empty sheet. A straight cut, where the day's edge is; the night's door stands whole on the paper
+      let clipped = false;
+      if (door && !s.night && Number.isFinite(/** @type {any} */ (f).dayY) && /** @type {any} */ (f).dayY < y1) { y1 = /** @type {any} */ (f).dayY; clipped = true; }
+      if (x1 < 0 || y1 < 0 || x0 > f.view.w || y0 > f.view.h || y1 <= y0) continue;
       const img = s.tex != null && !isPrismSlab(s) && s.shape !== "door" ? tex.get(s.tex) : undefined;
       const etch = s.etch != null && !isPrismSlab(s) && s.shape !== "door" ? tex.get(s.etch) : undefined;
       if (img) img.used = useClock;
@@ -350,13 +362,14 @@ export function makePlates(o, kit) {
       // the image rect on the mid plane: inset from the edges (default 5 % of the smaller side, at least the bevel x 2)
       const bevel = s.bevel ?? Math.max(2.5, Math.min(7, look.bevel * Math.min(s.w, s.h) / 600));
       const inset = s.inset ?? Math.max(bevel * 2.2, 0.03 * Math.min(s.w, s.h));
-      items.push({ s, c, ax, ay, az, hw, hh, ht, alpha: alpha * pres, sharp, quad: [x0, y0, x1, y1], img, etch, bevel, inset });
+      items.push({ s, c, ax, ay, az, hw, hh, ht, alpha: alpha * pres, sharp, quad: [x0, y0, x1, y1], img, etch, bevel, inset, clipped });
     }
     items.sort((a, b) => a.c[2] - b.c[2]);
     // (lane m-fly, run 3) f.doorCover: the door's glass is opaque from edge to edge of the frame now (stage.js doorCover)
     const di = /** @type {any} */ (f).doorCover ? items.findIndex((it) => it.s.shape === "door") : -1;
-    drawFrom = di > 0 && items[di].alpha >= 0.999 ? di : 0;
-    coveredF = di >= 0 && items[di].alpha >= 0.999;
+    // (k-fix3d) a door cut at the edge of day covers only the night above it: what is behind is drawn as ever
+    drawFrom = di > 0 && items[di].alpha >= 0.999 && !items[di].clipped ? di : 0;
+    coveredF = di >= 0 && items[di].alpha >= 0.999 && !items[di].clipped;
     const SL = SLAB_SIZE / 4;
     items.forEach((it, i) => {
       const b = i * SL, s = it.s;
@@ -367,7 +380,7 @@ export function makePlates(o, kit) {
       // (wave 2, GLOW-WORK) s.edge 0..1: the bevels' own light (plates.wgsl.js edgeOf), packed above the glow
       // (lane m-glass) a prism carries no image: its look.z is the light of the beam inside it (PRISM_BEAM)
       const beamK = isPrismSlab(s) && typeof s.inset === "number" && s.inset < -1 ? Math.min(2, -s.inset - 1) : 0;
-      U.set([clamp01(s.glow ?? 0.5) + 2 * Math.round(100 * clamp01(s.edge ?? 0)), it.sharp, isPrismSlab(s) ? beamK : it.img ? it.img.layer : -1, it.etch ? it.etch.layer : -1], b + 16);
+      U.set([clamp01(s.glow ?? 0.5) + 2 * Math.round(1000 * clamp01(s.edge ?? 0)), it.sharp, isPrismSlab(s) ? beamK : it.img ? it.img.layer : -1, it.etch ? it.etch.layer : -1], b + 16);
       // (wave 4, PRISM) a prism: a triangular prism of cut glass inscribed in the plate's box (its axis the plate's
       // height, its triangle w wide and t deep, the apex edge along +z); it holds no image. Flagged by a negative image
       // aspect (plates.wgsl.js isPrism): every other plate packs exactly as before

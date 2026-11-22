@@ -69,17 +69,6 @@ export const FIELD_DEF = Object.freeze({
     thread: [0.068, 0.011, 0.3, 0.9], cap: [0.42, 1, 0.1, 1.7] },
 });
 
-/** @param {GPUDevice} device @param {string} label @param {() => any} fn */
-async function scoped(device, label, fn) {
-  device.pushErrorScope("validation");
-  /** @type {any} */ let out, thrown = null;
-  try { out = fn(); } catch (e) { thrown = e; }
-  const err = await device.popErrorScope();
-  if (thrown) throw thrown;
-  if (err) throw new Error(`[field] ${label}: ${err.message.split(String.fromCharCode(10))[0]}`);
-  return out;
-}
-
 /** The field's pipelines. @param {{ device: GPUDevice, format: GPUTextureFormat, frameLayout: GPUBindGroupLayout }} o */
 export async function fieldKit(o) {
   const { device, format, frameLayout } = o;
@@ -89,15 +78,21 @@ export async function fieldKit(o) {
   const code = frameWGSL + noiseWGSL + fieldWGSL + (fail ? " fn broken( { " : "");
   // (wave 7) the cosmos's web is made across a few tasks while the pipelines compile
   const web = webOnce();
-  const layout = await scoped(device, "layout", () => device.createBindGroupLayout({ label: "field.layout", entries: [
+  // (k-fix3d) the layout's and the shader's scope is read beside the pipelines, not before them: two awaited round trips
+  // to a GPU process busy with the swarm's and the plates' shaders put the field's pipelines 60 to 105 ms after the
+  // device, and the first frame waits for them (whenField). A shader that does not compile still rejects its pipelines
+  // (caught below), never as an uncaptured error
+  device.pushErrorScope("validation");
+  const layout = device.createBindGroupLayout({ label: "field.layout", entries: [
     { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
     { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float" } },
     { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
     { binding: 3, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
     { binding: 4, visibility: GPUShaderStage.VERTEX, buffer: { type: "read-only-storage" } },
     { binding: 5, visibility: GPUShaderStage.VERTEX, buffer: { type: "read-only-storage" } },
-  ] }));
-  const mod = await scoped(device, "shader", () => device.createShaderModule({ label: "stage.field", code }));
+  ] });
+  const mod = device.createShaderModule({ label: "stage.field", code });
+  const scope = device.popErrorScope();
   const pl = device.createPipelineLayout({ bindGroupLayouts: [frameLayout, layout] });
   // light adds (premultiplied, alpha 0), the stage's own blend
   const blend = { color: { srcFactor: "one", dstFactor: "one-minus-src-alpha", operation: "add" }, alpha: { srcFactor: "one", dstFactor: "one-minus-src-alpha", operation: "add" } };
@@ -107,8 +102,12 @@ export async function fieldKit(o) {
     label: "field." + fs, layout: pl, vertex: { module: mod, entryPoint: vs },
     fragment: { module: mod, entryPoint: fs, targets: [{ format, blend: /** @type {GPUBlendState} */ (blend) }] }, primitive: { topology: topo },
   });
+  const all = Promise.all([mk("vsCosmos", "fsCosmos", "triangle-strip"), mk("vsWall", "fsHaze"), mk("vsChip", "fsChip"), mk("vsRibbon", "fsRibbon", "triangle-strip")]);
+  all.catch(() => {});
+  const err = await scope;
+  if (err) throw new Error(`[field] layout or shader: ${err.message.split(String.fromCharCode(10))[0]}`);
   let pipes;
-  try { pipes = await Promise.all([mk("vsCosmos", "fsCosmos", "triangle-strip"), mk("vsWall", "fsHaze"), mk("vsChip", "fsChip"), mk("vsRibbon", "fsRibbon", "triangle-strip")]); }
+  try { pipes = await all; }
   catch (e) {
     let msg = "";
     try { const info = await mod.getCompilationInfo(); msg = info.messages.filter((x) => x.type === "error").map((x) => `${x.lineNum}:${x.linePos} ${x.message}`).join("; "); } catch { /* gone */ }

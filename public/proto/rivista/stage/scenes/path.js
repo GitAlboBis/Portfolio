@@ -22,6 +22,7 @@
 import mist from "../night/mist.js";
 
 import { eyeD, home, shot, aimAt, mixP, stations, lookFor, roomFor, bloomOf, SEED, freeBand, LIT, clearOf, project } from "../night/shot.js";
+import { follow } from "./lib/camera.js";
 
 const NODES = 5;
 const S0 = -0.7, S1 = 5.2;      // where the line starts (near the reader) and ends (far in the past), in nodes
@@ -127,7 +128,10 @@ const light = {
     const st = c.state, I = line;
     if (I.g && st.key !== I.g.key) { st.key = I.g.key; c.setTargets(lineTargets(c.H, I.g)); }
     // the swarm runs along the line, toward the past
-    return { reveal: I.reveal, shift: c.time * 34, ink: I.inkK * I.boost };
+    // (k-fix3d) a phone: the scroll's wind no longer blows the line's points off it. A reader's flick (up to 3,500 px/s)
+    // swept them into a sail of blurred blue streaks a column wide beside the pane in step, over the step's text for a
+    // moment of every scroll (wave 7's open item, the same on the live site); the line stays a line while the page moves
+    return { reveal: I.reveal, shift: c.time * 34, ink: I.inkK * I.boost, ...(I.g && I.g.ph ? { respond: { wind: 0.02 } } : null) };
   },
 };
 
@@ -172,7 +176,10 @@ export default {
     // thins out toward the eye instead of ending in a soft round head of blurred points
     // (wave 6) a wide screen: a longer feather (the far end is cut mid-line now, below) with the near end's fade
     // starting where it did
-    line.reveal = [clamp((kf - 0.1 * (1 - m) - (S0 + 0.12) * m - S0) / (S1 - S0) + (ph ? 0.06 : 0.04)), 1, ph ? 0.26 : 0.12];
+    // (k-fix3d) a phone: the line begins about a node further on (0.2 of its length past the pane in step, was 0.06).
+    // Its first stretch, the nearest to the eye, opened between two stations into a sail of blurred blue a column wide
+    // beside the pane and over the step's text (wave 7's open item; the same on the live site)
+    line.reveal = [clamp((kf - 0.1 * (1 - m) - (S0 + 0.12) * m - S0) / (S1 - S0) + (ph ? 0.2 : 0.04)), 1, ph ? 0.26 : 0.12];
 
     // ------------------------------------------------ the shot: behind the node in step, a little to its right and above,
     // looking down the line; it shows at F, the figure's focus
@@ -185,9 +192,11 @@ export default {
     if (ph) {
       const b = freeBand(c, 0, c.vw, 18, 70), gh = b[1] - b[0];
       const fy = gh > 0 ? b[0] + gh * 0.58 : F.y;
-      st.fy = st.fy == null || dt <= 0 ? fy : ease(st.fy, fy, dt, 0.35, 0.05);
-      F = { x: F.x, y: st.fy };
-      fitK = clamp(gh / 360, 0.5, 1);
+      // (wave 8, SMOOTH) the place and the panes' size ride critically damped springs (lib/camera.js follow): the band
+      // jumps when a text block enters or leaves it, and a first-order lag answered at full speed in one frame (the
+      // size followed the band with no lag at all: the panes grew or shrank by a third in one frame)
+      F = { x: F.x, y: follow(st, "fy", fy, dt, 0.2, 0.05) };
+      fitK = follow(st, "fit", clamp(gh / 360, 0.5, 1), dt, 0.2, 1e-3);
       bandOk = gh > 170 ? 1 : 0;
     }
     const A = g.at(kf), dl = Math.hypot(g.d[0], g.d[1], g.d[2]);
@@ -208,17 +217,33 @@ export default {
       const L2 = (ph ? 0.62 : 0.56), sz = phh / L2, y0 = F.y - sz * 0.75, y1 = F.y + sz * 0.6;
       if (c.texts.some((/** @type {any} */ r) => r.y < y1 && r.y + r.h > y0)) clear = 0;
     }
-    st.clear = st.clear == null ? clear : ease(st.clear, clear, dt, 0.12);
+    follow(st, "clear", clear, dt, 0.08, 1e-3);
     // (wave 6, ROOMS) the frame's REAL eye: the pose with the stage clock's drift (shot), turned by the hand's orbit the
     // way the stage damps it (the same input and time constant), through the lens of the scroll's speed. The panes'
     // boxes, the text test and the guard all see the screen the stage draws (the bare pose missed the orbit's 0.22 rad)
     const cam = shot(c, pose, { fog: [3.6 * D, 8 * D], aperture: 0.28 });
+    // (k-fix3d) a phone: a disc of the line fades from 3 css px of blur and is gone at 5 (the stage's 12): what is left
+    // of the near stretch out of focus no longer piles into a soft band
+    if (ph) cam.bokeh = 5;
     const ob = cam.orbit, aim = c.aim || { x: 0, y: 0 };
     const goal = [ob.yaw * (aim.x || 0), -ob.pitch * (aim.y || 0)];
     if (!st.orb) st.orb = goal;
     else if (dt > 0) st.orb = [ease(st.orb[0], goal[0], dt, ob.damp || 1.1, 1e-4), ease(st.orb[1], goal[1], dt, ob.damp || 1.1, 1e-4)];
     const piv = ob.pivot || cam.target;
     const eye = { pos: orbitAbout(cam.pos, piv, st.orb), target: orbitAbout(cam.target, piv, st.orb), lens: cam.lens };
+    // (k-fix3d) a phone: NO LIGHT BY THE TEXT. The line's first two nodes (where it is nearest and widest) are projected
+    // with the frame's real eye; while one comes within 72 css px of a text block the whole line dims on a spring and
+    // comes back once the text has passed, as the panes step back (the keep-outs only cut the discs at the block's edge,
+    // and a blurred stretch beside it still read as a band of blue over the words)
+    if (ph) {
+      let lh = 0;
+      const r0 = S0 + line.reveal[0] * (S1 - S0), M2 = 72;
+      for (let s = r0; s <= Math.min(S1, r0 + 2) && !lh; s += 0.1) {
+        const p = project(c, eye, g.at(s));
+        if (p && c.texts.some((/** @type {any} */ r) => p.x > r.x - M2 && p.x < r.x + r.w + M2 && p.y > r.y - M2 && p.y < r.y + r.h + M2)) lh = 1;
+      }
+      line.boost *= clamp(1 - follow(st, "lh", lh, dt, 0.06, 1e-3));
+    }
     // (wave 6) a wide screen: the line ends, faded, well inside the figure's half (the bow carried its far end to the
     // text column, a bright tip pointing at the heading)
     if (!ph && c.side === "left" && c.fig) {
@@ -256,7 +281,9 @@ export default {
       // the step's text) reaches it, never while its numerals lie over the words
       const mx = 20, my = ph ? 64 : 20;
       const hit = box && c.texts.some((/** @type {any} */ r) => r.x < box[2] + mx && r.x + r.w > box[0] - mx && r.y < box[3] + my && r.y + r.h > box[1] - my) ? 1 : 0;
-      st["h" + j] = st["h" + j] == null ? hit : ease(st["h" + j], hit, dt, ph && hit > st["h" + j] ? 0.04 : 0.08);
+      // (wave 8, SMOOTH) the step back and the way back ride a spring (lib/camera.js follow), the first-order lag set off at
+      // full speed the frame a text met the pane's box
+      { const h0 = typeof st["h" + j] === "number" ? st["h" + j] : hit; follow(st, "h" + j, hit, dt, ph && hit > h0 ? 0.02 : 0.04, 1e-3); }
       // the passed ones leave quickly (gone by a third of the way to the next station)
       // (wave 4, PRISM) a phone: a passed pane leaves sooner (its fading numerals lay over the next step's dates line)
       const alpha = Math.max(m, ph ? sstep(-0.24, -0.04, d) : sstep(-0.4, -0.08, d)) * (1 - sstep(3.4, 4.6, d)) * st.clear * (1 - st["h" + j])

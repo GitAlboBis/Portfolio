@@ -372,10 +372,16 @@ import("astro:transitions/client").then((T) => {
   O.add.call(document, "astro:after-swap", () => {
     const s = swapped; swapped = null;
     if (!s) return;
-    try {
-      window.__rvSoftY = s.traverse && traverseY !== null ? traverseY : null;
-      runPageScripts(s.to);
-      log("swapped", s.to, counts());
-    } catch (e) { console.warn("[router] the new page did not start: a plain navigation", e); location.replace(s.to); }
+    const go = () => {
+      try {
+        window.__rvSoftY = s.traverse && traverseY !== null ? traverseY : null;
+        runPageScripts(s.to);
+        log("swapped", s.to, counts());
+      } catch (e) { console.warn("[router] the new page did not start: a plain navigation", e); location.replace(s.to); }
+    };
+    /* (k-fix3d) a flight: the new page's scripts start a frame after the swap. The swap's style and layout (the home is
+       the longest page) and the boot's own work were one frame of 49 to 70 ms while the eye flew (Contact -> home,
+       200 ms after the click); now the swap is one frame and the boot the next */
+    if (s.arrival && s.arrival.fly) O.raf(() => O.st(go, 0)); else go();
   });
 }).catch((e) => { R.quiet = 0; log("router not loaded: plain navigations", e); });

@@ -58,7 +58,9 @@ const head = (lang) => `<!doctype html><html${lang === "en" ? "" : ` lang="${lan
 function card({ eyebrow, titleLines, body, fig, lang = "en" }) {
   const figure = fig.kind === "img"
     ? `<img src="${esc(fig.src)}" alt="" style="object-position:${esc(fig.pos || "50% 50%")}">`
-    : `<div class="words"><p class="pf">${esc(fig.figure)}</p><p class="pl">${esc(fig.line)}</p></div>`;
+    // (wave 8, INTEGRATE) the line in balanced rows: no word left alone on the second («… HELD IN THE / DATABASE»); set
+    // on the element, so only the eight words cards change (the shared CSS is in every card's input hash)
+    : `<div class="words"><p class="pf">${esc(fig.figure)}</p><p class="pl" style="text-wrap:balance">${esc(fig.line)}</p></div>`;
   return `${head(lang)}
 <body><div class="card">
   <div class="col">

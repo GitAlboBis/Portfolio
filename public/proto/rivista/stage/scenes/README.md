@@ -2,16 +2,18 @@
 
 > Brought up to the code of 17 November 2026 (wave 5) by its DOCS lane; corrected in place for wave 6 (20 November)
 > and wave 7 (21 November: the home as one page of every page's scenes, the neural cosmos where the wall was, the
-> looks mixed by weight). The engine's own reference is the header of `stage/stage.js`; the host's is the header of
-> `fx-stage.js`. Where this page and the code disagree, the code wins.
+> looks mixed by weight), and wave 8 (22 November: every slide on springs, the pivot handed over, textures made again,
+> the door's lines and the edge of day). The engine's own reference is the header of `stage/stage.js`; the host's is
+> the header of `fx-stage.js`. Where this page and the code disagree, the code wins.
 
 A scene is one module, `stage/scenes/NAME.js`, for every `<section data-stage="NAME">` on a page (a case page's
 `main[data-case]` is given the `mist` scene). The host (`fx-stage.js`) imports it when the page has that section (a
 missing or failing module is skipped), registers its formations with the stage, calls `frame(ctx)` every frame while
 the section is near the viewport, blends the answers of every scene on screen by how much of the viewport each holds,
-and sends one `stage.set` per frame. Today: `hero`, `now`, `gallery`, `evidence`, `stack`, `path`, `consult`,
-`obla`, `contact`, `dawn`, `mist`, `case` (wave 7: the index left the home with its scene, `index.js`). The home holds
-the scenes of every page but the cases in one document (hero, now, gallery, evidence, stack, path, consult, obla,
+and sends one `stage.set` per frame. Today: `hero`, `now`, `gallery`, `stack`, `path`, `consult`, `obla`,
+`contact`, `dawn`, `mist`, `case` (wave 7: the index left the home with its scene, `index.js`; 22 November: Work's
+measured figures left the site with theirs, `evidence.js`). The home holds
+the scenes of every page but the cases in one document (hero, now, gallery, stack, path, consult, obla,
 contact): the host registers a scene's formations ahead of the reader (`AHEAD` in `fx-stage.js`: 1.5 screens up, 3
 down; on a cold load only the scenes near the reader are imported before the first frame, the others after it in page
 order, one formation a task), mixes the scenes' looks by weight (a key a scene does not ask for counts at the stage's
@@ -37,7 +39,8 @@ export default {
   litSignal: false,                    // true: the page's fx:stage:lit waits until your frame returns lit: true
   async init({ tier, phone, etch, texture }) {},   // optional, once after registration
   prepare({ vw, vh, phone, tier }) {},             // optional: work before your first frame on an arrival by a flight
-                                                   // (may return a promise; the room waits for it at most 0.4 s)
+                                                   // (may return a promise; the room waits for it at most 0.4 s) and,
+                                                   // since wave 8, on a cold load (with the field, at most 0.5 s)
   frame(ctx) { return { swarm, slabs, camera, keepouts, focus, rest, bloom, field, passes, subject, lit }; },   // null for nothing
 };
 ```
@@ -61,7 +64,7 @@ export default {
 | `share`, `weight` | the scene's share of the viewport (0–1) and its smoothed blend weight |
 | `marks` | `{ ID: rect }` of every `[data-stage-mark="ID"]` in the section (their glyph box) |
 | `imgs` | `{ ID: { tex, w, h, aspect, rect, el } }` of every `<img data-slab="ID">`; `tex` is the texture id once decoded, else `null` |
-| `texts` | the section's text blocks on screen: `[{ tag, x, y, w, h }]` (glyph boxes): keep-outs, the display line |
+| `texts` | the section's text blocks on screen: `[{ tag, x, y, w, h }]` (glyph boxes): keep-outs, the display line. A box in a sticky held by its bottom (a caption at the foot of the view) is measured where it stands (wave 8) |
 | `media` | the section's pictures on screen (`img`, `picture`, `video`, `canvas` outside the view): rects, for keep-outs |
 | `dawn` | the day rectangles on screen (inside them a point is ink) |
 | `ground` | `"night"` or `"dawn"` (the Contact page) |
@@ -69,7 +72,7 @@ export default {
 | `clock` | `{ time, activity, awake }`: the stage's simulated seconds (they stop when it rests) and its activity 0–1. Drive an idle drift with `clock.time`, never with `time`, or the stage never sleeps |
 | `glass` | `{ ready, age, late }`: whether plates can draw yet, seconds since they could (0 until then), and whether the stage drew before they could (see "The glass signal") |
 | `etch(id, lines, o)` | etched words (display face, uppercase; `o.w`, `o.h` the canvas in css px: the plate's aspect) as a slab texture for a slab's `etch`; returns its id once drawn, else `null` (ask again next frame) |
-| `texture(id, source)` | a canvas or bitmap of your own as a slab texture; returns its id |
+| `texture(id, source)` | a canvas or bitmap of your own as a slab texture; returns its id. The plates hold 16 layers and give the least recently drawn one to a new texture; since wave 8 the host keeps what each texture was made from (an image, etched words, a canvas) and makes it again, for a scene on screen, when its layer has gone (`held`, `TEXFROM`; at most once in 1.5 s per texture). Ask for your textures every frame you show them, and make them ahead (the stack makes its eight names one a frame from its first frame): a texture first asked for while it is seen draws one frame of blank glass |
 | `look(partial)` | your ask of the stage's LOOK (e.g. `{ far, near }`: the sim clamps every point's z to far..near, −700..450 by default; the cover's hall asks −2.6 D..4.7 D; `keepFeather`). Since wave 7 an ask, not an order: every frame the host mixes the asks of the scenes in the frame by their weight, and a key a scene does not ask for counts at LOOK's value (`fx-stage.js` `lookOf`; `keepFeather` always, any other key, `far` and `near` included, once a scene of the page asks for it: the hero and Now do, so the home's parts hand their looks over as their scenes hand over the frame; a page whose scenes never ask for a depth range keeps the one it was flown in with, LOOK's on a load). Sent to the stage only when it changes, kept across a rebuilt stage. Ask every frame you are on screen, from the scenes whose look it is (Now asks the hero's) |
 | `speed` | 0..1 the reader's speed (the scroll velocity over 2600 px/s, up in 0.12 s, down in 0.7 s, exactly 0 at rest) |
 | `aim` | `{ x, y, touch }`: the hand's orbit input, −1..1: the pointer on a desktop, a horizontal drag on a touch screen |
@@ -101,7 +104,10 @@ export default {
   When one scene on screen returns a free camera the host turns every other scene's camera into a free pose and mixes
   the poses by weight (no host smoothing: keep `damp: 0` for a path and the move is exact). Points and plates nearer
   than `nearFull` fade, nothing draws nearer than `near`, past `fog[1]` the hall is night. `orbit: { yaw, pitch, damp,
-  pivot }` turns the camera about the pivot with the pointer (rad at the viewport's edge).
+  pivot }` turns the camera about the pivot with the pointer (rad at the viewport's edge). Give the pivot you mean (the
+  apex of a glide, the figure being read): since wave 8 a pivot that jumps (further in a frame than its own speed
+  explains, by 0.035 D) is handed over on a critically damped spring by the stage (`stage.js` `pivotStep`, 0.14 s),
+  and the host mixes the scenes' pivots by weight; a pivot that moves on its own is drawn exactly as given.
 - `rest` — seconds the stage keeps moving after the last input (default 5; a slow idle drift wants about 14).
 - `bloom` — light that glows: a strength (0.5–1.2 reads as glow; 0 or absent = none, nothing runs) or
   `{ strength, threshold, knee, plates }`. Blended by weight; the dawn never glows.
@@ -155,6 +161,37 @@ export default {
 
 Shoot on `stage/dev.html?view=fly` first: the bench's test world with this kind of path (`p=0..1` holds it, live it
 loops every `period` s).
+
+## A slide (springs and glides, `lib/camera.js`, wave 8)
+
+A slide ends with its speed coming down in one curve, never a snap (Alberto, 21 November: «alla fine dello slide
+diciamo scatta un può il movimento»; the causes and the recordings in `docs/redesign/rivista-story/build/k-smooth.md`).
+Whatever your scene moves between two steps rides these:
+
+- `follow(state, key, to, dt, smooth, eps?)` — a critically damped spring: `state[key]` holds the value and
+  `state[key + "V"]` its speed; it starts from the speed it had, never passes a target at rest, and lands exactly
+  within `eps`, so the stage sleeps. `smooth` is its time (s): a ramp is followed 2 × `smooth` behind, a jump is 95 %
+  made after 4.74 × `smooth`. The first call starts on the target. Pass a capped `dt` (`Math.min(c.dt, 0.1)`).
+- `glideK(e0, e1, x)` — 0..1 between `e0` and `e1` along a quintic: no speed and no acceleration at either end. One
+  glide per boundary between two steps (the gallery: a sixth of the travel even, the rest `glideK(0.24, 0.76, f)`);
+  `stations(x, n)` in `stage/night/shot.js` walks from station to station with it.
+- `softMin(a, b, k)`, `softClamp(x, lo, hi, k)` — limits with a cushion `k`: a figure a text pushes starts to move
+  before the text reaches it, with no corner where the limit bites.
+
+```js
+import { follow, glideK } from "./lib/camera.js";
+// in frame(c):
+const S = c.state, dt = Math.min(c.dt || 0, 0.1);
+const x = c.step - 1 + c.local - 0.5;                             // the reader's place from the steps' middles:
+const n = Math.floor(x), f = x - n;                                // a boundary is f = 0.5
+const target = n + f * 0.16 + 0.84 * glideK(0.24, 0.76, f);       // one bell of speed across each boundary
+const s = follow(S, "s", target, dt, 0.09);                        // the plates ride the spring to it
+```
+
+Never a first-order lag (`x += (to - x) * k`) on a target that jumps: it answers at full speed at once and brakes
+with a corner. Never two smoothsteps mirrored about a step's boundary: the speed falls just where the plates trade
+places. A value that only appears or goes (a presence, a hide) may still take a fade; its way back after a text has
+passed rides a spring.
 
 ## The field (shafts, chips, the cosmos: `stage/field/`, `stage/cosmos/`)
 
@@ -423,7 +460,11 @@ longer run: that room stands as their last answers left it), the host loads the 
 runs their first frame undrawn (`ctx.etch` and the display type rastered then) and uploads the first screen's
 captures. What a scene asks then that would change the room on stage (a texture the stage already holds, the
 backdrop, `ctx.look`) is held and applied at the takeover, in one task, at the first frame where the door's glass
-hides the whole frame. A scene needs nothing new for this: `frame()` may run once before the room is its own.
+hides the whole frame. A scene needs nothing new for this: `frame()` may run once before the room is its own. Since
+wave 8 the router starts the arriving page's scripts one frame after the swap (`rv-router.js`), and on a cold load
+`prepare()` runs too (the host waits for it under the same half-second cap as the field, so the first frame is the lit
+room): build there what a long task would cost, in slices (the cover's name is a generator that pauses every 16 rows;
+the chips' shapes are cut 4 ms at a time, `stage/field/atlas.js` `sliced`), never in one task of 25 ms or more.
 
 ## The cut, as a scene sees it
 
@@ -437,7 +478,11 @@ The cut between pages is the host's and the engine's; a scene does not drive it,
 - **The flight** (`stage.fly`, under the router): the stage itself dollies the eye along its view axis through the room
   to a door of cut glass standing in the room (`LOOK.flyDoor` × D behind the page plane), and adds the door as a slab
   of its own. The scene keeps returning its pose: the flight is added to it. `c.flight` stays 0. The page's display
-  type leaves the glass with the text (the host clears the backdrop), so a plate stops bending the old title.
+  type leaves the glass with the text (the host clears the backdrop), so a plate stops bending the old title. Since
+  wave 8 the door's lit lines fade as it stands taller than the frame (`doorSlab`, the edge set on the CPU and carried
+  in thousandths) and, toward the morning, the door stops at the edge of day (`dayY`). In the plate shader any new
+  value carried through `shadeAt` or to the end of `fsPlate` costs every plate of every page 0.45 ms: a slab's new
+  data is worked out on the CPU and packed as a field (`plates.js`).
 
 The events (`fx:nav:start { to, side, dawn, back, ms, door, glass, day }`, `fx:nav:covered`, `fx:nav:arrived`,
 `fx:stage:frame`, `fx:stage:lit`, `fx:step { scene, step, of }`, and since wave 7 `fx:part { part, from }`, the home's
@@ -508,7 +553,8 @@ markup to the bench's builder if the generic steps do not fit.
 
 - `yields: true` on a scene's default export: the host steps that scene's plates back from every OTHER scene's text on
   screen (straight-view box of the plate, gone on contact, full 140 px away). Set by `stack` (the path's head lay bent
-  double under its last plate) and `gallery` (the evidence's head).
+  double under its last plate) and `gallery` (set for the evidence's head; since 22 November About's head in the
+  home; on Work its last plate leaves in the last fifth of its step, as the dawn's edge comes up under it).
 - The room's keep-outs never cut a hole: `room(c, { keepDim })` dims the room's light to a floor inside a kept rect
   over a long fall (since wave 7 the cosmos's floor is a quarter of the one asked and never above 0.06: default 0.035
   desktop, 0.05 phone; fall 150 / 90 px; the haze's 0.12; `keepDim: false` = the old cut). Engine: the field's
@@ -529,4 +575,13 @@ markup to the bench's builder if the generic steps do not fit.
   may also switch on an extra pass: `mist.js` imports `lib/prism.js` (which registers `rays`) and forwards the
   figures' `passes` in its answer (More work's prism and its ray).
 - The stage sleeps: whatever a scene moves at rest must run on `c.clock.time` and settle exactly (a value that creeps
-  by an ulp a frame keeps the stage awake; `case/figures.js` `ease` snaps within 1e-3).
+  by an ulp a frame keeps the stage awake; `case/figures.js` `ease` snaps within 1e-3, `follow` lands within its
+  `eps`).
+- A plate's window (the screen box the glass draws in) grows from its centre with the plate's presence (wave 8): a
+  plate fading in is not drawn whole at a few hundredths of its light, so the next plate's glass does not flash at a
+  slide's ends.
+- On a phone the gallery's plate keeps to the free band it stands in and takes another only when its own falls under
+  four fifths of the tallest or under 150 px; it rides springs into the band; the stack's band pushes it with a cushion
+  (`softClamp`, `softMin`) from before a text arrives (wave 8).
+- `list` figures (`case/figures.js`) etch nothing since wave 8: a thin plate with "01" on it is the floating card
+  Alberto hated; no figure is a rectangle carrying a number.

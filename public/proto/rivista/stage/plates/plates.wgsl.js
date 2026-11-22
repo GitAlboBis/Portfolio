@@ -307,7 +307,11 @@ fn sheenCut(s : Slab) -> f32 { return floor(s.mat.w / 64.0) / 63.0; }
 // (wave 2, GLOW-WORK) look.x carries the edge glow (0..1) and, above it, 2 x 100 x a per-plate EDGE light: the bevels and
 // the side faces lit in paper white of their own, as if a light in the room caught them (0, the default: today's image)
 fn glowOf(s : Slab) -> f32 { return s.look.x - 2.0 * floor(s.look.x * 0.5); }
-fn edgeOf(s : Slab) -> f32 { return floor(s.look.x * 0.5) * 0.01; }
+// (k-fix3d) in thousandths (plates.js packs 1000 x s.edge): a door that stands taller than the frame fades its lines
+// below 0.01 (edgeLine)
+fn edgeOf(s : Slab) -> f32 { return floor(s.look.x * 0.5) * 0.001; }
+// the arris line's strength for an edge light ek: 0.55 + 1.1 ek from 0.01 up (as before), and down to nothing below it
+fn edgeLine(ek : f32) -> f32 { return 0.55 * min(ek * 100.0, 1.0) + 1.1 * ek; }
 // (lane n-fix-flight) THE CUT'S DOOR: a long block of cut glass the eye flies into and through (stage.js doorSlab).
 // Flagged by a negative etch aspect: plates.js packs -(1 + the light inside it, 0..1); img.z - 1 is how much of that
 // light is the morning's paper. Every other plate packs an etch aspect above 0 and takes none of the door's branches.
@@ -746,7 +750,11 @@ fn shadeAt(s : Slab, id : u32, ro : vec3f, rd : vec3f, fw : f32, pxw : f32, blur
     // (on the morning's paper the seam cannot be a line of light: the groove stays, fainter, as the cut's fine line)
     let groove = (1.0 - smoothstep(0.5 * bevPx, 1.25 * bevPx, -xs)) * (1.0 - wall) * (1.0 - 0.8 * day);
     let ur = smoothstep(-0.9, 0.9, 0.5 * (pO.x / max(h.x, 1.0) - pO.y / max(h.y, 1.0)));
-    let seamK = select(0.3, 1.0, eyeIn) * (0.06 + 0.5 * ur * ur) * (1.0 - 0.8 * day);
+    // (k-fix3d) the eye in the block: the seams keep the light they have seen from outside (0.3, it was 1.0 inside: with
+    // the arrises, stage.js doorSlab's edge, they ran the frame's height as bright bars from 400 to 500 ms into a
+    // flight); a faint lit cut with its split, the groove and the band keeping the edge. A constant: any new value
+    // carried through shadeAt (once per colour channel) cost every plate of every page 0.45 ms (Work at rest)
+    let seamK = 0.3 * (0.06 + 0.5 * ur * ur) * (1.0 - 0.8 * day);
     o.col = body * (1.0 - 0.72 * groove) + vec3f(0.96, 0.95, 0.92) * mix(vec3f(lG), vec3f(lR, lG, lB), 0.4) * dim * seamK;
   }
   if (ek > 0.0) {
@@ -764,7 +772,7 @@ fn shadeAt(s : Slab, id : u32, ro : vec3f, rd : vec3f, fw : f32, pxw : f32, blur
     let u = clamp(0.5 * (pIn.x / max(h.x, 1.0) - pIn.y / max(h.y, 1.0)), -1.0, 1.0);
     let cd = length(vec2f(h.x - pIn.x, h.y + pIn.y)) / max(1.0, min(h.x, h.y));
     let corner = mix(0.42, 1.0, smoothstep(-0.7, 1.0, u)) + 0.9 * exp(-cd * 3.0);
-    o.col = o.col * mix(1.0, 0.24, side) + vec3f(0.96, 0.95, 0.92) * line * corner * dim * (0.55 + 1.1 * ek);
+    o.col = o.col * mix(1.0, 0.24, side) + vec3f(0.96, 0.95, 0.92) * line * corner * dim * edgeLine(ek);
     edgeK = max(max(line.x, line.y), line.z);
   }
   o.gw = glowOf(s) * edgeK * (0.6 + 0.4 * nb.w);

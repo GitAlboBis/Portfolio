@@ -366,11 +366,11 @@ const ISSUE = {
   contact: { file: "contact.html", order: 5, label: "sec.contact", n: "05", part: "c-main.contact.html", dawn: true },
 };
 /* a section that is not the first of its page: its name (the menu and the old addresses reach it by an anchor) */
-const ANCHOR = {};   // e.g. { evidence: "sec.evidence" } with that string added: none is linked today
+const ANCHOR = {};   // e.g. { path: "sec.path" } with that string added: none is linked today
 /* where each section lives (asserted): Now on the home alone; every page's sections on that page and, since wave 7,
-   in the home's part of it; the cover's index nowhere */
-const CHAPTERS = { now: ["home"], work: ["work", "home"], evidence: ["work", "home"], stack: ["about", "home"], path: ["about", "home"],
-  consult: ["consult", "home"], obla: ["obla", "home"], contact: ["contact", "home"], index: [] };
+   in the home's part of it; the cover's index nowhere, nor Work's evidence (removed on 22 November) */
+const CHAPTERS = { now: ["home"], work: ["work", "home"], stack: ["about", "home"], path: ["about", "home"],
+  consult: ["consult", "home"], obla: ["obla", "home"], contact: ["contact", "home"], index: [], evidence: [] };
 const orderOf = (k) => (k === "case" ? 1.5 : k === "404" ? -1 : ISSUE[k].order);
 /* LINK placeholders (page, or page#anchor), written for the page that prints them: the href, the direction of the cut,
    the destination's name and line on the sheet, the dawn sheet for Contact, aria-current on the page being read */

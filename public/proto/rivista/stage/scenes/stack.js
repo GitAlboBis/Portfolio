@@ -16,18 +16,17 @@
  */
 import mist from "../night/mist.js";
 import { eyeD, home, shot, lookFor, roomFor, bloomOf, SEED, LIT } from "../night/shot.js";
+import { follow, glideK, softMin, softClamp } from "./lib/camera.js";
 
 const N_LAYERS = 8;
 const THREADS = 7, PER = 360;
 
 const clamp = (/** @type {number} */ x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
 const sstep = (/** @type {number} */ a, /** @type {number} */ b, /** @type {number} */ x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-// (wave 2) settles exactly: a value that creeps by one ulp a frame moved the camera's pivot and the plates, and the
-// stage never slept on About (2 frames every 3 s at rest)
-const damp = (/** @type {number} */ cur, /** @type {number} */ to, /** @type {number} */ dt, /** @type {number} */ tau) => {
-  const v = cur + (to - cur) * (1 - Math.exp(-dt / Math.max(1e-4, tau)));
-  return Math.abs(to - v) < 1e-3 ? to : v;
-};
+// (wave 2) values settle exactly: one that creeps by one ulp a frame moved the camera's pivot and the plates, and the
+// stage never slept on About (2 frames every 3 s at rest). (wave 8, SMOOTH) They ride critically damped springs now
+// (lib/camera.js follow, which lands exactly too): the first-order lag they rode answered a target that jumps (a
+// phone's band, the text crossing the stack) at full speed in one frame, 1000 to 1400 px/s from rest
 
 /* ---------------------------------------------------------------- 3 x 3 turns, row-major, the slab's signs */
 /** @typedef {number[][]} M3 */
@@ -143,11 +142,10 @@ export default {
     // ------------------------------------------------ where the reader is: the head (0), then the eight steps
     const open = c.step >= 1 ? 1 : sstep(0.55, 1, c.local);
     const xs = c.step >= 1 ? c.step - 1 + c.local - 0.5 : -0.5;
-    const n0 = Math.floor(xs), kf = c.step >= 1 ? clamp(n0 + sstep(0.3, 0.7, xs - n0), 0, N_LAYERS - 1) : 0;
-    if (s.k == null) { s.k = kf; s.open = open; s.turn = c.progress; }
-    s.k = damp(s.k, kf, dt, 0.28);
-    s.open = damp(s.open, open, dt, 0.35);
-    s.turn = damp(s.turn, c.progress, dt, 0.6);
+    const n0 = Math.floor(xs), kf = c.step >= 1 ? clamp(n0 + glideK(0.3, 0.7, xs - n0), 0, N_LAYERS - 1) : 0;
+    follow(s, "k", kf, dt, 0.16, 1e-3);
+    follow(s, "open", open, dt, 0.2, 1e-3);
+    follow(s, "turn", c.progress, dt, 0.34, 1e-3);
     const act = s.open;                                       // how much a layer stands out at all
 
     // ------------------------------------------------ the frame: the stack in the figure's half
@@ -156,39 +154,58 @@ export default {
     // text (INTEGRATE, from DRIVE: at 900 x 900 and at 200 % zoom the front plate covered the step's title and tools)
     // and when the text crosses the stack where it stands (a short window: the text fills the top), it moves to the
     // widest band of the view that no text crosses, sized to it
-    let room = f.w, cx0 = f.x + f.w * 0.5, cy0 = f.y + f.h * (ph ? 0.7 : 0.53);
+    let cx0 = f.x + f.w * 0.5, cy0 = f.y + f.h * (ph ? 0.7 : 0.53);
     const lw0 = ph ? Math.min(f.w * 0.62, 300) : Math.min(f.w * 0.62, 540);
-    let sc0 = 1, fade = 1;
+    // the stack's half height at scale 1 (the layers, the parting, the plate's depth seen from above)
+    const H1 = 3.5 * (ph ? 18 : 36) + (ph ? 16 : 40) + 0.42 * lw0 * 0.64, pad = 16;
+    let sc0 = 1, fade = 1, pass = 1;
     if (c.side === "top") {
-      let tx1 = -1;
+      let room = f.w, tx1 = -1;
       for (const r of c.texts) if (r.y < f.y + f.h && r.y + r.h > f.y) tx1 = Math.max(tx1, r.x + r.w);
       if (tx1 > 0 && tx1 < f.x + f.w * 0.55) { cx0 = (tx1 + f.x + f.w) / 2; room = f.x + f.w - tx1; }
       sc0 = clamp(Math.min(f.h * 0.62, room * 0.62) / lw0, 0.4, 1);
-      // the stack's half height at scale 1 (the layers, the parting, the plate's depth seen from above)
-      const H1 = 3.5 * (ph ? 18 : 36) + (ph ? 16 : 40) + 0.42 * lw0 * 0.64;
-      const hx0 = cx0 - lw0 * sc0 * 0.8, hx1 = cx0 + lw0 * sc0 * 0.8, pad = 16;
+      const hx0 = cx0 - lw0 * sc0 * 0.8, hx1 = cx0 + lw0 * sc0 * 0.8;
       const tx = c.texts.filter((/** @type {any} */ r) => r.x < hx1 && r.x + r.w > hx0);
-      const hit = (/** @type {number} */ y, /** @type {number} */ h) => tx.some((/** @type {any} */ r) => r.y - pad < y + h && r.y + r.h + pad > y - h);
-      // a tall screen (a phone upright): only a step's text passing through on its way crosses it, and the stack
-      // steps back while it does; a short window (landscape, zoom): the text fills the top for good, the stack moves
-      const crossed = hit(cy0, H1 * sc0 + 12);
-      // (FIX3D) a phone upright too: the stack moves into the tallest band no text crosses and fits it, and steps back
-      // only when no band is tall enough (it hid from step 6 on, where the step's text crossed its band for good)
-      fade = 1;
-      if (crossed) {
-        const cuts = tx.map((/** @type {any} */ r) => [r.y - pad, r.y + r.h + pad]).sort((/** @type {number[]} */ p, /** @type {number[]} */ q) => p[0] - q[0]);
-        let best = [0, 0], at = 64;
-        for (const [p, q] of cuts) { if (p - at > best[1] - best[0]) best = [at, p]; at = Math.max(at, q); }
-        if (c.vh - at > best[1] - best[0]) best = [at, c.vh];
-        const gh = best[1] - best[0];
-        if (gh > (c.vh >= 600 ? 150 : 80)) { cy0 = (best[0] + best[1]) / 2; sc0 = clamp(Math.min(sc0, (gh / 2 - 12) / H1), 0.3, 1); }
-        else fade = 0;
+      // (FIX3D) the stack stands in the band no text crosses and fits it, and steps back only when no band is tall
+      // enough (it hid from step 6 on, where the step's text crossed its band for good).
+      // (wave 8, SMOOTH) THE TEXT PUSHES THE STACK. It was moved to the middle of the tallest free band the moment a text
+      // touched it and back the moment the text was gone: a step's text coming to rest under it moved it 53 px half a
+      // second after the slide (rec/a-jf-B.png), and it followed the leaving text in jumps. Now it keeps to the free
+      // band it stands in (the tallest one when that one gets clearly smaller or too small) and is kept inside it
+      // with a cushion (softClamp, softMin for its size): its place moves with the text from before the text reaches
+      // it and stops when the page stops; the stack rides that place on springs (moving to another band it crosses a
+      // text, and the glass steps back while it does)
+      const ref = typeof s.cyT === "number" ? s.cyT : cy0, min = c.vh >= 600 ? 150 : 80;
+      const cuts = tx.map((/** @type {any} */ r) => [r.y - pad, r.y + r.h + pad]).sort((/** @type {number[]} */ p, /** @type {number[]} */ q) => p[0] - q[0]);
+      /** @type {number[][]} */ const bands = [];
+      let at = 64;
+      for (const [p, q] of cuts) { if (p > at) bands.push([at, p]); at = Math.max(at, q); }
+      if (c.vh > at) bands.push([at, c.vh]);
+      const size = (/** @type {number[]} */ b) => b[1] - b[0];
+      const best = bands.reduce((p, q) => (size(q) > size(p) ? q : p), [0, 0]);
+      const here = bands.find((b) => b[0] <= ref && b[1] >= ref);
+      const band = here && size(here) > min && size(here) >= 0.8 * size(best) ? here : best;
+      const gh = size(band);
+      if (gh > min) {
+        sc0 = clamp(softMin(sc0, (gh / 2 - 12) / H1, 0.04), 0.3, 1);
+        const h2 = H1 * sc0 + 12;
+        cy0 = band[0] + h2 <= band[1] - h2 ? softClamp(cy0, band[0] + h2, band[1] - h2, 20) : (band[0] + band[1]) / 2;
+      } else { fade = 0; cy0 = ref; sc0 = typeof s.scT === "number" ? s.scT : sc0; }
+      // stepping back (no band tall enough) it holds the place where it was
+      s.cyT = cy0; s.scT = sc0;
+      // (wave 8, SMOOTH) the glass steps back while it lies over a text where it is drawn now (crossing a text to
+      // another band; the springs a few px behind a text that pushes it are not); the swarm keeps out of text on its own
+      if (typeof s.cy === "number") {
+        const hw = lw0 * s.sc * 0.8, hh = H1 * s.sc + 12;
+        if (c.texts.some((/** @type {any} */ r) => r.x < s.cx + hw && r.x + r.w > s.cx - hw && r.y + 6 < s.cy + hh && r.y + r.h - 6 > s.cy - hh)) pass = 0;
       }
     }
-    s.cx = s.cx == null ? cx0 : damp(s.cx, cx0, dt, 0.4);
-    s.cy = s.cy == null ? cy0 : damp(s.cy, cy0, dt, 0.4);
-    s.sc = s.sc == null ? sc0 : damp(s.sc, sc0, dt, 0.4);
-    s.fade = s.fade == null ? fade : damp(s.fade, fade, dt, 0.12);
+    follow(s, "cx", cx0, dt, 0.16, 0.01);
+    follow(s, "cy", cy0, dt, 0.16, 0.01);
+    follow(s, "sc", sc0, dt, 0.16, 1e-4);
+    follow(s, "fade", fade, dt, 0.08, 1e-3);
+    follow(s, "pass", pass, dt, 0.06, 1e-3);
+    if (s.dbg ??= /[?&]debug=1/.test(location.search)) /** @type {any} */ (window).__stack = { step: c.step, local: c.local, cy0: Math.round(cy0), sc0, fade, pass, cy: s.cy, sc: s.sc, texts: c.texts.map((/** @type {any} */ r) => [r.x, r.y, r.w, r.h].map(Math.round)) };
     const sc = s.sc;
     const lw = lw0 * sc;
     const ld = lw * 0.64;
@@ -206,6 +223,16 @@ export default {
     // ------------------------------------------------ the eight layers
     const L = names();
     const slabs = [];
+    // (wave 8, SMOOTH) THE NAMES. A layer's name was etched in one of two textures, bright in step and faint in the
+    // others, swapped on the frame the layer crossed the middle of the travel; the first time a texture was asked the
+    // layer drew one frame with no name at all (blank glass between "CORE" and "FRONT-END"): the brightest thing in the
+    // frame popped as the slide ended. Now every glass layer carries its name bright (one texture per layer: eight
+    // layers of the plates' sixteen instead of all sixteen), and the hand-over is the glass's own: the layer leaving
+    // goes soft and dims (sharp) and fades with its glass as the next one comes in and into focus. The eight are made
+    // ahead, one a frame from the first frame, so none is ever asked for the first time while it is seen
+    const eo = { w: Math.round(lw), h: Math.round(ld), pad: lw * 0.12, colour: "#ffffff" };
+    const warm = s.warm ?? 0;
+    if (warm < N_LAYERS) { if (!L[warm] || c.etch("cap" + warm, [L[warm]], eo)) s.warm = warm + 1; }
     for (let i = 0; i < N_LAYERS; i++) {
       const d = i - s.k;
       const near = clamp(1 - Math.abs(d));                    // 1 for the layer in step, easing to 0 at its neighbours
@@ -213,22 +240,20 @@ export default {
       // rest height (index 0 on top), the parting round the layer in step, its lift and slide
       const y = (i - (N_LAYERS - 1) / 2) * g + part * Math.tanh(d * 1.6) - (ph ? 6 : 10) * on;
       const p = app(V, [0, y, slide * on]);
-      // the name etched: full in the layer in step, faint in the others (two textures; the switch rides the focus pull)
-      // (FIX3D) at the head (the stack closed) the top layer carries its name bright: lit glass from the first frame
-      const strong = on > 0.5 || (i === 0 && act < 0.5);
-      const eo = { w: Math.round(lw), h: Math.round(ld), pad: lw * 0.12, colour: strong ? "#ffffff" : "rgba(255,255,255,0.17)" };
-      const etch = L[i] ? c.etch((strong ? "cap" : "capf") + i, [L[i]], eo) : null;
       // only the layer in step and its neighbours are glass (cost: three plates at most, the far ones are outlines)
       // (FIX3D) the layer in step alone while it is read, two across a boundary (three cost 2.4–2.6 ms at rest at 1440
-      // DPR 2 with the room lit: at the limit); the neighbours keep their outlines of light
-      const glassK = 1 - clamp((Math.abs(d) - 0.55) / 0.45);
+      // DPR 2 with the room lit: at the limit); the neighbours keep their outlines of light. (wave 8, SMOOTH) The two
+      // across a boundary DISSOLVE into each other (their presences sum to one all the way): with both whole until the
+      // leaving one faded at the end, two bright names lay across each other for a third of a second
+      const glassK = 1 - sstep(0.12, 0.88, Math.abs(d));
       rims.ys[i * 3] = y; rims.ys[i * 3 + 1] = slide * on; rims.ys[i * 3 + 2] = glassK;
       if (glassK <= 0.01) continue;
+      const etch = L[i] ? c.etch("cap" + i, [L[i]], eo) : null;
       const slab = {
         id: "l" + i, cx: cx + p[0], cy: cy + p[1], cz: p[2] - 30,
         yaw: flat.yaw, pitch: flat.pitch, roll: flat.roll,
         w: lw, h: ld, t, tex: null, etch, bevel: 4,
-        alpha: s.fade * glassK, glow: clamp(0.3 + 0.7 * on + 0.55 * (1 - act)), sharp: 0.95 - 0.4 * act + 0.45 * on, sheen: 0.22,
+        alpha: s.fade * s.pass * glassK, glow: clamp(0.3 + 0.7 * on + 0.55 * (1 - act)), sharp: 0.95 - 0.4 * act + 0.45 * on, sheen: 0.22,
       };
       slabs.push(slab);
     }

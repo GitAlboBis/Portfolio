@@ -30,14 +30,14 @@ import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync,
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-/* THE SITE'S ADDRESS: the one line to change when a custom domain arrives (or set RV_ORIGIN where the build runs) */
-const ORIGIN = "https://portfolio-jet-eta-24.vercel.app";
+/* THE SITE'S ADDRESS: the project's domain on Vercel since 22 November (Alberto: «il dominio è https://albertotuveri.sersan.io/»);
+   the one line to change if the domain changes again (or set RV_ORIGIN where the build runs) */
+const ORIGIN = "https://albertotuveri.sersan.io";
 
 /* what the build holds and a visitor never loads */
 const LEFT_OUT = [
   [/\.md$/i, "notes"],
   [/^stage\/.*\.html$/, "the stage's benches"],
-  [/^sound\//, "the sound's offline renderer"],
   [/\.webp\.json$/, "the captures' sidecars"],
   /* the Supply Chain's detail stays: fx-motion.js reads it at run time to trace the figure's lines (wave 6, TITLES) */
   [/^captures\/(?!agricultural-supply-chain-detail\.svg$).*\.svg$/, "the drawing a capture was rendered from"],

@@ -4,29 +4,32 @@
 >
 > Su ogni riga vale la regola di proporzione: i gate che esistono (`assemble.mjs --check`, `check-claims-proto.mjs`) più uno sguardo alle pagine. Nessun nuovo script di misura nel repo.
 
-## 0. Adesso (21 novembre)
+## 0. Adesso (22 novembre)
 
-**La settima ondata è sul disco: la committa il direttore per argomento e va online come la sesta.** Nasce dalle parole di Alberto del 20 novembre, dopo aver guardato il sito online: «vorrei che fosse una pagina singola con uno scroll continuo , tutta un unica esperienza nella home . ovviamente le pagine devono rimanere separate se uno clicca work o dall'url»; «non mi piace lo sfondo a griglia»; «puoi fare molto di meglio come sfondo . reti neurali , o spazio , qualcosa di super realistico e wow»; e, la sera, SerSan Agent OS (per SerSan) e Obla (suo) come la prova più forte delle sue competenze multi-agente, in Consulting, About e Work. Gli appunti sono in `docs/redesign/rivista-story/build/l-*.md`.
+**L'ottava ondata è sul disco: la committa il direttore per argomento e va online come la settima, ma prima il dominio deve tornare al progetto (sotto).** Nasce dalle parole di Alberto del 21 novembre, dopo aver guardato l'ondata 7 online: «Il suono è orribile, togli tutti i sound effects . Inoltre se trovi problemi e difetti devi migliorarli subito. Un altro è che quando scorrono le carte dei work, alla fine dello slide diciamo scatta un può il movimento . Stessa cosa anche in quelle di competenze e skills»; e «togli questo dalla home : Scroll / 160,000 points · 0.92 ms GPU». Gli appunti sono in `docs/redesign/rivista-story/build/k-*.md`.
 
 **Costruiti:**
-1. la home come un solo viaggio attraverso tutte le pagine, nell'ordine del menu, fino al mattino di Contact, nelle due build e nelle due lingue; le pagine restano separate e fra l'una e l'altra si vola (HOME; poi STAGE sul palco, MOTION per aperture, intestazione, suono e link);
-2. il cosmo neurale in ogni stanza al posto della griglia, un solo cosmo seminato una volta, più leggero della griglia a riposo e nei picchi su desktop (COSMOS);
-3. l'indice della copertina tolto, il prisma solo sotto «More work»;
-4. undici lavori: SerSan Agent OS con la sua pagina di caso, Obla che porta alla sua pagina (WORKS); i fatti prima in `PRODUCT.md` e la prova multi-agente in Consulting, About, Now e Obla (CONTENT);
-5. lo sciame che torna intero dopo un dimezzamento, le parole incise in righe bilanciate (STAGE).
+1. il suono tolto del tutto: il modulo, l'interruttore, lo switch, lo strumento che rendeva i suoni; zero `AudioContext` su carico, clic, voli e scroll (SOUND);
+2. ogni slide che finisce senza scatto, nella galleria di Work, nella pila di About e in ogni altra scena, su molle smorzate criticamente: nella galleria della home il salto peggiore a fine slide è 77 px/s contro i 3.754 di HEAD (SMOOTH);
+3. i difetti 2D lasciati dall'ondata 7: nessuna lastra con un numero, il 404 che nomina la home, i nomi di scena con una forma breve al telefono, il diagramma della Supply Chain leggibile, Now che porta al caso di SerSan Agent OS (FIX2D); l'invito a scorrere e la riga del motore tolti dalla hero (il direttore);
+4. i difetti del palco: la banda blu del percorso di About al telefono, le giunture della porta, la carta vuota verso Contact, il buco del volo da Contact alla home, il primo frame della home prima di HEAD (FIX3D).
 
-Poi INTEGRATE (gate, rilascio, GPU, WebKit, la serie finale in `.shots/l-final/`) e i documenti.
+Poi INTEGRATE (gate, rilascio, GPU, la serie finale in `.shots/k-final/`) e i documenti.
 
 **Prossimi passi:**
 
-- **Il direttore:** guardare `.shots/l-final/`, committare per argomento, poi il rilascio sull'albero finale, lo squash sopra `208c3de` e il push su `main` (il diario in testa a `HANDOFF.md`; `CLAUDE.md` §6), lo stato del commit, i cinque indirizzi e una prova headless sul sito vero.
-- **Lo sguardo e l'orecchio di Alberto, sul sito online:** la home dall'alto in basso e le sue giunture, il cosmo, i lavori nuovi; il suono non l'ha ancora sentito nessuno. Firefox, un telefono vero e uno schermo HDR non sono mai stati provati, Safari solo per la pagina stampata.
-- **Gli aperti dell'ondata 7** (`CLAUDE.md` §8):
-  - il primo frame della home e il picco a 1920 fra Now e la galleria, sopra HEAD;
-  - le giunture fra le parti della home, all'occhio di Alberto; i vecchi indirizzi `index.html#…`, che portano ancora alle pagine;
-  - il «9» di Maintech e il «PostGIS 3» di Badante24h sulle lastre;
-  - la lettura da madrelingua dell'italiano nuovo.
+- **Alberto, nel pannello di Vercel:** il dominio del sito è `albertotuveri.sersan.io` (Alberto, 22 novembre); il vecchio `portfolio-jet-eta-24.vercel.app` risponde 404 dalla sera del 21. Da decidere: farne un redirect 308 al dominio nuovo (`CLAUDE.md` §8, «Per il deploy»).
+- **Il direttore:** guardare `.shots/k-final/`, committare per argomento, poi il rilascio sull'albero finale, lo squash sopra `37cc8e2` e il push su `main` (il diario in testa a `HANDOFF.md`; `CLAUDE.md` §6), lo stato del commit, i cinque indirizzi e una prova headless sul sito vero.
+- **La figura di Now** (Alberto, 21 novembre: «non mi piace la card con lo screenshot del sito»): la lane ORRERY la costruisce fuori dall'albero (`build/k-orrery.md`) ed entra dopo il via libera del direttore, a ondata 8 tornata.
+- **Lo sguardo di Alberto, sul sito online:** le slide della galleria e della pila, la home dall'alto in basso e le sue giunture. Firefox, un telefono vero e uno schermo HDR non sono mai stati provati, Safari solo per la pagina stampata.
+- **Gli aperti dell'ondata 8** (`CLAUDE.md` §8):
+  - la galleria di Work a riposo, un poco sopra HEAD per le sue molle (sotto i limiti); il primo frame della home, prima di HEAD ma non ai 331 ms della vecchia copertina;
+  - il diagramma della Supply Chain al telefono (una panoramica) e nelle stampe (morbido a DPR 2);
+  - i vecchi indirizzi `index.html#…`, che portano ancora alle pagine;
+  - la lettura da madrelingua dell'italiano nuovo delle ondate 7 e 8.
 - **Astro come unica build.** Togliere `assemble.mjs` si decide dopo il suo sguardo.
+
+**Storia: la settima ondata è andata online il 21 novembre.** Committata per argomento (`ece5ff9` … `695f472`, poi il diario `551f252`) e pubblicata come un solo commit con l'albero finale sopra `208c3de`, pushato su `main`: lo squash `37cc8e2`, Vercel «Deployment has completed» alle 11:51; verso le 20:06 il dominio ha smesso di rispondere. I suoi punti: la home come un solo viaggio attraverso tutte le pagine, fino al mattino di Contact; il cosmo neurale al posto della griglia; l'indice della copertina tolto; undici lavori, con SerSan Agent OS e Obla; lo sciame che torna intero dopo un dimezzamento.
 
 **Storia: la sesta ondata è online dal 20 novembre.** Committata per argomento (`534b087` … `bc438dd`) e pubblicata come un solo commit con l'albero finale sopra `881f68c`, pushato su `main` (Alberto, 19 novembre: «pusha su github e mergia su main così fa il deploy su vercel automatico»): lo squash `208c3de`, Vercel verde alle 16:37, servito alla radice di https://portfolio-jet-eta-24.vercel.app; la vecchia app Next.js è tolta. I suoi nove punti: il primo clic di una visita vola subito e muto; la porta tiene la stanza nuova dal primo fotogramma all'ultimo e verso Contact il mattino arriva come un bordo di giorno; il GPU dei voli; una figura per «More work» e per il record al telefono; le date del percorso di About sempre separate; il prisma dell'indice come vetro pieno; la fase 4 del piano 70 (grana, aberrazione in velocità, canvas HDR); i resti del 2D; il volo anche da Contact (solo la build Astro).
 
@@ -59,7 +62,7 @@ I difetti noti che potrebbe notare, in ordine, sono in `HANDOFF.md` §6: per pri
 | Lo sguardo dal vivo al sito (5178, o la 5179 se la chiede) | Un giro di correzioni, o niente |
 | Lettura dei testi di Consulting e Obla; Obla senza riga di stato | L'ultima passata sul copy nuovo |
 | Lettura dell'italiano da madrelingua | L'ultima passata sul copy italiano |
-| Un dominio vero (`albertotuveri.dev` non esiste nel DNS): `ORIGIN` in testa a `web/scripts/release.mjs`, o `RV_ORIGIN` | L'indirizzo definitivo, i canonical e la sitemap |
+| Il vecchio indirizzo `portfolio-jet-eta-24.vercel.app` come redirect 308 a `albertotuveri.sersan.io` (il dominio vero dal 22 novembre, in `ORIGIN` in testa a `web/scripts/release.mjs`) | I link già condivisi |
 | Che cosa fare di `feat/water-viva` e `feat/water-hero` ora che `main` ha il sito (la storia di `feat/water-viva` tiene `47e914d` e non si pusha) | La pulizia dei branch |
 | Le note sul CV (durata del brand film, Angular o React, la voce "Personal Portfolio") | Correggere il CV, non il sito |
 

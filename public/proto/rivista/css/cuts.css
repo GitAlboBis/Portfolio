@@ -90,7 +90,7 @@ html.cut-flown .cut:not(.mo-cut) :is(.cut-name, .cut-sub, .cut-rule) { opacity: 
    arriveFlown takes html.cut-flown away then); data-arrive itself goes with the room's first frame, so the scenes
    stand and are lit from the first frame after the door */
 html.cut-flown main, html.cut-flown footer { visibility: hidden; pointer-events: none; }
-html.rv-motion.cut-flown :is(.hdr-name, .hdr-nav > a, .hdr-nav > .lang, .hdr-menu, .hdr-snd) { animation-play-state: paused; }
+html.rv-motion.cut-flown :is(.hdr-name, .hdr-nav > a, .hdr-nav > .lang, .hdr-menu) { animation-play-state: paused; }
 html.rv-motion.cut-flown [data-focus="load"], html.rv-motion.cut-flown [data-focus-lines="load"] > .ln { animation-play-state: paused; }
 /* the router's announcement of the new page's title (screen readers only) */
 .astro-route-announcer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; white-space: nowrap; clip-path: inset(50%); }

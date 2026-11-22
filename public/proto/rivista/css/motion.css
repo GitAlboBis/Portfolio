@@ -70,8 +70,8 @@ html.rv-motion .mo-step .mo-hl { transform: scaleX(0); }
 /* ---------------------------------------------------------------- the header: the scene's name and the reading line.
    The name is the heading of the scene in view (the page's own words), set as a label after a short rule; it changes
    behind a straight mask. From 1024 px it follows the header's name on its line; below 1024 px (wave 6, TITLES) it
-   stands under the header's name, which rises to make room (css/chrome.css .hdr.has-scene), and it ends before the
-   sound's toggle and MENU; the open menu hides it. The reading line is a 1 px accent line along the header's foot,
+   stands under the header's name, which rises to make room (css/chrome.css .hdr.has-scene), and it ends before
+   MENU; the open menu hides it. The reading line is a 1 px accent line along the header's foot,
    drawn as far as the page has been read; it is linked to the scroll on the compositor (no script) and only where the
    browser can. */
 .hdr-scene { display: none; }
@@ -92,7 +92,7 @@ html.mo-on .hdr-scene {
 }
 @media (max-width: 1023.98px) {
   html.mo-on .hdr-scene {
-    position: absolute; top: 50%; left: var(--gut); right: calc(var(--gut) + 7.75rem);
+    position: absolute; top: 50%; left: var(--gut); right: calc(var(--gut) + 5rem);
     gap: var(--s2);
   }
   .hdr-scene-r { width: 1rem; }

@@ -31,6 +31,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "Agents with roles,", "it": "Agenti con un ruolo," }, { "en": "a Gate on the way out", "it": "un Cancello in uscita" }],
+        "short": { "en": "Agents with roles", "it": "Agenti con un ruolo" },
         "lead": { "t": { "en": "SerSan's own multi-agent system, which I built for the studio. After a client call, or each morning, its agents prepare call summaries, CRM notes, to-dos, follow-ups, meeting briefs and their own stand-up. A router sends each job where it belongs, the agents hand work to each other on a shared board, and nothing reaches the outside except through the Gate.", "it": "Il sistema multi-agente di SerSan, che ho costruito per lo studio. Dopo una chiamata con un cliente, o ogni mattina, i suoi agenti preparano riassunti delle chiamate, note per il CRM, cose da fare, follow-up, brief delle riunioni e il loro stand-up. Un router manda ogni lavoro dove deve andare, gli agenti si passano il lavoro su una bacheca comune e niente esce se non attraverso il Cancello." }, "src": "P:40" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": { "en": "TypeScript · Node.js 22 · Claude Agent SDK · Model Context Protocol · Anthropic API · Open-weight models hosted in house · Zod · Fastify · PostgreSQL 16 · Vitest · GitHub Actions", "it": "TypeScript · Node.js 22 · Claude Agent SDK · Model Context Protocol · Anthropic API · Modelli open-weight ospitati in casa · Zod · Fastify · PostgreSQL 16 · Vitest · GitHub Actions" }, "src": "P:256" }
       },
@@ -38,6 +39,7 @@
         "type": "schematic",
         "eyebrow": { "en": "How a job travels", "it": "Il percorso di un lavoro" },
         "headline": [{ "en": "From an event", "it": "Da un evento" }, { "en": "to the Gate", "it": "al Cancello" }],
+        "short": { "en": "To the Gate", "it": "Fino al Cancello" },
         "lead": { "t": { "en": "A job starts from one of 12 kinds of event and ends at the Gate.", "it": "Un lavoro parte da uno dei 12 tipi di evento e finisce al Cancello." }, "src": "P:40" },
         "nodes": [
           { "t": { "en": "An event", "it": "Un evento" }, "sub": { "en": "after a client call, or each morning", "it": "dopo una chiamata con un cliente, o ogni mattina" }, "src": "P:40" },
@@ -59,6 +61,7 @@
         "type": "facts",
         "eyebrow": { "en": "Tested", "it": "Collaudo" },
         "headline": [{ "en": "Broken on purpose,", "it": "Rotto apposta," }, { "en": "piece by piece", "it": "pezzo per pezzo" }],
+        "short": { "en": "Broken on purpose", "it": "Rotto apposta" },
         "lead": { "t": { "en": "Tests that break each piece on purpose, to show what happens when a part fails. It runs on development machines, with test data and a scripted model in place of the real ones.", "it": "Test che rompono apposta ogni pezzo, per mostrare che cosa succede quando una parte si guasta. Il sistema gira su macchine di sviluppo, con dati di prova e un modello a copione al posto di quelli veri." }, "src": "P:40, P:256" },
         "items": [
           { "num": { "en": "2,513", "it": "2.513" }, "title": { "en": "Automated tests passed", "it": "Test automatici superati" }, "body": { "en": "And 0 failed, on 20 November 2026; there were 777 when the first milestone closed. The suite must give the same names, outcomes and counts in three runs in a row.", "it": "E 0 falliti, il 20 novembre 2026; alla chiusura della prima milestone erano 777. La suite deve dare gli stessi nomi, esiti e conteggi in tre giri di fila." }, "src": "P:40" },
@@ -130,6 +133,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "Eight tools,", "it": "Otto strumenti," }, { "en": "one platform", "it": "una piattaforma" }],
+        "short": { "en": "Eight tools", "it": "Otto strumenti" },
         "replaced": { "tools": ["Circle", "Teachable", "Zoom", "Intercom", "HubSpot", "Mailchimp", "Stripe", "Notion"], "aria": { "en": "The eight tools it replaced", "it": "Gli otto strumenti che ha sostituito" }, "by": "SphereNode", "srBy": { "en": "Replaced by ", "it": "Sostituiti da " }, "src": "P:102" },
         "lead": { "t": { "en": "A production platform for the Italian retail-trading market that replaced eight separate tools with one product: courses, live sessions, payments and entitlements, a Trading Journal and a bilingual AI mentor.", "it": "Una piattaforma in produzione per il mercato italiano del retail trading che ha sostituito otto strumenti separati con un solo prodotto: corsi, sessioni live, pagamenti e diritti d’accesso, un Trading Journal e un mentor AI bilingue." }, "src": "W:172, P:102-129" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "React 18 · Vite · Supabase (Postgres, RLS, Realtime, pgvector, Edge Functions) · Whop · Cloudflare Stream · Capacitor", "src": "P:103-104" }
@@ -149,6 +153,7 @@
         "type": "facts",
         "eyebrow": { "en": "Reliability", "it": "Affidabilità" },
         "headline": [{ "en": "What had", "it": "Cosa doveva" }, { "en": "to hold", "it": "reggere" }, { "en": "at launch", "it": "al lancio" }],
+        "short": { "en": "What had to hold", "it": "Cosa doveva reggere" },
         "lead": { "t": { "en": "A paywalled product with tiered access, live video, recurring payments and scheduled jobs, where a single defect leaks paid content or strands paying customers.", "it": "Un prodotto a pagamento con accessi a livelli, video live, pagamenti ricorrenti e job pianificati, dove basta un difetto per far uscire contenuti a pagamento o lasciare fuori clienti paganti." }, "src": "W:176, P:115-123" },
         "items": [
           { "num": "5", "title": { "en": "Revenue-critical defects closed", "it": "Difetti critici per\u00a0i\u00a0ricavi,\u00a0chiusi" }, "body": { "en": "The payments-to-entitlement pipeline rebuilt as a tested state machine: access surviving cancellation, disputes and unknown events defaulting to open, empty lookups downgrading paying users, duplicate rows stranding paid customers, out-of-order events resurrecting revoked access.", "it": "La pipeline dai pagamenti ai diritti d’accesso riscritta come state machine testata: accessi che sopravvivevano alla disdetta, contestazioni ed eventi sconosciuti che aprivano l’accesso di default, ricerche a vuoto che declassavano utenti paganti, righe duplicate che lasciavano fuori clienti paganti, eventi fuori ordine che riattivavano accessi revocati." }, "src": "P:115-117" },
@@ -206,6 +211,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "It asks", "it": "Chiede prima" }, { "en": "before it guesses", "it": "di azzardare" }],
+        "short": { "en": "It asks first", "it": "Chiede prima" },
         "lead": { "t": { "en": "Sphere AI is the bilingual (IT/EN) RAG mentor inside SphereNode. It answers only from the platform's proprietary curriculum: semantic chunking and embeddings in pgvector, tier-aware retrieval with a curated fast path for canonical answers, and a generation layer with an LLM relevance grader on top.", "it": "Sphere AI è il mentor RAG bilingue (IT/EN) dentro SphereNode. Risponde attingendo solo al curriculum proprietario della piattaforma: chunking semantico ed embedding in pgvector, un retrieval che tiene conto del livello d’abbonamento, con una corsia preferenziale curata per le risposte canoniche, e, sopra la generazione, un LLM che ne valuta la pertinenza." }, "src": "W:273, P:105-107" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "RAG · pgvector · Embeddings · Semantic chunking · LLM relevance grader · LLM evaluation · Guardrails · Supabase", "src": "W:243, P:103-107" }
       },
@@ -213,6 +219,7 @@
         "type": "schematic",
         "eyebrow": { "en": "The pipeline", "it": "La pipeline" },
         "headline": [{ "en": "Curriculum", "it": "Dal curriculum" }, { "en": "to answer", "it": "alla risposta" }],
+        "short": { "en": "Curriculum to answer", "it": "Dal curriculum" },
         "lead": { "t": { "en": "Every answer starts from the proprietary curriculum and passes a relevance grader before it reaches the trader.", "it": "Ogni risposta parte dal curriculum proprietario e passa da un valutatore di pertinenza prima di arrivare al trader." }, "src": "P:105-107" },
         "nodes": [
           { "t": { "en": "Proprietary curriculum", "it": "Curriculum proprietario" }, "src": "P:105" },
@@ -288,9 +295,9 @@
     },
     "fig": {
       "kind": "plate",
-      "figure": { "en": "9", "it": "9" }, "word": false,
-      "figLine": { "en": "roles, default-deny on every table", "it": "ruoli, default-deny su ogni tabella" },
-      "caption": [{ "en": "Nine roles", "it": "Nove ruoli" }, { "en": "Permissions held in the database, not in tokens.", "it": "Permessi conservati nel database, non nei token." }],
+      "figure": { "en": "Default-deny", "it": "Default-deny" }, "word": true,
+      "figLine": { "en": "on every table, permissions held in the database", "it": "su ogni tabella, permessi conservati nel database" },
+      "caption": [{ "en": "The security model", "it": "Il modello di sicurezza" }, { "en": "Nine roles, and it cannot be bypassed from the client.", "it": "Nove ruoli, e non si può aggirare dal client." }],
       "src": "P:137-138"
     },
     "chapters": [
@@ -298,6 +305,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "Founded", "it": "Le fondamenta," }, { "en": "from the scaffold", "it": "dallo scaffold" }],
+        "short": { "en": "From the scaffold", "it": "Le fondamenta" },
         "lead": { "t": { "en": "A custom ERP for a heavy-vehicle workshop with about 50 staff across mechanics, mechatronics, auto-electrics, bodywork and refrigeration. I founded the system: the application scaffold, the 'Diesel & Safety' design system (design tokens, light and dark themes, a component library) and the first database schema the rest of the product was built on.", "it": "Un ERP su misura per un’officina di veicoli pesanti con circa 50 addetti tra meccanica, meccatronica, elettrauto, carrozzeria e refrigerazione. Ho gettato le fondamenta del sistema: lo scaffold applicativo, il design system «Diesel\u00a0&\u00a0Safety» (design token, temi chiaro e scuro, una libreria di componenti) e il primo schema del database su cui è stato costruito il resto del prodotto." }, "src": "W:387, P:132-136" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Vite · React 18 · TypeScript · Supabase (Postgres 17, RLS, Edge Functions) · TanStack Query", "src": "P:130-131" }
       },
@@ -305,6 +313,7 @@
         "type": "schematic",
         "eyebrow": { "en": "The domain core", "it": "Il cuore del dominio" },
         "headline": [{ "en": "Customer", "it": "Dal cliente" }, { "en": "to purchase order", "it": "all’acquisto" }],
+        "short": { "en": "Customer to order", "it": "Dal cliente all’acquisto" },
         "lead": { "t": { "en": "The domain core I delivered, from the customer to the order that buys the parts.", "it": "Il cuore del dominio che ho consegnato, dal cliente all’ordine che acquista i ricambi." }, "src": "P:140-142" },
         "nodes": [
           { "t": { "en": "Customers", "it": "Clienti" }, "src": "P:140" },
@@ -319,6 +328,7 @@
         "type": "facts",
         "eyebrow": { "en": "Security", "it": "Sicurezza" },
         "headline": [{ "en": "What holds", "it": "Cosa regge" }, { "en": "at the database", "it": "nel database" }],
+        "short": { "en": "At the database", "it": "Nel database" },
         "lead": { "t": { "en": "A database-first security model that cannot be bypassed from the client: default-deny access rules on every table, per-site data segregation, and permissions held in the database rather than in tokens.", "it": "Un modello di sicurezza database-first che non si può aggirare dal client: regole di accesso default-deny su ogni tabella, segregazione dei dati per sede e permessi conservati nel database invece che nei token." }, "src": "P:137-138" },
         "items": [
           { "num": "3", "title": { "en": "Live defects", "it": "Difetti reali" }, "body": { "en": "Exposed by the first database test suite written against the model, and fixed before they reached production.", "it": "Emersi con la prima suite di test del database, scritta sul modello, e corretti prima che arrivassero in produzione." }, "src": "P:138-139" },
@@ -375,6 +385,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "One canvas,", "it": "Un canvas," }, { "en": "seventeen scenes", "it": "diciassette scene" }],
+        "short": { "en": "Seventeen scenes", "it": "Diciassette scene" },
         "lead": { "t": { "en": "I rebuilt the studio's public site single-handedly, as engineer and designer, into a WebGPU-first experience: one continuous 3D canvas carries seventeen scroll-locked scenes across the site, with an automatic fallback for machines without WebGPU and recovery if the graphics context is lost.", "it": "Ho rifatto da solo, come engineer e designer, il sito pubblico dello studio e ne ho fatto un’esperienza WebGPU-first: un unico canvas 3D continuo porta diciassette scene agganciate allo scroll lungo tutto il sito, con un fallback automatico per le macchine senza WebGPU e il ripristino se il contesto grafico va perso." }, "src": "W:468, P:148-152" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Next.js 16 · React 19 · three.js (WebGPU/TSL) · React Three Fiber · GSAP + Lenis · Tailwind v4 · Vercel", "src": "P:149" }
       },
@@ -382,6 +393,7 @@
         "type": "facts",
         "eyebrow": { "en": "The GPU work", "it": "Il lavoro sulla GPU" },
         "headline": [{ "en": "Written in", "it": "Scritto in" }, { "en": "compute shaders", "it": "compute shader" }],
+        "short": { "en": "Compute shaders", "it": "Compute shader" },
         "items": [
           { "num": "17", "title": { "en": "Scroll-locked scenes", "it": "Scene agganciate allo\u00a0scroll" }, "body": { "en": "On one continuous 3D canvas, with a fallback for machines without WebGPU.", "it": "Su un unico canvas 3D continuo, con un fallback per le macchine senza WebGPU." }, "src": "P:151-152" },
           { "num": { "en": "48,000", "it": "48.000" }, "title": { "en": "Particles in the wordmark intro", "it": "Particelle nell’intro del\u00a0logotipo" }, "body": { "en": "Computed on the GPU, beside a particle brand mark.", "it": "Calcolate sulla GPU, accanto a un marchio a particelle." }, "src": "P:153" },
@@ -421,6 +433,7 @@
         "type": "facts",
         "eyebrow": { "en": "On every device", "it": "Su ogni dispositivo" },
         "headline": [{ "en": "The full scene,", "it": "La scena intera," }, { "en": "on weak mobile GPUs", "it": "su GPU mobile\u00a0deboli" }],
+        "short": { "en": "On weak mobile GPUs", "it": "Su GPU mobile deboli" },
         "items": [
           { "num": "100", "title": { "en": "Lighthouse Accessibility", "it": "Lighthouse Accessibility" }, "body": { "en": "With a reduced-motion path for every 3D section.", "it": "Con una versione reduced-motion di ogni sezione 3D." }, "src": "P:157-158" },
           { "num": "100", "title": { "en": "Lighthouse SEO", "it": "Lighthouse SEO" }, "body": { "en": "With a non-JavaScript equivalent for every 3D section.", "it": "Con un equivalente senza JavaScript di ogni sezione 3D." }, "src": "P:157-158" }
@@ -476,6 +489,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "A cinematic scroll,", "it": "Scroll da cinema," }, { "en": "art-directed", "it": "direzione artistica" }],
+        "short": { "en": "A cinematic scroll", "it": "Scroll da cinema" },
         "lead": { "t": { "en": "A real-estate brand platform. I art-directed and built the site's cinematic scroll experience (animated intro, arched page transitions, chapter-based storytelling) with complete reduced-motion and no-JavaScript alternatives and no layout shift, then made it fast on real phones and prepared its launch.", "it": "Una piattaforma brand per l’immobiliare. Ho curato la direzione artistica e costruito l’esperienza di scroll cinematografica del sito (intro animata, transizioni di pagina ad arco, storytelling a capitoli), con alternative complete reduced-motion e senza JavaScript, e nessun layout shift; poi l’ho resa veloce su telefoni reali e ne ho preparato il lancio." }, "src": "W:550, P:163-168" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Next.js 16 · GSAP · Lenis · Supabase", "src": "P:162" }
       },
@@ -483,6 +497,7 @@
         "type": "measured",
         "eyebrow": { "en": "Real phones", "it": "Telefoni reali" },
         "headline": [{ "en": "Fast on the phone", "it": "Veloce col\u00a0telefono" }, { "en": "in your hand", "it": "in\u00a0mano" }],
+        "short": { "en": "Fast on the phone", "it": "Veloce col telefono" },
         "lead": { "t": { "en": "The mobile delay was traced to the cookie banner and the intro rebuilt to run in CSS rather than JavaScript. The cinematic experience stayed, with no layout shift.", "it": "Il ritardo su mobile veniva dal banner dei cookie, e l’intro è stata riscritta per girare in CSS invece che in JavaScript. L’esperienza cinematografica è rimasta, senza layout shift." }, "src": "P:164-166" },
         "basis": { "t": { "en": "Mobile, before → after", "it": "Mobile, prima → dopo" }, "src": "P:165" },
         "rows": [
@@ -548,6 +563,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "A single identity,", "it": "Un’unica identità," }, { "en": "site to film", "it": "dal sito al film" }],
+        "short": { "en": "A single identity", "it": "Un’unica identità" },
         "lead": { "t": { "en": "I designed the SerSan visual identity, the hexagonal mark, a custom display typeface and the colour system, and carried it across the website, the 3D scenes and the video work. I then directed and produced the studio's brand film.", "it": "Ho disegnato l’identità visiva SerSan (il marchio esagonale, un carattere display su misura e il sistema colore) e l’ho portata sul sito, nelle scene 3D e nei video. Poi ho diretto e prodotto il brand film dello studio." }, "src": "W:625, P:170-173" },
         "stack": { "label": { "en": "Disciplines", "it": "Discipline" }, "t": { "en": "Art direction · Motion graphics · VFX · 3D · Video", "it": "Direzione artistica · Motion graphics · VFX · 3D · Video" }, "src": "P:169" }
       },
@@ -555,6 +571,7 @@
         "type": "list",
         "eyebrow": { "en": "The identity", "it": "L’identità" },
         "headline": [{ "en": "Mark, type", "it": "Marchio, carattere" }, { "en": "and colour", "it": "e colore" }],
+        "short": { "en": "Mark, type and colour", "it": "Marchio, carattere" },
         "figure": {
           "stem": "sersan-brand-end",
           "alt": { "en": "The closing card of the brand film, on navy: the hexagonal SerSan mark in white and blue above the SERSAN wordmark, a thin blue rule, the tagline “The intelligence is artificial. The judgement stays human.”, a Send a project brief button and the sersan.io address.", "it": "Il cartello di chiusura del brand film, su blu navy: il marchio esagonale SerSan in bianco e blu sopra il logotipo SERSAN, un sottile filetto blu, il motto «The intelligence is artificial. The judgement stays human.», un pulsante «Send a project brief» e l’indirizzo sersan.io." },
@@ -635,16 +652,17 @@
     "fig": {
       "kind": "plate",
       "figure": { "en": "Sub-second", "it": "Sotto il secondo" }, "word": true,
-      "figLine": { "en": "geospatial caregiver search, PostGIS 3", "it": "ricerca geospaziale dei caregiver, PostGIS\u00a03" },
+      "figLine": { "en": "geospatial caregiver search on PostGIS", "it": "ricerca geospaziale dei caregiver su PostGIS" },
       "caption": [{ "en": "Caregiver search", "it": "Ricerca dei caregiver" }, { "en": "PostGIS geography, GiST indexes.", "it": "Geography PostGIS, indici GiST." }],
       "src": "P:185-186",
-      "note": "S2 CASE (verifier defect 8): a plate by data, not by fallback. The public hero prints its empty-data state (media lane, 2026-10-09), so no capture is planned; a capture lands only with a kind, an alt and a caption written after looking at it."
+      "note": "S2 CASE (verifier defect 8): a plate by data, not by fallback. The public hero prints its empty-data state (media lane, 2026-10-09), so no capture is planned; a capture lands only with a kind, an alt and a caption written after looking at it. Wave 8 (lane FIX2D): the plate's line carries no version number any more (it said «PostGIS 3»): no plate carries a number."
     },
     "chapters": [
       {
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "Families, caregivers,", "it": "Famiglie, caregiver," }, { "en": "in real time", "it": "in tempo reale" }],
+        "short": { "en": "Families, caregivers", "it": "Famiglie, caregiver" },
         "lead": { "t": { "en": "A production PWA that matches families with home-care caregivers across the Italian domiciliary-care market, architected and shipped on Next.js 15 App Router, React 19, TypeScript strict and Supabase.", "it": "Una PWA in produzione che mette in contatto famiglie e caregiver nel mercato italiano dell’assistenza domiciliare, progettata e rilasciata su Next.js 15 App Router, React 19, TypeScript strict e Supabase." }, "src": "W:702, P:180-182" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Next.js 15 · React 19 · TypeScript · Supabase · PostGIS · Serwist (PWA) · Web Push (VAPID) · Leaflet · Sentry · GitHub Actions", "src": "W:672, P:181-192" }
       },
@@ -652,6 +670,7 @@
         "type": "list",
         "eyebrow": { "en": "What it does", "it": "Che cosa fa" },
         "headline": [{ "en": "Offline, live,", "it": "Offline, live," }, { "en": "on the map", "it": "sulla mappa" }],
+        "short": { "en": "Offline, live", "it": "Offline, live" },
         "items": [
           { "t": { "en": "Full offline support through a custom Service Worker (Serwist), with VAPID-signed Web Push notifications.", "it": "Supporto offline completo con un Service Worker su misura (Serwist) e notifiche Web Push firmate VAPID." }, "src": "P:181-182" },
           { "t": { "en": "Real-time messaging between families and caregivers on Supabase Realtime (WebSocket), with integrated push.", "it": "Messaggistica in tempo reale tra famiglie e caregiver su Supabase Realtime (WebSocket), con notifiche push integrate." }, "src": "P:183-184" },
@@ -710,6 +729,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "Spoken intent,", "it": "Detto a voce," }, { "en": "calendar actions", "it": "in calendario" }],
+        "short": { "en": "Spoken intent", "it": "Detto a voce" },
         "lead": { "t": { "en": "A voice AI agent inside Microsoft Teams that turns spoken intent into calendar and contact actions, for field users who manage appointments without typing. Real-time speech input was a feature previously absent from the client's toolset.", "it": "Un agente vocale AI dentro Microsoft Teams che trasforma una richiesta a voce in azioni su calendario e contatti, per chi lavora sul campo e gestisce gli appuntamenti senza digitare. L’input vocale in tempo reale era una funzione che prima mancava tra gli strumenti del cliente." }, "src": "W:768, W:780, P:195-202" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Azure Speech · Copilot Studio · Power Automate · Dynamics 365 · Angular · TypeScript", "src": "W:742, P:196-199" }
       },
@@ -717,6 +737,7 @@
         "type": "list",
         "eyebrow": { "en": "What it does", "it": "Che cosa fa" },
         "headline": [{ "en": "From a voice note", "it": "Da una nota" }, { "en": "to a meeting", "it": "a una riunione" }],
+        "short": { "en": "Voice note to meeting", "it": "Da nota a riunione" },
         "lead": { "t": { "en": "All of it from natural-language speech.", "it": "Tutto a voce, in linguaggio naturale." }, "src": "P:197" },
         "items": [
           { "t": { "en": "Creates and updates meetings.", "it": "Crea e aggiorna riunioni." }, "src": "P:196" },
@@ -786,6 +807,7 @@
         "type": "what",
         "eyebrow": { "en": "What it is", "it": "Che cos’è" },
         "headline": [{ "en": "Ten actors,", "it": "Dieci attori," }, { "en": "a single chain", "it": "una sola filiera" }],
+        "short": { "en": "A single chain", "it": "Una sola filiera" },
         "lead": { "t": { "en": "A multi-actor platform modelling an agricultural supply chain with 10 roles (producers, curators, animators, buyers), built as the Software Engineering exam project by a team of 3.", "it": "Una piattaforma multi-attore che modella una filiera agricola con 10 ruoli (produttori, curatori, animatori, acquirenti), costruita come progetto d’esame di Ingegneria del Software da un team di 3." }, "src": "W:822, P:243-245" },
         "stack": { "label": { "en": "Stack", "it": "Stack" }, "t": "Java · Spring Boot · Spring Security · PostgreSQL · JWT · REST · Unified Process · Design Patterns · UML", "src": "P:241-242" }
       },
@@ -795,6 +817,7 @@
         "headline": [{ "en": "Requirements", "it": "Dai requisiti" }, { "en": "to code", "it": "al codice" }],
         "figure": {
           "stem": "agricultural-supply-chain-detail",
+          "crop": [0.0807, 0.074, 0.9193, 0.894],
           "alt": { "en": "A detail of the redrawn class diagram: the Utente, Azienda, PassoFiliera, TracciabilitaProdotto, Prodotto, Distributore and Animatore classes with their fields, joined by inheritance and association lines, the traceability links drawn in blue.", "it": "Un dettaglio del diagramma delle classi ridisegnato: le classi Utente, Azienda, PassoFiliera, TracciabilitaProdotto, Prodotto, Distributore e Animatore con i loro campi, unite da linee di ereditarietà e di associazione; i legami di tracciabilità sono in blu." },
           "caption": [{ "en": "The model package, in detail", "it": "Il package del modello, in\u00a0dettaglio" }, { "en": "Users, companies, products and the steps that trace them, as the team modelled them.", "it": "Utenti, aziende, prodotti e i passi che li tracciano, come li ha modellati il team." }]
         },

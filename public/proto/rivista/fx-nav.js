@@ -108,7 +108,7 @@
      part on the viewport's middle line is the one being read; on the cover (the hero and Now) there is none. The header
      marks its page quietly (.is-here, css/chrome.css: the item in ink with the travelling rule resting under it, the
      menu's row with its hairline drawn), FX.nav.part says which, and fx:part { part, from } goes out when it changes
-     (fx-sound.js takes that part's room, fx-motion.js counts the cut's numeral from it). A click on the item still
+     (fx-motion.js counts the cut's numeral from it). A click on the item still
      flies to the page. Decoration: no aria-current (the link leads to the page, not to this part of the home). */
   const FILE = { work: "work", about: "about", consult: "consulting", obla: "obla", contact: "contact" };
   const parts = d.getAttribute("data-page") === "home" ? $$("main > section.part[data-part]") : [];

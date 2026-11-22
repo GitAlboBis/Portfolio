@@ -29,14 +29,18 @@ import { glow } from "./case/glow.js";
 import { C } from "./cover/shared.js";
 import { etchCanvas } from "./case/etch.js";
 import { room } from "./lib/room.js";
-import { speedLens, drift } from "./lib/camera.js";
+import { speedLens, drift, follow, glideK } from "./lib/camera.js";
 import { span, pageK, through } from "./lib/page.js";
 import { lifted, withLevels } from "./case/lift.js";
 
 const clamp = (/** @type {number} */ x, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, x));
 const sm = (/** @type {number} */ e0, /** @type {number} */ e1, /** @type {number} */ x) => { const t = clamp((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 const mix = (/** @type {number} */ a, /** @type {number} */ b, /** @type {number} */ t) => a + (b - a) * t;
-const damp = (/** @type {number} */ cur, /** @type {number} */ to, /** @type {number} */ dt, /** @type {number} */ tau) => cur + (to - cur) * (1 - Math.exp(-dt / Math.max(tau, 1e-4)));
+/** (wave 8, lane SMOOTH) how near (px) a block of text beside the plate starts to push it: the push grows as the
+ *  text's rows come within this of the plate's, so the plate starts moving before the text shares its rows and lets go
+ *  after (a text entering or leaving the plate's rows switched the push on or off whole, in one frame). Under the 44 px
+ *  that step 2 keeps between the plate and its caption, so the caption never pushes the plate at rest */
+const PUSH_CUSHION = 40;
 /** the stage's eye distance (stage.js LOOK.eye, clamped as there) */
 const eyeD = (/** @type {number} */ vw, /** @type {number} */ vh) => Math.min(2600, Math.max(1100, 1.25 * Math.hypot(vw, vh)));
 const persp = (/** @type {number} */ D, /** @type {number} */ z) => D / Math.max(D - z, 1);
@@ -189,8 +193,22 @@ export default {
     if (dt > 0) S.swap *= Math.exp(-dt / 0.22);
 
     // ------------------------------------------------ where the reader is: u 0..2 through the two blocks
-    const u = c.step <= 0 ? 0 : c.step === 1 ? c.local : 1 + c.local;
-    const e = phone ? sm(0.72, 1.28, u) : sm(0.55, 1.2, u);
+    // (wave 8, lane SMOOTH) at ONE rate of the scroll on both sides of the boundary: step 2 is 1.75 screens to step 1's
+    // one, so a u counted in each step's own length slowed the plate's turn by 43 % at the boundary, at the height of
+    // its travel (the step in its speed came mid-turn). Step 2 is counted in step 1's length (its ratio measured with
+    // the viewport), and nothing else reads u.
+    // The turn is ONE quintic (lib/camera.js glideK: no speed and no acceleration at either end) over the very scroll it
+    // had (from 0.72 of step 1 on a phone, 0.55 on a desktop, to 0.28 / 0.2 of step 2, each in its own length). The
+    // smoothstep stopped the plate dead under its caption: on a phone's fling, 1000 px/s to nothing in 50 ms (and
+    // counted at step 1's rate it ended 180 px sooner, so harder still)
+    if (S.stepKey !== key && S.sec) {
+      const st = S.sec.querySelectorAll("[data-stage-step]");
+      const a = st[0] && st[0].getBoundingClientRect(), b = st[1] && st[1].getBoundingClientRect();
+      if (a && b && b.top - a.top > 1 && b.height > 1) { S.uR = b.height / (b.top - a.top); S.stepKey = key; }
+    }
+    const uR = S.uR || 1;
+    const u = c.step <= 0 ? 0 : c.step === 1 ? c.local : 1 + c.local * uR;
+    const e = phone ? glideK(0.72, 1 + 0.28 * uR, u) : glideK(0.55, 1 + 0.2 * uR, u);
     const vy = c.view.y;                                        // the sticky view's top (it lets go at the end)
     const secBottom = c.section.y + c.section.h;
     const lv = 1 - clamp((secBottom - vh * 0.5) / (vh * 0.5));  // 0 while the view holds, 1 once half of it has gone
@@ -262,18 +280,25 @@ export default {
     // on a wide screen the plate keeps right of the text it shares rows with (step 1's text leaving upward while the
     // plate turns to the reader): it slides right and, if it must, gets smaller, never over the words
     if (!phone) {
+      const half = (sw * Math.cos(P0.yaw)) / 2, left = P0.X - half;
+      // (wave 8, SMOOTH) each block pushes the plate's left edge past its words by how near its rows are to the plate's
+      // (whole once they share rows, nothing past PUSH_CUSHION): the push follows the scroll with no step in it
       let xMin = -1e9;
-      for (const t of c.texts) if (t.y < P0.Y + sh / 2 && t.y + t.h > P0.Y - sh / 2) xMin = Math.max(xMin, t.x + t.w + 32);
-      const half = (sw * Math.cos(P0.yaw)) / 2;
+      for (const t of c.texts) {
+        const gap = Math.max(t.y - (P0.Y + sh / 2), P0.Y - sh / 2 - (t.y + t.h));
+        const q = 1 - sm(0, PUSH_CUSHION, gap);
+        if (q > 0) xMin = Math.max(xMin, left + q * Math.max(0, t.x + t.w + 32 - left));
+      }
       let k = 1, dx = 0;
-      if (P0.X - half < xMin) {
+      if (left < xMin) {
         const room = vw - 24 - xMin;
         if (room < 2 * half) k = Math.max(0.45, room / (2 * half));
         dx = xMin + half * k - P0.X;
       }
-      // damped (a line of text entering the plate's rows would otherwise snap it)
-      S.kx = S.kx == null || dt <= 0 ? k : damp(S.kx, k, dt, 0.1);
-      S.dx = S.dx == null || dt <= 0 ? dx : damp(S.dx, dx, dt, 0.1);
+      // (wave 8, SMOOTH) and the plate rides a critically damped spring to that place and size (lib/camera.js follow):
+      // the first-order lag it rode set off at full speed whenever the push changed and braked with a corner
+      follow(S, "kx", k, dt, 0.05, 1e-4);
+      follow(S, "dx", dx, dt, 0.05, 0.01);
       if (S.kx < 0.999) ({ sw, sh, inset } = size(sw * S.kx));
       P.X += S.dx; P0.X += S.dx;
     }
@@ -291,8 +316,11 @@ export default {
     }
     // the chapters start where the opener ends (their text is the mist scene's): the plate never crosses that line
     hide = Math.max(hide, clamp((P0.Y + sh / 2 - (secBottom - 12)) / 36));
-    S.hide = dt > 0 ? damp(S.hide, hide, dt, 0.08) : hide;    // presence: there from the arrival's first frame (far and small, so no cut-in), leaving with the view
+    // presence: there from the arrival's first frame (far and small, so no cut-in), leaving with the view; (wave 8,
+    // SMOOTH) the way back after a text has passed rides a spring (the hiding itself is the text's own, at once)
+    follow(S, "hide", hide, dt, 0.04, 1e-3);
     const alpha = clamp(ar / 0.04) * pull * (1 - sm(0, 0.7, lv)) * (1 - Math.max(S.hide, hide));
+    if (S.dbg ??= /[?&]debug=1/.test(location.search)) /** @type {any} */ (window).__case = { step: c.step, local: c.local, u, e, AY: A.Y, BY: B.Y, P0Y: P0.Y, PY: P.Y, vy, lv, hide, alpha, uR: S.uR };
     // focus: soft but lit while it travels, pulled in at the end of the arrival, a breath soft while it turns or
     // takes its print, soft as it leaves
     const sharp = mix(0.3, 1, sm(0.3, 0.95, ar)) * mix(0.3, 1, pull) * (1 - (S.words ? 0.04 : 0.3) * Math.sin(Math.PI * e)) * (1 - 0.55 * S.swap) * (1 - 0.8 * sm(0, 0.8, lv));

@@ -1,8 +1,9 @@
 /* ==========================================================================
    parts/c-main.404.mjs · the 404 in the night's system (spec 50 §4)
 
-   render404(cases, { tx, lang }) → the <main> content of 404.html: the status, the title, a sentence, the way back,
-   then every page (the cover's sentence for each) and every work, as rows of links. No stage on this page
+   render404(cases, { tx, lang }) → the <main> content of 404.html: the status, the title, a sentence, the way back
+   to the home page (wave 8: the home holds no index any more, so nothing here names one), then every page (its
+   sentence) and every work, as rows of links. No stage on this page
    (html[data-nogl]). COPY: parts/strings.mjs ("nf.*", the pages' "ix.*"); the works' names and kickers from cases.json.
    The works are every work in the gallery's order; a work with a page of its own (Obla) links that page (workLink,
    parts/c-main.case.mjs).
@@ -26,7 +27,7 @@ export function render404(cases, { tx, lang = "en" }) {
     <p class="t-label t-acc nf-over" data-focus="load">${T(S404.over)}</p>
     <h1 id="nf-h" class="t-mega nf-h" data-focus="load" style="--fd:80ms">${T(S404.title)}</h1>
     <p class="t-lead nf-lead" data-focus="load" style="--fd:160ms">${T(S404.lead)}</p>
-    <p class="nf-act" data-focus="load" style="--fd:240ms"><a class="btn" href="index.html" data-back data-pt-label="${T(S404.index)}" data-pt-sub="Alberto Tuveri">${T(S404.back)} ${ARROW_E}</a><a class="q" href="mailto:albertotuveri@gmail.com">${T(S404.write)} ${ARROW_NE}</a></p>
+    <p class="nf-act" data-focus="load" style="--fd:240ms"><a class="btn" href="index.html" data-back data-pt-label="${T(S404.home)}" data-pt-sub="Alberto Tuveri">${T(S404.back)} ${ARROW_E}</a><a class="q" href="mailto:albertotuveri@gmail.com">${T(S404.write)} ${ARROW_NE}</a></p>
   </section>
 
   <section class="nf-ix" aria-labelledby="nf-ix">

@@ -18,10 +18,6 @@
     <span class="lang" role="group" aria-label="{{t:lang.group}}">{{LANGSWITCH}}</span>
     <span class="hdr-rule is-idle" aria-hidden="true" data-hdr-rule></span>
   </nav>
-  <!-- (lane n-sound) the sound's toggle (fx-sound.js): on a desktop after the language, on a phone beside MENU; four
-       straight bars that move while the sound plays and lie flat when it is off (css/chrome.css). (lane n-fix-sound)
-       title: the same word for a mouse, which never hears the aria-label -->
-  <button class="hdr-snd" type="button" aria-pressed="true" aria-label="{{t:chrome.sound}}" title="{{t:chrome.sound}}" data-snd data-snd-state="armed"><span class="snd-bars" aria-hidden="true"><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span><span class="snd-b"></span></span></button>
   <button class="hdr-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="{{t:menu.open}}" data-nv-open="{{t:menu.open}}" data-nv-close="{{t:menu.close}}" data-menu-btn><span class="m-open" aria-hidden="true">{{t:menu.word}}</span><span class="m-close" aria-hidden="true">{{t:menu.word.close}}</span></button>
   <span class="hdr-read" aria-hidden="true"></span>
 </header>

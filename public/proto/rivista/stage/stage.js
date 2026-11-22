@@ -286,6 +286,9 @@ export const FLOOR = 20000;
 /** The rest window (s) and the soft stop (s). */
 export const WINDOW_S = 5.0;
 export const STOP_S = 1.0;
+/** (wave 8, lane SMOOTH) the orbit's pivot (pivotStep): a jump is a frame's move this far (x D) past what its speed
+ *  explains; it is handed over on a critically damped spring of PIV_S s */
+const PIV_JUMP = 0.035, PIV_S = 0.14;
 /** Same pixel cap as the water engine (tier.js MAX_PIXELS). */
 const MAX_PIXELS = 3.2e6;
 // bytes of one depth window of the particle draw (draw.wgsl.js ZWin: 4 + 12 rectangles + 12 planes, vec4 each;
@@ -548,6 +551,7 @@ export function prepareStage(o) {
   fieldMod.catch(() => {});
   // (round 12, COVER3FIX) and its pipelines start as soon as the module is in, beside the swarm's (they took ~110 ms after
   // the swarm's and landed just after the first frame: the cover's lit room came up late); queued after the plates'
+  // (k-fix3d) with no awaited error scope before them (field.js fieldKit): they start with the device
   const field = fieldMod.then((m) => m.fieldKit({ device, format, frameLayout }));
   for (const p of [sim, draw, plates, bloom, field]) p.catch(() => {});
   return { device, format, hdr: cv.hdr, hdrWhy: cv.why, frameLayout, simLayout, drawLayout, sim, draw, plates, bloom, field, t0 };
@@ -567,18 +571,24 @@ async function bloomKit(device, format, frameLayout) {
   const code = frameWGSL + noiseWGSL + bloomWGSL + (fail ? " fn broken( { " : "");
   // inside a validation scope: a shader that fails to compile is read here, never an uncaptured error that would
   // turn the whole stage off
+  // (k-fix3d) the scope is read beside the pipelines, not before them: awaiting it first was a round trip to a GPU
+  // process busy with the swarm's and the plates' shaders, and the bloom's pipelines started 50 to 60 ms after the
+  // device (a module that does not compile rejects its pipelines too, never as an uncaptured error)
   device.pushErrorScope("validation");
   const mod = device.createShaderModule({ label: "stage.bloom", code });
-  const modErr = await device.popErrorScope();
-  if (modErr) throw new Error("[stage] bloom shader: " + modErr.message.split(String.fromCharCode(10))[0]);
+  const modScope = device.popErrorScope();
   const pl = device.createPipelineLayout({ bindGroupLayouts: [frameLayout, layout] });
   const ADD = { color: { srcFactor: "one", dstFactor: "one", operation: "add" }, alpha: { srcFactor: "zero", dstFactor: "one", operation: "add" } };
   const mk = (/** @type {string} */ fs, /** @type {GPUTextureFormat} */ f, /** @type {GPUBlendState | undefined} */ blend) => device.createRenderPipelineAsync({
     label: "bloom." + fs, layout: pl, vertex: { module: mod, entryPoint: "vsFull" },
     fragment: { module: mod, entryPoint: fs, targets: [blend ? { format: f, blend } : { format: f }] }, primitive: { topology: "triangle-list" },
   });
+  const pipes = Promise.all([mk("fsPrefilter", "rgba16float"), mk("fsDown", "rgba16float"), mk("fsUp", "rgba16float", ADD), mk("fsComposite", format, ADD)]);
+  pipes.catch(() => {});
+  const modErr = await modScope;
+  if (modErr) throw new Error("[stage] bloom shader: " + modErr.message.split(String.fromCharCode(10))[0]);
   try {
-    const [pre, down, up, comp] = await Promise.all([mk("fsPrefilter", "rgba16float"), mk("fsDown", "rgba16float"), mk("fsUp", "rgba16float", ADD), mk("fsComposite", format, ADD)]);
+    const [pre, down, up, comp] = await pipes;
     return { layout, pre, down, up, comp, ms: performance.now() - t0 };
   } catch (e) { throw await pipeError(mod, code, "bloom", e); }
 }
@@ -721,6 +731,8 @@ export async function createStage(o) {
     cam: { yaw: 0, pitch: 0, dolly: 0, cx: 0, cy: 0, cz: 0 }, camSet: false,
     // the free camera (camera.pos given): its target pose, its damped pose, the pointer's damped orbit
     free: false, /** @type {any} */ fT: null, /** @type {any} */ fC: null, orb: [0, 0],
+    // (wave 8, SMOOTH) the orbit's pivot as drawn: the scene's, with what is left of a jump it made (pivotStep)
+    /** @type {any} */ piv: {},
     /** @type {{ x: number, y: number } | null} */ aim: null,
     camO: [0, 0, 0], clip: [0, 0, 0, 0], bokeh: 0, D: 1000, aperture: look.aperture, parallax: 1,
     // the cut's push (stage.cut): 0..1, its direction; the rest window (s) a scene may lengthen; the bloom
@@ -1007,6 +1019,7 @@ export async function createStage(o) {
       st.fC = { pos: [...(from ? from.pos : nt.pos)], target: [...(from ? from.target : nt.target)], roll: from ? 0 : nt.roll, lens: from ? 1 : nt.lens,
         focus: nt.focus, aperture: nt.aperture };
       if (c.snap || !from) st.orb = [0, 0];
+      st.piv = {};
       st.dirty = true;
     }
     st.free = true; st.camSet = true;
@@ -1212,8 +1225,14 @@ export async function createStage(o) {
     const f = st.fly, dv = doorView(), D = st.D;
     // the front face never more than half a D behind the eye (the eye in the glass sees only its walls and its back)
     const df = Math.max(dn.df, -0.5 * D), depth = Math.max(8, dn.db - df), dc = df + depth / 2;
+    /* (k-fix3d) its lit lines fade as it stands taller than the frame (its face's height on screen over the frame's: 1.2
+       D / df): from 400 to 500 ms into a flight its arrises and seams ran the frame's height as two bright bars. The
+       glass keeps its edges (the groove, the band's denser glass); its lines go to a hair (plates.wgsl.js edgeLine: the
+       edge light in thousandths, the seams with it). Set here, per frame, on the CPU: worked out in the plate shader it
+       cost every plate of every page 0.45 ms */
+    const tallK = smooth(0.85, 1.35, 1.2 * D / Math.max(df, 1));
     const v = { x: dv.x, y: dv.y, z: D - dc - st.flyZ, yaw: 0, w: dv.w, h: dv.h, t: depth,
-      alpha: dn.a, edge: 1, glow: 0, sheen: 0.2, bevel: dv.bevel, ior: 1.5, dispersion: df > 0.6 * D ? 0.006 : 0 };
+      alpha: dn.a, edge: Math.max(0.001, 1 - tallK), glow: 0, sheen: 0.2, bevel: dv.bevel, ior: 1.5, dispersion: df > 0.6 * D ? 0.006 : 0 };
     const sl = portalSlab(v, { R: st.camR, P: st.camP, O: [st.camO[0], st.camO[1], st.camO[2] - st.flyZ], scroll: { x: st.scrollX, y: st.scrollY } });
     const { rimSheen, ...door } = /** @type {any} */ (sl);   // its bevels mirror the studio, as every plate in the room
     // tint: a block this deep at the plates' absorption would be a dark blue window (its light path is 1.5 D)
@@ -1380,7 +1399,7 @@ export async function createStage(o) {
       return;
     }
     const t = st.fT, c = st.fC;
-    const piv = t.orbit.pivot || c.target;
+    const piv = st.piv.at || t.orbit.pivot || c.target;
     const E = orbitAbout(c.pos, piv, st.orb), T = orbitAbout(c.target, piv, st.orb);
     const B = lookBasis(E, T, c.roll);
     const D = D0 * c.lens;
@@ -1440,6 +1459,34 @@ export async function createStage(o) {
     const o = t.orbit, ko = o.damp <= 0 ? 1 : dt > 0 ? 1 - Math.exp(-dt / o.damp) : 0;
     st.orb[0] += (o.yaw * px - st.orb[0]) * ko;
     st.orb[1] += (-o.pitch * py - st.orb[1]) * ko;
+    pivotStep(dt);
+  }
+
+  /** (wave 8, lane SMOOTH) THE PIVOT HANDED OVER. The hand turns the eye about the scene's pivot; a pivot that JUMPS
+   *  (a gallery's next plate taking the apex, a case's chapter handing its figure on, a figure gone and the camera's
+   *  target taking over) turned the whole frame about a new point from one frame to the next: with the pointer
+   *  off-centre the eye jumped 49 px. Now a jump (the pivot moving further in a frame than its own speed explains, by
+   *  PIV_JUMP x D) is kept as an offset the pivot hands over on a critically damped spring (PIV_S): the frame keeps its
+   *  place and speed, and the orbit comes round to the new pivot. A pivot that moves on its own continuously is drawn
+   *  exactly as given (the path's guard projects the panes with it). @param {number} dt simulated s */
+  function pivotStep(dt) {
+    const raw = st.fT.orbit.pivot || st.fC.target, P = st.piv;
+    if (!P.raw) { P.raw = [...raw]; P.v = [0, 0, 0]; P.off = [0, 0, 0]; P.offV = [0, 0, 0]; P.at = null; return; }
+    if (!(dt > 0)) return;
+    const d = [raw[0] - P.raw[0], raw[1] - P.raw[1], raw[2] - P.raw[2]];
+    const J = [d[0] - P.v[0] * dt, d[1] - P.v[1] * dt, d[2] - P.v[2] * dt];
+    if (Math.hypot(J[0], J[1], J[2]) > PIV_JUMP * baseD()) { for (let k = 0; k < 3; k++) P.off[k] -= J[k]; }
+    else P.v = [d[0] / dt, d[1] / dt, d[2] / dt];
+    P.raw = [...raw];
+    let left = 0;
+    const w = 1 / PIV_S, e = Math.exp(-w * dt);
+    for (let k = 0; k < 3; k++) {
+      const y = P.off[k], v = P.offV[k], q = (v + w * y) * dt;
+      P.off[k] = (y + q) * e; P.offV[k] = (v - w * q) * e;
+      left = Math.max(left, Math.abs(P.off[k]), Math.abs(P.offV[k]) * PIV_S);
+    }
+    if (left < 0.05) { P.off = [0, 0, 0]; P.offV = [0, 0, 0]; P.at = null; }
+    else P.at = [raw[0] + P.off[0], raw[1] + P.off[1], raw[2] + P.off[2]];
   }
 
   /** @param {number} dt simulated seconds this frame */
@@ -1590,8 +1637,14 @@ export async function createStage(o) {
       slabList = [portalSlab(v, { R: st.camR, P: st.camP, O: st.camO, scroll: { x: st.scrollX, y: st.scrollY } }, { fade: st.portalFade }), ...room].slice(0, MAX_SLABS);
       st.portalDrawn = st.portalFade >= 1;
     }
+    /* (k-fix3d) the morning risen from the frame's foot (a dawn rect across the frame down to its bottom: fx-stage.js's
+       edge of day toward Contact): its top, css px. A door whose room beyond is the morning stops there (plates.js):
+       below the edge the page itself is seen, its paper and the words rising on it, never the glass's picture of an
+       empty sheet (from 650 to 800 ms the frame read as a blank page before "WRITE TO ME." rose) */
+    let dayY = Infinity;
+    for (const r of st.dawn) if (r.x0 <= 0 && r.x1 >= st.cssW - 1 && r.y1 >= st.cssH - 1) dayY = Math.min(dayY, Math.max(0, r.y0));
     st.platesOn = draw && !!plates && slabList.length > 0 && plates.pack({
-      slabs: slabList, R: st.camR, pivot: st.camP, origin: st.camO, scroll: { x: st.scrollX, y: st.scrollY },
+      slabs: slabList, R: st.camR, pivot: st.camP, origin: st.camO, scroll: { x: st.scrollX, y: st.scrollY }, dayY,
       view: { w: st.cssW, h: st.cssH }, D: st.D, eye: st.eye, pointer: st.pointer, dt: dtSim, dpr: st.dpr,
       free: st.free ? { near: st.clip[0], nearFull: st.clip[1], fog: st.clip[3] > st.clip[2] ? [st.clip[2], st.clip[3]] : null,
         focusZ: st.focusZ, aperture: st.aperture, plateFocus: st.fT.plateFocus } : null,
@@ -1613,10 +1666,23 @@ export async function createStage(o) {
       if (!st.free) { W.set([-1e9, plates.splitZ, 0, 0], 0); W.set([plates.splitZ, 1e9, 0, 0], 128); }
       else {
         // the free camera's deep world: per plate, its screen rectangle and its mid plane (draw.wgsl.js ZWin)
+        // (wave 8, SMOOTH) a plate's window weighs with its presence: its rectangle grows from its centre as the plate
+        // comes in (whole from alpha 0.5) and shrinks as it goes. A point in front of any plate covering it is drawn over
+        // the plates, so a plate that came in at alpha 0.01 took every point between it and the plate in front of it out
+        // from under that plate's glass in one frame: the stack's next layer flashed the sheet of light inside the layer
+        // in step at the start of each slide, and again at its end as the leaving layer went
         const L = plates.last.slice(0, 12);
+        /** @type {Map<string, number>} */ const am = new Map();
+        for (const s of slabList) if (s && s.id != null) am.set(s.id, s.alpha ?? 1);
+        const quads = L.map((/** @type {any} */ q) => {
+          const a = am.get(q.id) ?? 1, t = Math.min(1, Math.max(0, (a - 0.02) / 0.48)), g = t * t * (3 - 2 * t);
+          if (g >= 1) return q.quad;
+          const [x0, y0, x1, y1] = q.quad, mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+          return [mx + (x0 - mx) * g, my + (y0 - my) * g, mx + (x1 - mx) * g, my + (y1 - my) * g];
+        });
         for (const [o, mode] of [[0, 1], [128, 2]]) {
           W.set([0, 0, mode, L.length], o);
-          L.forEach((/** @type {any} */ q, /** @type {number} */ i) => { W.set(q.quad, o + 4 + i * 4); W.set(q.plane, o + 52 + i * 4); });
+          L.forEach((/** @type {any} */ q, /** @type {number} */ i) => { W.set(quads[i], o + 4 + i * 4); W.set(q.plane, o + 52 + i * 4); });
         }
       }
       device.queue.writeBuffer(res.winBuf, WIN, W);
@@ -1885,7 +1951,9 @@ export async function createStage(o) {
       awake: st.activity > 0, activity: st.activity, submits: st.submits, frames: st.frameIndex,
       backing: [st.bw, st.bh], dpr: st.dpr,
       swarm: { ready: !!simPipe, at: swarmAt }, passMs: st.passMs, platesOn: st.platesOn, plates: st.platesOn ? plates.count : 0, plateTier: plates ? plates.tier : null, glass: !!plates, focus: st.focus,
-      camera: st.free ? { free: true, pos: st.fC.pos.map(Math.round), target: st.fC.target.map(Math.round), roll: st.fC.roll, lens: st.fC.lens, orbit: [...st.orb], D: Math.round(st.D) } : { ...st.cam },
+      camera: st.free ? { free: true, pos: st.fC.pos.map(Math.round), target: st.fC.target.map(Math.round), roll: st.fC.roll, lens: st.fC.lens, orbit: [...st.orb], D: Math.round(st.D),
+        // (wave 8, SMOOTH) the pivot the orbit turns about as drawn (a jump of the scene's handed over: pivotStep)
+        pivot: (st.piv.at || (st.fT && st.fT.orbit && st.fT.orbit.pivot) || st.fC.target).map((/** @type {number} */ v) => Math.round(v * 10) / 10) } : { ...st.cam },
       dawn: st.dawn.length, push: st.push, portal: st.portal, fly: flyState(), rest: st.windowS, bloom: { on: !!bloom, failed: bloomFailed, strength: st.bloom, levels: bloom ? bloom.levels.length : 0 },
       hdr: { on: hdrOn, format, why: kit.hdrWhy ?? null }, aber: Math.round(st.aber * 1000) / 1000,
       field: field ? field.stats() : { on: false, ready: false, failed: fieldFailed },

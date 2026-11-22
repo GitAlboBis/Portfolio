@@ -1,7 +1,7 @@
 /* ==========================================================================
    css/blocks.css · the working baseline of every page's blocks (spec 50 §4), in the scene grammar
    The page lanes of wave 2 compose each page finely in css/page-*.css; this file keeps every page legible and whole
-   on its own: the cover (hero, now), the gallery steps, the measured rows, the steps of About, Consulting and Obla,
+   on its own: the cover (hero, now), the gallery steps, a case's measured rows, the steps of About, Consulting and Obla,
    the 404. Rhythm: tight inside a group (s2–s3), generous between groups (s4–s6), more above a title than below.
    (Wave 7: the home holds every page's part, so these rules hold there as on the pages; none is scoped to a page.)
    ========================================================================== */
@@ -30,7 +30,6 @@
 .hero-role { color: var(--accent); }
 .hero-line { margin-top: var(--s2); max-width: 30em; }
 .hero-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s5); }
-.hero-instr { position: absolute; right: var(--gut); bottom: var(--s4); color: var(--mute); }
 @media (min-width: 1024px) {
   .hero-foot { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
   .hero-act { justify-content: flex-end; }
@@ -85,9 +84,9 @@
   .wk-pic { margin-top: 0; }
 }
 
-/* ---------------------------------------------------------------- Work: measured before and after */
-.ev-h em, .ev-set em { color: var(--accent); }
-.ev-note { color: var(--body); }
+/* ---------------------------------------------------------------- the measured rows */
+/* a case's measured and teaser chapters (parts/c-main.case.mjs metric); Work's own set, the scene "evidence", was
+   removed on 22 November */
 .mx { margin-top: var(--s4) !important; }
 .metric { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--s4); row-gap: var(--s2); align-items: baseline; padding-block: var(--s3); }
 .mx-l { font: 500 calc(var(--t-small) + 0.0625rem)/1.35 var(--f-text); color: var(--ink); }

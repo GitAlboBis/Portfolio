@@ -945,12 +945,35 @@
       /* the heading's words as one line: a <br> or a line box between its lines is a space (textContent would glue
          "WAYS" to "TO"); decoration and duplicates for readers are left out */
       const c = h.cloneNode(true);
-      c.querySelectorAll(".mo-hl, [aria-hidden='true']").forEach((n) => n.remove());
+      /* (wave 8, FIX2D) and a heading that is a chapter's folio (a case's record) leaves its index: the header names the
+         scene in words ("The record", not "05 The record"), as for every other chapter */
+      c.querySelectorAll(".mo-hl, [aria-hidden='true'], .cs-folio > .t-acc").forEach((n) => n.remove());
       c.querySelectorAll("br").forEach((n) => n.replaceWith(" "));
       c.querySelectorAll(".ln, .w, .mo-w").forEach((n) => n.append(" "));
       return c.textContent.replace(/\s+/g, " ").trim();
     };
-    let cur = null, pend = 0;
+    /* (wave 8, FIX2D) a name longer than the room the header leaves it gives way to the scene's short form
+       (data-scene-short on the section: parts/strings.mjs, parts/cases.json, a case's own name), never to a smaller
+       type: below 1024 px about 200 px stand between the name's rule and MENU. The room is the box less its rule and
+       gap, read from layout (the rule's entrance is a transform); the name is measured in the label's own face by a
+       hidden probe in the box, once per name shown and again after a resize */
+    let probe = null;
+    const fits = (txt) => {
+      if (!probe) {
+        probe = document.createElement("span");
+        probe.setAttribute("aria-hidden", "true");
+        probe.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;white-space:nowrap;pointer-events:none";
+        box.appendChild(probe);
+      }
+      probe.textContent = txt;
+      const room = box.clientWidth - (rEl ? rEl.offsetWidth : 0) - (parseFloat(getComputedStyle(box).columnGap) || 0);
+      return probe.getBoundingClientRect().width <= room + 0.5;
+    };
+    const label = (s) => {
+      const full = nameOf(s), short = (s.getAttribute("data-scene-short") || "").trim();
+      return !full || !short || fits(full) ? full : short;
+    };
+    let cur = null, pend = 0, here = null, rz = 0;
     const show = (txt) => {
       if (txt === cur) return;
       const first = cur === null;
@@ -982,8 +1005,11 @@
       if (reports < 2) return;
       const mid = secs.find((s) => seen.get(s));
       const h = mid && document.getElementById(mid.getAttribute("aria-labelledby"));
-      show(mid && gone(h) ? nameOf(mid) : "");
+      here = mid && gone(h) ? mid : null;
+      show(here ? label(here) : "");
     };
+    /* a turned phone or a resized window: the same scene may now need (or no longer need) its short form */
+    addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (here) show(label(here)); }, 180); }, { passive: true });
     let ioIn = false, hoIn = false;
     const io = new IntersectionObserver((es) => { for (const e of es) seen.set(e.target, e.isIntersecting); if (!ioIn) { ioIn = true; reports++; } update(); },
       { rootMargin: "-50% 0px -50% 0px", threshold: 0 });

@@ -17,8 +17,8 @@
    Pure: no Date, no randomness, no file reads. assemble.mjs resolves the media (a capture that is not on disk becomes
    the work's key words) and passes the resolved case. Every word and number comes from cases.json or strings.mjs,
    escaped here; the template prints no digit except the indices (the works' tiles, 01–11, and their count; a
-   chapter's and a list's 01–09) and the bar geometry inside aria-hidden style attributes. A caption names its picture,
-   never numbers it.
+   chapter's and a list's 01–09), the bar geometry inside aria-hidden style attributes and (wave 8) a cropped still's
+   frame geometry in its style attribute. A caption names its picture, never numbers it.
    ========================================================================== */
 import STR, { UI as UI_STR } from "./strings.mjs";
 
@@ -72,7 +72,11 @@ function hero(c, ctx) {
   act.push(`<a class="q" {{LINK:work}}>${T(ctx.ui.allWork, L)} ${ARROW_E}</a>`);
   const fields = (c.fields || []).length
     ? `\n            <dl class="cs-fields">${c.fields.map((f) => `<div><dt class="t-label">${T(f.k, L)}</dt><dd class="t-label t-ink">${T(f.v, L)}</dd></div>`).join("")}</dl>` : "";
-  return `  <section class="sc sc-left cs-sc" data-stage="case" style="--steps:2" aria-labelledby="case-h">
+  /* (wave 8, FIX2D) the scene's short name, for the header where the title does not fit (fx-motion.js sceneName): the
+     work's own name, when the title is longer ("Voice AI Agent for Microsoft Teams" → "Voice AI Agent") */
+  const title = c.titleLines.map((l) => tx(l, L)).join(" ");
+  const short = c.label && c.label !== title ? ` data-scene-short="${esc(c.label)}"` : "";
+  return `  <section class="sc sc-left cs-sc" data-stage="case" style="--steps:2" aria-labelledby="case-h"${short}>
     <div class="sc-view" data-stage-anchor="case" aria-hidden="true"></div>
     <div class="sc-track">
       <div class="sc-step cs-hero" data-stage-step="1">
@@ -128,7 +132,9 @@ ${inner}        </div>
 /* ------------------------------------------------------------ chapters */
 function chapter(n, ch, L, body, cls = "") {
   const lead = ch.lead ? `\n        <p class="t-lead cs-lead2">${T(ch.lead.t, L)}</p>` : "";
-  return `  <section class="cs-ch${cls ? " " + cls : ""}" aria-labelledby="c${n}-h">
+  /* (wave 8, FIX2D) the chapter's short name ("short" in cases.json), for the header where the headline does not fit */
+  const short = ch.short ? ` data-scene-short="${T(ch.short, L)}"` : "";
+  return `  <section class="cs-ch${cls ? " " + cls : ""}" aria-labelledby="c${n}-h"${short}>
     <p class="t-label cs-folio"><span class="t-acc">${pad2(n)}</span> ${T(ch.eyebrow, L)}</p>
     <div class="cs-body">
       <h2 id="c${n}-h" class="t-d2 cs-h">${lines(ch.headline, L)}</h2>${lead}
@@ -198,8 +204,18 @@ ${list.map((it, i) => `        <li><span class="t-label t-acc">${pad2(i + 1)}</s
    scripts/media/vpp-plate.mjs): in the live state their lines draw themselves once as they come into view
    (fx-motion.js trace); every printed state shows the picture whole */
 const TRACED = new Set(["agricultural-supply-chain-detail"]);
+/* (wave 8, FIX2D) a still may show only a window of its picture ("crop": x0 y0 x1 y1, fractions of the 16:10 picture;
+   the class diagram's frame margins, the window its drawing is clipped to): a frame of the window's proportions clips,
+   and the picture inside it (and, live, the drawing traced over it, fx-motion.js: the same box, so the pen's geometry
+   holds) is set larger and shifted so the window fills the frame (css/case.css .cs-frame) */
+const pct = (v) => +(v * 100).toFixed(3) + "%";
 function still(it, L, lead) {
-  return `        <figure class="cs-still${lead ? " is-lead" : ""}"${TRACED.has(it.stem) ? " data-trace" : ""}><img src="${capSrc(it.stem, 1600)}" srcset="${srcset(it.stem)}" sizes="(min-width:1024px) ${lead ? "64vw" : "32vw"}, 100vw" alt="${T(it.alt, L)}" loading="lazy" decoding="async"><figcaption class="t-label cs-cap">${esc(capText(it.caption[0], L))}${it.caption[1] ? `<span> ${T(it.caption[1], L)}</span>` : ""}</figcaption></figure>\n`;
+  const cr = Array.isArray(it.crop) && it.crop.length === 4 ? it.crop.map(Number) : null;
+  const ok = cr && cr.every(Number.isFinite) && cr[2] > cr[0] && cr[3] > cr[1];
+  const w = ok ? cr[2] - cr[0] : 1, h = ok ? cr[3] - cr[1] : 1;
+  const img = `<img src="${capSrc(it.stem, 1600)}" srcset="${srcset(it.stem)}" sizes="${ok ? "120vw" : `(min-width:1024px) ${lead ? "64vw" : "32vw"}, 100vw`}" alt="${T(it.alt, L)}" loading="lazy" decoding="async">`;
+  const pic = ok ? `<div class="cs-frame" style="--fa:${+((w * 16) / (h * 10)).toFixed(5)};--fw:${pct(1 / w)};--fx:${pct(-cr[0] / w)};--fy:${pct(-cr[1] / h)}">${img}</div>` : img;
+  return `        <figure class="cs-still${lead ? " is-lead" : ""}"${TRACED.has(it.stem) ? " data-trace" : ""}>${pic}<figcaption class="t-label cs-cap">${esc(capText(it.caption[0], L))}${it.caption[1] ? `<span> ${T(it.caption[1], L)}</span>` : ""}</figcaption></figure>\n`;
 }
 
 function chFacts(n, ch, ctx) {
@@ -221,11 +237,14 @@ ${ch.plates.items.map((it, i) => still(it, L, odd && i === 0)).join("")}      </
 
 function chList(n, ch, ctx) {
   const L = ctx.lang;
+  /* (wave 8, FIX2D) a drawing that traces itself is set wide: from 1024 px it spans the page's measure, gutter to
+     gutter, under the chapter's title (in the text column its labels stood about 3 px tall); css/case.css .is-wide */
+  const wide = !!(ch.figure && TRACED.has(ch.figure.stem));
   let b = "";
-  if (ch.figure) b += `      <div class="cs-stills">\n${still(ch.figure, L, true)}      </div>\n`;
+  if (ch.figure) b += `      <div class="cs-stills${wide ? " is-wide" : ""}">\n${still(ch.figure, L, true)}      </div>\n`;
   if (ch.label) b += `      <p class="t-label cs-basis">${T(ch.label, L)}</p>\n`;
   b += numbered(ch.items, L);
-  return chapter(n, ch, L, b);
+  return chapter(n, ch, L, b, wide ? "cs-wide" : "");
 }
 
 /* a flow: the ordered list itself is the drawing, ruled boxes joined by arrows */

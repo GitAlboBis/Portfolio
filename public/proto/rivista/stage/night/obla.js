@@ -18,7 +18,8 @@
  * third of a second), never cut. No text is drawn: the windows, the card and the report are rows
  * of light, not words.
  */
-import { clamp, smooth, approach, rng, inkFor, hurry, camera } from "./lib.js";
+import { clamp, smooth, rng, inkFor, hurry, camera } from "./lib.js";
+import { follow } from "../scenes/lib/camera.js";
 import { characterBody, COLORS, rgb, insidePillow, BODY } from "./character.js";
 import { DEPTH } from "./shot.js";
 
@@ -173,20 +174,24 @@ export default {
     const s = c.state, t = c.time, dt = c.dt;
     const want = wanted(c.scene);
     s.w ??= Object.fromEntries(STATES.map((k) => [k, k === want ? 1 : 0]));
-    for (const k of STATES) s.w[k] = approach(s.w[k], k === want ? 1 : 0, dt, 0.24);
+    // (wave 8, lane SMOOTH) the state a step asks for, the body's parameters, its colour and where it looks ride
+    // critically damped springs (scenes/lib/camera.js follow): the first-order lags they rode set off at full speed the
+    // frame the reader crossed into a step (the character's morph started with a jolt); a weight a hair past 0 or 1 is
+    // read through its share (tot, below)
+    for (const k of STATES) follow(s.w, k, k === want ? 1 : 0, dt, 0.12, 1e-4);
     // body parameters, tweened toward the state's
     const cf = /** @type {any} */ (CFG)[want];
     s.b ??= { tint: cf.tint, wide: cf.wide, happy: cf.happy, closed: cf.closed, sway: cf.sway, bounce: cf.bounce, ripple: cf.ripple, breathe: cf.breathe, yaw: 0, pitch: 0, es: 1, col: rgb(cf.col) };
-    const b = s.b, tau = 0.26;
-    for (const k of ["tint", "wide", "happy", "closed", "sway", "bounce", "ripple", "breathe"]) b[k] = approach(b[k], cf[k], dt, tau);
-    b.es = approach(b.es, cf.es ?? 1, dt, 0.2);
+    const b = s.b;
+    for (const k of ["tint", "wide", "happy", "closed", "sway", "bounce", "ripple", "breathe"]) follow(b, k, cf[k], dt, 0.13, 1e-4);
+    follow(b, "es", cf.es ?? 1, dt, 0.1, 1e-4);
     const tc = rgb(cf.col);
-    b.col = b.col.map((/** @type {number} */ v, /** @type {number} */ j) => approach(v, tc[j], dt, 0.3));
+    for (let j = 0; j < 3; j++) follow(b.col, String(j), tc[j], dt, 0.15, 1e-4);
     // where it looks: the state's look, or the reader's pointer in the box (the product's lookTarget)
     const p = c.pointer, lx = p.present && p.inside ? clamp(p.local.x, -1, 1) : 0, ly = p.present && p.inside ? clamp(p.local.y - CY, -1, 1) : 0;
     const ty = cf.look ? cf.look[0] * 0.55 + lx * 0.2 : lx * 0.45;
     const tp = cf.look ? cf.look[1] * 0.5 : -ly * 0.3 + cf.lp;
-    b.yaw = approach(b.yaw, ty, dt, 0.3); b.pitch = approach(b.pitch, tp, dt, 0.3);
+    follow(b, "yaw", ty, dt, 0.15, 1e-5); follow(b, "pitch", tp, dt, 0.15, 1e-5);
     // the camera in the box: it turns a little with the scroll through the scene and with the hand, damped; the
     // light around Obla turns with it, and its face turns by part of it, so the body reads in depth
     const cam = camera(c, c.scene.progress, 0.26, 0.12);

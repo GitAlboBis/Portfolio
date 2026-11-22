@@ -24,7 +24,7 @@
  * Anything that moves at rest runs on c.clock.time (the stage sleeps when it stops).
  */
 import { room, eyeD } from "../scenes/lib/room.js";
-import { speedLens, drift } from "../scenes/lib/camera.js";
+import { speedLens, drift, glideK } from "../scenes/lib/camera.js";
 
 export { eyeD };
 
@@ -104,10 +104,14 @@ export function clearOf(c, pose, P, w, h, pad = 24) {
   return { rect: [s.x - W / 2, s.y - H / 2, W, H], point: [P[0], P[1], P[2] - 3 * eyeD(c.vw, c.vh)] };
 }
 
-/** a continuous station index from x in steps (0 = the first station's middle), holding on each @param {number} x @param {number} n */
+/** a continuous station index from x in steps (0 = the first station's middle), holding on each. (wave 8, lane SMOOTH)
+ *  The travel is a quintic (lib/camera.js glideK: no speed and no acceleration at either end), so the eye leaves a
+ *  station and lands on the next without a corner; the smoothstep it was stopped the deceleration dead at the landing
+ *  (a bump at the end of every walk). Over 0.16..0.84 of the way: the smoothstep's peak speed over 0.22..0.78, the
+ *  same holds (the quintic's ends are flatter) @param {number} x @param {number} n */
 export function stations(x, n) {
   const xs = clamp(x, 0, n - 1), i = Math.min(n - 2, Math.floor(xs));
-  return clamp(i + sstep(0.22, 0.78, xs - i), 0, n - 1);
+  return clamp(i + glideK(0.16, 0.84, xs - i), 0, n - 1);
 }
 
 /** a pose between two @param {any} a @param {any} b @param {number} t */

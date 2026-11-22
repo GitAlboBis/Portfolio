@@ -88,6 +88,50 @@ export function speedLens(lens, speed, max = 0.06) {
 }
 
 /**
+ * (wave 8, lane SMOOTH) A CRITICALLY DAMPED SPRING, the value a slide rides. A first-order lag
+ * (x += (to - x) * (1 - e^(-dt / tau))) answers a target that jumps at full speed at once (a jerk at the start) and
+ * brakes with a corner in its speed; this one carries its own speed, so a move starts from the speed it had and comes
+ * to rest without a snap, and never overshoots a still target. Exact for a target held over the frame (stable at any
+ * dt); within eps it lands exactly, so the stage sleeps. `smooth` is its time constant (1 / omega): a ramp is followed
+ * 2 x smooth behind, a jump is 95 % made after 4.74 x smooth.
+ *   S.s = follow(S, "s", target, dt, 0.09);   // S.s holds the value, S.sV its speed (per s)
+ * The first call (S.s not a number yet) starts on the target, at rest.
+ * @param {any} st the scene's state @param {string} key @param {number} to @param {number} dt s
+ * @param {number} smooth s @param {number} [eps] in the value's units @returns {number}
+ */
+export function follow(st, key, to, dt, smooth, eps = 1e-4) {
+  const vk = key + "V";
+  if (typeof st[key] !== "number" || !isFinite(st[key])) { st[key] = to; st[vk] = 0; return to; }
+  if (!(dt > 0)) return st[key];
+  const w = 1 / Math.max(1e-4, smooth), y = st[key] - to, v0 = st[vk] || 0;
+  const k = (v0 + w * y) * dt, e = Math.exp(-w * dt);
+  let x = to + (y + k) * e, v = (v0 - w * k) * e;
+  if (Math.abs(x - to) < eps && Math.abs(v) < eps * w) { x = to; v = 0; }
+  st[key] = x; st[vk] = v;
+  return x;
+}
+
+/** (wave 8, lane SMOOTH) soft limits with a cushion of k: never past the hard one, no corner where a limit starts to
+ *  bite (a figure a text pushes starts moving before the text reaches it, with no corner in its place) */
+const softplus = (/** @type {number} */ z) => (z > 30 ? z : Math.log1p(Math.exp(z)));
+/** min(a, b) with a cushion @param {number} a @param {number} b @param {number} k */
+export const softMin = (a, b, k) => a - k * softplus((a - b) / k);
+/** x kept within [lo, hi] (lo <= hi) with a cushion @param {number} x @param {number} lo @param {number} hi @param {number} k */
+export function softClamp(x, lo, hi, k) {
+  // the cushion narrows with the room: two cushions wider than the room between the limits pushed past both
+  const kk = Math.max(1e-3, Math.min(k, (hi - lo) / 4));
+  const x1 = x + kk * softplus((lo - x) / kk);
+  return x1 - kk * softplus((x1 - hi) / kk);
+}
+
+/** (wave 8, lane SMOOTH) 0..1 between e0 and e1 with no speed and no acceleration at either end (the quintic): a glide
+ *  shaped by it starts and ends without a corner @param {number} e0 @param {number} e1 @param {number} x */
+export function glideK(e0, e1, x) {
+  const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+/**
  * The idle drift of a camera at rest: a slow figure of a few px on the stage's own clock (c.clock.time: simulated
  * seconds, which stop when the stage sleeps; a drift on the host's clock would keep the stage drawing forever).
  * Add it to a pose's pos (and half of it to the target for a gentle turn). @param {number} t seconds @param {number} amp px

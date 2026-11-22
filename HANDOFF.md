@@ -1,6 +1,48 @@
 # HANDOFF — continua da qui
 
-> **Macchina: GIANNI · 22 novembre, sera. L'ondata 8 è online su https://albertotuveri.sersan.io; adesso la sessione `-27` integra la figura di Now.**
+> **Macchina: GIANNI · 22 novembre, verso le 21:25. La figura di Now è online su https://albertotuveri.sersan.io: lo squash `5b22104` sopra `a3e7b7c`.**
+> - **Fatto.**
+>   - **L'integrazione.** La sessione `-27` (`portfolioalbertotuveri-viva-27`) ha integrato la figura sopra `94634c2` e mandato il resoconto: `build/k-orrery.md`, sezioni «The integration» e «The review».
+>   - **Il controllo del direttore.** Ha guardato le catture della sessione (`.shots/orrery/r20`, `r21`, `r24`, `r25`). Ha rifatto i gate: `assemble --check`, i numeri, Astro con PARITY OK e asserts, il rilascio (34 pagine, 158 file).
+>   - **Il difetto 8 della revisione, chiuso.** Un passo che lanciava dopo il suo primo disegno spegneva tutto il palco (`stage.js` `passOff`). La prova è `.shots/_director/_scripts/passoff.mjs`: prima `stage-dead`; dopo, il palco disegna avanti e la pagina stampa i nove nomi.
+>   - **Commit.** `cb9e39a` è la correzione del palco. `d3e11f3` è la figura, con CLAUDE.md riallineato: l'ondata 8 committata e online, il genitore del prossimo squash, la soglia dei nove nomi a circa 1205 px.
+> - **Online.** Lo squash `5b22104` sopra `a3e7b7c` è su `main` (un fast-forward; sha in `.shots/_director/squash-sha-now.txt`). Vercel ha risposto «Deployment has completed».
+>
+>   Sul dominio vero:
+>   - i cinque indirizzi rispondono giusto: `/` 200 con `nosniff`, `robots.txt` con `Allow: /`, `/it` 308, `/it/nope` 404, `/work/badante24h` 307;
+>   - `stage/orrery/orrery.js` è servito, e `stage.js` contiene la correzione;
+>   - la home ha `[data-orbit]` e nessuna immagine di sersan.io.
+>
+>   La sonda `.shots/_director/livenow.mjs`, con le catture in `livenow/`:
+>   - a 1440 in inglese il palco si accende in 1,4 s, il passo `orrery` è pronto, i nove nomi sono accesi e la lista è nascosta all'occhio;
+>   - al telefono in italiano il palco si accende in 1,0 s, la figura mostra un nome alla volta e i nove nomi sono stampati sotto Now;
+>   - la console è pulita in tutti e due.
+> - **Prossimo passo: il telefono.**
+>   - **Le parole di Alberto.** Alle 21:28, guardando la home sul suo iPhone in Safari, ha scritto alla sessione `-27`: «Ora dobbiamo fare in ottimizzazione anche per mobile , e renderlo bellissimo come quello su desktop . Per ora su mobile non è progettato bene , bug, animazioni storte e non continue , che si vedono dietro le scritte. Non è uno scroll continuo in un mondo come su desktop».
+>   - **Cosa mostra la sua cattura.** L'intestazione, una lastra e il piede della hero. Mancano il nome di luce, il cosmo e le schegge: un iPhone vero disegna meno di quanto il telefono di Chrome abbia mai mostrato, e un telefono vero non era mai stato provato.
+>   - **Chi fa cosa.** Quest'ondata la guida la sessione `-27`. Prima una diagnosi in sola lettura: il workflow `mobile-understand` con i lettori DEVICE e WALK, appunti in `build/j-*.md`, catture in `.shots/j-*`, porte 5430–5434. Poi corsie piccole, una alla volta: ognuna manda prima il suo piano al direttore e alla fine il riassunto.
+>   - **Il direttore** non lancia nulla nella stessa finestra delle cinque ore. Guarda ogni risultato, committa per argomento e pubblica come prima. Una pagina di diagnosi sul sito va online solo dopo un sì di Alberto.
+>   - **Le risposte di Alberto:** iPhone, Safari, iOS 26; il nome di luce «non compare mai».
+>   - **La diagnosi** (22:40, `build/j-mobile.md`, `j-device.md`, `j-walk.md`):
+>     - **Perché manca il mondo.** Il palco scrive tutta la sua luce come colore premoltiplicato con alpha 0 sopra la pagina, e solo le lastre portano alpha. Chrome la somma alla pagina, il compositore di Safari la scarta (WebKit bug 278926). Un'emulazione di quel compositore rifà la cattura di Alberto pixel per pixel (`.shots/j-device/cmp-alberto.png`). Il palco non si spegne.
+>     - **Perché il movimento è storto e non continuo.** Sotto 1024 px il testo di ogni passo sale attraverso la fascia della figura, e ogni scena la schiva a modo suo. In più: lo scroll nativo al tocco contro un canvas a rAF, doppie misure a ogni cambio della barra di Safari, viste in `100svh` contro un canvas in `100vh`.
+>   - **Le corsie,** una alla volta: J1 LIGHT, J2 BAND, J3 VIEWPORT, J4 PLAIN.
+>     - **J1 LIGHT** è in corso dalle 22:45, con le porte 5435–5437 e gli appunti in `build/j-light.md`. Rende ogni pixel premoltiplicato valido e sceglie il canvas a 8 bit sui motori WebKit.
+>     - **Le sei note del direttore su J1:** HEAD è `4e677f6`; riconoscere il motore e non il nome del browser; alpha = min(1, max(a, r, g, b)); diff anche in movimento e sulla carta dell'alba; meglio il blend che un passo a pieno schermo; l'elenco delle pipeline cambiate.
+>     - **Dopo J1:** gate, commit, rilascio, push, controllo sul sito; poi Alberto apre `/` e `/?hdr=1` sul suo iPhone.
+> - **Restano con Alberto:**
+>   - il vecchio `portfolio-jet-eta-24.vercel.app` come redirect 308 al dominio nuovo, solo col suo sì;
+>   - le barre «measured» e «teaser» dei casi, che ha chiamato brutte; non ha ancora risposto;
+>   - il suo sguardo alla figura in movimento, al marchio rifatto e alle spore sotto la mano, e alle due giunture nuove (galleria → pila nella home, galleria → alba su Work);
+>   - `/captures/sersan-io-blackhole-sq-{800,1600}.webp`, che nessuna pagina usa più: restano nel repo finché lui non decide.
+> - **Da non ritentare:**
+>   - un ventaglio di agenti in parallelo fra le due sessioni: la finestra delle cinque ore è condivisa, e tre run sono stati tagliati così;
+>   - un'integrazione nuova da `.shots/orrery/www`, superata dall'albero;
+>   - il push di `feat/water-viva` e `git merge --squash`.
+>
+>   Lo squash va sempre sopra lo sha di `main` su GitHub (`git ls-remote origin refs/heads/main`, ora `5b22104`).
+
+> **Macchina: GIANNI · 22 novembre, sera (storia). L'ondata 8 è online su https://albertotuveri.sersan.io; poi la sessione `-27` ha integrato la figura di Now.**
 > - **Online.** Lo squash `a3e7b7c` sopra `37cc8e2` è su `main` (un fast-forward), e Vercel ha risposto «Deployment has completed» (sha in `.shots/_director/squash-sha-wave8.txt`). Contiene l'ondata 8, l'uscita di `evidence` (`1734c64`) e l'indirizzo nuovo (`acd065a`).
 > - **Sul dominio vero:**
 >   - `/`, `/work.html`, i casi e `/it/about.html` rispondono 200; `/it` 308; `/it/nope` 404 in italiano; `/work/badante24h` 307; `nosniff`; `index, follow`;

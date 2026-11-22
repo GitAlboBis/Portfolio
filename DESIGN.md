@@ -267,7 +267,7 @@ point, a filament's core, a node: `field.wgsl.js` mixes the stage's cobalt towar
 paper white (`lib/prism.js` takes any colour from paper white to cobalt); glass shows a faint spectral split on its
 bevels (tier A). No rainbow, no nebula colours. On an HDR
 screen the canvas is float16 and the stage's light may rise above paper white instead of clipping at it (see "The
-post"); the DOM's colours are the same on every screen.
+post"; on WebKit, so on an iPhone, the 8-bit canvas unless `?hdr=1`); the DOM's colours are the same on every screen.
 
 ### Contrast (computed, WCAG 2.x; recorded in the header of `rv/css/tokens.css`)
 
@@ -968,6 +968,22 @@ more during its opening's flare). The dawn never glows; where nothing is bright 
 drawn. Levels by tier (`BLOOM_TIER`): A half size and five levels, B a quarter and four, C a quarter and three. In
 the cosmos only the dense nodes' cores pass the glow's threshold: a galaxy's light stays under it.
 
+### The canvas written valid (wave 9, J1 LIGHT; `rv/stage/wgsl/resolve.wgsl.js`)
+
+The stage's light is ADDED to the page: every pass writes it as premultiplied colour at alpha 0, and that does not
+change. What changed is where it is written: the whole frame (light, glass, the dawn's ink) is drawn into a texture of
+the canvas's own format (`frameTex`), and one last full-screen pass writes the canvas from it with every pixel valid
+premultiplied, its alpha at least its brightest channel (on the HDR canvas a colour above paper white keeps alpha 1 and
+stays above it). The colour takes back what that alpha hides of the ground the stage knows is under the canvas (the
+night; the dawn's paper inside a day rectangle), so over the ground the page shows exactly what it showed, and a pixel
+already valid (glass, ink, nothing at all) passes untouched: the dawn's paper stays `#f3f4f6`. Why: colour above its
+alpha is out of gamut for a premultiplied canvas and the WebGPU spec leaves its display undefined; Chrome added it,
+Safari's compositor drops it (on Alberto's iPhone only the plates were drawn: no name of light, no cosmos, no chips).
+Over what is not the ground, type the light crosses, the light now hides a little of it, as anything with real alpha
+does (the keep-outs keep it to a few hundredths). The glow's composite is that same last pass, so a night frame still
+ends with one full-screen pass. `stage.stats().valid`; `stage.look({ resolve: 0 })` draws the same frame the old way
+(a bench's A/B). A pass or a body adds its light as before: nothing to write by hand.
+
 ### The post (grain, aberration in speed, HDR; `rv/stage/stage.js` "THE POST")
 
 Plan 70's phase 4, inside the passes the stage already runs (no pass of its own). Bokeh, the pointer's trail and
@@ -987,8 +1003,11 @@ chips on other pages are not built.
   is `rgba16float`: the plates' and the rays' light may rise to 1.6 as written (about three times paper white) and the
   swarm's piles go above it, the display's headroom clipping them; every value up to paper white, and the glow, are as
   on the 8-bit canvas. Elsewhere, and with `?hdr=0`, the 8-bit canvas exactly as before; a browser that cannot answer
-  gets it silently. `?hdr=1` forces float16 on any screen (a probe's switch). `stage.stats().hdr` is
-  `{ on, format, why }`. The dawn never glows.
+  gets it silently. (wave 9, J1 LIGHT) WebKit keeps the 8-bit canvas too, whatever the screen: Safari, and every
+  browser on an iPhone or an iPad (`gpu.js` `isWebKit`: the engine's `navigator.vendor`, not a browser's name); no real
+  HDR screen has passed the stage yet. `?hdr=1` forces float16 on any screen, WebKit included (a probe's switch, and the
+  way to try the HDR path on a phone). `stage.stats().hdr` is `{ on, format, why }` (`why` "webkit" there). The dawn
+  never glows.
 
 ### Extra passes (`registerPass`)
 
@@ -1172,7 +1191,9 @@ capabilities on About (`cap.8.sound`): it is his craft, not the site's.
 - The chips' shapes: `rv/stage/field/atlas.js`; a new mark goes through the slices (`cellBytesGen`, `sliced`), never
   one distance transform in one task.
 - The post: `rv/stage/stage.js` ("THE POST": `ABER_PX`, `HDR_CEIL`), `rv/stage/wgsl/frame.wgsl.js` (the grain),
-  `rv/stage/gpu.js` (`canvasSetup`); a pass that writes smooth dark light calls `stageGrainLight` before its write.
+  `rv/stage/gpu.js` (`canvasSetup`, `isWebKit`); a pass that writes smooth dark light calls `stageGrainLight` before its write.
+- How the canvas is written (valid premultiplied): `rv/stage/wgsl/resolve.wgsl.js` (`stageValid`, the glow's composite
+  in `fsResolveGlow`), `rv/stage/stage.js` (`resolveKit`, `ensureFrame`, `encodeResolve`, `encodeBloom`, `LOOK.resolve`).
 - The release: `web/scripts/release.mjs` (`ORIGIN`, `LEFT_OUT`: a new file no visitor loads goes there; one a page
   loads is checked, capitals included) and `vercel.json` at the root (routes, redirects, headers, the two 404).
 

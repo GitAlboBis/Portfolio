@@ -54,6 +54,26 @@ export async function requestAdapter() {
 }
 
 /**
+ * (wave 9, J1 LIGHT) Whether the page runs on WebKit: Safari on a Mac, and EVERY browser on an iPhone or an iPad (Apple
+ * has them all draw with WebKit: Chrome there is "CriOS", Firefox "FxiOS", Edge "EdgiOS", an app's web view has no name
+ * of its own). Read from the engine, never from a browser's name:
+ *   1. navigator.vendor is "Apple Computer, Inc." in WebKit, fixed by the engine for every browser built on it (Blink
+ *      says "Google Inc.", Gecko says ""); an app cannot change it, only its user agent;
+ *   2. a second witness for a WebKit whose vendor reads otherwise: a user agent with "AppleWebKit/" and none of Blink's
+ *      "Chrome/" or "Chromium/", Edge's "Edg/", Opera's "OPR/" or Gecko's "Firefox/" (desktop Chrome and Edge carry
+ *      "AppleWebKit/537.36" too, always beside "Chrome/"; on iOS they write CriOS, EdgiOS, FxiOS: WebKit still).
+ * A Blink or Gecko browser that dresses up as Safari gets the 8-bit canvas: the safe side.
+ */
+export function isWebKit() {
+  try {
+    /** @type {any} */ const nav = navigator;
+    if (nav.vendor === "Apple Computer, Inc.") return true;
+    const ua = String(nav.userAgent || "");
+    return /AppleWebKit\//.test(ua) && !/(Chrome|Chromium|Edg|OPR|Firefox)\//.test(ua);
+  } catch { return false; }
+}
+
+/**
  * (lane m-glass, plan 70 phase 4) THE CANVAS: its format and its tone mapping, decided once per device (stage.js
  * prepareStage; every pipeline that draws into the canvas is compiled for this format).
  *
@@ -64,6 +84,9 @@ export async function requestAdapter() {
  * `?hdr=0`) the canvas is the preferred 8-bit format with standard tone mapping: exactly today's image and cost.
  * `?hdr=1` forces the float16 canvas on any screen (a probe's switch: on a standard screen it draws today's image).
  * A browser that cannot answer (no getConfiguration, a throw) gets the 8-bit canvas, silently.
+ * (wave 9, J1 LIGHT) WebKit keeps the 8-bit canvas unless `?hdr=1` (why "webkit"): every iPhone matches
+ * `dynamic-range: high`, Safari 26 shows an extended float16 canvas, and no real HDR screen has ever passed the stage;
+ * `?hdr=1` on the phone is how Alberto tries that path.
  * @param {GPUDevice} device
  * @returns {{ format: GPUTextureFormat, hdr: boolean, why: string }}
  */
@@ -72,6 +95,7 @@ export function canvasSetup(device) {
   const q = typeof location !== "undefined" ? location.search : "";
   if (/[?&]hdr=0/.test(q)) return { format: sdr, hdr: false, why: "hdr=0" };
   const forced = /[?&]hdr=1/.test(q);
+  if (!forced && isWebKit()) return { format: sdr, hdr: false, why: "webkit" };
   let screen = false;
   try { screen = typeof matchMedia === "function" && matchMedia("(dynamic-range: high)").matches; } catch { screen = false; }
   if (!screen && !forced) return { format: sdr, hdr: false, why: "screen" };

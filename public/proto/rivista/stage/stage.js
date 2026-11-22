@@ -11,7 +11,11 @@
  * device  the page's one GPUDevice, asked for by the host (fx-stage.js) through ./gpu.js. The stage
  *         itself never requests an adapter.
  * canvas  a full-viewport canvas (the host sizes it in CSS: position fixed, 100vw x 100vh,
- *         pointer-events none, aria-hidden). The stage configures it with alphaMode "premultiplied".
+ *         pointer-events none, aria-hidden). The stage configures it with alphaMode "premultiplied". (wave 9, J1 LIGHT)
+ *         The frame is drawn into a texture of the canvas's format (frameTex: light added at alpha 0, glass and ink
+ *         with their own alpha) and one last pass writes the canvas from it with every pixel VALID premultiplied
+ *         (alpha at least the brightest channel; wgsl/resolve.wgsl.js): Safari drops colour above alpha, Chrome adds
+ *         it, and over the ground both now show what Chrome showed.
  * tier    "A" | "B" | "C": 160k / 80k / 40k particles, DPR scale 1 / 0.85 / 0.7; the plates drop the
  *         spectral split on B and C, and on C the plates seen through plates, the second reflection and
  *         the edge light (PLATE_TIER).
@@ -162,8 +166,10 @@
  *                                            once and holds (captures). The stage is at rest afterwards.
  * stage.stats() -> { simulated, drawn, gpuMs, tier, halvings, awake, activity, submits,
  *                    passMs: [sim, ink, canvas, bloom], platesOn, plates, plateTier, focus, camera, dawn, push, rest, bloom,
- *                    hdr: { on, format, why }, aber, fly, field, passes }   hdr: the canvas (float16 HDR or 8 bit, THE
- *                                            POST); aber: the aberration in speed now, in css px (exactly 0 at rest)
+ *                    hdr: { on, format, why }, aber, valid, fly, field, passes }   hdr: the canvas (float16 HDR or 8 bit,
+ *                                            THE POST); aber: the aberration in speed now, in css px (exactly 0 at rest);
+ *                                            valid: { ready, failed, on } the resolve (wave 9: the last frame written to
+ *                                            the canvas valid premultiplied); passMs[3]: the glow and the resolve
  * stage.plates                               the plates of the last frame: [{ id, z (view), quad (screen) }]
  * stage.look(partial), stage.plateLook(partial)   live look overrides (bench).
  *                                            Device lost or replaced: destroy() the stage, create a new one on
@@ -218,7 +224,9 @@
  * { format, blend }. Its shader starts with api.frameWGSL: the StageFrame uniform at group 0 and
  * stageProject(), stageNight(), stageKeep(), stageOETF(). encode(pass, ctx) runs inside the stage's
  * render pass with group 0 already set, before the particles ("under") or after them ("over"); it
- * sets its own pipeline and groups and draws. Output is premultiplied sRGB-encoded, like the discs.
+ * sets its own pipeline and groups and draws. Output is premultiplied sRGB-encoded, like the discs. (wave 9, J1 LIGHT)
+ * A body or an extra pass draws into the frame, not the canvas: light may be added at alpha 0 as the stage's own is
+ * (blend: one, one-minus-src-alpha); the resolve writes every pixel of the canvas valid. Nothing to write by hand.
  *
  * ================================================================ PLATES (spec 50 §5)
  *
@@ -254,6 +262,7 @@ import { noiseWGSL } from "./wgsl/noise.wgsl.js";
 import { simWGSL, SLOT_SIZE } from "./wgsl/sim.wgsl.js";
 import { drawWGSL } from "./wgsl/draw.wgsl.js";
 import { bloomWGSL, BLOOM_SIZE } from "./wgsl/bloom.wgsl.js";
+import { resolveWGSL } from "./wgsl/resolve.wgsl.js";
 import { platesKit, makePlates, PLATE_LOOK, PLATE_TIER, MAX_SLABS } from "./plates/plates.js";
 import * as H from "./helpers.js";
 import { portalPose, portalSlab } from "./scenes/lib/portal.js";
@@ -270,7 +279,8 @@ export { PLATE_LOOK, PLATE_TIER, MAX_SLABS };
  *    the glass (plates.wgsl.js fsBlit, behindPage);
  *  - the HDR canvas (gpu.js canvasSetup): float16 with extended tone mapping where the screen and the browser show more
  *    than paper white; there the light may rise to HDR_CEIL (as written, encoded: about three times paper white) instead
- *    of clipping at 1. Elsewhere, and with ?hdr=0, the 8-bit canvas of before. */
+ *    of clipping at 1. Elsewhere, and with ?hdr=0, the 8-bit canvas of before; (wave 9, J1 LIGHT) on WebKit too (Safari,
+ *    every browser on an iPhone or an iPad) unless ?hdr=1: no real HDR screen has passed it yet. */
 const ABER_PX = 3.0, ABER_LIN = [0.6, 2.6], ABER_ANG = [1.5, 4.0], HDR_CEIL = 1.6;
 
 export { H, frameWGSL, noiseWGSL };
@@ -309,6 +319,10 @@ export const LOOK = Object.freeze({
   lightWhite: 0.22,   // paper-white mixed into every disc of light (keeps piles from clipping to neon)
   lightSharp: 0.35,   // more white for a sharp disc
   nightAlpha: 0.0,
+  // (wave 9, J1 LIGHT) 1: the frame is drawn into frameTex and the resolve writes it to the canvas, every pixel valid
+  // premultiplied (wgsl/resolve.wgsl.js); 0: straight into the canvas with the light at alpha 0, as before wave 9 (a
+  // bench switch: the same frame in the old encoding, for an A/B; Safari drops that light)
+  resolve: 1,
   // the ambient mist (particles no formation holds); ink 0 = none
   mistInk: 0.0, mistSize: 1.25, mistFlow: 26, mistWavelength: 420, mistSpring: 0.6, mistInertia: 0.5, mistEvolution: 0.05, mistZ: 0.6,
   perStrand: 900,     // particles per strand of mist at the tier's full count
@@ -541,6 +555,9 @@ export function prepareStage(o) {
     fragment: { module: drawMod, entryPoint: "fs", targets: [{ format, blend: BLEND }] },
     primitive: { topology: "triangle-list" },
   }).catch(async (e) => { throw await pipeError(drawMod, drawCode, "draw", e); });
+  // (wave 9, J1 LIGHT) the resolve's two small pipelines (the frame -> the canvas, valid premultiplied), beside the
+  // swarm's: they are in long before the first frame; until they are, a frame goes straight to the canvas as before
+  const resolve = resolveKit(device, format, frameLayout);
   const plates = platesKit({ device, format, frameLayout, frameWGSL, blend: BLEND });
   // the bloom's last: it never delays the swarm's first frame; a failure leaves the stage drawing without it
   const bloom = bloomKit(device, format, frameLayout);
@@ -553,8 +570,40 @@ export function prepareStage(o) {
   // the swarm's and landed just after the first frame: the cover's lit room came up late); queued after the plates'
   // (k-fix3d) with no awaited error scope before them (field.js fieldKit): they start with the device
   const field = fieldMod.then((m) => m.fieldKit({ device, format, frameLayout }));
-  for (const p of [sim, draw, plates, bloom, field]) p.catch(() => {});
-  return { device, format, hdr: cv.hdr, hdrWhy: cv.why, frameLayout, simLayout, drawLayout, sim, draw, plates, bloom, field, t0 };
+  for (const p of [sim, draw, resolve, plates, bloom, field]) p.catch(() => {});
+  return { device, format, hdr: cv.hdr, hdrWhy: cv.why, frameLayout, simLayout, drawLayout, sim, draw, resolve, plates, bloom, field, t0 };
+}
+
+/** (wave 9, J1 LIGHT) THE RESOLVE's pipelines (wgsl/resolve.wgsl.js): the frame as drawn -> the canvas, every pixel valid
+ *  premultiplied. "one" reads the frame alone; "glow" also takes the bloom's first level and does its composite in the
+ *  same pass. Compiled inside a validation scope, as the bloom's: a shader that failed would leave the frame going
+ *  straight to the canvas (Safari then drops the light), never turn the stage off. @param {GPUDevice} device
+ *  @param {GPUTextureFormat} format @param {GPUBindGroupLayout} frameLayout */
+async function resolveKit(device, format, frameLayout) {
+  const t0 = performance.now();
+  const code = frameWGSL + noiseWGSL + resolveWGSL(format !== "rgba16float");
+  device.pushErrorScope("validation");
+  const mod = device.createShaderModule({ label: "stage.resolve", code });
+  const frameTexEntry = { binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: /** @type {GPUTextureSampleType} */ ("unfilterable-float") } };
+  const one = device.createBindGroupLayout({ label: "resolve.layout", entries: [frameTexEntry] });
+  const glow = device.createBindGroupLayout({ label: "resolve.glowLayout", entries: [frameTexEntry,
+    { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float" } },
+    { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
+    { binding: 3, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
+  ] });
+  const mk = (/** @type {string} */ fs, /** @type {GPUBindGroupLayout} */ layout) => device.createRenderPipelineAsync({
+    label: "resolve." + fs, layout: device.createPipelineLayout({ bindGroupLayouts: [frameLayout, layout] }),
+    vertex: { module: mod, entryPoint: "vsResolve" }, fragment: { module: mod, entryPoint: fs, targets: [{ format }] }, primitive: { topology: "triangle-list" },
+  });
+  const pipes = Promise.all([mk("fsResolve", one), mk("fsResolveGlow", glow)]);
+  pipes.catch(() => {});
+  const scope = device.popErrorScope();
+  const err = await scope;
+  if (err) throw new Error("[stage] resolve shader: " + err.message.split(String.fromCharCode(10))[0]);
+  try {
+    const [plain, lit] = await pipes;
+    return { one, glow, plain, lit, ms: performance.now() - t0 };
+  } catch (e) { throw await pipeError(mod, code, "resolve", e); }
 }
 
 /** The bloom's pipelines (wgsl/bloom.wgsl.js), compiled off the main path. @param {GPUDevice} device
@@ -636,7 +685,9 @@ export async function createStage(o) {
   let hdrOn = false;
 
   const res = await scoped(device, "resources", () => {
-    // TEXTURE_BINDING: the bloom reads the canvas as drawn (no copy of the frame)
+    // TEXTURE_BINDING: the bloom reads the canvas as drawn (no copy of the frame); (wave 9, J1 LIGHT) only on a frame that
+    // goes straight to the canvas (the resolve not in yet, look.resolve 0): else it reads frameTex and the canvas is only
+    // written, by the resolve
     /** @type {any} */ const cfg = { device, format, alphaMode: "premultiplied", colorSpace: "srgb", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING };
     if (kit.hdr) cfg.toneMapping = { mode: "extended" };
     context.configure(cfg);
@@ -751,6 +802,8 @@ export async function createStage(o) {
     time: 0, frameIndex: 0, activity: 1, lastInput: performance.now(),
     eye: [0, 0], wind: 0,
     dirty: true, seeded: false, destroyed: false, submits: 0, simCount: 0,
+    // (wave 9, J1 LIGHT) the last frame went through the resolve (the canvas written valid premultiplied)
+    validOn: false,
     mist: { ink: look.mistInk, size: look.mistSize, flow: look.mistFlow, wavelength: look.mistWavelength },
     /** @type {number[]} */ gpu: [], /** @type {number[]} */ dts: [], gpuLast: /** @type {number | null} */ (null), passMs: [0, 0, 0, 0],
   };
@@ -795,6 +848,30 @@ export async function createStage(o) {
     st.dirty = true;
     return true;
   }, (/** @type {any} */ e) => { bloomFailed = true; if (!st.destroyed) log(`[stage] bloom off: ${(e && e.message) || e}`); return false; });
+
+  // ---------------------------------------------------------------- (wave 9, J1 LIGHT) THE RESOLVE, once its pipelines are in
+  // From then on every frame is drawn into frameTex (the canvas's format and size) and the resolve writes the canvas, every
+  // pixel valid premultiplied (wgsl/resolve.wgsl.js); before (a few ms after the device, if ever) a frame goes straight to
+  // the canvas as it did. A failure leaves it so (one line in the debug log): Chrome still shows it, Safari drops the light.
+  /** @type {any} */ let resolve = null;
+  let resolveFailed = false;
+  Promise.resolve(kit.resolve).then((/** @type {any} */ rk) => {
+    if (!rk) throw new Error("no resolve kit");
+    if (st.destroyed) return;
+    resolve = rk; st.dirty = true;
+    log(`[stage] resolve ready: pipelines ${rk.ms.toFixed(0)} ms (the canvas written valid premultiplied)`);
+  }).catch((/** @type {any} */ e) => { resolveFailed = true; if (!st.destroyed) log(`[stage] resolve off: ${(e && e.message) || e}`); });
+  /** the frame as drawn, before the resolve: its texture and the bind groups that read it (rebuilt with the backing size)
+   *  @type {any} */ let fr = null;
+  function ensureFrame() {
+    if (fr && fr.w === st.bw && fr.h === st.bh) return fr;
+    if (fr) fr.tex.destroy();
+    const tex = device.createTexture({ label: "stage.frameTex", size: [st.bw, st.bh], format, usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING });
+    const view = tex.createView();
+    fr = { tex, view, w: st.bw, h: st.bh, one: device.createBindGroup({ label: "resolve.one", layout: resolve.one, entries: [{ binding: 0, resource: view }] }),
+      /** @type {GPUBindGroup | null} */ src: null, /** @type {GPUBindGroup | null} */ glow: null, /** @type {any} */ glowL0: null };
+    return fr;
+  }
 
   // ---------------------------------------------------------------- THE FIELD, once its pipelines are in (stage/field/)
   // Off until a scene asks (set({ field })); a failure leaves the stage drawing without it (one line in the debug log).
@@ -1751,7 +1828,7 @@ export async function createStage(o) {
       cp.dispatchWorkgroups(Math.ceil(drawn / 64));
       cp.end();
     }
-    let inkRan = false;
+    let inkRan = false, postRan = false;
     if (draw) {
       /** @param {GPURenderPassEncoder} rp @param {string} layer */
       const bodies = (rp, layer) => {
@@ -1767,7 +1844,13 @@ export async function createStage(o) {
       const particles = (rp, k) => { if (!drawPipe) return; rp.setPipeline(drawPipe); rp.setBindGroup(1, res.drawGroups[k]); rp.draw(6, Math.min(drawNow, drawn)); };
       const clear = { r: 0, g: 0, b: 0, a: 0 };
       const cur = context.getCurrentTexture();
-      const view = cur.createView();
+      const canvasView = cur.createView();
+      // (wave 9, J1 LIGHT) the frame is drawn into frameTex, exactly as it was drawn into the canvas (every pipeline, its
+      // blend and its alpha unchanged), and the resolve writes the canvas from it (below); straight into the canvas only
+      // until the resolve is in, or with look.resolve 0
+      const F = resolve && look.resolve !== 0 ? ensureFrame() : null;
+      st.validOn = !!F;
+      const view = F ? F.view : canvasView;
       if (!st.platesOn) {
         // the frame as it always was: one pass, every particle
         const rp = enc.beginRenderPass({ label: "stage.draw", colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: clear }], timestampWrites: tsW(2) });
@@ -1801,7 +1884,8 @@ export async function createStage(o) {
         if (pOver.length) xPass(ra, pOver);
         ra.end();
         }
-        // B: the canvas: that light texel for texel, the plates far to near, the swarm in front, the bodies over
+        // B: the canvas (wave 9: frameTex, then the resolve): that light texel for texel, the plates far to near, the
+        // swarm in front, the bodies over
         const rb = enc.beginRenderPass({ label: "stage.draw", colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: clear }], timestampWrites: tsW(2) });
         rb.setBindGroup(0, res.frameGroup);
         // (lane m-glass) the blit (pass A into the canvas, with the aberration in speed) is not drawn while the door's
@@ -1813,7 +1897,10 @@ export async function createStage(o) {
         bodies(rb, "over");
         rb.end();
       }
-      if (glow) encodeBloom(enc, cur, view, tsB(3), tsE(3));
+      // the glow, then (wave 9) the resolve: with the glow its composite IS the resolve's pass (one pass, as before);
+      // without it the resolve alone. The two share the post's timestamps (passMs[3])
+      if (glow && bloomLevels()) { encodeBloom(enc, cur, canvasView, tsB(3), tsE(3), F); postRan = true; }
+      else if (F) { encodeResolve(enc, F, canvasView, tsW(3)); postRan = true; }
     }
     if (tsSlot >= 0) {
       const sb = ts.staging[ts.stIdx];
@@ -1825,7 +1912,7 @@ export async function createStage(o) {
     st.submits++;
     st.frameIndex++;
     if (tsSlot >= 0) {
-      const sb = ts.staging[ts.stIdx], sim = simulate, gl = inkRan, bl = glow;
+      const sb = ts.staging[ts.stIdx], sim = simulate, gl = inkRan, bl = postRan;
       sb.buf.mapAsync(GPUMapMode.READ).then(() => {
         const v = new BigUint64Array(sb.buf.getMappedRange().slice(0));
         sb.buf.unmap(); sb.busy = false;
@@ -1838,19 +1925,24 @@ export async function createStage(o) {
     }
   }
 
+  /** the bloom's levels, made at the backing size: false while the backing is too small for one (nothing glows) */
+  function bloomLevels() { ensureBloom(); return !!bloom && bloom.levels.length > 0; }
+
   /**
-   * The bloom: the canvas as drawn -> threshold at a half or a quarter -> down the levels -> up, added -> added to the
-   * canvas's colour (its alpha untouched). @param {GPUCommandEncoder} enc @param {GPUTexture} cur @param {GPUTextureView} view
-   * @param {any} tsBegin @param {any} tsEnd
+   * The bloom: the frame as drawn -> threshold at a half or a quarter -> down the levels -> up, added -> added to the
+   * frame's colour (its alpha untouched). (wave 9, J1 LIGHT) With the resolve (F: the frame texture) the frame is read from
+   * frameTex and the last pass is the resolve's glow entry: the composite and the resolve in one pass that writes the
+   * canvas valid; without it (straight to the canvas, as before) the canvas is read and the composite adds to it.
+   * @param {GPUCommandEncoder} enc @param {GPUTexture} cur @param {GPUTextureView} view the canvas's view
+   * @param {any} tsBegin @param {any} tsEnd @param {any} F frameTex (ensureFrame) or null
    */
-  function encodeBloom(enc, cur, view, tsBegin, tsEnd) {
-    ensureBloom();
+  function encodeBloom(enc, cur, view, tsBegin, tsEnd, F) {
     const L = bloom.levels, kb = bloom.kit;
-    if (!L.length) return;
     const t = st.bloomT;
     device.queue.writeBuffer(bloom.ubuf, 0, new Float32Array([t.threshold, t.knee, st.bloom, t.plates, 0, 0, 0, 0]));
-    const src = device.createBindGroup({ label: "bloom.src", layout: kb.layout, entries: [
-      { binding: 0, resource: cur.createView() }, { binding: 1, resource: bloom.smp }, { binding: 2, resource: { buffer: bloom.ubuf } }] });
+    const srcOf = (/** @type {GPUTextureView} */ v) => device.createBindGroup({ label: "bloom.src", layout: kb.layout, entries: [
+      { binding: 0, resource: v }, { binding: 1, resource: bloom.smp }, { binding: 2, resource: { buffer: bloom.ubuf } }] });
+    const src = F ? (F.src || (F.src = srcOf(F.view))) : srcOf(cur.createView());
     const pass = (/** @type {GPURenderPipeline} */ pipe, /** @type {GPUTextureView} */ target, /** @type {GPUBindGroup} */ g, /** @type {boolean} */ load, /** @type {any} */ tw) => {
       const rp = enc.beginRenderPass({ label: "stage.bloom", colorAttachments: [{ view: target, loadOp: load ? "load" : "clear", storeOp: "store", clearValue: { r: 0, g: 0, b: 0, a: 0 } }], timestampWrites: tw });
       rp.setPipeline(pipe); rp.setBindGroup(0, res.frameGroup); rp.setBindGroup(1, g); rp.draw(3); rp.end();
@@ -1858,7 +1950,21 @@ export async function createStage(o) {
     pass(kb.pre, L[0].view, src, false, tsBegin);
     for (let i = 0; i + 1 < L.length; i++) pass(kb.down, L[i + 1].view, L[i].group, false, undefined);
     for (let i = L.length - 2; i >= 0; i--) pass(kb.up, L[i].view, L[i + 1].group, true, undefined);
-    pass(kb.comp, view, L[0].group, true, tsEnd);
+    if (!F) { pass(kb.comp, view, L[0].group, true, tsEnd); return; }
+    // the glow's group: the frame, the first level, its sampler, the bloom's uniform (made again with either)
+    if (F.glowL0 !== L[0]) {
+      F.glow = device.createBindGroup({ label: "resolve.glow", layout: resolve.glow, entries: [
+        { binding: 0, resource: F.view }, { binding: 1, resource: L[0].view }, { binding: 2, resource: bloom.smp }, { binding: 3, resource: { buffer: bloom.ubuf } }] });
+      F.glowL0 = L[0];
+    }
+    pass(resolve.lit, view, F.glow, false, tsEnd);
+  }
+
+  /** (wave 9, J1 LIGHT) the resolve alone (no glow this frame): frameTex -> the canvas, valid premultiplied
+   *  @param {GPUCommandEncoder} enc @param {any} F @param {GPUTextureView} view the canvas's view @param {any} tw */
+  function encodeResolve(enc, F, view, tw) {
+    const rp = enc.beginRenderPass({ label: "stage.resolve", colorAttachments: [{ view, loadOp: "clear", storeOp: "store", clearValue: { r: 0, g: 0, b: 0, a: 0 } }], timestampWrites: tw });
+    rp.setPipeline(resolve.plain); rp.setBindGroup(0, res.frameGroup); rp.setBindGroup(1, F.one); rp.draw(3); rp.end();
   }
 
   /** Halve the drawn count when the frames stay over budget (only while moving); (wave 7, STAGE) and bring it back
@@ -1962,6 +2068,8 @@ export async function createStage(o) {
         pivot: (st.piv.at || (st.fT && st.fT.orbit && st.fT.orbit.pivot) || st.fC.target).map((/** @type {number} */ v) => Math.round(v * 10) / 10) } : { ...st.cam },
       dawn: st.dawn.length, push: st.push, portal: st.portal, fly: flyState(), rest: st.windowS, bloom: { on: !!bloom, failed: bloomFailed, strength: st.bloom, levels: bloom ? bloom.levels.length : 0 },
       hdr: { on: hdrOn, format, why: kit.hdrWhy ?? null }, aber: Math.round(st.aber * 1000) / 1000,
+      // (wave 9, J1 LIGHT) the resolve: its pipelines in, failed, and whether the last frame was written through it
+      valid: { ready: !!resolve, failed: resolveFailed, on: st.validOn },
       field: field ? field.stats() : { on: false, ready: false, failed: fieldFailed },
       passes: Object.fromEntries([...passes.entries()].map(([id, p]) => [id, { ready: !!p.inst, failed: p.failed, on: !!(p.inst && passCfg[id]) }])),
     };
@@ -1991,6 +2099,7 @@ export async function createStage(o) {
     for (const p of passes.values()) { try { p.inst && p.inst.destroy && p.inst.destroy(); } catch { /* gone */ } }
     passes.clear();
     if (bloom) { for (const l of bloom.levels) l.tex.destroy(); bloom.ubuf.destroy(); }
+    if (fr) { fr.tex.destroy(); fr = null; }
     res.winBuf.destroy();
     res.frameBuf.destroy(); res.slotBuf.destroy(); res.partBuf.destroy(); tgtBuf?.destroy();
     if (res.ts) { res.ts.set.destroy(); res.ts.resolve.destroy(); for (const s of res.ts.staging) s.buf.destroy(); }

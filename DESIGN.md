@@ -556,20 +556,33 @@ left the site on 22 November, go to the top of Work.
     travel on the stage's clock and that the glass catches (no shafts, no haze: a column of grey light read as fog);
     chips cut as the A and the SerSan mark at every depth (3,000 on a desktop, 1,800 on a phone at tier A), none over
     the name, none under 16 css px on screen (12 on a phone: a speck reads as a ring, not as glass); two plates holding
-    captures of his work (SphereNode, Sphere AI) flanking the name; far behind, the lit plate that holds sersan.io.
+    captures of his work (SphereNode, Sphere AI) flanking the name. (The plate that held sersan.io far behind them left on 22 November: Now's figure is lit only
+    once the name is behind the eye, below.)
   - **Rest**: the eye drifts on the stage's clock (rest window 14 s) and the hand orbits it about the name (up to 0.30
     rad of yaw and 0.12 of pitch on a desktop, 0.08 and 0.04 on a phone). **Flight**: the scroll flies the eye through
-    the name to Now's plate and ends on the page's straight view, so Now takes over without a seam (`coverCamera`,
+    the name to Now's figure and ends on the page's straight view, so Now takes over without a seam (`coverCamera`,
     shared by `hero.js` and `now.js`).
   - Behind `?name=splat` the name is built of solid blocks of Gaussian splats instead (`cover/splatname.js`); the
     default is the name of points.
 - **Now.** "Now at SerSan": the date label, title, lead, body, and two links side by side (`.now-go`): "sersan.io",
-  out to the studio's site, and, since wave 8, "SerSan Agent OS", the work's case page (the body names it). Its plate
-  (Alberto, 21 November: «non mi piace la card con lo screenshot del sito»; a replacement figure is being built outside
-  the tree, `build/k-orrery.md`) is in the hall from the first frame,
-  the far lit window, and stands exactly in its place, sharp, when Now's view reaches the top; it then rides up with
-  Now. The pointer turns it a few degrees with inertia. The cosmos runs on behind Now into the gallery's room; only
-  the chips thin out as Now leaves (`now.js`).
+  out to the studio's site, and, since wave 8, "SerSan Agent OS", the work's case page (the body names it). Its figure
+  (since 22 November; Alberto, 21 November: «non mi piace la card con lo screenshot del sito . al posto della card
+  possiamo fare qualcosa di molto piu wow») is **the orrery**, an extra pass of the stage (`stage/orrery/`, asked for
+  by `now.js`): the SerSan mark as a solid of grains lit by one key light from up and left (frosted faces, a chamfer
+  on the cut edge that is bright toward the light and gone away from it, side walls seen only from the side they
+  face, a few glints that move as it turns) under a crust of spores, and nine bodies of points turning round it as
+  one carousel (a turn in 80 s of the stage's clock, three orbits never drawn, no body ever overtaking another), one
+  for each kind of work he does: full-stack software, 3D & WebGPU, reverse engineering, multi-agent systems, business
+  automation, Claude Code, video editing, motion design, AI content generation. Each carries its name under it as
+  light in the label face, two balanced lines where the name is long: all nine all the turn on a desktop with the room (the lane's
+  proof over a whole turn: none ever gives way at 1280, 1440 or 1920, in either language; a narrower desktop shows the
+  three nearest the front), the one at the front in a phone's band; where the figure shows fewer than nine, the same
+  nine are also printed as type under Now. Cobalt and paper white only; nothing of it is
+  a ring, a disc or a planet. It is lit only once the name's letters are behind the eye (the hero's first view is
+  untouched), stands exactly in its place when Now's view reaches the top, then rides up with Now. The pointer turns
+  it a few degrees with inertia and blows the spores off the mark where it is; a press flashes the mark. Where there
+  is no stage, and whenever its pass cannot draw, Now prints the nine names as a list. The cosmos runs on behind Now
+  into the gallery's room; only the chips thin out as Now leaves (`now.js`).
 - **The parts.** After Now the journey goes on through every page's own part (see "The home's parts" under Layout):
   Work (the gallery's head and its eleven plates), About (the stack's head and eight
   layers, the path's head and five panes), Consulting (its six blocks), Obla (its seven blocks), Contact. Each part

@@ -115,7 +115,7 @@ export default {
 - `focus` — the depth in sharp focus (px; 0 = the page plane).
 - `field: { lights, chips, cosmos }` — THE FIELD (round 11): shafts of light, chips of cut glass in the air, and (wave
   7) the neural cosmos where the back wall was. Opt-in: absent, nothing of it runs. See "The field" below.
-- `passes: { id: cfg }` — switches an extra pass on (see "An extra pass"): today `rays` and `splat`.
+- `passes: { id: cfg }` — switches an extra pass on (see "An extra pass"): today `rays`, `splat` and `orrery`.
 - `subject: { x, y }` — viewport px: where the cut's push aims (the leading scene's; default the figure's centre).
 - `lit: true` — with `litSignal: true` in the module: the subject is lit now (the cover says it when the name stands);
   the host then sends `fx:stage:lit` and writes `html.stage-lit` (without a `litSignal` scene: at the first frame).
@@ -439,6 +439,15 @@ passes: { splat: { sets: [{ id: "A", pos: [x, y, z], size: 520, rot: [yaw, pitch
   pass): hand your own figure over to the set only when it is above 0. `?failsplat=1` breaks it on purpose: the stage
   draws on without the pass. Used by Consulting's made mark and, behind `?name=splat`, by the cover's name
   (`cover/splatname.js`). Bench: `stage/dev.html?view=splat`.
+- **`orrery`** (`stage/orrery/orrery.js`; importing the file registers it, over the swarm): the figure of "Now at
+  SerSan", the SerSan mark as a lit solid of grains and nine bodies of points turning round it, each with its name.
+  One scene uses it (`now.js`), and the config is that figure's own: `passes: { orrery: { x, y, hx, hy, A, k, a, ax,
+  ay, flash, px, py, pin, phone, lab, words, font } }` (the header of `orrery.js` says what each is; everything else is
+  a share of `A`, the outer orbit's radius, by `layout.js`). Stateless: every pose is a function of the stage's clock
+  and of what the scene sends, so the stage sleeps on an exact frame. `layout.js` is pure (no GPU, no DOM): the pass
+  and a probe evaluate the same functions, and `orreryScan` steps a whole turn to prove that no two figures and no two
+  names ever meet. `?failorrery=1` breaks its init on purpose (`=2` a frame): the stage draws on without it and
+  `html.orrery-off` tells the page to print the nine names as type.
 
 ## The arrival (`ctx.arrival`)
 

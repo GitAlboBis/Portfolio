@@ -40,12 +40,8 @@
 
 /* ---------------------------------------------------------------- the cover: now */
 .now-when { color: var(--accent); }
-.now-fig img { width: 100%; aspect-ratio: 1; object-fit: cover; }
-.now-fig { margin-top: var(--s5); }
-@media (min-width: 1024px) {
-  .now .sc-step { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s6); align-items: center; }
-  .now-fig { margin-top: 0; }
-}
+/* (wave 8, lane ORRERY) the picture of sersan.io left with its plate: Now's figure is the stage's own (stage/orrery/),
+   and what the page prints for it is the list of its nine names (css/page-cover.css, .now-orbit) */
 
 /* ---------------------------------------------------------------- the index rows: the 404's (the cover's index left
    the home in wave 7) */

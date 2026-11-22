@@ -820,8 +820,14 @@ export async function createStage(o) {
   /** @type {Map<string, { def: any, inst: any, failed: boolean }>} */ const passes = new Map();
   /** @type {Record<string, any>} */ let passCfg = {};
   let passBusy = false;
+  // (wave 8, the director, on ORRERY's review, its finding 8) a pass turned off loses its buffers a task later, never at
+  // once: one that throws after its first draw in a frame has commands recorded with them, and that frame is submitted
+  // after the throw, in the same synchronous frame() (below). A destroyed buffer in the submit was an uncaptured GPU
+  // error, and the host turns the whole stage off on one (fx-stage.js); a task later is after the submit, and a buffer
+  // of work already submitted may be destroyed. (Seen with a throw forced after the orrery's draw: "[Buffer "orrery.u"]
+  // used in submit while destroyed", the stage dead.)
   /** @param {string} id @param {any} e */
-  const passOff = (id, e) => { const p = passes.get(id); log(`[stage] pass "${id}" off: ${(e && e.message) || e}`); if (p) { try { p.inst && p.inst.destroy && p.inst.destroy(); } catch { /* gone */ } p.inst = null; p.failed = true; } st.dirty = true; };
+  const passOff = (id, e) => { const p = passes.get(id); log(`[stage] pass "${id}" off: ${(e && e.message) || e}`); if (p) { const inst = p.inst; p.inst = null; p.failed = true; if (inst && inst.destroy) setTimeout(() => { try { inst.destroy(); } catch { /* gone */ } }, 0); } st.dirty = true; };
   /** @param {any} def */
   function addPass(def) {
     const old = passes.get(def.id);

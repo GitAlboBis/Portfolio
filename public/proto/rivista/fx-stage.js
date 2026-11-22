@@ -251,7 +251,11 @@
       const media = qa(sec, "img, video, picture, canvas").filter((e) => inScene(e, sec) && !(view && view.contains(e)) && !(e.tagName === "IMG" && e.parentElement && e.parentElement.tagName === "PICTURE")).slice(0, 8);
       // the text blocks (keep-outs a scene may use): text-bearing elements outside the view, the outermost of each
       // nest, with text, at most MAX_TEXTS
-      const tx = qa(sec, TEXT_SEL).filter((e) => inScene(e, sec) && !(view && view.contains(e)) && (e.textContent || "").trim());
+      // (wave 8, ORRERY) text the eye does not see is not a text block: a list kept for assistive technology in a
+      // clip of 1 px ([data-stage-unseen] on the clip: Now's nine names on a desktop, css/page-cover.css) asks for no
+      // keep-out while the clip is shut (its children's own boxes are whole, wherever the clip stands)
+      const unseen = (/** @type {Element} */ e) => { const u = /** @type {HTMLElement | null} */ (e.closest("[data-stage-unseen]")); return !!u && u.offsetWidth <= 1 && u.offsetHeight <= 1; };
+      const tx = qa(sec, TEXT_SEL).filter((e) => inScene(e, sec) && !(view && view.contains(e)) && (e.textContent || "").trim() && !unseen(e));
       const texts = tx.filter((e) => !tx.some((o) => o !== e && o.contains(e))).slice(0, MAX_TEXTS);
       // the text column: the steps' columns (their first child: a step block may span the whole width), else the
       // text blocks

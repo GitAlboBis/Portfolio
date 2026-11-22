@@ -1,6 +1,20 @@
 # HANDOFF — continua da qui
 
-> **Macchina: GIANNI · dal 21 novembre, aggiornato il 22 alle 12:56. Adesso: l'ondata 8 è alle ultime due corsie (INTEGRATE, DOCS); poi si ripubblica, ma il dominio del sito vero oggi non risponde (vedi «22 novembre, 12:56»).** Direttore: la sessione `d1419707-434e-400d-a846-5dd3531f8e24` sul profilo `claude-albi`, su Opus 5.5. Run `wf_a464b802-57b`, compito attuale `we7zase75` (il primo era `wx6ozojm9`), script `C:\Users\alber\.claude-albi\projects\C--Users-alber-Desktop-PortfolioAlbertoTuveri-viva\d1419707-434e-400d-a846-5dd3531f8e24\workflows\scripts\rivista-wave8-fixes-wf_a464b802-57b.js`.
+> **Macchina: GIANNI · 22 novembre, sera. L'ondata 8 è online su https://albertotuveri.sersan.io; adesso la sessione `-27` integra la figura di Now.**
+> - **Online.** Lo squash `a3e7b7c` sopra `37cc8e2` è su `main` (un fast-forward), e Vercel ha risposto «Deployment has completed» (sha in `.shots/_director/squash-sha-wave8.txt`). Contiene l'ondata 8, l'uscita di `evidence` (`1734c64`) e l'indirizzo nuovo (`acd065a`).
+> - **Sul dominio vero:**
+>   - `/`, `/work.html`, i casi e `/it/about.html` rispondono 200; `/it` 308; `/it/nope` 404 in italiano; `/work/badante24h` 307; `nosniff`; `index, follow`;
+>   - canonical, `og:image`, `robots.txt` e i 32 `<loc>` della sitemap nominano `albertotuveri.sersan.io`;
+>   - nessuna scena `evidence`, nessun `fx-sound`.
+>
+>   La sonda headless `.shots/_director/live8.mjs`, con le catture in `live8/`:
+>   - desktop: il palco si accende in 1,6 s; un clic su Work vola, con `fx:nav:start` 37 ms dopo il clic, poi covered e arrived;
+>   - telefono, in italiano: il palco si accende in 1,0 s;
+>   - zero `AudioContext`, console pulita su desktop e al telefono.
+> - **Dopo:** in PRODUCT.md, dopo «Dopo il CV», le nove competenze della figura di Now (`1986bbd`), con «Reverse engineering» e «Business automation» nelle parole di Alberto. Poi il «via libera» alla sessione `-27` con lo sha. Quando lei ha integrato e mandato il riassunto: guardare, gate, commit, rilascio, squash sopra `a3e7b7c`, push, verifica.
+> - **Ancora aperto con Alberto:** il vecchio `portfolio-jet-eta-24.vercel.app` come redirect 308 al dominio nuovo (si fa solo col suo sì); le barre dei capitoli «measured» e «teaser» dei casi, che lui ha chiamato brutte, gliele chiede la sessione `-27`; lo sguardo alle due giunture nuove (galleria → stack nella home, galleria → alba su Work).
+
+> **Macchina: GIANNI · dal 21 novembre, aggiornato il 22 alle 12:56 (storia).** Direttore: la sessione `d1419707-434e-400d-a846-5dd3531f8e24` sul profilo `claude-albi`, su Opus 5.5. Run `wf_a464b802-57b`, compito attuale `we7zase75` (il primo era `wx6ozojm9`), script `C:\Users\alber\.claude-albi\projects\C--Users-alber-Desktop-PortfolioAlbertoTuveri-viva\d1419707-434e-400d-a846-5dd3531f8e24\workflows\scripts\rivista-wave8-fixes-wf_a464b802-57b.js`.
 > - **Le parole di Alberto, 21 novembre, dopo aver guardato l'ondata 7 online:** «Il suono è orribile, togli tutti i sound effects . Inoltre se trovi problemi e difetti devi migliorarli subito. Un altro è che quando scorrono le carte dei work, alla fine dello slide diciamo scatta un può il movimento . Stessa cosa anche in quelle di competenze e skills».
 > - **Le corsie,** con appunti in `docs/redesign/rivista-story/build/k-*.md` e catture in `.shots/k-*/`:
 >   - **Build:** SOUND (porta 5401) toglie il suono del tutto: il modulo, l'interruttore, lo switch, il renderer. SMOOTH (5402) trova con i numeri la causa dello scatto a fine slide nella galleria di Work e nella pila di About, e la toglie. Il primo indizio è l'opzione `snap` dell'occhio che le scene passano a `fx-stage.js`.

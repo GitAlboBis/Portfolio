@@ -53,3 +53,24 @@ html[data-page="home"].sc-on.stage-on:not(.gl-off):not(.stage-dead) .hero-name {
    site and the case of the multi-agent system the text names (SerSan Agent OS), side by side, a line each when the
    column is narrow */
 .now-go { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s3) var(--s5); }
+
+/* ---------------------------------------------------------------- now: the nine names (wave 8, lane ORRERY). On the
+   stage they turn round the SerSan mark, each a figure of light with its name under it (stage/orrery/). The page keeps
+   the same nine as type, after Now's step: printed where there is no stage (reduced motion, no WebGPU, print) and on
+   a phone, where the stage shows one name at a time. On a desktop in scene mode the stage draws all nine, so the list
+   is kept for assistive technology and hidden to the eye (on screen only: print shows it). It is printed again
+   whenever the stage draws fewer than nine (html.orbit-few: a desktop too narrow for nine names, where the three
+   nearest the front show) or the pass cannot draw (html.orrery-off); both classes are written by
+   stage/scenes/now.js and stage/orrery/orrery.js. */
+.now-orbit { margin: 0; padding: 0 var(--gut) var(--s6); }
+.now-orbit dd { margin: 0; }
+/* in plain flow the list is the end of Now's text: the step keeps a paragraph's room under its links, not a scene's */
+.now .sc-step { padding-bottom: var(--s4); }
+.now-orbit-l { list-style: none; margin: var(--s3) 0 0; padding: 0; max-width: 46rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2) var(--s4); }
+@media (min-width: 760px) { .now-orbit-l { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* in scene mode, where the list shows, it starts a line's room under Now's screen: nothing of it is on the first
+   screen, and the stage keeps nothing clear for it there */
+html.sc-on:not(.gl-off) .now-orbit { margin-top: calc(var(--s5) + var(--s2)); }
+@media screen and (min-width: 1024px) {
+  html.sc-on:not(.gl-off):not(.orrery-off):not(.orbit-few) .now-orbit { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}

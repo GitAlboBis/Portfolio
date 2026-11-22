@@ -78,10 +78,20 @@ const S = {
     en: "SerSan is a custom software, automation and AI studio: Sersan Limited, London. I work remote, as Software & AI Engineer and Creative Lead, and I built the studio's own multi-agent system, SerSan Agent OS.",
     it: "SerSan è uno studio di software su misura, automazione e AI: Sersan Limited, Londra. Lavoro da remoto, come Software & AI Engineer e Creative Lead, e ho costruito il sistema multi-agente dello studio, SerSan Agent OS.",
   },
-  "now.alt": {
-    en: "The sersan.io home hero at rest: the hexagonal SerSan mark and the glowing SERSAN wordmark, both drawn in particles, above a raymarched black hole edged by a thin bright ring, on a dark starfield.",
-    it: "La schermata d’apertura della home di sersan.io, a riposo: il marchio esagonale SerSan e il logotipo SERSAN luminoso, entrambi disegnati a particelle, sopra un buco nero in raymarching bordato da un sottile anello chiaro, su un campo di stelle scuro.",
-  },
+  /* (wave 8, lane ORRERY) the nine kinds of work that turn round the SerSan mark on the stage (stage/orrery/): the
+     page prints them as a list ([data-orbit] in parts/c-main.index.html) and the stage draws the same words as light,
+     in the bodies' order (stage/orrery/bodies.js BODIES). The names and the source of each: PRODUCT.md §9, «Le
+     competenze della figura di Now». The picture of sersan.io and its "now.alt" left with the plate. */
+  "now.orbit": { en: "What I do", it: "Cosa faccio" },
+  "now.orbit.1": { en: "Full-stack software", it: "Software full-stack" },
+  "now.orbit.2": { en: "3D & WebGPU", it: "3D e WebGPU" },
+  "now.orbit.3": { same: true, en: "Reverse engineering", it: "Reverse engineering" },
+  "now.orbit.4": { en: "Multi-agent systems", it: "Sistemi multi-agente" },
+  "now.orbit.5": { en: "Business automation", it: "Automazione aziendale" },
+  "now.orbit.6": { same: true, en: "Claude Code", it: "Claude Code" },
+  "now.orbit.7": { en: "Video editing", it: "Montaggio video" },
+  "now.orbit.8": { same: true, en: "Motion design", it: "Motion design" },
+  "now.orbit.9": { en: "AI content generation", it: "Contenuti generati con l’AI" },
 
   /* ---------------------------------------------------------------- one sentence per page: the cover's index printed
      them until wave 7 (the index is gone); the 404's rows print them now (S404.pages, read by parts/c-main.404.mjs) */

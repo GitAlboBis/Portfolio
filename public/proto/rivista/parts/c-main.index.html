@@ -1,7 +1,14 @@
-  <!-- THE COVER after the first viewport (spec 50 §4): "now", one step (the plate holds the real sersan.io capture; the
-       capture is in the DOM for the reader without the stage, [data-stage-poster], and for the stage as a texture,
-       data-slab="now"). Wave 7 (lane HOME): the cover's index is gone; the home goes on through every page's own part
-       (parts/c-main.home.mjs) and ends with Contact's morning. COPY: parts/strings.mjs ("now.*"). -->
+  <!-- THE COVER after the first viewport (spec 50 §4): "now", one step. Its figure is the stage's own (wave 8, lane
+       ORRERY: stage/orrery/, asked for by stage/scenes/now.js): the SerSan mark as a solid of light and nine kinds of
+       work turning round it, each with its name. The same nine names are in the DOM as a list ([data-orbit], after the
+       step; a term and its description, so the stage's host keeps one block clear, not ten): the stage reads them
+       from it and draws them as light; the page prints them as type where there is no stage, on a phone (where the
+       stage shows one name at a time) and whenever the pass cannot draw; on a desktop in scene mode the list is kept
+       for assistive technology and hidden to the eye (css/page-cover.css; [data-stage-unseen]: the host takes no text
+       block from a clip that is shut; [data-stage-keepout]: where the list shows, the host keeps it clear whatever
+       scene is answering). Their order is the bodies' (stage/orrery/bodies.js). Wave 7 (lane HOME): the cover's index is gone; the home goes on through
+       every page's own part (parts/c-main.home.mjs) and ends with Contact's morning.
+       COPY: parts/strings.mjs ("now.*"). -->
   <section class="sc sc-left now" id="now" data-stage="now" style="--steps:1" aria-labelledby="now-h">
     <div class="sc-view" data-stage-anchor="now" aria-hidden="true"></div>
     <div class="sc-track">
@@ -13,7 +20,22 @@
           <p class="t-body now-body">{{t:now.body}}</p>
           <p class="now-go"><a class="q" href="https://sersan.io" rel="noopener">sersan.io <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a><a class="q" href="case-sersan-agent-os.html" data-pt-label="SerSan Agent OS" data-pt-sub="01 · {{t:sec.work}}">SerSan&nbsp;Agent&nbsp;OS <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></p>
         </div>
-        <figure class="now-fig" data-stage-poster><img data-slab="now" src="/captures/sersan-io-blackhole-sq-1600.webp" srcset="/captures/sersan-io-blackhole-sq-800.webp 800w, /captures/sersan-io-blackhole-sq-1600.webp 1600w" sizes="(min-width:1024px) 40vw, 90vw" width="1600" height="1600" alt="{{t:now.alt}}" loading="lazy" decoding="async"></figure>
       </div>
+      <dl class="now-orbit" data-orbit data-stage-unseen data-stage-keepout>
+        <dt class="t-label t-acc">{{t:now.orbit}}</dt>
+        <dd>
+          <ul class="now-orbit-l">
+            <li class="t-label t-ink">{{t:now.orbit.1}}</li>
+            <li class="t-label t-ink">{{t:now.orbit.2}}</li>
+            <li class="t-label t-ink">{{t:now.orbit.3}}</li>
+            <li class="t-label t-ink">{{t:now.orbit.4}}</li>
+            <li class="t-label t-ink">{{t:now.orbit.5}}</li>
+            <li class="t-label t-ink">{{t:now.orbit.6}}</li>
+            <li class="t-label t-ink">{{t:now.orbit.7}}</li>
+            <li class="t-label t-ink">{{t:now.orbit.8}}</li>
+            <li class="t-label t-ink">{{t:now.orbit.9}}</li>
+          </ul>
+        </dd>
+      </dl>
     </div>
   </section>

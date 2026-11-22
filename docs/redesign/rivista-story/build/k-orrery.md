@@ -288,7 +288,144 @@ at 12:58 for light usage until INTEGRATE and DOCS return (no workflows, no paral
   `http://127.0.0.1:5420/proto/rivista/index.html` himself; stop it by pid when he has looked. To start again:
   `python scripts/serve-static.py 5420 public .shots/orrery/www` · `… 5421 public` · `… 5422 .shots/orrery/head/public`.
 
-## For integration (after the director's «via libera»; nothing below is done)
+### After Alberto's look at the bench (22 Nov, about 14:35 to 15:10, cut by the usage limit; the checks at 18:50)
+
+Alberto, on 5420: «per quanto riguarda now at sersan , mi piace molto bello , vorrei che le scritte dei simboli siano
+sempre attive , non come ora che si attivano solo quando ruotano e arrivano in basso rispetto al logo . inoltre per il
+logo puoi fare di meglio», then «il logo di sersan intendo , gli altri delle skills vanno bene». (The nine bodies stay.)
+He also asked for Work's `evidence` scene to go: the director does that inside wave 8, not this lane.
+
+- **Words always on (desktop).** `layout.js` `orreryWords`: every body's name stands under it all the turn (far ones at
+  0.7 of the light), a name moves aside before it gives way (`at(dx)`), `W_GAP` 5, `W_CLEAR` [3, 7]; the proof reports
+  what a word gives way to (`gaveTo`). `labels.js`: a long name in two balanced lines (`font.wrap`, `WRAP_EM` 7 in
+  orrery.js; one line in a phone's band). `SHAPE.open`: r [0.8, 0.9, 1], cosI [0.875, 0.78, 0.755], H 0.54 (so a
+  far-arc name fits between its body and the mark), `EXTENT.open` down 0.99. Scene: margins 44 / 26 / 62, bench names
+  in both languages from the site's own (Consulting's `co.*`), `it/index.html` shows the Italian ones.
+  **Proved** (`gap.mjs`, a whole turn; r13, r13it; BEFORE the last change of H from 0.5 to 0.54 and of `W_CLEAR`):
+  nine lit at once all the turn, none gives way, EN and IT at 1280, 1440, 1920 (IT at 1280: one name dims for an
+  instant). **The phone keeps one word at a time**: nine do not fit a 378 px band at the type floor; at integration the
+  page's own list of the nine shows under the band on a phone.
+- **The mark is a lit solid of grains.** `bodies.js` `mark()`: every grain a normal (face facets, a chamfer on the cut
+  edge, the walls a sheet of grains with the contour's normal; no contour layers any more), more spores. WGSL: one key
+  light (`O_KEY`), what faces away from the eye is not drawn, the chamfer bright toward the light and gone away from
+  it, glints, and the hand blows the spores off the form (out from the pointer, toward the eye, dragged by its
+  velocity) while the core under it warms. Scene: `pin` eased on the clock. The mark turns with the hand 1.6 times more
+  than the system. Seen: `r16/v-mark.png` (1440 and 1920, at rest and under the hand), `r14/d1-k1.png`,
+  `r15/v-d-en.png`.
+- **The checks, done on resuming (22 Nov, 18:50 to 19:05), on the code as it is now** (49,065 points at tier A, 25,085
+  at tier B):
+  - **The proof** (`gap.mjs`, a whole turn in 1600 steps; `r17`, `r17it`). English: nine names lit at once all the turn
+    at 1280, 1440 and 1920, none gives way, none dims (the least clear a name ever is: 8.9, 23.1, 47.4 px). Italian:
+    the same, and at 1280 one name («Montaggio video») dims for an instant (0.2 % of the turn), never gives way.
+    Bodies apart 48 / 61 / 92 px, from the mark 53 / 66 / 97 px. The phone as before: one name, bodies 11 px apart.
+  - **GPU** (`gpu-t1.log`; the machine was busy, CPU 35 to 70 %, the director's lane running: medians compare, the
+    single frames in the peaks are noise on both; 5421 is the same tree with the plate). Now in place at rest: 1440:
+    0.94, 1.14 against 1.30, 1.50; 1920: 1.40, 1.48 against 1.62, 1.71; phone: 0.79 to 0.82 against 0.78, 0.79.
+    Now + 0.3 screen at rest: 2.02 against 2.17 (1440), 1.95 against 2.10 (1920), 0.16 against 0.22 (phone). The
+    swarm never halved. Asleep: 0 frames in 3 s after 19 s of quiet, 1440 and phone (the eased `pin` settles).
+    Console clean. Still owed at integration: twice on a quiet machine.
+  - **Looked at:** `r18/v-d-it.png` (the Italian names at 1440), `r18/m-k1.png` (the phone), `r18/d-k1.png`,
+    `r16/v-mark.png` (the mark 1:1 at both sizes, at rest and under the hand).
+  - `now.diff` refreshed (19:05).
+- **Server:** 5420 is still up (pid 26236) for Alberto; 5421 stopped.
+
+### The integration (22 Nov, 19:50 to 20:50, on the director's «via libera», HEAD `94634c2`)
+
+In the tree now (nothing committed: the director commits):
+
+- **New:** `public/proto/rivista/stage/orrery/` (`orrery.js`, `layout.js`, `bodies.js`, `labels.js`, `orrery.wgsl.js`),
+  the bench's five modules. `orrery.js` marks the page when the pass cannot draw (`off()`: `html.orrery-off` on a
+  failed init or a frame that throws).
+- **`stage/scenes/now.js`** rewritten from the bench's: no slab, no `import hero`, no bridge; the nine names read from
+  the page's list (`orbitNames()`: read once, again when the list has left the document, as `path.js` does); the
+  figure lit only once the name is behind the eye; hero.js untouched.
+- **`parts/c-main.index.html`:** the picture of sersan.io is out; after Now's step a `<dl class="now-orbit" data-orbit
+  data-stage-unseen>` (a term, «What I do» / «Cosa faccio», and a list of the nine names). **`parts/strings.mjs`:**
+  `now.orbit`, `now.orbit.1` to `.9` (PRODUCT.md §9's words: the sixth is «Claude Code»), `now.alt` out.
+- **`css/page-cover.css`:** the list's rules (type where there is no stage, on a phone and when `html.orrery-off`;
+  hidden to the eye, kept for assistive technology, on a wide screen in scene mode; on screen only, so print shows
+  it). **`css/blocks.css`:** `.now-fig` and Now's two-column plain grid out.
+- **`fx-stage.js`** (one block in `measure()`): text inside a `[data-stage-unseen]` clip that is shut is not a text
+  block. Found by measuring: the hidden list's ten children kept their own boxes, the host took ten keep-outs for
+  them, and half a screen past Now the frame cost 2.72 ms against HEAD's 2.11 (1440), 2.58 against 2.02 (1920), and
+  0.90 against 0.77 on the phone in place. With the filter, and the list as one term and one description (two blocks
+  on a phone, none on its first screen): the table below.
+- **Documents:** CLAUDE.md (§1 the home's row, §2 the printed states, §4 the partials, the stage's map and the
+  switches, §8 the figure closed with what is left), DESIGN.md (the hall, the flight, Now), `60-as-built.md` (row G2),
+  `stage/scenes/README.md` (the `orrery` pass).
+
+**Gates, on the final tree:** `assemble.mjs` and `--check` (exit 0, 156 strings), `check-claims-proto.mjs` OK; Astro
+into `.shots/orrery/dist`: PARITY OK, asserts ok (1154 references), claims OK; `VERCEL_ENV=production node
+web/scripts/release.mjs`: three `[release]` lines (34 pages, 158 files, origin albertotuveri.sersan.io). The release
+served from its root (5425): the pass ready and on, nine names lit.
+
+**GPU, quiet machine (CPU 1 to 25 %), two rounds after the fix (`gpu-q3.log`, `gpu-q4.log`); HEAD = `git archive
+94634c2 public` on 5422, same minutes:**
+| ms, medians | the figure | HEAD (the plate) |
+|---|---|---|
+| 1440x900 DPR 2: Now in place at rest | 0.86, 1.09 · 0.85, 1.09 | 1.22, 1.44 · 1.22, 1.45 |
+| 1440: Now + 0.3 screen at rest; peak (p95) | 1.97 · 1.97; 2.31 (2.24) · 2.40 (2.25) | 2.11 · 2.11; 2.48 (2.32) · 2.44 (2.32) |
+| 1440: the flight's peak (p95) | 1.23 (1.14) | 1.29 (1.18) |
+| 1920x1080 DPR 1: in place | 1.07, 1.14 · 1.07, 1.14 | 1.32, 1.39 · 1.34, 1.39 |
+| 1920: Now + 0.3 screen; peak (p95) | 1.89 · 1.89; 2.08 (2.03) · 2.10 (2.02) | 2.02 · 2.02; 2.24 (2.17) · 2.25 (2.17) |
+| phone, tier B: in place | 0.78, 0.79 · 0.78, 0.79 | 0.77, 0.77 · 0.77, 0.77 |
+| phone: Now + 0.3 screen; peak (p95) | 0.13 · 0.13; 0.86 (0.81) · 0.85 (0.82) | 0.21 · 0.21; 0.92 (0.85) · 0.90 (0.86) |
+The swarm never halved (160,000 at tier A, 80,000 at tier B, `halvings 0 -> 0` in every run). Asleep: 0 frames in 3 s
+after 19 s of quiet, 1440 and phone. Console clean.
+
+**The first frame** (`ff2.mjs`, ten alternated pairs, a warm-up thrown away; `ff-int-d.log`, `ff-int-m.log`): 1440:
+median 347 ms against HEAD's 357 (quartiles 336 to 376 against 337 to 366); phone: 335 against 326 (311 to 349
+against 306 to 355). No frame over 50 ms after the first frame in any load of either.
+
+**The proof** (`gap.mjs`, a whole turn, the names from the page; `r22`, `r22it`): nine lit at once all the turn, none
+gives way, none dims, English and Italian, at 1280, 1440 and 1920 (the least clear a name ever is: 8.9, 23.1, 47.4 px
+in English; 6.7, 17.2, 43.7 in Italian). Bodies 48 / 61 / 92 px apart, 53 / 66 / 97 px from the mark.
+
+**Looked at** (`.shots/orrery/`): `r20/v-d-en.png` (1440), `r20/it-k1.png`, `r20/d1-k1.png` (1920), `r24/v-final-m.png`
+(the phone: Now's screen, then the nine names as type, both languages), `r21/v-printed.png` (`?stage=0`,
+`?failorrery=1`, print, reduced motion), `r20/d-k0.png` (the hero unchanged: the pass is off there), `r23/astro-it.png`
+(the Astro pages after a flight to the Italian edition: the same document, the names in Italian). The detector
+(`impeccable detect`, once): only the page's older warnings (long uppercase labels, the gallery's words box), nothing
+on the list.
+
+**The review (one independent reader, read-only; eight findings) and what was done, 21:00 to 21:20:**
+1. HIGH, fixed. The figure's state (`t0`, the springs) was the module's, and the host's clock starts again on every
+   soft navigation: back on the home after a long first visit, Now had no figure until the new clock passed the old
+   `t0`. Now the state is the page's (`c.state.orrery`).
+2. Fixed. The router takes a page's listeners: a session that began on the 404 (or left a page before its first
+   frame) never loaded the pass. Now's own frame asks too (`orLoad` when `stage-on`).
+3. Fixed. On a desktop 1024 to about 1143 wide the figure's half began inside the text column (the host's figure box
+   is capped at half the view) and names stood over the paragraph. The figure's room now starts right of the text
+   column (`nowBox`, read once per layout); where the carousel is then too small for nine names (`A` under 232, about
+   1205 px of width) the three nearest the front show (`all: 0`, `WIN3`) and the page prints the list
+   (`html.orbit-few`). Proved at 1024, 1100, 1200 (`r25`): three names, none over the text.
+4. Fixed. Past Now's screen the printed list had no keep-out once Now stopped answering: `data-stage-keepout` on the
+   `<dl>` (the host's own keep-out, dropped while the clip is shut).
+5. Fixed. `html.orrery-off` did not survive a soft navigation: the pass remembers (`orreryOff()`), the scene says it
+   again on every page.
+6. Fixed with 3. On a phone the figure's place moved when Now's first text block came near (the host's `c.texts`
+   holds only the blocks near the viewport): the place comes from `nowBox` now.
+7. Fixed. A label atlas that cannot be made was asked for again every frame and kept the stage awake: asked once,
+   then the page prints the names.
+8. NOT fixed (the stage's, not this lane's; no known trigger): `stage.js` `passOff` destroys a pass's buffers while
+   the render pass that drew with them is still recording, so a throw after a pass's first draw would turn the whole
+   stage off. `?failorrery=2` throws before any draw and does not cover it.
+   **Closed by the director (22 Nov, 21:30, after the integration):** a throw forced after the orrery's first draw
+   (`.shots/_director/_scripts/passoff.mjs`, which wraps `GPURenderPassEncoder.draw` for the pipeline labelled
+   "orrery") turned the stage off on the release, `[stage] off: GPU error: [Buffer "orrery.u"] used in submit while
+   destroyed` and `stage-dead`. `stage.js` `passOff` now destroys the pass's instance a task later (after the frame's
+   submit; the frame is synchronous from the encoding to the submit): with the same throw the stage draws on (submits
+   394, 730, 1123), only the pass is off and the page prints the nine names (`orrery-off`).
+Checked on the Astro pages (5424) after the fixes: a 13 s first visit, a flight to the Italian edition, Now at once:
+the pass on, presence 1, nine names; `?failorrery=1`, then a flight: `orrery-off` still set, the list shown; a session
+from the 404 to the home: the pass ready, nine names. GPU again (`gpu-q5.log`): as the table above; asleep at 1440
+and on the phone; every gate and the release again, green.
+
+**Open:** on a phone the figure shows one name at a time, and a desktop narrower than about 1205 px shows three (the
+list is printed under Now in both); `/captures/sersan-io-blackhole-sq-{800,1600}.webp` is used by no
+page any more (left in place: the director's call); Alberto has not answered about the cases' measured bars.
+
+## For integration (the plan as written before the «via libera»; done on 22 Nov: see «The integration» above)
 
 1. **Read first** what changed near Now: the director will say (FIX3D: the home's first frame and boot.js; SMOOTH:
    `lib/camera.js` `follow`). The real `stage/scenes/now.js` was untouched at 14:00 on 22 Nov (as committed in

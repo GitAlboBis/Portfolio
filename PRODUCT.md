@@ -257,6 +257,20 @@ Il CV di settembre non li ha ancora. Per About e per il passo SerSan del percors
 - **Obla — personal multi-agent system** · progetto personale · ottobre – novembre 2026. Un capo di gabinetto a cui Alberto parla e agenti con un nome a cui passa il lavoro, sul suo PC (§3 voce 11, §11). Stack: TypeScript su Node.js 22, Rust e Tauri, Claude Agent SDK, Model Context Protocol, llama.cpp su Vulkan con modelli locali, SQLite, Obsidian, Vitest. *(Repository privato Obla, letto il 20 novembre 2026: `package.json` e `packages/*/package.json`, `apps/obla/Cargo.toml`, `docs/adr/0001-quattro-livelli-t0-t3.md`, `docs/adr/0007-modelli-locali-llama-cpp-vulkan.md`.)*
 - **Competenze che si aggiungono al gruppo AI del CV** (About, il gruppo «AI»): sistemi multi-agente (ruoli, passaggi di consegna, guardrail, collaudo dei guasti), Claude Agent SDK, Claude Code e MCP, modelli open-weight in locale (llama.cpp), output strutturato con schemi (Zod). Copilot Studio, Power Automate, Dataverse e Dynamics 365 restano gli strumenti dello stage DOIT (2025–2026): nel gruppo AI al massimo una menzione breve, mai la faccia delle competenze AI.
 
+### Le competenze della figura di Now (parole di Alberto del 21 novembre 2026)
+
+Alberto, 21 novembre 2026, chiedendo una figura per «Now at SerSan» al posto della lastra con la cattura: «puoi fare anche un sistema solare dove cosa ruotano sono i tipi di lavori che faccio (quindi le competenze ) quindi video editing ,3d, multi agent system , aziende automatizzate , reverse engineer , claude code best practice, etc.». Due nomi non stavano ancora in questo file. Li ha confermati lui la sera stessa, con lo strumento delle domande della sessione della figura: «Reverse engineering» («Sì, mettila») e «aziende automatizzate» come «Business automation» / «Automazione aziendale». Ecco le nove competenze, ognuna con la sua fonte:
+
+- **Full-stack software** / «Software full-stack»: l'identità del CV («Full-Stack») e il lavoro di Full-Stack Developer freelance (§9).
+- **3D & WebGPU** / «3D e WebGPU»: §9, SerSan, «Own the front-end, WebGPU/3D and motion layer of what the studio ships».
+- **Reverse engineering**: la fonte sono solo le parole di Alberto del 21 novembre, qui sopra, perché nessun lavoro del sito lo racconta. Si stampa come competenza, mai con un numero o un caso inventato.
+- **Multi-agent systems** / «Sistemi multi-agente»: §3, voci 10 e 11, e «Dopo il CV» (SerSan Agent OS, Obla).
+- **Business automation** / «Automazione aziendale»: le parole di Alberto del 21 novembre; SerSan, «Custom software, automation and AI studio» (§9); SerSan Agent OS (§3, voce 10).
+- **Claude Code**: Consulting 03, «Claude Code best practice» (§10).
+- **Video editing** / «Montaggio video»: §9, «Video editing & post-production»; Consulting 02 (§10).
+- **Motion design**: §9, «Motion graphics & VFX» e «motion design» nel profilo.
+- **AI content generation** / «Contenuti generati con l'AI»: Consulting 01 (§10).
+
 ## 10. Consulenza (round "Storia", 2026-11-10)
 
 La sezione 06 della home. Fonte: il messaggio di Alberto del 2026-11-09, verbatim:

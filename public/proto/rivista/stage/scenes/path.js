@@ -73,28 +73,48 @@ const ease = (cur, to, dt, tau, eps = 1e-3) => { const v = cur + (to - cur) * (1
 /* (wave 1, NIGHT) The line stands in the room's WORLD (viewport px, z toward the reader) and the EYE flies along it.
    At the straight view the newest node is low in the figure's half and the line recedes, swaying a little, toward a
    vanishing point higher up the same half; one node every half eye distance into the depth. */
-/** the line's geometry for this viewport @param {number} vw @param {number} vh @param {boolean} ph */
-function geom(vw, vh, ph) {
+/** (wave 9, J2c1 ABOUT) a phone's caption band (c.caption): the room the header leaves at the top of the frame (its
+ *  64 px and a breath, the gallery's CAP_HDR; under a notch the top safe area too, c.safeTop) */
+const CAP_HDR = 80;
+/** (wave 9, J2c1 ABOUT) THE WALK IN A PHONE'S CAPTION BAND. With the caption at the foot no text crosses the band, so a
+ *  phone can run the desktop's walk: the eye behind the pane in step, the next one or two waiting further along the line,
+ *  each a little smaller, the guard (GAP) between them as on a desktop. In a band about 390 x 420 px the line runs from
+ *  low on the left (node 0 at the straight view: S, shares of the width and of the band below the header's room) toward a
+ *  vanishing point high on the right (V), BOWED as on a desktop (sw: each step to the next node a little longer), and the
+ *  eye stands further back than the phone's old one (L, eye distances behind the node in step) and to its right and above
+ *  it (SIDE), so that from behind any pane the next ones stand apart to the right instead of piling up behind it. F: where
+ *  the node in step stands, PW: the pane's width at a band 420 px tall, OFF: the pane up and left of its node (shares of
+ *  its size). Chosen offline with path.js's own math (.shots/j-about/_scripts/pathsearch.mjs): at rest on every station
+ *  the pane in step whole in the band at 390, 393 and 360 px wide, the next one clear of it (30 px, the guard's GAP), the
+ *  third where the band leaves it room */
+const CAPW = { S: [0.34, 0.6], V: [0.92, 0.12], sw: 0.2, L: 0.92, SIDE: [0.2, -0.08], F: [0.36, 0.74], PW: 98, OFF: [0.4, 0.4] };
+
+/** the line's geometry for this viewport @param {number} vw @param {number} vh @param {boolean} ph
+ *  @param {{ top: number, foot: number } | null} [band] (wave 9, J2c1 ABOUT) a phone's caption band, viewport px as held */
+function geom(vw, vh, ph, band) {
   const D = eyeD(vw, vh), cx = vw / 2, cy = vh / 2;
   // (wave 6, ROOMS) a wide screen: node 0 lower and further left, the line vanishing higher and nearer the middle, so
   // the straight view at the head lays the panes apart up the figure's half (they stacked into one pile of dates)
-  const S = ph ? { x: 0.5 * vw, y: 0.4 * vh } : { x: 0.14 * vw, y: 0.78 * vh };     // node 0 on screen (straight view)
-  const V = ph ? { x: 0.56 * vw, y: 0.1 * vh } : { x: 0.46 * vw, y: 0.16 * vh };    // the vanishing point
+  // (wave 9, J2c1 ABOUT) a phone's caption band: CAPW, in the band
+  const room = band ? band.foot - band.top : 0;
+  const S = band ? { x: CAPW.S[0] * vw, y: band.top + CAPW.S[1] * room } : ph ? { x: 0.5 * vw, y: 0.4 * vh } : { x: 0.14 * vw, y: 0.78 * vh };     // node 0 on screen (straight view)
+  const V = band ? { x: CAPW.V[0] * vw, y: band.top + CAPW.V[1] * room } : ph ? { x: 0.56 * vw, y: 0.1 * vh } : { x: 0.46 * vw, y: 0.16 * vh };    // the vanishing point
   const step = STEP_D * D, z0 = 0.05 * D;
   const X0 = [cx + (S.x - cx) * (D - z0) / D, cy + (S.y - cy) * (D - z0) / D, z0];
   const d = [((V.x - cx) / D) * step, ((V.y - cy) / D) * step, -step];
   // (wave 2) a wider sway: on a straight line each pane hid the ones behind it; on this curve they stand apart in depth
-  const sw = ph ? 0.05 * vw : 0.085 * vw, sh = ph ? 0.02 * vh : 0.04 * vh;
+  const sw = band ? CAPW.sw * vw : ph ? 0.05 * vw : 0.085 * vw, sh = ph ? 0.02 * vh : 0.04 * vh;
   // (wave 6, ROOMS) a wide screen: the sideways sway is a BOW (each step to the next node a little longer than the last)
   // with a third of the old sine on it for the line's S: steps of 0.97, 0.81, 0.93, 1.59 x sw, never back toward the
   // pane in step, so from behind any pane the next ones fan out to the right (the whole sine swung the third and
-  // fourth nodes back over it). A phone keeps its sine (one pane at a time there).
+  // fourth nodes back over it). A phone keeps its sine (one pane at a time there); (wave 9, J2c1 ABOUT) a phone's
+  // caption band bows as a wide screen does (two or three panes there)
   const sn = (/** @type {number} */ s) => Math.sin(s * 1.25 + 0.3) - Math.sin(0.3);
   /** @param {number} s */
-  const fx = ph ? sn : (s) => 0.62 * s + 0.14 * s * Math.min(s, 4.4) + 0.35 * sn(s);
+  const fx = ph && !band ? sn : (s) => 0.62 * s + 0.14 * s * Math.min(s, 4.4) + 0.35 * sn(s);
   /** @param {number} s nodes from the newest */
   const at = (s) => [X0[0] + d[0] * s + sw * fx(s), X0[1] + d[1] * s + sh * Math.sin(s * 0.9 + 1.1) - sh * Math.sin(1.1), X0[2] + d[2] * s];
-  return { D, at, d, ph, key: vw + "x" + vh + (ph ? "p" : "") };
+  return { D, at, d, ph, cap: !!band, key: vw + "x" + vh + (ph ? "p" : "") + (band ? "c" + Math.round(band.top) + "-" + Math.round(band.foot) : "") };
 }
 
 /** what the scene hands the line every frame */
@@ -110,7 +130,8 @@ function lineTargets(H, g) {
     const far = 1 - sstep(4.3, S1, s);
     // (FIX3D) nearly even along its length, a little more ink deeper (the depth thins it): a line, not a comet
     // (wave 2) even through all five panes, a knot of light at each (the pane's edges catch it)
-    pts.push([p[0], p[1], p[2], (0.78 + 0.22 * near) * (g.ph ? 1 / (1 + 0.3 * Math.max(0, s)) : 0.9 + 0.1 * Math.max(0, s)) * (0.2 + 0.8 * far)]);
+    // (wave 9, J2c1 ABOUT) a phone's caption band walks through two or three panes, as a wide screen does: its ink too
+    pts.push([p[0], p[1], p[2], (0.78 + 0.22 * near) * (g.ph && !g.cap ? 1 / (1 + 0.3 * Math.max(0, s)) : 0.9 + 0.1 * Math.max(0, s)) * (0.2 + 0.8 * far)]);
   }
   return H.polyline(pts, PER);
 }
@@ -156,7 +177,17 @@ export default {
   formations: { light, mist },
   /** @param {any} c */
   frame(c) {
-    const ph = c.phone, g = geom(c.vw, c.vh, ph), D = g.D;
+    const ph = c.phone;
+    /* (wave 9, J2c1 ABOUT) A PHONE WITH THE CAPTION AT THE FOOT (c.caption; css/scene.css "the caption at the foot"): no
+       text of the scene ever enters the figure's band (the host's c.fig: from the view's top to a gap above the tallest
+       caption), so the band the line and its panes stand in is the same for every step and they no longer dodge a text
+       (the free band, the panes stepping back within 64 px, the line dimming within 72 px: build/j-walk.md, 048-058).
+       The line is laid in that band as it stands when held (the view at the top: capTop .. the band's foot) and the eye
+       runs the desktop's walk through it (CAPW); when the view moves (the scene's last caption leaving with the page)
+       the line and its panes move with it (dy) */
+    const cap = c.side === "top" && c.caption && c.fig ? c.caption : null;
+    const capTop = CAP_HDR + (c.safeTop || 0), capRoom = cap ? Math.max(160, c.fig.h - capTop) : 0;
+    const g = geom(c.vw, c.vh, ph, cap ? { top: capTop, foot: capTop + capRoom } : null), D = g.D;
     line.g = g; line.inkK = c.inkK;
     // ------------------------------------------------ where the eye stands on the line (in nodes), and how much it
     // still stands at the straight view (the head, and the scene's last part before the dawn)
@@ -165,10 +196,17 @@ export default {
     // (wave 2, GLOW-NIGHT) the eye goes back to the straight view only once the LAST step's text has left the screen
     // (it blended from progress 0.93, while the B.Sc. was still being read beside the SEP 2026 pane): each step keeps
     // its own pane beside its text to the end of the scene
+    // (wave 9, J2c1 ABOUT) in a caption band by the scroll: the last caption is let go at local 0.5 of the last step and
+    // leaves with the page while the figure stays in the band (the sticky view stands at the top until the section has
+    // left, so dy below is 0 then: J2c1 CHECK, .shots/j-about viewy.mjs), and the eye is back at the straight view by
+    // local 0.9, before the next scene's camera weighs in (its section comes in from local 0.5). The text's foot cannot
+    // tell it there: a caption clears at once (local 1), and the eye left deep in the room, behind the last pane, swung
+    // the blended camera a hundred px aside as Consulting's share began (the home, +5.2 screens: the JAN 2022 pane moved
+    // right instead of up with its caption)
     let tb = 0;
     for (const r of c.texts) tb = Math.max(tb, r.y + r.h);
-    const gone = c.step >= NODES ? 1 - sstep(0.04 * c.vh, 0.3 * c.vh, tb) : 0;
-    const m = Math.max(c.step >= 1 ? 0 : 1 - sstep(0.35, 1, c.local), gone * sstep(0.5, 1, c.local));
+    const gone = c.step >= NODES ? (cap ? 1 : 1 - sstep(0.04 * c.vh, 0.3 * c.vh, tb)) : 0;
+    const m = Math.max(c.step >= 1 ? 0 : 1 - sstep(0.35, 1, c.local), gone * (cap ? sstep(0.5, 0.9, c.local) : sstep(0.5, 1, c.local)));
     line.boost = (ph ? 1.1 : 1.45) - 0.2 * m;
     // the line starts just behind the eye's own pane (in front of it, near the eye, it would be a fat streak of light)
     // (FIX3D: its first points, near and blurred, piled into a bright comet head that read as a drop on the phone)
@@ -179,7 +217,11 @@ export default {
     // (k-fix3d) a phone: the line begins about a node further on (0.2 of its length past the pane in step, was 0.06).
     // Its first stretch, the nearest to the eye, opened between two stations into a sail of blurred blue a column wide
     // beside the pane and over the step's text (wave 7's open item; the same on the live site)
-    line.reveal = [clamp((kf - 0.1 * (1 - m) - (S0 + 0.12) * m - S0) / (S1 - S0) + (ph ? 0.2 : 0.04)), 1, ph ? 0.26 : 0.12];
+    // (wave 9, J2c1 ABOUT) a phone's caption band: the line runs through the panes ahead from the pane in step, fading in
+    // from just behind its node (0.1) to whole half a node on, over a short feather (0.1). The phone's long feather (0.26)
+    // reached a node and a half back toward the eye, and that near stretch drew as a wide soft band from the screen's
+    // left edge under the pane in step (393 IT, +12 screens: `.shots/j-about/v3-it-p3`)
+    line.reveal = [clamp((kf - 0.1 * (1 - m) - (S0 + 0.12) * m - S0) / (S1 - S0) + (cap ? 0.1 : ph ? 0.2 : 0.04)), 1, cap ? 0.1 : ph ? 0.26 : 0.12];
 
     // ------------------------------------------------ the shot: behind the node in step, a little to its right and above,
     // looking down the line; it shows at F, the figure's focus
@@ -189,7 +231,16 @@ export default {
     // (FIX3D) a phone: the step's text scrolls through the figure's band, and the panes hid there nearly all the time;
     // the line's focus moves into the tallest band no text crosses (damped) and the panes fit it
     let fitK = 1, bandOk = 1;
-    if (ph) {
+    // (wave 9, J2c1 ABOUT) a phone's caption band: the node in step where CAPW puts it in the band as held (the view at
+    // the top), the panes sized to the band, the same for every step. When the view moves (it rides off the top once the
+    // section has left, not while the last caption leaves) the line and its panes move with it in the world (dy: the
+    // line's rect, the panes, the subject's light); the eye is not re-aimed to follow it (an eye
+    // re-aimed moves the figure only by the path's share of the camera's blend with the next scene's)
+    const dy = cap ? f.y : 0;
+    if (cap) {
+      F = { x: CAPW.F[0] * c.vw, y: capTop + CAPW.F[1] * capRoom };
+      fitK = clamp(capRoom / 420, 0.8, 1.05);
+    } else if (ph) {
       const b = freeBand(c, 0, c.vw, 18, 70), gh = b[1] - b[0];
       const fy = gh > 0 ? b[0] + gh * 0.58 : F.y;
       // (wave 8, SMOOTH) the place and the panes' size ride critically damped springs (lib/camera.js follow): the band
@@ -200,16 +251,18 @@ export default {
       bandOk = gh > 170 ? 1 : 0;
     }
     const A = g.at(kf), dl = Math.hypot(g.d[0], g.d[1], g.d[2]);
-    const L = (ph ? 0.62 : 0.56) * D;
+    const L = (cap ? CAPW.L : ph ? 0.62 : 0.56) * D;
     // the eye's offset from the line sets where the line's far end vanishes on screen: at F + side x D / L (the far panes
     // recede up and a little right of the pane in step, inside the figure's half, never toward the text)
-    const v = [-g.d[0] / dl * L + (ph ? 0.07 : 0.12) * D, -g.d[1] / dl * L - (ph ? 0.1 : 0.09) * D, -g.d[2] / dl * L];
+    // (wave 9, J2c1 ABOUT) a phone's caption band: further right (CAPW.SIDE), so the panes ahead stand apart
+    const v = cap ? [-g.d[0] / dl * L + CAPW.SIDE[0] * D, -g.d[1] / dl * L + CAPW.SIDE[1] * D, -g.d[2] / dl * L]
+      : [-g.d[0] / dl * L + (ph ? 0.07 : 0.12) * D, -g.d[1] / dl * L - (ph ? 0.1 : 0.09) * D, -g.d[2] / dl * L];
     const near = aimAt(c, A, F, v);
     const pose = mixP(near, { ...home(c), pivot: g.at(0.5) }, m);
 
     // ------------------------------------------------ the five panes, upright in the line's room
     const W = whens();
-    const pw = ph ? 104 * fitK : 176, phh = pw * 1.3;
+    const pw = cap ? CAPW.PW * fitK : ph ? 104 * fitK : 176, phh = pw * 1.3;
     // a pane draws opaque over the page: the panes step back while a text block crosses the band they stand in (a
     // phone: only when no free band is tall enough), and come back when it has passed
     let clear = bandOk;
@@ -235,7 +288,8 @@ export default {
     // with the frame's real eye; while one comes within 72 css px of a text block the whole line dims on a spring and
     // comes back once the text has passed, as the panes step back (the keep-outs only cut the discs at the block's edge,
     // and a blurred stretch beside it still read as a band of blue over the words)
-    if (ph) {
+    // (wave 9, J2c1 ABOUT) not in a caption band: no text comes beside the line there (the caption's own keep-out stays)
+    if (ph && !cap) {
       let lh = 0;
       const r0 = S0 + line.reveal[0] * (S1 - S0), M2 = 72;
       for (let s = r0; s <= Math.min(S1, r0 + 2) && !lh; s += 0.1) {
@@ -260,7 +314,9 @@ export default {
       // (wave 2, FIX) the pane stands BESIDE the line, above it (a station's sign over its track): through its middle the
       // line crossed out the month and the year
       // the line recedes up and to the right: the pane stands up and LEFT of it, so the far line runs past its right edge
-      const q = [q0[0] - pw * (ph ? 0.66 : 0.5), q0[1] - phh * (ph ? 0.3 : 0.5), q0[2]];
+      // (wave 9, J2c1 ABOUT) a phone's caption band: CAPW.OFF
+      // (dy: the view's ride, in a phone's caption band; 0 elsewhere)
+      const q = cap ? [q0[0] - pw * CAPW.OFF[0], q0[1] - phh * CAPW.OFF[1] + dy, q0[2]] : [q0[0] - pw * (ph ? 0.66 : 0.5), q0[1] - phh * (ph ? 0.3 : 0.5), q0[2]];
       if (j === Math.round(kf)) qIn = q;
       const close = clamp(1 - Math.abs(d)) * (1 - m);
       const s = {
@@ -279,7 +335,9 @@ export default {
       // step's text (phone, 1920): it is now held to zero there
       // (wave 4, PRISM) a phone: a wide margin above and below, so a pane has gone before a text block (the dates line of
       // the step's text) reaches it, never while its numerals lie over the words
-      const mx = 20, my = ph ? 64 : 20;
+      // (wave 9, J2c1 ABOUT) a phone's caption band: only a guard, a pane meeting a text itself (the band ends above the
+      // tallest caption: it fires only on a page zoomed so far that a caption outgrows the room under the band)
+      const mx = cap ? 0 : 20, my = cap ? 0 : ph ? 64 : 20;
       const hit = box && c.texts.some((/** @type {any} */ r) => r.x < box[2] + mx && r.x + r.w > box[0] - mx && r.y < box[3] + my && r.y + r.h > box[1] - my) ? 1 : 0;
       // (wave 8, SMOOTH) the step back and the way back ride a spring (lib/camera.js follow), the first-order lag set off at
       // full speed the frame a text met the pane's box
@@ -288,11 +346,15 @@ export default {
       // (wave 4, PRISM) a phone: a passed pane leaves sooner (its fading numerals lay over the next step's dates line)
       const alpha = Math.max(m, ph ? sstep(-0.24, -0.04, d) : sstep(-0.4, -0.08, d)) * (1 - sstep(3.4, 4.6, d)) * st.clear * (1 - st["h" + j])
         // and they wait until the path holds most of the screen: the stack's text above is not this scene's to see
-        * sstep(0.6, 0.9, c.share ?? 1)
+        // (wave 9, J2c1 ABOUT) not while a join of the rail is under way (c.rail.join): the eye's travel brings the panes in
+        // and takes them out of the frame, whole (fx-stage.js "THE RAIL"; a share of the rows would bring them in faded)
+        * (c.rail && c.rail.join ? 1 : sstep(0.6, 0.9, c.share ?? 1))
         // (wave 3, LIGHT3) a phone: only the pane in step. On a narrow screen the deeper panes stood behind it and beside
         // the line as ghost numerals (cut by the near pane, the line running behind them), and at the head the five
         // stacked into one grey pile of dates; the next pane comes up only as the reader reaches it
-        * (ph ? 1 - sstep(0.3, 0.75, d) : 1);
+        // (wave 9, J2c1 ABOUT) a phone's caption band: the pane in step and the two after it, as the band holds them apart
+        // (the bowed line, CAPW), the guard below between them as on a desktop
+        * (cap ? 1 - sstep(2.2, 3, d) : ph ? 1 - sstep(0.3, 0.75, d) : 1);
       s.alpha = alpha;
       cand.push({ j, s, box });
     }
@@ -323,22 +385,35 @@ export default {
     }
     const R = roomFor(c, {
       seed: SEED.about, wall: { z: -WALL_D * D }, eye: [c.vw / 2, c.vh / 2, D],
-      subject: { x: A[0], y: A[1] + 0.3 * c.vh, z: A[2], w: pw * 3, h: 1.5 * c.vh, strength: 0.5 },
+      subject: { x: A[0], y: A[1] + dy + 0.3 * c.vh, z: A[2], w: pw * 3, h: 1.5 * c.vh, strength: 0.5 },
       ...LIT(c),
       // (wave 2, FIX) no chip in front of the pane in step (chips crossed its month and year)
       clear: qIn && m < 0.5 ? clearOf(c, pose, qIn, pw, phh, 16) : null,
     });
     lookFor(c, R, 2.6);
+    /* (wave 9, J2c1 CHECK) THE MORNING STAYS PAPER WHILE THE EYE COMES BACK. One camera draws the frame. On about.html the
+       day's edge rises from the screen's foot (local 0.5 of the last step) while the eye is still on its way back from
+       behind the last pane to the straight view (m, local 0.5..0.9), and through that camera the dawn's threads, which lie
+       on the page at the edge, were drawn as soft blue lines on the paper up to 211 px below it, and this scene's air as
+       faint dots (.shots/j-about/n3-tree-about-en-p2, the edge at 0.8..0.65 of the screen; _scripts/dawnwho.mjs: the
+       threads and the air, never the line). No ink on the paper until the eye is back: a keep-out over the day, lifted
+       from the edge down as the eye arrives (m 0.85..1), so the threads' ink comes in from the edge they cross. Bringing
+       the eye back by local 0.5 instead was tried: the band stood empty under the last caption (n3b-tree-about-en-p2) */
+    /** @type {{ x: number, y: number, w: number, h: number }[]} */ const dayK = [];
+    if (cap && gone > 0 && m < 1 && c.dawn && c.dawn.length) {
+      const lift = sstep(0.85, 1, m);
+      for (const d of c.dawn) { const y0 = d.y + lift * (c.vh + 40 - d.y); if (y0 < c.vh) dayK.push({ x: d.x, y: y0, w: d.w, h: c.vh + 40 - y0 }); }
+    }
     return {
       swarm: [
-        { id: "light", weight: 1, rect: { x: -50, y: -50, w: 100, h: 100 } },
+        { id: "light", weight: 1, rect: { x: -50, y: -50 + dy, w: 100, h: 100 } },
         { id: "mist", weight: 0.25, rect: { x: 0, y: 0, w: c.vw, h: c.vh } },
       ],
       slabs,
       // (wave 2) a deep focus: at 0.7 the line past the pane in step blurred past the bokeh limit and faded (a comet)
       camera: cam,
       bloom: bloomOf(0.55), field: R.field, rest: 14,
-      keepouts: [...R.keepouts, ...c.texts.map((/** @type {any} */ r) => ({ x: r.x - 10, y: r.y - 8, w: r.w + 20, h: r.h + 16 }))],
+      keepouts: [...dayK, ...R.keepouts, ...c.texts.map((/** @type {any} */ r) => ({ x: r.x - 10, y: r.y - 8, w: r.w + 20, h: r.h + 16 }))],
     };
   },
 };

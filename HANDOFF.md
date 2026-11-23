@@ -1,11 +1,55 @@
 # HANDOFF — continua da qui
 
-> **Macchina: GIANNI · scritto il 23 novembre alle 12:16 dalla sessione `portfolioalbertotuveri-viva-27`, che guida l'ondata del telefono (blocco suo, sopra il diario del direttore).**
-> - **Fatto.** J3 VIEWPORT è committata (`6405b8a`) e online (lo squash `c02be7b`). J2b NOW gira dalle 09:55 sopra `17d593d` ed è al giro finale: i controlli delle due build sono già passati. I suoi cambiamenti non committati sono nell'albero: il parziale di Now, `css/page-cover.css`, `css/scene.css`, `fx-scroll.js`, `fx-stage.js`, `stage/orrery/layout.js`, le pagine generate, i documenti. Appunti: `build/j-now.md`.
-> - **Prossimo passo esatto.** Quando J2b torna: guardare le catture, mandare il resoconto al direttore, che committa e pubblica; poi Alberto guarda Now sul suo iPhone. Dopo, J2r RAIL (il viaggio su un solo passaggio, Now → Work), poi J2c solo dopo il suo sì; le note del direttore sono in `build/j-mobile.md`. Alberto ha chiesto perché ogni corsia dura circa due ore; ho proposto prove più leggere (una misura invece di due) per le corsie che toccano solo il layout. Aspetta la sua risposta, poi va concordato col direttore.
-> - **Da non ritentare.** Non lanciare una corsia sopra lavoro non committato di un'altra. Niente agenti in parallelo; Fable è finito fino al 26 novembre, quindi si usa Opus 5.5 a effort max. Nessun blocco forzato dello scroll. Il viaggio è della camera, mai figure traslate sullo schermo.
-
-> **Macchina: GIANNI · 23 novembre, mattina. J3 VIEWPORT è online: lo squash `c02be7b` sopra `24eaba4`. La sessione `-27` lavora a J2b NOW sopra `17d593d`.**
+> **Macchina: GIANNI · scritto il 23 novembre verso le 15:00 (ora di Roma, dall'intestazione HTTP). J2r RAIL è online: lo squash `240c6c0` sopra `18e6b07`. Ora tocca all'iPhone di Alberto.**
+> - **Fatto.** La corsia J2r della sessione `-27` (`build/j-rail.md`) è committata in due argomenti, prima l'intestazione.
+>   - **`072945f` fix(header):** `fx-motion.js`, con i suoi pezzi di documenti (CLAUDE.md §1, DESIGN.md «The scene's name» e la riga del Motion, la riga G8 di 60-as-built), messi nell'indice hunk per hunk con `git apply --cached --unidiff-zero`.
+>   - **`7073df6` feat(phone):** la rotaia, col resto. La riga «Script delle pagine» di CLAUDE.md §4 descrive `fx-scroll` e `fx-motion` insieme, quindi è andata con la rotaia.
+>   - **I controlli del direttore** sull'albero finale: `--check`, i numeri, Astro con PARITY OK e asserts, il rilascio, lo specchio di design. Ha guardato `pair-b-drag-it.jpg`.
+> - **Online.** Vercel ha risposto «Deployment has completed». Sul dominio vero:
+>   - gli indirizzi rispondono giusto, e `livenow.mjs` è pulito;
+>   - una sonda nel blocco appunti (`liverail.mjs`, catture in `.shots/_director/livej2r/`) si ferma sulla giuntura Now → Work, col fondo di Now a ¾, ½ e ¼ della vista. La figura di Now scivola a sinistra, la prima lastra entra da destra, e «Eleven works» prende il posto di «What I do» in basso;
+>   - l'intestazione è vuota finché il titolo della galleria è sullo schermo, ed è voluto;
+>   - la console è pulita.
+> - **Il sì di Alberto** (in questa sessione, dopo il viaggio online): «si vabene». J2c parte nella sessione `-27`: didascalie e viaggio su tutte le altre sezioni, con le istruzioni in fondo a `build/j-mobile.md`, prove leggere per l'impaginazione e complete per la camera. Il direttore ha chiesto di dividerla in corsie più piccole, una pagina o una coppia di giunture alla volta, pubblicando dopo ognuna.
+> - **Da non ritentare:**
+>   - J2c prima del sì di Alberto;
+>   - corsie sopra lavoro non committato, o in parallelo;
+>   - `data-rail`, che è un marcatore WATER rifiutato da `assemble.mjs`: l'attributo è `data-place`;
+>   - figure traslate sullo schermo: il viaggio è della camera.
+>
+>   Lo squash va sopra lo sha di `main`, ora `240c6c0`. Le corsie girano su Opus 5.5 a effort max: Fable è finito anche sul nuovo account, fino al 25 novembre.
+>
+> **Prima: 23 novembre verso le 13:35 (storia). J2r RAIL era a metà nell'albero, non committata.**
+> - **Fatto.** Online fino a J2b NOW (lo squash `18e6b07` su `main`; HEAD `8835161`). La corsia J2r RAIL della sessione `-27` è stata tagliata dal limite settimanale dell'account (azzeramento il 26 novembre alle 9). Alberto ha fatto `/login` con un altro account su quella sessione, che ha rilanciato la corsia dai suoi appunti, `build/j-rail.md`.
+>   - Nell'albero sono già costruiti la rotaia su Now → Work (verso destra, come il cosmo: `placeOf` va a +x; l'attributo è `data-place`) e il nome della scena nell'intestazione durante le didascalie ferme.
+>   - Mancano GPU, sonno, primo frame, desktop, orizzontale, stampe, i gate e i documenti.
+>   - I 20 file cambiati sono le modifiche a metà della corsia, più questo HANDOFF.md, non committato.
+> - **Prossimo passo esatto.**
+>   1. Aspettare il riassunto di J2r dalla sessione `-27`.
+>   2. Guardare le catture, rifare i gate e committare in due argomenti separati: la rotaia e il nome della scena nell'intestazione. Poi HANDOFF.md.
+>   3. Rilascio, squash sopra `18e6b07`, push, controllo sul dominio con `livenow.mjs` e `livework.mjs`. Poi Alberto prova il passaggio Now → Work sull'iPhone.
+>   4. J2c (le altre sezioni) solo dopo il suo sì alla rotaia.
+> - **Da non ritentare:**
+>   - committare o rilasciare mentre una corsia ha modifiche a metà nell'albero: il rilascio locale le includerebbe;
+>   - lanciare corsie in parallelo fra le due sessioni.
+>
+>   Se la corsia viene tagliata di nuovo, la sessione `-27` manda ciò che resta su disco e il direttore decide cosa si può committare.
+>
+> **Prima: 23 novembre, mattina (storia). Anche J2b NOW è online: lo squash `18e6b07` sopra `c02be7b`. La sessione `-27` lavora a J2r RAIL sopra `8835161`.**
+> - **J2b NOW** (`build/j-now.md`) è committata come `96cf06c`; il diario dopo è `8835161`.
+>   - **Cosa cambia.** Al telefono in verticale il testo di Now sta in tre didascalie ferme in basso. La figura resta ferma nella fascia sopra per tutto Now, col marchio a 128 px invece di 65, e si accende prima, sempre dopo le lettere del nome. Il desktop è identico.
+>   - **Sul dominio vero,** dopo «Deployment has completed»: la figura grande sopra, la prima didascalia in basso, console pulita. A freddo, subito dopo il deploy, il palco del desktop si è acceso in 2,7 s, contro 0,9–1,5 s delle prove precedenti.
+> - **J2r RAIL** è in corso: il movimento della camera nello spazio, solo sulla giuntura Now → Work. Dentro c'è anche, come argomento separato, il nome della scena nell'intestazione che sparisce durante le didascalie ferme: succede già nella galleria online.
+> - **Le prove più leggere.** Il direttore è d'accordo, come dice CLAUDE.md §3. Per una corsia che tocca solo impaginazione o 2D bastano:
+>   - i gate e la prova di ciò che cambia;
+>   - un giro di GPU al telefono;
+>   - il primo frame una volta;
+>   - il desktop identico in due punti per lingua;
+>   - uno sguardo alle catture.
+>
+>   Le prove complete restano per chi tocca il palco, e decide Alberto se risponde.
+>
+> **Prima: 23 novembre, mattina (storia). J3 VIEWPORT è online: lo squash `c02be7b` sopra `24eaba4`.**
 > - **J3 VIEWPORT** (`build/j-viewport.md`) è committata come `6405b8a`; il diario dopo è `17d593d`.
 >   - **Il bug vero.** Sull'iPhone il canvas seguiva la barra di Safari mentre le scene disegnavano la vista piccola. A barra nascosta il quadro era stirato di 1,14 volte e le zone protette cadevano 56–98 px sotto il testo.
 >   - **La correzione.** Il canvas è alto `max(100%, 100lvh)` e non cambia più misura; le scene sono mappate nella sua scatola. Un cambio della barra non costa misure né texture. L'intestazione rispetta l'area sicura in alto, e i margini la tacca col telefono in orizzontale.

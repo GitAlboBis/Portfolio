@@ -20,6 +20,14 @@ import { follow, glideK, softMin, softClamp } from "./lib/camera.js";
 
 const N_LAYERS = 8;
 const THREADS = 7, PER = 360;
+/** (wave 9, J2c1 ABOUT) a phone's caption band (c.caption): the room the header leaves at the top of the frame (its
+ *  64 px and a breath, the gallery's CAP_HDR; under a notch the top safe area too, c.safeTop); how much taller the
+ *  stack's way through the band is than the stack itself (CAP_SPAN: the eye comes down the stack with the layer in step,
+ *  the shot below, so between the first layer in step and the last the whole stack rides up on screen, and the band
+ *  holds it whole at every step); and how far right of the band's middle it stands while open (CAP_DX, a share of the
+ *  width: the eye then stands a little to its right, and the stack seen from there stood 30 to 45 px left of the middle,
+ *  its near corner and its sheet of light past the screen's left edge; measured, .shots/j-about/_scripts/stackext.mjs) */
+const CAP_HDR = 80, CAP_SPAN = 1.32, CAP_DX = 0.09;
 
 const clamp = (/** @type {number} */ x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
 const sstep = (/** @type {number} */ a, /** @type {number} */ b, /** @type {number} */ x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -159,7 +167,27 @@ export default {
     // the stack's half height at scale 1 (the layers, the parting, the plate's depth seen from above)
     const H1 = 3.5 * (ph ? 18 : 36) + (ph ? 16 : 40) + 0.42 * lw0 * 0.64, pad = 16;
     let sc0 = 1, fade = 1, pass = 1;
-    if (c.side === "top") {
+    /* (wave 9, J2c1 ABOUT) A PHONE WITH THE CAPTION AT THE FOOT (c.caption; css/scene.css "the caption at the foot"): no
+       text of the scene ever enters the figure's band (the host's c.fig: from the view's top to a gap above the tallest
+       caption), so the free band, the push and the glass stepping back below are not needed there (build/j-walk.md: the
+       stack sat above its text for 01-04 and below it for 05 and 08, crossing it with its glass stepped back). The stack
+       stands in that band, whole, in one place and at one size for every step: centred under the header's room, as large
+       as the band holds with the shot's travel (CAP_SPAN). Its slide is already centred on the hand-over: the glide
+       between two layers runs 0.3..0.7 of the way about the steps' boundary, where the caption changes */
+    const cap = c.side === "top" && c.caption ? c.caption : null;
+    // the shot's way back to the straight view as the scene ends (below: while the stack is open the eye stands nearer
+    // and to its right). (wave 9, J2c1 ABOUT) With the caption at the foot a quintic of the scroll, not a line: the line
+    // stopped the eye dead at progress 1, which on a phone is where the rail's join into the path begins (14-38 px/s of
+    // the eye's own speed cut there, `.shots/k-smooth/rec/ja-sp-tree-*`); the quintic lands it at rest
+    const outK = cap ? 1 - glideK(0.9, 1, c.progress) : 1 - clamp((c.progress - 0.9) / 0.1);
+    if (cap) {
+      const top = f.y + CAP_HDR + (c.safeTop || 0), room = Math.max(120, f.y + f.h - top);
+      sc0 = clamp((room / 2 - 12) / (H1 * CAP_SPAN), 0.3, 1);
+      cy0 = top + room / 2;
+      // right of the middle by as much as the eye stands right of it (the shot's k below: open, and not yet back at the
+      // straight view at the scene's end)
+      cx0 += CAP_DX * f.w * act * outK;
+    } else if (c.side === "top") {
       let room = f.w, tx1 = -1;
       for (const r of c.texts) if (r.y < f.y + f.h && r.y + r.h > f.y) tx1 = Math.max(tx1, r.x + r.w);
       if (tx1 > 0 && tx1 < f.x + f.w * 0.55) { cx0 = (tx1 + f.x + f.w) / 2; room = f.x + f.w - tx1; }
@@ -193,19 +221,21 @@ export default {
       } else { fade = 0; cy0 = ref; sc0 = typeof s.scT === "number" ? s.scT : sc0; }
       // stepping back (no band tall enough) it holds the place where it was
       s.cyT = cy0; s.scT = sc0;
-      // (wave 8, SMOOTH) the glass steps back while it lies over a text where it is drawn now (crossing a text to
-      // another band; the springs a few px behind a text that pushes it are not); the swarm keeps out of text on its own
-      if (typeof s.cy === "number") {
-        const hw = lw0 * s.sc * 0.8, hh = H1 * s.sc + 12;
-        if (c.texts.some((/** @type {any} */ r) => r.x < s.cx + hw && r.x + r.w > s.cx - hw && r.y + 6 < s.cy + hh && r.y + r.h - 6 > s.cy - hh)) pass = 0;
-      }
+    }
+    // (wave 8, SMOOTH) the glass steps back while it lies over a text where it is drawn now (crossing a text to
+    // another band; the springs a few px behind a text that pushes it are not); the swarm keeps out of text on its own.
+    // (wave 9, J2c1 ABOUT) With the caption at the foot only a guard: the stack's box stands inside the band, which ends
+    // above the tallest caption, so it fires only on a page zoomed so far that a caption outgrows the room under the band
+    if (c.side === "top" && typeof s.cy === "number") {
+      const hw = lw0 * s.sc * 0.8, hh = H1 * s.sc + 12;
+      if (c.texts.some((/** @type {any} */ r) => r.x < s.cx + hw && r.x + r.w > s.cx - hw && r.y + 6 < s.cy + hh && r.y + r.h - 6 > s.cy - hh)) pass = 0;
     }
     follow(s, "cx", cx0, dt, 0.16, 0.01);
     follow(s, "cy", cy0, dt, 0.16, 0.01);
     follow(s, "sc", sc0, dt, 0.16, 1e-4);
     follow(s, "fade", fade, dt, 0.08, 1e-3);
     follow(s, "pass", pass, dt, 0.06, 1e-3);
-    if (s.dbg ??= /[?&]debug=1/.test(location.search)) /** @type {any} */ (window).__stack = { step: c.step, local: c.local, cy0: Math.round(cy0), sc0, fade, pass, cy: s.cy, sc: s.sc, texts: c.texts.map((/** @type {any} */ r) => [r.x, r.y, r.w, r.h].map(Math.round)) };
+    if (s.dbg ??= /[?&]debug=1/.test(location.search)) /** @type {any} */ (window).__stack = { step: c.step, local: c.local, cy0: Math.round(cy0), sc0, fade, pass, cy: s.cy, sc: s.sc, texts: c.texts.map((/** @type {any} */ r) => [r.x, r.y, r.w, r.h].map(Math.round)), cap: !!cap, fig: [f.x, f.y, f.w, f.h].map(Math.round), rail: c.rail ? { ...c.rail } : null };
     const sc = s.sc;
     const lw = lw0 * sc;
     const ld = lw * 0.64;
@@ -247,6 +277,9 @@ export default {
       // leaving one faded at the end, two bright names lay across each other for a third of a second
       const glassK = 1 - sstep(0.12, 0.88, Math.abs(d));
       rims.ys[i * 3] = y; rims.ys[i * 3 + 1] = slide * on; rims.ys[i * 3 + 2] = glassK;
+      // (wave 9, J2c1 ABOUT) ?debug=1: every layer where it stands, glass or outline (a probe projects the stack's whole
+      // extent with the frame's camera: the band must hold it at every step)
+      if (s.dbg) (/** @type {any} */ (window).__stack.layers ||= [])[i] = { cx: cx + p[0], cy: cy + p[1], cz: p[2] - 30, yaw: flat.yaw, pitch: flat.pitch, roll: flat.roll, w: lw, h: ld, t };
       if (glassK <= 0.01) continue;
       const etch = L[i] ? c.etch("cap" + i, [L[i]], eo) : null;
       const slab = {
@@ -269,6 +302,9 @@ export default {
     sheet.run = 1;
     sheet.reach = 1 + 0.6 * (1 - act);
     sheet.boost = 1 + (ph ? 0.8 : 1.6) * (1 - act);                    // at the head the light runs far through the closed block
+    // (wave 9, J2c1 ABOUT) ?debug=1: the sheet's extent as a flat plate in the layer's plane (its threads run 1.55 x the
+    // layer's width times the reach, across 0.84 of its depth), for the probe that projects the stack's extent
+    if (s.dbg) /** @type {any} */ (window).__stack.sheet = { cx: cx + o[0], cy: cy + o[1], cz: o[2] - 30, yaw: flat.yaw, pitch: flat.pitch, roll: flat.roll, w: lw * 1.55 * sheet.reach, h: ld * 0.84, t: 1 };
     const R = Math.max(lw, ld) * 1.4;
     rims.rotate = sheet.rotate; rims.offset = [0, 0, -30]; rims.w = lw; rims.d = ld; rims.inkK = c.inkK;
     rims.key = Array.from(rims.ys, (v) => Math.round(v)).join(",") + "|" + Math.round(lw);
@@ -279,7 +315,7 @@ export default {
     // runs on into the path without a jump
     const D = eyeD(c.vw, c.vh), H = home(c);
     const lay = [cx + o[0], cy + o[1], o[2] - 30];
-    const out = 1 - clamp((c.progress - 0.9) / 0.1);           // back to the straight view as the scene ends
+    const out = outK;                                          // back to the straight view as the scene ends (above)
     const k = act * out;
     const T = [0.05 * c.vw * k, o[1] * 0.85 * k, -0.07 * D * k];
     const pose = { ...H, pos: [H.pos[0] + T[0] + 0.04 * D * k, H.pos[1] + T[1] - 0.04 * D * k, H.pos[2] + T[2]],

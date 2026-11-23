@@ -1,8 +1,13 @@
   <!-- ABOUT (spec 50 §4). stack: the head, then eight steps, one per group of tools (its name, its tools, its proof);
        the stage stands eight thin layers of glass and lifts the one in step. path: the head, then five steps (when and
        kind, what, where); the stage draws one line of light with five nodes. COPY: parts/strings.mjs; tool names and
-       roles are written here as names. -->
-  <section class="sc sc-left stk" id="stack" data-stage="stack" style="--steps:9" aria-labelledby="stk-h">
+       roles are written here as names.
+       (wave 9, J2c1 ABOUT) data-caption and data-place on both: on a phone held upright each step's text is a caption
+       held at the foot of the view, the figure in the band above it (css/scene.css "the caption at the foot"), and each
+       scene stands at its own place in the world, one step to the right of the scene before it (fx-stage.js "THE RAIL"):
+       the eye travels from the gallery's place to the stack's (the home's Work part into its About part) and from the
+       stack's to the path's (here and in the home), the captions handing over in place at the foot. -->
+  <section class="sc sc-left stk" id="stack" data-stage="stack" data-caption data-place style="--steps:9" aria-labelledby="stk-h">
     <div class="sc-view" data-stage-anchor="stack" aria-hidden="true"></div>
     <div class="sc-track">
       <div class="sc-step sc-intro" data-stage-step="0">
@@ -24,7 +29,7 @@
     </div>
   </section>
 
-  <section class="sc sc-right pth" id="path" data-stage="path" style="--steps:6" aria-labelledby="path-h" data-scene-short="{{t:path.short}}">
+  <section class="sc sc-right pth" id="path" data-stage="path" data-caption data-place style="--steps:6" aria-labelledby="path-h" data-scene-short="{{t:path.short}}">
     <div class="sc-view" data-stage-anchor="path" aria-hidden="true"></div>
     <div class="sc-track">
       <div class="sc-step sc-intro" data-stage-step="0">

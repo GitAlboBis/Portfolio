@@ -127,6 +127,16 @@
      so they are back before their plates are seen */
   /** @type {Map<string, { el?: HTMLImageElement, src?: any, etch?: any[] }>} */ const TEXFROM = new Map();
   /** @type {Map<string, number>} */ const revivedAt = new Map();
+  /* (wave 9, J2c1 CHECK) A PLATE HANDED TO THE STAGE ASKS AT ONCE. The plates mark as drawn only the textures of plates
+     on screen; at a join of the rail both figures stand whole while the eye's travel holds one out of the frame, so its
+     picture is the least recently drawn, and the two scenes' textures together (the stack's eight names, the gallery's
+     captures, lifted pictures and etched words) are more than 16. Back from the page's end, the stack's names made again
+     took the gallery's last plate's lifted picture 0.2 s after it had been made again, and the 1.5 s window held it back:
+     the plate came into the frame as empty glass for 1.1 s (.shots/j-about/n1b-gs-tree-en-p2, l-flick-after-end; HEAD,
+     whose plate rides off the top, 0 frames). A texture a plate handed to the stage this frame names (held(id, true)) is
+     made again at once, unless its last making never landed (a failing source keeps the window); only another texture's
+     making takes its layer, so it is never made twice for nothing */
+  /** @type {Set<string>} */ const landed = new Set();
   // only a scene on screen makes its textures again (a scene below the one read, near enough to be framed, took its
   // layers back one by one: the home's stack evicted the gallery's captures again as fast as they came)
   let reviveOK = true;
@@ -771,17 +781,18 @@
   /** (wave 8, SMOOTH) a texture this page's stage holds now; one whose layer went to another texture is dropped from
    *  texReady and made again from what it was made from (TEXFROM: the image, the etched words, the canvas), by a scene
    *  on screen, each at most once in 1.5 s (asked again later if it could not be then) @param {string} id
+   *  @param {boolean} [urgent] (wave 9, J2c1 CHECK) a plate handed to the stage this frame names it: at once (landed)
    *  @returns {boolean} */
-  function held(id) {
+  function held(id, urgent) {
     if (texReady.has(id)) {
-      if (!stage || typeof stage.hasTexture !== "function" || stage.hasTexture(id)) return true;
+      if (!stage || typeof stage.hasTexture !== "function" || stage.hasTexture(id)) { landed.add(id); return true; }
       texReady.delete(id);
     }
     const f = TEXFROM.get(id);
     if (!f || !reviveOK || !stage || texPending.has(id)) return false;
     const now = performance.now();
-    if (now - (revivedAt.get(id) ?? -1e9) <= 1500) return false;
-    revivedAt.set(id, now);
+    if (now - (revivedAt.get(id) ?? -1e9) <= (urgent && landed.has(id) ? 0 : 1500)) return false;
+    revivedAt.set(id, now); landed.delete(id);
     log(`[stage] texture ${id} lost its layer: made again`);
     try {
       if (f.el) loadTex(id, f.el);
@@ -1102,7 +1113,21 @@
       // (wave 9, J2r RAIL) while a join of the rail is under way its two scenes' FIGURES (slabs, extra passes) stand whole:
       // the eye's travel brings them in and takes them out of the frame, never a fade by the rows they hold; their air
       // (formations), field, camera and look keep the share's weight
-      const bwF = rl && rl.join && S.def.blend !== false ? nightRoom : bw;
+      // (wave 9, J2c1 ABOUT) and they stay whole after the join while their scene holds most of the screen (S.rk: 1 while a
+      // join is under way, let go like the scene's weight only once its share falls under a half). A fling that crossed a
+      // join's end at 2,500 px/s left the entering scene's damped weight at 0.69 (SCENE_S lags the rows), and its plates
+      // dropped from whole to 0.69 in one frame on screen (the path's two panes, 393 IT; going back, the leaving scene's
+      // at the join's start likewise). Off the rail S.rk is never set and every value is what it was
+      if (rl && rl.join) /** @type {any} */ (S).rk = 1;
+      else if (rl && share[k] < 0.5) { const q = damp(/** @type {any} */ (S).rk || 0, 0, SCENE_S, dt); /** @type {any} */ (S).rk = q < 1e-3 ? 0 : q; }
+      const bwF = rl && S.def.blend !== false ? nightRoom * (rl.join ? 1 : Math.max(S.w, /** @type {any} */ (S).rk || 0)) : bw;
+      // (wave 9, J2c1 ABOUT) the formations keep the share at a join, even those of a figure (the stack's outlines and its
+      // sheet, the path's line). Tried whole (bwF): the entering scene's formation jumped to its weight as the join began,
+      // the swarm's rank intervals moved at once (stage.js packSlots: a later scene's formation comes first) and the
+      // leaving scene's points were handed over in one go, the stack's outlines emptied and streaming toward the path while
+      // still in the frame. On the share the points pass from one figure to the next as the eye travels, and the path's
+      // line gathers as its share comes (.shots/j-about/pair-fig-sp-zoom.jpg: the share in the 1st and 3rd frame, whole in
+      // the 2nd and 4th)
       for (const f of o.swarm || []) {
         const gid = S.ids[f.id];
         if (!gid || !registered.has(gid)) continue;
@@ -1115,14 +1140,19 @@
       for (const s of glass.ready ? o.slabs || [] : []) {
         const alpha = clamp((s.alpha ?? 1) * bwF * pk, 0, 1);
         if (alpha < 0.004) continue;
-        const tex = s.tex && held(s.tex) ? s.tex : null, etchT = s.etch && held(s.etch) ? s.etch : null;
+        // (wave 9, J2c1 CHECK) asked at once: this plate is drawn now or is held whole out of the frame (held, urgent)
+        const tex = s.tex && held(s.tex, true) ? s.tex : null, etchT = s.etch && held(s.etch, true) ? s.etch : null;
         // (wave 9, J2r RAIL) the plate at its scene's place in the world (shift: 0 without the rail)
         /** @type {any} */ const slab = { id: S.name + ":" + s.id, cx: r2(shift ? s.cx + shift : s.cx), cy: r2(s.cy), cz: r2(s.cz || 0), yaw: r4(s.yaw || 0), pitch: r4(s.pitch || 0), roll: r4(s.roll || 0),
           w: r2(s.w), h: r2(s.h), t: r2(s.t ?? 24), tex, alpha: r4(alpha), glow: r4(clamp(s.glow ?? 0.5, 0, 1)), sharp: r4(clamp((s.sharp ?? 1) * (own ? 1 : 0.3 + 0.7 * pk), 0, 1)) };
         // the stage's added fields pass through as given (etch only once its texture is held)
         if (etchT) slab.etch = etchT;
         for (const k of ["inset", "bevel", "ior", "dispersion", "tint", "sheen", "edge"]) if (typeof s[k] === "number") slab[k] = s[k];
-        if (S.def.yields === true) yielders.set(slab, S.name);
+        // (wave 9, J2c1 ABOUT) not while a join of the rail is under way: its two figures stand whole in their bands, each
+        // band ending above both scenes' captions, and the eye's travel takes them out of the frame. A yielding plate (the
+        // stack's last layer, at the join into the path) stood within the yield's 140 px of the next scene's first caption
+        // at the hand-over and dropped from 1 to 0.39 in one frame as that caption came into focus
+        if (S.def.yields === true && !(rl && rl.join)) yielders.set(slab, S.name);
         slabs.push(slab);
       }
       for (const r of o.keepouts || []) sceneKeep.push(r);
@@ -1441,7 +1471,7 @@
     log("[stage] off: " + why);
     try { if (stage) stage.destroy(); } catch (e) { /* the device may be gone */ }
     stage = null; on = false; building = false; glassT = -1; glassLate = false; drawnT = -1;
-    registered.clear(); texReady.clear(); texPending.clear(); TEXFROM.clear(); revivedAt.clear(); later.clear(); idleAsked = false;
+    registered.clear(); texReady.clear(); texPending.clear(); TEXFROM.clear(); revivedAt.clear(); landed.clear(); later.clear(); idleAsked = false;
     for (const S of scenes) { S.texAsked = false; S.state = {}; }
     BD.key = ""; BD.timers.forEach((t) => clearTimeout(t));
     D.classList.remove("stage-on");

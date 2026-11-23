@@ -400,7 +400,8 @@ the menu first. A new size sits on the scale tokens, never written by hand.
   iPhone: «animazioni storte e non continue , che si vedono dietro le scritte. Non è uno scroll continuo in un mondo come
   su desktop»). Below 1024 px a step's text used to sit at the foot of its own screen and travel up through the
   figure's band, and every scene dodged it its own way. A scene that opts in (`data-caption` on its section; today the
-  gallery, on Work and in the home's Work part, and Now: lane J2b) holds each step's text, on an upright screen under 1024 px (a phone
+  gallery, on Work and in the home's Work part, Now (lane J2b), and About's stack and path, on about.html and in the
+  home's About part (lane J2c1)) holds each step's text, on an upright screen under 1024 px (a phone
   turned sideways keeps the grammar above: it has no height for both), as a CAPTION at the foot of the view
   (`rv/css/scene.css`): one step a screen as before, but the steps hand over in place there, and the figure owns the
   band above the tallest caption (`fx-stage.js` `figOf`), the same band for every step, so nothing of the scene's text
@@ -414,12 +415,12 @@ the menu first. A new size sits on the scale tokens, never written by hand.
   grammar above. A step whose text is far taller than a caption (Now's) is cut where each caption ends into boxes
   (`[data-cap-step]`, each holding one `.sc-cap`): on the phone those boxes are the scene's steps, one caption a
   screen; anywhere else they are plain blocks in the one step's column, so the desktop and every printed state keep the
-  one step, and no word is written twice. The other scenes (About's stack and path, Consulting, Obla, the joins) come
-  in lane J2c (`stage/scenes/README.md`, "The caption at the foot").
+  one step, and no word is written twice. Consulting, Obla and Contact come in lanes J2c2 and J2c3
+  (`stage/scenes/README.md`, "The caption at the foot").
 - **The rail** (a phone's journey between scenes; the phone wave, lane J2r, 23 November; Alberto from his iPhone: «Al
   posto di scrollare e far si che sia tutto verso il basso nel mondo su telefono , possiamo fare I movimento nello spazio
   dimensionale come facciamo gia su desktop»). On a phone held upright a caption scene may also stand at its own PLACE
-  in the world (`data-place` on its section; today Now and the gallery). Two such scenes one after the other in the page
+  in the world (`data-place` on its section; today Now, the gallery, the stack and the path). Two such scenes one after the other in the page
   are a JOIN (`fx-scroll.js` marks them `rail-out` and `rail-in`): the next one's place is one step to the right (1.1
   view widths; the cosmos's own journey drifts right at every page, `placeOf`, so the two agree), and over the first
   scene's last screen the eye travels from one place to the next, a function of the scroll (the quintic: it starts and
@@ -428,8 +429,9 @@ the menu first. A new size sits on the scale tokens, never written by hand.
   cosmos's far threads slower; nothing is moved in screen space and nothing fades by the rows it holds. The text does
   not go down either: the first scene's last caption and the next scene's first keep their holds (`css/scene.css` "the
   rail's join") and hand over in place at the foot at the middle of the pan, as two captions of one scene do. A scene
-  off the rail stands at the place of the rail scene before it. Joins to come (Work into About's stack, the stack into
-  the path, the path into Consulting, Consulting into Obla, Obla into Contact) are lane J2c's.
+  off the rail stands at the place of the rail scene before it. The joins today: Now into the gallery and the gallery
+  into the stack (the home), the stack into the path (the home and about.html); the path into Consulting, Consulting
+  into Obla and Obla into Contact are lanes J2c2 and J2c3.
 - The view is never boxed: no border, no frame, no caption inside it.
 - Without scene mode (reduced motion, no WebGPU, no script, print, a dead stage) a scene is plain flow: its blocks in
   order, with their real pictures (`[data-stage-poster]`, hidden in scene mode, where the stage reads them as
@@ -716,19 +718,33 @@ the day's straight edge rises toward it, gone before the edge reaches its foot, 
   layers are outlines of light (eight traced plates halved the swarm). The layer in step slides toward the reader with
   its group's name etched. Since wave 8 every glass layer carries its name bright, one texture per layer, the eight made
   ahead one a frame from the first frame, so no name is ever asked for the first time while it is seen (a blank frame
-  of glass came between "CORE" and "FRONT-END"); the slide rides springs (`follow`). On a phone the stack keeps to the
-  free band it stands in: a text pushes it with a cushion (`softClamp`, `softMin`) from before it arrives, and the glass
-  steps back while it lies over a text.
+  of glass came between "CORE" and "FRONT-END"); the slide rides springs (`follow`). On a phone held upright (the phone
+  wave, lane J2c1) each step's text is a caption at the foot (see "The scene grammar") and the stack stands whole in the
+  band above the tallest caption, the same size and place for every step, sized to hold the shot's travel down the
+  layers and a little right of the middle while open (the eye looks at it from its right), and its way back to the
+  straight view as the scene ends is a quintic of the scroll, so the eye is at rest where the join into the path begins;
+  it no longer keeps to a free band or steps its glass back. Its captions are shortened by layout, never by size: the tools' rows closer and the title,
+  the tools and the proof a line's room apart (`css/page-about.css`; AI's, the tallest, 284 px in English and 313 in
+  Italian at 390 and 393 wide, instead of 311-343). Without the caption grammar (before `fx-scroll.js` runs) it keeps the free band as before.
 - **Path.** One line of light through five upright panes, each etched with the month and year of its step. The line
   stands still and the eye flies along it: each pane passes close and lit, the passed ones go out past the eye. On a
   wide screen the line bows (each step to the next node a little longer than the last) and ends, feathered, inside
   the figure's half; every frame each pane's box is projected with the frame's real eye (the drift, the hand's orbit,
   the speed lens), and a pane that would come within 6 to 30 px of a shown one steps back, nearest its step first, no
-  station skipped: the dates never collide (`path.js`). On a phone one pane at a time, as before; since wave 8 the line
-  begins 0.2 of its length past the pane in step, its points fade from 3 css px of blur (gone at 5), the scroll's wind
-  barely moves them, and the whole line dims on a spring while its first two nodes come within 72 css px of a block of
-  text: no band of blurred blue over the words. The walk from pane to pane is a quintic (`stations`). Beside the text
-  the step's years snap to their value each time it comes into focus.
+  station skipped: the dates never collide (`path.js`). On a phone held upright (the phone wave, lane J2c1) each step's
+  text is a caption at the foot and the path runs the desktop's walk in the band above it: the line laid in the band,
+  bowed as on a desktop from low on the left toward a vanishing point high on the right, the eye further back and to its
+  right (`path.js` `CAPW`), so the pane in step and one or two after it stand apart along the line, the guard between
+  them; the line begins just behind the pane in step (the phone's long feather drew its near stretch as a wide soft band
+  from the screen's edge); no pane steps back from a text and the line never dims (a guard at 0 px stays for a page
+  zoomed so far that a caption outgrows the room). When the last caption leaves with the page the eye pulls back to
+  the straight view (by local 0.9 of the last step, before the next scene's camera weighs in: left deep in the room,
+  the blended camera swung the last pane aside) and the pane in step recedes with it and fades. It does not rise with
+  the caption as the gallery's plate does: the sticky view stands at the top until the section has left. On about.html
+  a keep-out over the day keeps the paper exactly #f3f4f6 until the eye is back; then the threads cross the edge as on
+  Work. Without the caption grammar a phone shows one pane at a time and the line begins 0.2 of its length past
+  the pane in step, dims within 72 css px of a text, its points fading from 3 css px of blur. The walk from pane to pane
+  is a quintic (`stations`). Beside the text the step's years snap to their value each time it comes into focus.
 
 ### Consulting and Obla (`consulting.html`, `obla.html`: scenes `consult`, `obla`)
 
@@ -1044,8 +1060,16 @@ its own orbit pivot (a scene without one turns about its target, the eye's); an 
 chips' window rides the eye's place while the chips are wrapped back by as much (`field.wgsl.js` `vsChip`, `extra.w`),
 so they stand still in the world and the eye passes them. While a join is under way its two scenes' figures (plates,
 extra passes) stand whole and their views are held at the top; their air, field, cameras and looks keep their share's
-weights. The hand's drag still orbits the eye about the blended pivot, which travels with the rail. Off the rail every
-value is what it was.
+weights. The hand's drag still orbits the eye about the blended pivot, which travels with the rail. After a join a rail
+scene's figures stay whole while it holds most of the screen, and are let go like its weight only once its share falls
+under a half (a fling through a join's end at 2,500 px/s left the entering scene's damped weight at 0.69 and its panes
+dropped to it in one frame). While a join is under
+way its two scenes' plates do not yield to the other scene's text (`yields`: each band ends above both scenes' captions;
+the stack's last layer fell from 1 to 0.39 in one frame as the path's first caption came into focus), and the swarm's
+formations keep their scene's share even where they are the figure (the stack's outlines and sheet, the path's line):
+whole from the join's start, the entering scene's formation moved the swarm's rank intervals at once and the leaving
+scene's points were handed over in one go, the stack's outlines emptied while still in the frame; on the share they pass
+from figure to figure as the eye travels (lane J2c1). Off the rail every value is what it was.
 
 **A slide ends without a jerk** (wave 8, `build/k-smooth.md`; Alberto, 21 November: «alla fine dello slide diciamo
 scatta un può il movimento»). Whatever a scene slides rides a critically damped spring (`lib/camera.js` `follow`: it

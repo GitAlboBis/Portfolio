@@ -316,6 +316,87 @@ HOW TO LAY THE RAIL ON EVERY OTHER JOIN (the notes are in C:/Users/alber/Desktop
 
 7. Probes are in C:/Users/alber/Desktop/PortfolioAlbertoTuveri-viva/.shots/j-rail/_scripts/: geo, stills, rtouch (--every=16 --win=), rrec + ran (SMOOTH), gpurail, desk (--a/--b, --pl), later, hdr, hdrshot, astronav, layout, plain, hrace, hrace2, measdiff, dbox, ff2/ff2t2. They assume the Now → gallery join (its selectors and y): generalise those.
 
+## J2r online, Alberto's yes, J2c split (23 Nov, afternoon)
+
+- The director: J2r committed in two topics (`072945f` the header, `7073df6` the rail), the squash `240c6c0` on top of
+  `18e6b07` pushed. Alberto, in the director's session after the five checks on his iPhone: «si vabene» (yes to the rail).
+- J2c split into three lanes, each published before the next: **J2c1 ABOUT** (the stack and the path; Work → stack,
+  stack → path, home and about.html), **J2c2 CONSULTING + OBLA** (path → Consulting, Consulting → Obla), **J2c3
+  CONTACT** (Obla → Contact and the morning's edge). Light proofs for captions and layout, full proofs for the rail.
+- J2c1 launched on `e33bd73` (notes `j-about.md`, captures `.shots/j-about/`, ports 5452-5454); its plan went to the
+  director first.
+
+## J2c1 ABOUT, done (run wf_19011901-0a9, returned 23 Nov about 18:10; notes `j-about.md`)
+
+- The stack and the path on captions and on the rail (Work → stack in the home, stack → path in the home and on
+  about.html); host changes in fx-stage.js (no yields during a join; S.rk keeps a rail scene whole after its join).
+  126 touch strokes clean; GPU at the joins below HEAD; desktop, sideways, printed identical; gates green. The lead looked
+  at `.shots/j-about/pair-sp-b-en-p2.jpg`. The director's four notes were not proved by the lane (they reached its notes
+  after it started): a short check runs (wf_0dbac55f-bbd) before the summary goes to the director.
+
+## J2c2's brief from J2c1 (its `forNext`)
+
+For J2c2 (Consulting and Obla; path → Consulting, Consulting → Obla). HEAD will be the director's J2c1 commits; pick ports other than 5452-5454.
+
+1. Opting in
+- Add `data-caption data-place` to the Consulting and Obla sections in parts/c-main.consult.html and c-main.obla.html. Both builds and the home read these partials.
+- In the home this makes the path → consult and consult → obla joins. On consulting.html and obla.html each is the only rail scene, so nothing travels there.
+- Home places at 390: now 0, gallery 429, stack 858, path 1287, then consult 1716 and obla 2145 (RAIL_K 1.1 × vw). Contact stands at the last place.
+
+2. Measure the captions first (.shots/j-about/_scripts/caph.mjs, change the selector)
+- The path's band ends at 502 IT / 533 EN at 390, so Consulting's first caption must start below that.
+- The path's last caption (B.Sc. and thesis) is 208 EN / 240 IT tall, with its top at 564 IT at 390, so Consulting's band must end above it.
+- The host gives every step the band above the scene's tallest caption, so one tall step shrinks every band. Shorten by layout, never by size.
+
+3. What the host already does (fx-stage.js)
+- While `c.rail.join`, slabs and extra passes are whole (bwF) and yields are skipped.
+- Swarm formations keep the share. Consulting's gen/cut/code/agents and Obla's character are formations, so watch the points pass to and from the path's line during the pan.
+- Whole weight (figure:true) was tried: it moves the swarm's rank intervals all at once (stage.js packSlots) and empties the leaving figure. Do not retry it.
+- After a join, S.rk keeps the arriving scene whole while it holds more than half the screen.
+- Any factor of a scene's own share must be 1 while `c.rail.join` (the path had `sstep(0.6, 0.9, share)`).
+- Consulting's splat mark (gen as gaussian blocks) is an extra pass: check that it sits at c.rail.at and stays whole through the pan.
+
+4. The path's end
+- The path now pulls its eye back to the straight view over local 0.5-0.9 of its last step. Without that, the blended camera swung at the exit (pair-pathexit.jpg).
+- Once path → consult is a join, that is the first 40 % of the pan. Look at it in 16 ms strips; if it reads as a lurch, shape `gone` in path.js's cap branch.
+- In a caption band, drive nothing from the caption's text box at a scene's end: the caption hides at once at local 1.
+- A figure that must leave with its view moves in the world (dy), not by re-aiming the eye.
+
+5. Proofs
+- Check that the +5.4 to +5.75 empty window at the home's path → Consulting exit is gone.
+- The probes in .shots/j-about/_scripts/ take the join or scene as a parameter:
+  - jtouch: --join, add the consult and obla selectors and their y.
+  - gpujoin: --to.
+  - rrec + jran: --join=y0,y1 --ids.
+  - desk: --sel.
+  - floorab: --sc.
+  - stills: --sel --offs.
+  - sleepdbg: --to --at.
+  - astroab: Astro soft navigation, change the page.
+  - Also stackext, sheetrun, tsum, caph, pathsearch (a figure's geometry chosen offline with the scene's own math), measdiff, later and hdr.
+
+6. Do not retry
+- tb-driven `gone` in a caption band.
+- Re-aiming the camera to make a figure ride.
+- The phone's 0.26 feather in a caption band: it drew a wide blurred band.
+- `a[href$=…]` selectors on pages whose links carry ?debug=1.
+- Editing a probe with sed -i while a batch runs it (the running bash keeps the old file).
+
+## The director's notes for J2c2 (23 Nov, about 18:30; J2c2 approved, launched after J2c1 is committed; these go in its brief)
+
+1. Consulting keeps its walk (§1). Four figures of light, each at its place in the room's depth, and the eye walks from
+   one to the next as the steps change. That walk is inside the scene, not the rail. On the phone the band holds the
+   figure of the step being read; the eye's walk between figures follows SMOOTH's law (glideK, follow), no cut, no jump.
+2. If a step's text cannot fit one caption under the band at 390x844 even by layout, split it into phone-only captions
+   as Now did ([data-cap-step]: one heading, every word once, the desktop untouched). Never by type size.
+3. Obla's two tables of fields are text: no chips, light or plates over them at rest (FIX2D cleared the chips from that
+   table once; do not bring them back). Obla describes itself as a finished product: no status line is added.
+4. The failure switches still print complete: ?failsplat=1 (the gaussian mark), ?failfield=1, ?stage=0 and reduced
+   motion, on both pages and in the home's parts.
+5. The header names the scene at every caption, as J2r's rule does; fx-motion's snap of any year or count fires once,
+   as its caption shows.
+6. On obla.html, Obla's light leaves as the day rises (obla.js), exactly as today. The home's Obla → Contact stays J2c3's.
+
 ## J2b's brief, as J2a left it (its `forJ2b`, 23 Nov about 02:30)
 
 Opting a scene in is one attribute: data-caption on its section. The CSS (holds, first and last step), fx-scroll (which caption is shown), the host (captions as text blocks, keep-outs, the band, ctx.caption) and the keyboard all follow from it. Before opting in, measure the scene's captions on a phone (C:/Users/alber/Desktop/PortfolioAlbertoTuveri-viva/.shots/j-caption/_scripts/caph.mjs, change its selector). The host gives every step the band above the scene's tallest caption, so one tall step shrinks every step's band. Shorten by layout, never by size. The gallery's captions are 245-315 px (29-43 % of the screen) and leave a 280-420 px band.

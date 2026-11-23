@@ -4,7 +4,7 @@
 > and wave 7 (21 November: the home as one page of every page's scenes, the neural cosmos where the wall was, the
 > looks mixed by weight), and wave 8 (22 November: every slide on springs, the pivot handed over, textures made again,
 > the door's lines and the edge of day), and the phone wave (23 November, lane J2a: the caption at the foot, opt-in,
-> the gallery first; lane J3: the canvas's box on a phone and `safeTop`; lane J2r: the rail, `ctx.rail`). The engine's own reference is the header of `stage/stage.js`; the host's is
+> the gallery first; lane J3: the canvas's box on a phone and `safeTop`; lane J2r: the rail, `ctx.rail`; lane J2c1: About's stack and path on the caption and the rail). The engine's own reference is the header of `stage/stage.js`; the host's is
 > the header of `fx-stage.js`. Where this page and the code disagree, the code wins.
 
 A scene is one module, `stage/scenes/NAME.js`, for every `<section data-stage="NAME">` on a page (a case page's
@@ -141,7 +141,8 @@ text and faded where the text met it, the stack and Obla changed sides, Consulti
 keep-outs: `build/j-walk.md`). A scene that opts in has no text in its band at all.
 
 - **Opting in:** `data-caption` on the scene's `<section data-stage>` (today the gallery's, `parts/c-main.work.html`:
-  Work and the home's Work part; and Now's, `parts/c-main.index.html`, wave 9 lane J2b). The CSS does the rest (`css/scene.css` "THE CAPTION AT THE FOOT"), under 1024 px on
+  Work and the home's Work part; Now's, `parts/c-main.index.html`, wave 9 lane J2b; the stack's and the path's,
+  `parts/c-main.about.html`, about.html and the home's About part, lane J2c1). The CSS does the rest (`css/scene.css` "THE CAPTION AT THE FOOT"), under 1024 px on
   an upright screen (`orientation: portrait`: a phone turned sideways has no height for a caption and a band) in scene
   mode once `fx-scroll.js` runs (`html.fs-on`); without it, sideways, on a wide screen or in any printed state the
   scene is as it was. `FX.scroll.caption(section)` says whether the grammar holds now (the CSS, fx-scroll and the host read
@@ -175,6 +176,17 @@ keep-outs: `build/j-walk.md`). A scene that opts in has no text in its band at a
   end reaches the view's foot, with the last caption's let-go) and fades it with its scene's blend weight as the next
   scene's plates come in with theirs; since lane J2r, where Now's end is a join of the rail (the home on a phone held
   upright), it neither rides nor fades: the eye travels away from it (see "The rail").
+- **About** (lane J2c1, `build/j-about.md`): `stack.js` stands the stack in `c.fig` (`cap`: centred under the header's room,
+  `CAP_HDR`; sized so the band holds the shot's travel down the layers, `CAP_SPAN`; right of the middle while open,
+  `CAP_DX`), returns to the straight view at its end by a quintic of the scroll (`outK`: a line stopped the eye dead
+  where the rail's join into the path begins) and keeps its old text guard only for a zoomed page; `path.js` lays its line in the band as held (`geom`'s
+  band, `CAPW`) and runs the desktop's walk there, two or three panes with the guard between them, the line starting at
+  the pane in step; when the view rides off the top it moves the line and the panes by the view's offset (`dy`) while
+  the eye stays, but the sticky view stands at the top until the section has left, so at the scene's end the figure does
+  not rise with its last caption: the eye is back at the straight view by local 0.9 of the last step (`gone` by the
+  scroll: the caption hides at once at local 1, and an eye left deep in the room swung the blended camera as the next
+  scene's share began) and the pane in step recedes with it; on about.html a keep-out over the day keeps the paper
+  exact until the eye is back.
 - **The reference:** `gallery.js` (`layout` `cap`, `CAP_HDR`, `CAP_FILL`; the band-follow skipped with `L.cap`; its
   old fade where a text meets a plate kept only as a 12 px guard for a page zoomed so far that a caption outgrows the
   room under the band, which the designed layouts never reach), the host's `figOf`, `capShown`, `CAP_SEEN_MS`
@@ -186,7 +198,8 @@ On a phone held upright the eye does not go down the page from one caption scene
 through the world from one figure's place to the next one's (Alberto: «possiamo fare il movimento nello spazio
 dimensionale come facciamo gia su desktop»).
 
-- **Opting in:** `data-place` on a caption scene's section (today Now's and the gallery's). Two rail scenes one after the
+- **Opting in:** `data-place` on a caption scene's section (today Now's, the gallery's, and since lane J2c1 the stack's
+  and the path's: the joins Now → gallery and gallery → stack in the home, stack → path in the home and on about.html). Two rail scenes one after the
   other in the page are a JOIN: `fx-scroll.js` marks the first `rail-out` and the next `rail-in`, and the CSS keeps the
   first's last caption and the next's first caption held like every other caption (`css/scene.css` "the rail's
   join"), so they hand over in place at the foot. On a page with one rail scene (work.html) nothing changes.
@@ -197,7 +210,9 @@ dimensionale come facciamo gia su desktop»).
   `cx`, its formations' rects, its field's lights and its own orbit pivot; the chips' window rides the eye's place
   (`stage/field/`: the chips stand still in the world). On the join's side of a scene its `view` and `fig` stand at the
   top (as if stuck), and while a join is under way its slabs and extra passes are whole (not weighed by the rows they
-  hold). `c.texts`, `c.caption`, keep-outs and `textRects()` stay in screen px: the text does not travel.
+  hold), and after the join they stay whole while the scene holds most of the screen (let go like its weight once its
+  share falls under a half: lane J2c1). `c.texts`, `c.caption`, keep-outs and `textRects()` stay in screen px: the text
+  does not travel.
 - **What a scene must do on the rail:** compose its figure as always, in screen terms from `c.fig`; place an extra pass
   itself at `c.rail.at` (Now: the orrery's `x`, `hx`); never ride with the page or fade by its weight at a join (the
   eye's travel takes the figure out of the frame and brings the next in): `now.js` keeps no `ride`, no `leave`, and lets
@@ -205,9 +220,17 @@ dimensionale come facciamo gia su desktop»).
   over 0.92); `gallery.js` keeps its last frame's lift and its last plate's fade for an exit that is not a join
   (`c.rail.out`). A word or a part of the figure placed in screen px (the orrery's band for its one name) moves by
   `c.rail.at - c.rail.eye`, so it leaves the frame with what it belongs to. At a join each figure's band must stand above
-  the other scene's caption shown during its half of the pan (measure both scenes' captions).
+  the other scene's caption shown during its half of the pan (measure both scenes' captions). A factor of the scene's
+  own that weighs its figure by the rows it holds must be 1 while `c.rail.join` (the path's panes waited for the path's
+  share to pass 0.6: `path.js`).
+- **What the host does not make whole** (lane J2c1): a scene's swarm formations keep its share at a join even where they
+  are the figure (the stack's outlines and sheet, the path's line): made whole as the join began, the entering scene's
+  formation moved the swarm's rank intervals at once (`stage.js` `packSlots`: a later scene's formation comes first) and
+  the leaving scene's points were handed over in one go, its outlines emptied while still in the frame. And while a join
+  is under way its two scenes' plates do not yield to each other's text (`yields`: each band ends above both scenes'
+  captions; a yield reached into the band and dropped the stack's last layer from 1 to 0.39 in one frame).
 - **The reference:** `fx-stage.js` (`railOf`, `railAt`, `railRole`, `railField`, `bwF`, the held view, `freeBlend`'s
-  `railE`), `now.js` (`RA`, `away`, `at`, `rv`), `build/j-rail.md` (the measures).
+  `railE`), `now.js` (`RA`, `away`, `at`, `rv`), `build/j-rail.md` and `build/j-about.md` (the measures).
 
 ## A camera path (the free camera, `lib/camera.js`)
 
@@ -672,8 +695,8 @@ markup to the bench's builder if the generic steps do not fit.
 - A plate's window (the screen box the glass draws in) grows from its centre with the plate's presence (wave 8): a
   plate fading in is not drawn whole at a few hundredths of its light, so the next plate's glass does not flash at a
   slide's ends.
-- On a phone the stack's band pushes its figure with a cushion (`softClamp`, `softMin`) from before a text arrives
-  (wave 8). The gallery kept to the free band it stood in (another only when its own fell under four fifths of the
+- On a phone without the caption grammar (before fx-scroll runs) the stack's band pushes its figure with a cushion
+  (`softClamp`, `softMin`) from before a text arrives (wave 8); with it the stack stands in `c.fig` (lane J2c1). The gallery kept to the free band it stood in (another only when its own fell under four fifths of the
   tallest or under 150 px, on springs) until wave 9: with the caption at the foot it stands in `c.fig` (above); the
   free band stays for a phone where the caption grammar does not hold (before fx-scroll runs, or without it).
 - `list` figures (`case/figures.js`) etch nothing since wave 8: a thin plate with "01" on it is the floating card

@@ -1219,6 +1219,11 @@ html [data-part="about"] .stk .tools li { white-space: nowrap; }
 html [data-part="about"] .stp-when .t-acc { color: var(--accent); }
 html [data-part="about"] .stp-thesis { max-width: 30em; }
 html [data-part="about"] .pth-h { max-width: 9ch; }
+@media (max-width: 1023.98px) and (orientation: portrait) {
+html.sc-on.fs-on:not(.gl-off) [data-part="about"] [data-caption] .tools { gap: 0.2em 1em; }
+html.sc-on.fs-on:not(.gl-off) [data-part="about"] [data-caption] .sc-in > .stp-t + .tools { margin-top: var(--s3); }
+html.sc-on.fs-on:not(.gl-off) [data-part="about"] [data-caption] .stp-proof { margin-top: var(--s3) !important; }
+}
 @media (min-width: 1024px) {
 html:is(:not(.sc-on), .gl-off) [data-part="about"] :is(.stk-list, .pth-list) {
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gut);

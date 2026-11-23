@@ -10,6 +10,17 @@ html [data-part="about"] .stk .tools li { white-space: nowrap; }
 html [data-part="about"] .stp-when .t-acc { color: var(--accent); }
 html [data-part="about"] .stp-thesis { max-width: 30em; }
 html [data-part="about"] .pth-h { max-width: 9ch; }
+/* (wave 9, J2c1 ABOUT) a phone held upright, the caption at the foot (css/scene.css): the stack's captions are its
+   tallest (05, AI: eight tools in five to seven rows, 311-375 px at 360-393 px wide), and the host gives every step the
+   band above the TALLEST caption, so one tall caption shrank the stack in all nine. Shortened by layout, never by size:
+   the tools' rows closer (each row still 1.45 of its 18 px line) and the room beside each name a little narrower, the
+   title, the tools and the proof 16 px apart instead of 24: 05 is 284 px in English, 313 in Italian at 390-393. The
+   type is the steps' own (labels 16, tools 18, title 35) */
+@media (max-width: 1023.98px) and (orientation: portrait) {
+  html.sc-on.fs-on:not(.gl-off) [data-part="about"] [data-caption] .tools { gap: 0.2em 1em; }
+  html.sc-on.fs-on:not(.gl-off) [data-part="about"] [data-caption] .sc-in > .stp-t + .tools { margin-top: var(--s3); }
+  html.sc-on.fs-on:not(.gl-off) [data-part="about"] [data-caption] .stp-proof { margin-top: var(--s3) !important; }
+}
 /* plain flow (reduced motion, no WebGPU, print): the steps as two columns of ruled rows on a wide screen */
 @media (min-width: 1024px) {
   html:is(:not(.sc-on), .gl-off) [data-part="about"] :is(.stk-list, .pth-list) {

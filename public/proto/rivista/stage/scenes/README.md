@@ -4,7 +4,7 @@
 > and wave 7 (21 November: the home as one page of every page's scenes, the neural cosmos where the wall was, the
 > looks mixed by weight), and wave 8 (22 November: every slide on springs, the pivot handed over, textures made again,
 > the door's lines and the edge of day), and the phone wave (23 November, lane J2a: the caption at the foot, opt-in,
-> the gallery first; lane J3: the canvas's box on a phone and `safeTop`). The engine's own reference is the header of `stage/stage.js`; the host's is
+> the gallery first; lane J3: the canvas's box on a phone and `safeTop`; lane J2r: the rail, `ctx.rail`). The engine's own reference is the header of `stage/stage.js`; the host's is
 > the header of `fx-stage.js`. Where this page and the code disagree, the code wins.
 
 A scene is one module, `stage/scenes/NAME.js`, for every `<section data-stage="NAME">` on a page (a case page's
@@ -64,6 +64,7 @@ export default {
 | `scrollVelocity`, `scrollY` | px/s (positive down), document px |
 | `vw`, `vh`, `phone`, `tier`, `inkK` | viewport, `vw < 760`, "A"/"B"/"C", ink factor for the tier's count (A 1, B 2, C 4). `vw` x `vh` is the scene's frame (`documentElement.clientWidth` x `clientHeight`: on a phone the small viewport, the height the views' 100svh are). (wave 9, lane J3) On an iPhone the canvas is taller (100lvh: the strip under Safari's bar when it hides): the stage maps the frame into it, its top at the canvas's top and its eye before the frame's centre, so nothing a scene computes changes; `texts`, `media`, `textRects()`, the keep-outs and `dawn` reach down to the canvas's foot |
 | `safeTop` | (wave 9, lane J3) the header's top safe area, px: what a notch or a status bar takes over the page (`env(safe-area-inset-top)`), 0 on a desktop, in Chrome and on a phone whose page starts under its bar. The header is that much taller (`--hdr`): a figure that keeps under the header adds it (the gallery's caption band, Now's orrery, Obla's band, Contact's strokes, a case's band) |
+| `rail` | (wave 9, lane J2r) the scene on the rail (see "The rail"): `{ at, eye, step, into, out, join }`: its place (px to the right of the first rail scene's), the eye's place now, the step between two places, whether its start / its end is a join, whether such a join is under way; `null` without a join on the page (a desktop, a phone held sideways, every printed state, a page with one rail scene) |
 | `share`, `weight` | the scene's share of the viewport (0–1) and its smoothed blend weight |
 | `marks` | `{ ID: rect }` of every `[data-stage-mark="ID"]` in the section (their glyph box) |
 | `imgs` | `{ ID: { tex, w, h, aspect, rect, el } }` of every `<img data-slab="ID">`; `tex` is the texture id once decoded, else `null` |
@@ -172,11 +173,41 @@ keep-outs: `build/j-walk.md`). A scene that opts in has no text in its band at a
   is none in the grammar (it is a screen tall): its caption is a text block. Now (`now.js`) stands the orrery in
   `c.fig` for the whole of Now in the `tall` shape (below), holds it while the view holds (its ride starts as Now's
   end reaches the view's foot, with the last caption's let-go) and fades it with its scene's blend weight as the next
-  scene's plates come in with theirs.
+  scene's plates come in with theirs; since lane J2r, where Now's end is a join of the rail (the home on a phone held
+  upright), it neither rides nor fades: the eye travels away from it (see "The rail").
 - **The reference:** `gallery.js` (`layout` `cap`, `CAP_HDR`, `CAP_FILL`; the band-follow skipped with `L.cap`; its
   old fade where a text meets a plate kept only as a 12 px guard for a page zoomed so far that a caption outgrows the
   room under the band, which the designed layouts never reach), the host's `figOf`, `capShown`, `CAP_SEEN_MS`
   (`fx-stage.js`), `build/j-caption.md` (what each choice answered, and the measures).
+
+## The rail (a phone's journey between scenes; wave 9, lane J2r)
+
+On a phone held upright the eye does not go down the page from one caption scene into the next: it travels sideways
+through the world from one figure's place to the next one's (Alberto: «possiamo fare il movimento nello spazio
+dimensionale come facciamo gia su desktop»).
+
+- **Opting in:** `data-place` on a caption scene's section (today Now's and the gallery's). Two rail scenes one after the
+  other in the page are a JOIN: `fx-scroll.js` marks the first `rail-out` and the next `rail-in`, and the CSS keeps the
+  first's last caption and the next's first caption held like every other caption (`css/scene.css` "the rail's
+  join"), so they hand over in place at the foot. On a page with one rail scene (work.html) nothing changes.
+- **What the host does** (`fx-stage.js` "THE RAIL"): every scene gets a place (the first rail scene 0, each join one step
+  of `RAIL_K` x the view's width to the right; a scene off the rail the place of the rail scene before it). Over the
+  first scene's last screen of a join the eye's place glides from one place to the next by the quintic of the scroll
+  (exact, no damping). The host adds the eye's place to the blended free camera and the scene's place to its slabs'
+  `cx`, its formations' rects, its field's lights and its own orbit pivot; the chips' window rides the eye's place
+  (`stage/field/`: the chips stand still in the world). On the join's side of a scene its `view` and `fig` stand at the
+  top (as if stuck), and while a join is under way its slabs and extra passes are whole (not weighed by the rows they
+  hold). `c.texts`, `c.caption`, keep-outs and `textRects()` stay in screen px: the text does not travel.
+- **What a scene must do on the rail:** compose its figure as always, in screen terms from `c.fig`; place an extra pass
+  itself at `c.rail.at` (Now: the orrery's `x`, `hx`); never ride with the page or fade by its weight at a join (the
+  eye's travel takes the figure out of the frame and brings the next in): `now.js` keeps no `ride`, no `leave`, and lets
+  its figure go only once the pan has taken it out of the frame (`away`, the eye's distance from its place in steps,
+  over 0.92); `gallery.js` keeps its last frame's lift and its last plate's fade for an exit that is not a join
+  (`c.rail.out`). A word or a part of the figure placed in screen px (the orrery's band for its one name) moves by
+  `c.rail.at - c.rail.eye`, so it leaves the frame with what it belongs to. At a join each figure's band must stand above
+  the other scene's caption shown during its half of the pan (measure both scenes' captions).
+- **The reference:** `fx-stage.js` (`railOf`, `railAt`, `railRole`, `railField`, `bwF`, the held view, `freeBlend`'s
+  `railE`), `now.js` (`RA`, `away`, `at`, `rv`), `build/j-rail.md` (the measures).
 
 ## A camera path (the free camera, `lib/camera.js`)
 

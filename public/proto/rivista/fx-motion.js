@@ -654,6 +654,19 @@
      late or the page was put down beside it) is left as it is. Live motion only: nothing here runs under reduced motion,
      and every printed state shows the text (css/print.css, css/motion.css .mo-held). */
   const partOf = new Map();   // a part's opening step (or its block, Contact's) -> { items, head, built, played, parked }
+  /* (wave 9, J2r HEADER) A HELD CAPTION. On a phone held upright a caption scene holds each step's text at the foot of the
+     view (css/scene.css "the caption at the foot") from a screen and a half before its step to a screen and a half after,
+     and shows only the one whose step holds the reading line (fx-scroll.js .is-active): the others stand there, at the
+     foot, clear. To an IntersectionObserver a clear held caption is on screen. capStep: the caption step an element is
+     held in (a [data-cap-step] box, or a step of a caption scene) while that scene is in the caption grammar
+     (FX.scroll.caption), else null; that step's .is-active says whether its caption is shown */
+  const capStep = (el) => {
+    const S = FX.scroll;
+    if (!el || !el.closest || !S || typeof S.caption !== "function") return null;
+    const st = el.closest("[data-cap-step]") || el.closest(".sc-step[data-stage-step]");
+    const sc = st && st.closest(".sc");
+    return st && sc && S.caption(sc) ? st : null;
+  };
   function parts() {
     if (FX.page !== "home" || !motion || !A || !("IntersectionObserver" in window)) return;
     const recs = [];
@@ -680,11 +693,25 @@
         const P = recs.find((R) => R.head === e.target || R.block === e.target);
         if (!P || P.played) continue;
         if (e.target === P.block && P.head.getBoundingClientRect().top > window.innerHeight * 0.85) continue;
+        // (wave 9, J2r HEADER) an opening held in a caption that is not shown waits for it (at the rail's join the next
+        // scene's first caption stands at the foot, clear, before the reading line reaches its step: css/scene.css "the
+        // rail's join"): it plays as its caption is shown (fx:step, below), never unseen. Where the caption comes up with
+        // its section (no join) it is shown before its title reaches the line: nothing changes there
+        const cs = capStep(P.block);
+        if (cs && !cs.classList.contains("is-active")) { P.wait = cs; continue; }
         reach.unobserve(P.head); reach.unobserve(P.block);
         partBuild(P); partPlay(P);
       }
     }, { rootMargin: "0px 0px -15% 0px", threshold: 0 });
     recs.forEach((P) => { near.observe(P.block); reach.observe(P.head); if (P.block !== P.head) reach.observe(P.block); });
+    // (wave 9, J2r HEADER) fx:step goes out before the step's class moves (fx-scroll.js pick): read it a microtask later
+    FX.on("fx:step", () => queueMicrotask(() => {
+      for (const P of recs) {
+        if (!P.wait || P.played || !P.wait.classList.contains("is-active")) continue;
+        reach.unobserve(P.head); reach.unobserve(P.block);
+        partBuild(P); partPlay(P);
+      }
+    }));
   }
   function partBuild(P) {
     if (!P || P.built) return;
@@ -973,13 +1000,17 @@
       const full = nameOf(s), short = (s.getAttribute("data-scene-short") || "").trim();
       return !full || !short || fits(full) ? full : short;
     };
-    let cur = null, pend = 0, here = null, rz = 0;
+    let cur = null, pend = 0, here = null, rz = 0, seq = 0;
     const show = (txt) => {
       if (txt === cur) return;
-      const first = cur === null;
+      const first = cur === null, my = ++seq;
       cur = txt;
       clearTimeout(pend);
       const swap = () => {
+        /* (wave 9, J2r HEADER) only the latest name is put in: a name whose swap waits on its 200 ms out still ran after a
+           later name had been set at once (the label already empty), and put the earlier name back for good (a quick walk
+           to Contact and a jump to the top kept "Obla" over the hero: HEAD 2 loads in 14, .shots/j-rail hrace2.mjs) */
+        if (my !== seq) return;
         tEl.textContent = txt;
         box.toggleAttribute("data-empty", !txt);
         if (hdr) hdr.classList.toggle("has-scene", !!txt);
@@ -1000,10 +1031,24 @@
     let reports = heads.length ? 0 : 1;
     /* (wave 7, lane MOTION) ... and only once that heading has gone up: a scene whose top has passed the middle while
        its heading is still to come from below (in the home, the gallery right after Now's text) has no name yet */
-    const gone = (h) => !h || (!headOn.get(h) && h.getBoundingClientRect().bottom < window.innerHeight / 2);
+    /* (wave 9, J2r HEADER) ... and a heading held in a caption (a phone held upright: the gallery's head, Now's first
+       caption, any caption scene) is gone exactly while its caption is not the one shown, wherever its box stands: held
+       clear at the foot it was "on screen" to the observer and below the middle, and the header named no scene through
+       the gallery's first works and Now's second and third captions. The header names the scene whose caption is shown */
+    const gone = (h) => {
+      if (!h) return true;
+      const cs = capStep(h);
+      if (cs) return !cs.classList.contains("is-active");
+      return !headOn.get(h) && h.getBoundingClientRect().bottom < window.innerHeight / 2;
+    };
+    /* (wave 9, J2r HEADER) the caption scene being read is the one whose caption is shown (fx-scroll.js: the step whose
+       box holds the reading line, clientHeight / 2; at most one scene at a time), not the section the observer's middle
+       line crosses (innerHeight / 2: under Safari's bar the two part by up to half the bar, and the header named the
+       scene before while the next one's caption stood at the foot) */
+    const capMid = () => secs.find((s) => { const S = FX.scroll; return !!(S && typeof S.caption === "function" && S.caption(s) && s.querySelector("[data-cap-step].is-active, .sc-step[data-stage-step].is-active")); });
     const update = () => {
       if (reports < 2) return;
-      const mid = secs.find((s) => seen.get(s));
+      const mid = capMid() || secs.find((s) => seen.get(s));
       const h = mid && document.getElementById(mid.getAttribute("aria-labelledby"));
       here = mid && gone(h) ? mid : null;
       show(here ? label(here) : "");
@@ -1017,6 +1062,9 @@
       { rootMargin: "-72px 0px 0px 0px", threshold: 0 });
     secs.forEach((s) => io.observe(s));
     heads.forEach((h) => ho.observe(h));
+    /* (wave 9, J2r HEADER) a caption handing over moves no box the observers see: the name follows the caption shown
+       (fx:step goes out before the step's class moves, fx-scroll.js pick: read a microtask later) */
+    FX.on("fx:step", () => queueMicrotask(update));
   }
 
   /* ---------------------------------------------------------------- the module */

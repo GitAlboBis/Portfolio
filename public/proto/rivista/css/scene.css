@@ -160,6 +160,24 @@ html.sc-on:not(.gl-off).fs-on .sc-step[data-stage-step].is-active .sc-in {
   html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > [data-cap-step]:last-child > .sc-cap { margin-bottom: 0; }
 }
 
+/* (wave 9, J2r RAIL) THE RAIL'S JOIN. Where two rail scenes meet (data-place on both: the home's Now and Work's gallery),
+   the eye does not go down the page into the next scene: the stage's camera travels sideways from the first figure's
+   place in the world to the next one's (fx-stage.js "THE RAIL") while both figures stand still in their bands. So the
+   text does not go down either: the first scene's last caption keeps the hold below its step and the next scene's first
+   caption the hold above its step, as every other caption has (the grammar's own -60svh / -150svh above), and the two
+   hand over in place at the foot where the reading line crosses the boundary, as two captions of one scene do. Held
+   from the TOP, they never travel while seen; the last caption's room over the foot is not needed (it is let go a
+   screen and a half later, long clear). fx-scroll.js marks the two sections of a join (rail-out, rail-in); without a
+   join (work.html, a scene that is not on the rail) the ends above hold. Only in the caption grammar's own query. */
+@media (max-width: 1023.98px) and (orientation: portrait) {
+  html.sc-on.fs-on:not(.gl-off) [data-caption].rail-in :is(.sc-track > .sc-step:first-child, .sc-track > :first-child > .sc-step:first-child)[data-stage-step] > .sc-in,
+  html.sc-on.fs-on:not(.gl-off) [data-caption].rail-in .sc-track > :first-child > .sc-in > [data-cap-step]:first-child > .sc-cap { margin-top: -60svh; }
+  html.sc-on.fs-on:not(.gl-off) [data-caption].rail-out :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step],
+  html.sc-on.fs-on:not(.gl-off) [data-caption].rail-out .sc-track > [data-cap-step]:last-child { padding-bottom: 0; }
+  html.sc-on.fs-on:not(.gl-off) [data-caption].rail-out :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step] > .sc-in,
+  html.sc-on.fs-on:not(.gl-off) [data-caption].rail-out .sc-track > [data-cap-step]:last-child > .sc-cap { margin-bottom: -150svh; }
+}
+
 /* plain flow on a wide screen: two columns, the text and its picture side by side */
 @media (min-width: 1024px) {
   .sc-step { padding-block: var(--s7); }

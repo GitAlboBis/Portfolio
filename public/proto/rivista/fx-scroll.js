@@ -55,6 +55,21 @@
   function collect() {
     scenes = [...document.querySelectorAll(".sc")].map((sc) => ({ sc, steps: [...sc.querySelectorAll(".sc-step[data-stage-step]")], caps: [...sc.querySelectorAll("[data-cap-step]")] })).filter((s) => s.steps.length);
     steps = scenes.flatMap((s) => s.steps);
+    railJoins();
+  }
+  /* (wave 9, J2r RAIL) THE RAIL'S JOINS. Two rail scenes one after the other in the page (data-place and data-caption on
+     both: the home's Now and Work's gallery) are a join: the first is marked rail-out and the next rail-in. On a phone
+     held upright the CSS then keeps their end captions held, so they hand over in place at the foot (css/scene.css "the
+     rail's join"), and the stage's host travels the eye from one figure's place to the next across it (fx-stage.js "THE
+     RAIL", which reads these two marks). Marked before html.fs-on, so the host's first measure in the grammar sees them;
+     anywhere else (a desktop, a phone held sideways, a printed state) no rule reads them */
+  function railJoins() {
+    const all = [...document.querySelectorAll("[data-stage]")];
+    const on = (e) => !!(e && e.hasAttribute("data-place") && e.hasAttribute("data-caption"));
+    all.forEach((e, i) => {
+      e.classList.toggle("rail-out", on(e) && on(all[i + 1]));
+      e.classList.toggle("rail-in", on(e) && on(all[i - 1]));
+    });
   }
   function pick() {
     raf = 0;

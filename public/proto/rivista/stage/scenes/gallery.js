@@ -202,7 +202,9 @@ export default {
     // plate kept above its caption as it was at rest, and both leave the frame together, as the head came in with the
     // opening row. (A plate swung out early left the band empty for the rest of the step; one standing still met the
     // rising caption.)
-    if (L.cap && c.step >= S.works.length) L.ay -= Math.max(0, (c.local - 0.5) * c.vh);
+    // (wave 9, J2r RAIL) unless the gallery's end is a join of the rail (c.rail.out): there its last caption stays at the
+    // foot and hands over in place, and the eye travels on to the next figure's place (fx-stage.js "THE RAIL")
+    if (L.cap && c.step >= S.works.length && !(c.rail && c.rail.out)) L.ay -= Math.max(0, (c.local - 0.5) * c.vh);
     const EYE = workEye(c), C = EYE.pos;
     const dt = Math.min(c.dt || 0, 0.1);
     // (FIX3D) a phone: the step's text scrolls through the plate's band, and the plate hid there (Voice AI and Supply
@@ -364,7 +366,8 @@ export default {
       // on Work the dawn's edge, which takes the night's light with it (fx-stage.js nightRoom); in the home About's head,
       // which it steps back from (yields) while the stack comes in. Until 22 November the next scene was evidence
       // ("Measured before and after.", removed): the room is never empty between the two
-      if (i === last && c.step >= S.works.length) a.alpha *= 1 - sm(0.82, 1, c.step > S.works.length ? 1 : c.local);
+      // (wave 9, J2r RAIL) not where the gallery's end is a join of the rail: the eye's travel takes the last plate out
+      if (i === last && c.step >= S.works.length && !(c.rail && c.rail.out)) a.alpha *= 1 - sm(0.82, 1, c.step > S.works.length ? 1 : c.local);
       // (k-evidence, 22 November) THE MORNING COMES UP UNDER THE PLATES: on Work the dawn close now follows the last
       // plate (the measured figures stood between them until then) and its glass crossed onto the paper as a grey slab.
       // A plate goes while the day's straight edge rises toward it, gone before the edge reaches its foot (as obla.js)

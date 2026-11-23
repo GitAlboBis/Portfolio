@@ -48,7 +48,8 @@ export const FU = Object.freeze({
   cosE: 36,     // galaxies drawn, stars drawn, sparks drawn, the first star's index
   cosK: 37,     // near gone, near full (px from the eye), depth of field factor (x the stage's aperture), the stars' gain
   extra: 38,    // (round 12) chips' rim (cut edge toward paper 0..1), clear depth (VIEW z; a chip nearer than it inside
-                // the clear rect is not drawn), clear on (0/1), _
+                // the clear rect is not drawn), clear on (0/1), (wave 9, J2r RAIL) the eye's place on the rail (px: the
+                // chips' window rides it, the chips are wrapped back by it; 0 off the rail)
   clear: 39,    // the clear rect (viewport css px): x0, y0, x1, y1
   wallK: 40,    // (wave 1, FIX3D) the light round the keep-outs: floor inside (0..1), fall (css px; 0 = the stage's
                 // keep-out, a cut), haze floor, _ (wave 7: the cosmos's dim round the text)
@@ -563,7 +564,11 @@ fn vsChip(@builtin(vertex_index) vi : u32, @builtin(instance_index) ii : u32) ->
   // the place: a hash in the box, carried by the wind and wrapped, so the field never empties; a soft fade near the
   // box's faces so a chip that wraps is never seen to jump
   let sz = max(S.xyz, vec3f(1.0));
-  let w = fract(h1 + W.xyz * head.x / sz) - 0.5;
+  // (wave 9, J2r RAIL) the window rides the eye's place on the rail (extra.w, px; the box's centre already holds it) and
+  // the chips are wrapped back by as much: they stand still in the world while the eye travels past them (0 off the
+  // rail: the same value as before)
+  let rl = vec3f(fu.v[38u].w, 0.0, 0.0);
+  let w = fract(h1 + W.xyz * head.x / sz - rl / sz) - 0.5;
   let ef = max(C.w, 1e-3);
   let ew = smoothstep(vec3f(0.0), vec3f(ef), 0.5 - abs(w));
   let edgeK = ew.x * ew.y * ew.z;

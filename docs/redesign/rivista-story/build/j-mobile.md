@@ -243,6 +243,79 @@ FOR THE CAMERA'S TRAVEL
 - If the camera travels from Now's place to Work's (placeOf), give the orrery a world anchor, or turn the camera's travel into its screen offset, so the figure stays put and the eye moves.
 - Keep c.fig's band and the caption keep-outs as they are: a caption is a keep-out only while shown, and the held title is not read live.
 
+## J2b online, J2r RAIL launched (23 Nov, about 12:50)
+
+- The director: J2b committed (`96cf06c`), his diary `8835161`; the squash `18e6b07` on top of `c02be7b` pushed.
+- J2r RAIL launched on `8835161` (notes `j-rail.md`, captures `.shots/j-rail/`, ports 5449-5451), full proofs (it moves
+  the stage's camera), the rail on Now → Work only; and, as a separate topic with light proofs, the header's empty scene
+  name during held captions (fx-motion.js's observer), live today on the phone's gallery and on Now.
+- **Lighter proofs (the director agrees, CLAUDE.md §3):** a lane that only touches layout or 2D runs the gates, its own
+  proof of what it changed, one GPU round on the phone tier against HEAD, the first frame once, desktop identity at the
+  opening and one mid-page place in each edition, and a look at the captures. Full proofs stay for lanes that change the
+  stage (stage.js, the WGSL, the camera, the passes). Alberto's word wins if he answers.
+
+## J2r cut, then resumed (23 Nov, 13:30-13:45)
+
+- The first run (wf_440cbacc-5dd) was cut by the old account's weekly limit after about an hour, with topic 1 and topic 2
+  built in the tree (uncommitted), 27 clean touch strokes and SMOOTH at the join done (`j-rail.md`). Its three servers
+  (5449-5451) were left running: the lead stopped them by pid.
+- Alberto logged the session in with another account (/login) and said «riprendi». A relaunch on Fable failed at once
+  (that account's Fable limit, resets 25 Nov 17:00); the lane runs again on the session's model, Opus 5.5 at max effort
+  (run wf_0402348a-e6c), told to continue from `j-rail.md` and the tree, not to redo what its notes record as done.
+
+## J2r RAIL, done (run wf_0402348a-e6c continuing wf_440cbacc-5dd, returned 23 Nov about 14:35; notes `j-rail.md`)
+
+- On an upright phone, over Now's last screen the EYE travels 1.1 view widths to the right (placeOf drifts +x at every
+  j, so the side and the cosmos agree), a quintic of the scroll, exact both ways: the orrery leaves on the left with its
+  name, the opening row of plates comes in from the right, side by side mid-pan; the captions hold and hand over at the
+  foot. Opt-in `data-place` on the two sections. 27 touch strokes clean; the eye's speed at the join's ends 0-2 px/s
+  (HEAD 115-190); GPU at the join's peak 0.69-0.73 (HEAD 0.76-0.80); desktop, sideways, printed states identical.
+- Topic 2 (fx-motion.js, committed apart and FIRST): the header names the scene whose caption is shown; HEAD's stale
+  name after a jump fixed (seq).
+- The lead looked at `.shots/j-rail/pair-b-drag-it.jpg`. Summary sent to the director. **J2c waits for Alberto's yes to
+  the rail**; its brief, from J2r, is below.
+
+## J2c's brief from J2r (its `forJ2c`)
+
+HOW TO LAY THE RAIL ON EVERY OTHER JOIN (the notes are in C:/Users/alber/Desktop/PortfolioAlbertoTuveri-viva/docs/redesign/rivista-story/build/j-rail.md, «For J2c»)
+
+1. Opting in. Put two attributes on a scene's section: data-caption (the caption at the foot; measure its captions first with .shots/j-caption/_scripts/caph.mjs) and data-place.
+- Two opted-in scenes one after the other in the page's [data-stage] order are a join, automatically.
+- fx-scroll.js railJoins marks them rail-out / rail-in, and css/scene.css holds their end captions so they hand over in place.
+- fx-stage.js railOf gives each scene its place: each join adds RAIL_K x the view width to the right, and a scene off the rail stands at the place of the rail scene before it.
+- railAt glides the eye over the first scene's last screen (the quintic), and the chips' window follows the eye.
+- The host needs nothing more. Never use data-rail: assemble.mjs refuses it as a marker of the water site.
+
+2. The order on the home is hero, now, gallery, stack, path, consult, obla, contact.
+- Opting in the stack makes gallery → stack a rail join. The gallery's two exit guards (its last frame's lift and its last plate's fade, skipped on c.rail.out) are already in gallery.js.
+- Places at 390 then run 0, 429, 858, 1287 and so on.
+- about.html (stack → path) gets the same join from the same code. Consulting, Obla and Contact have one scene per page, so nothing changes on those pages.
+
+3. Each scene at a join end (c.rail.out / c.rail.into):
+- Never ride with the page and never fade by your weight: the eye's pan takes the figure out of the frame. Stand the figure in c.fig; the host holds the view at the top on the join's side.
+- Place any extra pass at c.rail.at, as now.js does for the orrery's x and hx. Consult's splat mark is such a pass.
+- Move anything placed in screen px (a name, a band, a keep-out of your own) by c.rail.at - c.rail.eye.
+- Let go of a figure only once it is out of the frame (now.js lets go past away 0.92; measure each figure's extent to set yours).
+- Drop the phone dodges listed in J2a's brief: stack.js the free band, the push and the glass stepping back (lines 162-207); path.js the pane stepping back and the line dimming (189-295); consult.js the four figures whole in the band; obla.js the hop (43-89).
+
+4. Contact. The morning is DOM ([data-dawn], the day's straight edge rising with the page), not part of the world, so a sideways pan cannot bring it in. My advice is to leave Contact off the rail: it then stands at Obla's place and Obla → Contact stays the day's vertical rise. Ask Alberto if he wants otherwise.
+
+5. Measure each pair before opting it in:
+- Each figure's screen extent at rest (geo.mjs). With RAIL_K 1.1 the next figure is wholly out of the frame at the join's start, the first one wholly out at its end, and mid-pan there is a clear gap (61-77 px here). A figure wider than about one view width needs a per-join step; RAIL_K is global today.
+- Each figure's band must end above the other scene's caption shown during its half of the pan. The Italian captions are taller.
+- GPU at rest at the hand-over, where both figures are whole: +0.16 ms here. The stack's eight plates next to the path's panes may cost more.
+- Joins must stay at least a screen apart, because each join's glide spans the first scene's last screen.
+
+6. What this lane learned:
+- (1) fx:step goes out before the step's class moves: read .is-active a microtask later.
+- (2) A part's opening held in a caption that waits at the foot used to play unseen. fx-motion.js now waits for the caption, for any caption scene.
+- (3) At a join a figure's presence must be the rail's (whole), not the rows' share, or the plates come in faded. Air, field, camera and looks keep the share.
+- (4) A presence ramp is invisible only once the figure is off the frame.
+- (5) The header names the caption scene shown, generically, and show() puts in only the latest name. Prove the header after a quick walk and a jump (hrace.mjs), not only at rest.
+- (6) The host's measure on work.html varies by 0.1 px between loads of HEAD itself; check with measdiff.mjs before blaming a change.
+
+7. Probes are in C:/Users/alber/Desktop/PortfolioAlbertoTuveri-viva/.shots/j-rail/_scripts/: geo, stills, rtouch (--every=16 --win=), rrec + ran (SMOOTH), gpurail, desk (--a/--b, --pl), later, hdr, hdrshot, astronav, layout, plain, hrace, hrace2, measdiff, dbox, ff2/ff2t2. They assume the Now → gallery join (its selectors and y): generalise those.
+
 ## J2b's brief, as J2a left it (its `forJ2b`, 23 Nov about 02:30)
 
 Opting a scene in is one attribute: data-caption on its section. The CSS (holds, first and last step), fx-scroll (which caption is shown), the host (captions as text blocks, keep-outs, the band, ctx.caption) and the keyboard all follow from it. Before opting in, measure the scene's captions on a phone (C:/Users/alber/Desktop/PortfolioAlbertoTuveri-viva/.shots/j-caption/_scripts/caph.mjs, change its selector). The host gives every step the band above the scene's tallest caption, so one tall step shrinks every step's band. Shorten by layout, never by size. The gallery's captions are 245-315 px (29-43 % of the screen) and leave a 280-420 px band.

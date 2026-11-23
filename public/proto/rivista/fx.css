@@ -666,6 +666,14 @@ html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > :first-child > .sc-in >
 html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > [data-cap-step]:last-child { padding-bottom: max(var(--s5), env(safe-area-inset-bottom)); }
 html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > [data-cap-step]:last-child > .sc-cap { margin-bottom: 0; }
 }
+@media (max-width: 1023.98px) and (orientation: portrait) {
+html.sc-on.fs-on:not(.gl-off) [data-caption].rail-in :is(.sc-track > .sc-step:first-child, .sc-track > :first-child > .sc-step:first-child)[data-stage-step] > .sc-in,
+html.sc-on.fs-on:not(.gl-off) [data-caption].rail-in .sc-track > :first-child > .sc-in > [data-cap-step]:first-child > .sc-cap { margin-top: -60svh; }
+html.sc-on.fs-on:not(.gl-off) [data-caption].rail-out :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step],
+html.sc-on.fs-on:not(.gl-off) [data-caption].rail-out .sc-track > [data-cap-step]:last-child { padding-bottom: 0; }
+html.sc-on.fs-on:not(.gl-off) [data-caption].rail-out :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step] > .sc-in,
+html.sc-on.fs-on:not(.gl-off) [data-caption].rail-out .sc-track > [data-cap-step]:last-child > .sc-cap { margin-bottom: -150svh; }
+}
 @media (min-width: 1024px) {
 .sc-step { padding-block: var(--s7); }
 }

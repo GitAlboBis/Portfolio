@@ -20,6 +20,8 @@
      that returns a free camera (camera.pos: position, target, roll, lens, focus, aperture, fog, orbit; stage.js header)
      turns the blend free: the other scenes' orbiting cameras are converted to the same kind (stage.js orbitPose) and
      every pose is mixed by weight, unsmoothed by the host (a scripted move stays exact).
+   - (wave 9, J2r RAIL) The rail: on a phone held upright, across a join of two rail scenes ([data-place]; fx-scroll.js
+     rail-out / rail-in), the eye travels sideways from one figure's place in the world to the next (THE RAIL, below).
    - Rest and glow: the scenes' `rest` (s of motion after the last input, default 5) and `bloom` (light that glows).
    - The cut: fx:nav:start pushes the camera in (stage.cut) until fx:nav:covered pauses the stage; fx:nav:reset undoes it.
      (lane PORTAL) and flies the eye into a portal of glass (stage.portal, scenes/lib/portal.js) from the clicked link's
@@ -63,6 +65,22 @@
   const SCENE_S = 0.16;            // time constant of the scenes' blend weights (s)
   const CAM_S = 0.2;               // time constant of the camera's blend across scenes (s; the stage damps it again)
   const PTR_FOLLOW = 0.035;        // the pointer's few degrees (rad at the viewport's edge; the stage applies them)
+  /* (wave 9, J2r RAIL) THE RAIL (Alberto from his iPhone, 23 November: «Al posto di scrollare e far si che sia tutto verso
+     il basso nel mondo su telefono, possiamo fare il movimento nello spazio dimensionale come facciamo gia su desktop»).
+     On a phone held upright (the caption grammar) a scene that opts in (data-place) stands at its own PLACE in the world:
+     two rail scenes one after the other in the page are a JOIN (fx-scroll.js marks them rail-out, rail-in), and the next
+     one's place is a step to the right of the first's (the cosmos's own journey drifts right at every j: placeOf, so
+     the two agree). Across the join's scroll (the first scene's last screen, its captions handing over at the foot in
+     the middle: css/scene.css "the rail's join") the EYE travels from one place to the next: the free camera moves by
+     the eye's place (railAt: a function of the scroll, the quintic, exact both ways), every rail scene's world stands
+     at its own place (its slabs, formations, field lights and own orbit pivot; ctx.rail for what a scene places itself:
+     an extra pass), its view is held at the top (no figure rides with the page) and its figures stay whole while the
+     eye is between the two places. Nothing is moved in screen space: the parallax is the camera's own (near chips pass
+     faster than the far threads, the cosmos sees the moved eye). A scene off the rail stands at the place of the rail
+     scene before it. Without a join (a desktop, a phone held sideways, a printed state, work.html) every place is 0 and
+     every value is what it was. RAIL_K: the step, a share of the view's width (each figure spans almost the phone's
+     width: at mid-pan both stand side by side with a clear gap, at either end the other is wholly out of frame) */
+  const RAIL_K = 1.1;
   const INSTR_S = 0.5;             // instrument line refresh (s)
   const NAME = /^[a-z0-9-]+$/;
 
@@ -481,6 +499,8 @@
           r, view, side, tx0, tx1, ix: si,
           // (wave 9, J2a CAPTION) cap: a caption scene; capH, capT above; stepEl: its steps (their .is-active, per frame)
           cap: s.cap && capT > 0, capH, capT, stepEl: s.cap ? s.steps : [],
+          // (wave 9, J2r RAIL) the join marks fx-scroll.js sets (the scene's end, its start, at a join of the rail)
+          railOut: s.sec.classList.contains("rail-out"), railIn: s.sec.classList.contains("rail-in"),
           steps: s.steps.map((e) => rec(e)),
           // each step's number (data-stage-step="N"; 0 is an intro; missing or not a number: its place, from 1)
           // (wave 9, J2b NOW) a caption box's own number (data-cap-step="N")
@@ -513,6 +533,8 @@
       },
     };
     for (const [h, v, p] of saved) { if (v) h.style.setProperty("position", v, p); else h.style.removeProperty("position"); }
+    // (wave 9, J2r RAIL) the places on the rail in this layout (null without a join: everything as before)
+    /** @type {any} */ (out).rail = railOf(out.scenes, cw);
     M = out;
     vpH = ih;
     BD.key = "";                    // the layout moved: the type is rasterised again
@@ -540,6 +562,55 @@
   }
   /** the same, in viewport px @param {Rec | null | undefined} r @param {number} y @returns {Rect | null} */
   function vat(r, y) { const a = at(r, y); return a ? { x: a.x, y: a.y - y, w: a.w, h: a.h } : null; }
+
+  /* (wave 9, J2r RAIL) the rail of a layout (see RAIL_K): a join is a rail-out scene followed by a rail-in one, both in
+     the caption grammar now (a phone held upright); y, the next section's top (document px: the boundary the captions
+     hand over at, half a screen before it reaches the top). Each scene's place is the sum of the steps of the joins up
+     to it, so a scene off the rail stands where the rail scene before it stands. null without a join */
+  /** @param {any[]} ms the scenes' measures @param {number} cw */
+  function railOf(ms, cw) {
+    const step = Math.round(RAIL_K * cw);
+    /** @type {{ a: number, b: number, y: number, dx: number }[]} */ const joins = [];
+    const at = ms.map(() => 0);
+    let x = 0;
+    for (let i = 0; i < ms.length; i++) {
+      const m = ms[i], p = i > 0 ? ms[i - 1] : null;
+      if (p && p.cap && m.cap && p.railOut && m.railIn && m.r) { x += step; joins.push({ a: i - 1, b: i, y: m.r.nat.y, dx: step }); }
+      at[i] = x;
+    }
+    return joins.length ? { at, joins, step } : null;
+  }
+  /** the quintic between 0 and 1 (stage/scenes/lib/camera.js glideK: no speed and no acceleration at either end)
+   *  @param {number} x */
+  const quintic = (x) => { const t = clamp(x, 0, 1); return t * t * t * (t * (t * 6 - 15) + 10); };
+  /** (wave 9, J2r RAIL) the eye's place on the rail at the scroll y (px, to the right): each join's step glides in over the
+   *  first scene's last screen (y from the boundary less a screen to the boundary), a function of the scroll alone
+   *  @param {any} RL @param {number} y @param {number} vh */
+  function railAt(RL, y, vh) {
+    let e = 0;
+    for (const j of RL.joins) e += j.dx * quintic((y - (j.y - vh)) / vh);
+    return r2(e);
+  }
+  /** (wave 9, J2r RAIL) a scene's part in the rail at the scroll y: its place; whether its start or its end is a join;
+   *  whether such a join is under way (its figures whole); whether its view is held at the top (held: on the join's side
+   *  of the scene, where its view would come up from below or ride up off the top)
+   *  @param {any} RL @param {number} k @param {number} y @param {number} vh */
+  function railRole(RL, k, y, vh) {
+    const jIn = RL.joins.find((/** @type {any} */ j) => j.b === k), jOut = RL.joins.find((/** @type {any} */ j) => j.a === k);
+    const live = (/** @type {any} */ j) => !!j && y > j.y - vh && y < j.y;
+    return { at: RL.at[k], into: !!jIn, out: !!jOut, join: live(jIn) || live(jOut), held: (!!jIn && y < jIn.y) || (!!jOut && y > jOut.y - vh) };
+  }
+  /** (wave 9, J2r RAIL) a scene's field at its place: its lights' points moved there; the chips' window on the eye's place
+   *  (field.js: the chips stand still in the world as the window travels, wrapped, so the eye passes them)
+   *  @param {any} f @param {number} at @param {number} eye */
+  function railField(f, at, eye) {
+    if (!f || (!at && !eye)) return f;
+    const mv = (/** @type {any} */ p) => (Array.isArray(p) ? [(+p[0] || 0) + at, p[1], p[2]] : p);
+    const out = { ...f };
+    if (at && Array.isArray(f.lights)) out.lights = f.lights.map((/** @type {any} */ l) => (l ? { ...l, ...(l.pos ? { pos: mv(l.pos) } : l.position ? { position: mv(l.position) } : {}), ...(l.target ? { target: mv(l.target) } : {}) } : l));
+    if (eye && f.chips) out.chips = { ...f.chips, rail: eye };
+    return out;
+  }
 
   /* (wave 9, J3 VIEWPORT) WHETHER A RESIZE MOVED THE LAYOUT. On an iPhone Safari's bar showing or hiding fires resize
      (innerHeight, the layout viewport and the visual viewport follow the bar; FX's onResize follows 200 ms later) and
@@ -884,6 +955,9 @@
       tot += wgt;
     }
     for (let k = 0; k < share.length; k++) share[k] /= tot;
+    // (wave 9, J2r RAIL) the eye's place on the rail at this scroll (no rail: 0, and every value below as it was)
+    const RL = M.rail || null;
+    const railE = RL ? railAt(RL, y, vh) : 0;
 
     // ------------------------------------------------ day: the [data-dawn] rectangles (viewport), or the whole page
     /** @type {{ x0: number, y0: number, x1: number, y1: number }[]} */ const dawn = [];
@@ -955,7 +1029,12 @@
         const seen = /** @type {any} */ (S).capSeen || (/** @type {any} */ (S).capSeen = []);
         m.capVis = m.stepEl.map((/** @type {Element} */ e, /** @type {number} */ j) => { if (e.classList.contains("is-active")) seen[j] = now; return seen[j] != null && now - seen[j] < CAP_SEEN_MS; });
       }
-      const view = vat(m.view, y) || { x: 0, y: sec.y - y, w: vw, h: sec.h };
+      let view = vat(m.view, y) || { x: 0, y: sec.y - y, w: vw, h: sec.h };
+      // (wave 9, J2r RAIL) this scene's part in the rail; on a join's side its view stands at the top, as if stuck: its
+      // figure keeps its band and the eye travels to it (it never comes up from below or rides off the top with the page)
+      const rl = RL ? railRole(RL, k, y, vh) : null;
+      if (rl && rl.held && view.y !== 0) view = { x: view.x, y: 0, w: view.w, h: view.h };
+      const shift = rl ? rl.at : 0;
       const fig = figOf(m, view, vw);
       const st = stepping(m, sec, y, vh, m.side === "top");
       /** @type {Record<string, Rect>} */ const marks = {};
@@ -997,6 +1076,11 @@
         // (wave 9, J3 VIEWPORT) the header's top safe area, px (a notch or a status bar over the page; 0 elsewhere): the
         // header is that much taller, and a figure that stands under it stands that much lower
         safeTop: M.safeTop || 0,
+        // (wave 9, J2r RAIL) this scene on the rail: at, its place (px to the right of the first rail scene's); eye, the
+        // eye's place now; step, between two places; into / out, its start / its end is a join; join, such a join is
+        // under way. The host sets the scene's slabs, formations, field lights and own pivot at its place and moves the
+        // camera by the eye's; what the scene places itself (an extra pass) adds `at`. null without a join on the page
+        rail: rl ? { at: rl.at, eye: railE, step: RL.step, into: rl.into, out: rl.out, join: rl.join } : null,
       };
       /** @type {any} */ let o = null;
       try { o = S.def.frame ? S.def.frame(ctx) : null; }
@@ -1009,24 +1093,31 @@
         subjW = share[k];
         const sj = o.subject;
         subject = sj && isFinite(sj.x) && isFinite(sj.y) ? { x: +sj.x, y: +sj.y } : { x: fig.x + fig.w / 2, y: fig.y + fig.h / 2 };
+        // (wave 9, J2r RAIL) where it stands on screen now: its place, seen from the eye's
+        if (rl && shift !== railE) subject = { x: subject.x + shift - railE, y: subject.y };
       }
       // a blended scene is the night's: it lets go of its light as the morning rises past the middle of the screen
       // (its points would cross into the day as ink blots); a scene with blend: false weighs itself
       const bw = S.def.blend === false ? 1 : S.w * nightRoom;
+      // (wave 9, J2r RAIL) while a join of the rail is under way its two scenes' FIGURES (slabs, extra passes) stand whole:
+      // the eye's travel brings them in and takes them out of the frame, never a fade by the rows they hold; their air
+      // (formations), field, camera and look keep the share's weight
+      const bwF = rl && rl.join && S.def.blend !== false ? nightRoom : bw;
       for (const f of o.swarm || []) {
         const gid = S.ids[f.id];
         if (!gid || !registered.has(gid)) continue;
         const r = f.rect || fig;
-        want[gid] = { weight: clamp((f.weight ?? 1) * bw, 0, 1), rect: { x: r.x, y: r.y + y, w: r.w, h: r.h },
+        want[gid] = { weight: clamp((f.weight ?? 1) * bw, 0, 1), rect: { x: shift ? r.x + shift : r.x, y: r.y + y, w: r.w, h: r.h },
           scene: f.scene || { step: st.step, local: r4(st.local), progress: r4(st.progress) }, sp: f.progress ?? st.progress };
       }
       // a scene that does not bring its plates in itself: they come in with a short focus pull once the glass can draw
       const own = S.def.glassEntry === true, pk = own ? 1 : pullK;
       for (const s of glass.ready ? o.slabs || [] : []) {
-        const alpha = clamp((s.alpha ?? 1) * bw * pk, 0, 1);
+        const alpha = clamp((s.alpha ?? 1) * bwF * pk, 0, 1);
         if (alpha < 0.004) continue;
         const tex = s.tex && held(s.tex) ? s.tex : null, etchT = s.etch && held(s.etch) ? s.etch : null;
-        /** @type {any} */ const slab = { id: S.name + ":" + s.id, cx: r2(s.cx), cy: r2(s.cy), cz: r2(s.cz || 0), yaw: r4(s.yaw || 0), pitch: r4(s.pitch || 0), roll: r4(s.roll || 0),
+        // (wave 9, J2r RAIL) the plate at its scene's place in the world (shift: 0 without the rail)
+        /** @type {any} */ const slab = { id: S.name + ":" + s.id, cx: r2(shift ? s.cx + shift : s.cx), cy: r2(s.cy), cz: r2(s.cz || 0), yaw: r4(s.yaw || 0), pitch: r4(s.pitch || 0), roll: r4(s.roll || 0),
           w: r2(s.w), h: r2(s.h), t: r2(s.t ?? 24), tex, alpha: r4(alpha), glow: r4(clamp(s.glow ?? 0.5, 0, 1)), sharp: r4(clamp((s.sharp ?? 1) * (own ? 1 : 0.3 + 0.7 * pk), 0, 1)) };
         // the stage's added fields pass through as given (etch only once its texture is held)
         if (etchT) slab.etch = etchT;
@@ -1039,7 +1130,8 @@
       if (o.camera) { cy += cw1 * (o.camera.yaw || 0); cp += cw1 * (o.camera.pitch || 0); cd += cw1 * (o.camera.dolly || 0); ptrK += cw1 * (o.camera.pointer ?? 1); }
       else ptrK += cw1;
       cw += cw1;
-      cams.push({ o, w: cw1 });
+      // (wave 9, J2r RAIL) at: the scene's place (its own orbit pivot is a point of its figure: it stands there)
+      cams.push({ o, w: cw1, at: shift });
       if (o.camera && (o.camera.pos || o.camera.position) && cw1 > 1e-3) anyFree = true;
       if (typeof o.rest === "number" && S.w > 0.25) restS = Math.max(restS, o.rest);
       if (o.bloom) {
@@ -1048,15 +1140,17 @@
         if (cw1 > bloomW) { bloomW = cw1; bloomO = b; }
       }
       if (typeof o.focus === "number") { fz += o.focus * cw1; fw += cw1; }
-      if (o.field && bw > 1e-4) fields.push({ field: o.field, weight: bw, name: S.name });
+      // (wave 9, J2r RAIL) the field at the scene's place (its lights), the chips' window on the eye's (railField)
+      if (o.field && bw > 1e-4) fields.push({ field: rl ? railField(o.field, shift, railE) : o.field, weight: bw, name: S.name });
       // (wave 2, ARRIVE) an extra pass a scene switches on (stage.js registerPass): the heaviest scene's config, the
       // scenes' weights summed into cfg.weight
-      if (o.passes && typeof o.passes === "object" && bw > 1e-4) for (const id of Object.keys(o.passes)) {
+      // (wave 9, J2r RAIL) a figure: whole while a join of the rail is under way (bwF)
+      if (o.passes && typeof o.passes === "object" && bwF > 1e-4) for (const id of Object.keys(o.passes)) {
         const c = o.passes[id];
         if (!c || typeof c !== "object") continue;
         const cur = passWant[id];
-        if (!cur || bw > cur.top) passWant[id] = { cfg: c, top: bw, sum: (cur ? cur.sum : 0) + bw };
-        else cur.sum += bw;
+        if (!cur || bwF > cur.top) passWant[id] = { cfg: c, top: bwF, sum: (cur ? cur.sum : 0) + bwF };
+        else cur.sum += bwF;
       }
     });
     reviveOK = true;
@@ -1088,7 +1182,8 @@
       for (let i = slabs.length - 1; i >= 0; i--) {
         const sl = slabs[i], nm = yielders.get(sl);
         if (!nm) continue;
-        const k = D0 / Math.max(1, D0 - sl.cz), X = vw / 2 + (sl.cx - vw / 2) * k, Y = vh / 2 + (sl.cy - vh / 2) * k;
+        // (wave 9, J2r RAIL) seen from the eye's place on the rail (railE: 0 without one)
+        const k = D0 / Math.max(1, D0 - sl.cz), X = vw / 2 + (sl.cx - railE - vw / 2) * k, Y = vh / 2 + (sl.cy - vh / 2) * k;
         const hw = (sl.w * k) / 2 + sl.t, hh = (Math.max(sl.h, sl.w * 0.5) * k) / 2 + sl.t;
         let g = 1e9;
         for (const tb of textBy) {
@@ -1145,7 +1240,8 @@
       pointer: { x: ptr.x, y: ptr.y, down: ptr.down, present: ptr.present },
       aim: touch ? { x: drag.nx, y: 0 } : null,
       scrollVelocity: sv, mist: { ink: 0 }, focus,
-      camera: anyFree ? freeBlend(cams, cw, vw, vh) : { yaw: r4(cam.yaw), pitch: r4(cam.pitch), dolly: r2(cam.dolly), follow: r4(cam.follow) },
+      // (wave 9, J2r RAIL) the eye on the rail is a free camera at its place (railE: 0 without one)
+      camera: anyFree || railE ? freeBlend(cams, cw, vw, vh, railE) : { yaw: r4(cam.yaw), pitch: r4(cam.pitch), dolly: r2(cam.dolly), follow: r4(cam.follow) },
       slabs, rest: restS > 0 ? restS : 0,
       bloom: bl > 0.001 ? { ...(bloomO || {}), strength: r4(bl) } : 0,
       field: fields.length ? fields : null,
@@ -1216,16 +1312,19 @@
   /**
    * The free camera of the frame: every scene's camera as a free pose (an orbiting one through stage.js orbitPose),
    * mixed by weight; the lens's other fields (near, fog, bokeh, damping, orbit, parallax) from the heaviest free scene.
-   * @param {{ o: any, w: number }[]} cams @param {number} cw @param {number} vw @param {number} vh
+   * (wave 9, J2r RAIL) railE: the eye's place on the rail (px to the right; 0 without one): the blended eye and what it
+   * looks at stand there, and a scene's own orbit pivot (a point of its figure) at the scene's place (at)
+   * @param {{ o: any, w: number, at?: number }[]} cams @param {number} cw @param {number} vw @param {number} vh @param {number} [railE]
    */
-  function freeBlend(cams, cw, vw, vh) {
+  function freeBlend(cams, cw, vw, vh, railE = 0) {
     const D0 = Math.min(2600, Math.max(1100, ((mod && mod.LOOK && mod.LOOK.eye) || 1.25) * Math.hypot(vw, vh)));
     const n = cw > 1e-4 ? 1 / cw : 0;
     const pos = [0, 0, 0], target = [0, 0, 0], pivot = [0, 0, 0];
     let roll = 0, lens = 0, aperture = 0, focus = 0, oy = 0, op = 0, heavy = -1, pivots = 0;
     /** @type {any} */ let lead = null;
     const P = (/** @type {any} */ v, /** @type {number[]} */ d) => (Array.isArray(v) ? v : v && typeof v === "object" ? [v.x, v.y, v.z] : d);
-    for (const { o, w } of cams) {
+    const rail = !!railE || cams.some((q) => !!q.at);
+    for (const { o, w, at = 0 } of cams) {
       const c = o.camera || {};
       const free = !!(c.pos || c.position);
       /** @type {any} */ let p;
@@ -1241,7 +1340,9 @@
       // pointer off-centre the eye jumped with it
       const pv = free && c.orbit && c.orbit.pivot ? P(c.orbit.pivot, p.target) : p.target;
       if (free && c.orbit && c.orbit.pivot) pivots++;
-      for (let i = 0; i < 3; i++) pivot[i] += w * (+pv[i] || 0);
+      if (!rail) for (let i = 0; i < 3; i++) pivot[i] += w * (+pv[i] || 0);
+      // (wave 9, J2r RAIL) the scene's own pivot at its place, the target (the eye's) at the eye's place
+      else { pivot[0] += w * ((+pv[0] || 0) + (free && c.orbit && c.orbit.pivot ? at : railE)); pivot[1] += w * (+pv[1] || 0); pivot[2] += w * (+pv[2] || 0); }
       roll += w * (free ? +c.roll || 0 : 0);
       lens += w * (free ? c.lens ?? 1 : 1);
       aperture += w * (free ? c.aperture ?? 1 : 1);
@@ -1256,6 +1357,8 @@
       orbit: { yaw: r4(oy * n), pitch: r4(op * n), damp: L.orbit && L.orbit.damp, pivot: pivots ? pivot.map((v) => r2(v * n)) : undefined },
     };
     for (const k of ["near", "nearFull", "fog", "bokeh", "damp", "parallax", "plateFocus", "snap"]) if (L[k] !== undefined) out[k] = L[k];
+    // (wave 9, J2r RAIL) the eye and what it looks at, at the eye's place: the camera travels, nothing in screen space
+    if (railE) { out.pos[0] = r2(out.pos[0] + railE); out.target[0] = r2(out.target[0] + railE); }
     return out;
   }
 

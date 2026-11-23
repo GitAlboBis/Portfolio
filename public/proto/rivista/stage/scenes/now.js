@@ -147,10 +147,18 @@ function orreryAsk(c) {
   // that caption is let go as Now's end reaches the view's foot (css/scene.css: the last caption box keeps its room
   // over the foot), and from there both ride up with the page, the figure above its caption, as the gallery's head comes
   // up below with its opening row (J2a: a figure leaves with its scene's last caption and enters with its first)
-  const ride = L.tall ? Math.min(0, c.section.y + c.section.h - vh) : Math.min(0, nowTop - y);
+  // (wave 9, J2r RAIL) ON THE RAIL (c.rail: a phone held upright, Now and the home's Work part a join; fx-stage.js "THE
+  // RAIL"): the figure stands at its place in the world and the EYE travels from it to Work's place: it does not ride up
+  // with the page (Now's last caption stays at the foot too, handing over in place) and does not fade with Now's weight;
+  // the pan takes it out of the frame. away: how far the eye stands from its place, in steps of the rail (0 here, 1 at
+  // Work's place)
+  const RA = c.rail || null, away = RA ? clamp(Math.abs(RA.eye - RA.at) / Math.max(1, RA.step)) : 0;
+  const ride = RA ? 0 : L.tall ? Math.min(0, c.section.y + c.section.h - vh) : Math.min(0, nowTop - y);
   // how far Now has gone past (0 while it holds the view; 1 a screen later): the figure fades as it leaves, the chips
   // thin out, the scene lets go of the frame
-  const gone = L.tall ? clamp(-ride / vh) : clamp((y - nowTop) / vh);
+  // (wave 9, J2r RAIL) on the rail, how far the eye has travelled away (the figure itself stays whole until it is out of
+  // the frame: below)
+  const gone = RA ? away : L.tall ? clamp(-ride / vh) : clamp((y - nowTop) / vh);
   // far down the hall it stands dead ahead, behind the gap in the name the eye flies through (cover/world.js: the
   // world's `gap`); once the eye is through, it comes to its place long before it is near
   const W = C.world, g = W && W.vw === vw && W.vh === vh && Array.isArray(W.gap) ? W.gap : [vw / 2, vh / 2];
@@ -211,18 +219,24 @@ function orreryAsk(c) {
   if (here) { OS.px = Math.round(p.x); OS.py = Math.round(p.y); }
   const words = orbitNames(), face = labelFace(vw);
   OS.t = c.time;
+  // (wave 9, J2r RAIL) on the rail: the figure stands at its place (at: 0 for Now, the rail's first scene; the pass draws
+  // it through the stage's camera, which stands at the eye's place) and stays whole until the pan has taken it out of
+  // the frame (away 0.92: its right edge has passed the screen's left edge by then, measured); the band its one name may
+  // stand in is the band seen from the eye (bx0..bx1 moved by at - eye), so a name leaves the frame under its body,
+  // never held at the screen's edge
+  const at = RA ? RA.at : 0, rv = RA ? RA.at - RA.eye : 0;
   const ask = {
-    x: r1(P.cx + lx), y: r1(P.cy + ride + ly), z: r1(zq), hx: r1(P.cx), hy: r1(P.cy), A: r1(P.A),
-    k: r4(k), a: r3(enter * lit * (1 - sstep(0.3, 0.8, gone)) * leave), ax: r4(OS.tx), ay: r4(OS.ty), flash: r3(OS.flash),
+    x: r1(P.cx + lx + at), y: r1(P.cy + ride + ly), z: r1(zq), hx: r1(P.cx + at), hy: r1(P.cy), A: r1(P.A),
+    k: r4(k), a: r3(enter * lit * (RA ? 1 - sstep(0.92, 1, away) : 1 - sstep(0.3, 0.8, gone)) * leave), ax: r4(OS.tx), ay: r4(OS.ty), flash: r3(OS.flash),
     px: OS.pin > 0 ? OS.px || 0 : 0, py: OS.pin > 0 ? OS.py || 0 : 0, pin: r3(OS.pin), phone: L.tall ? 2 : L.stacked ? 1 : 0, all: all ? 1 : 0,
     // where a word may stand: clear of the header and of Now's text (the column on a desktop, the block under the band;
     // with the captions, the band above them)
-    lab: [Math.round(bx0), 72 + safe, Math.round(bx1), Math.round(L.tall ? L.top + ride : L.stacked ? L.top - 6 + ride : vh - 8)],
+    lab: [Math.round(bx0 + rv), 72 + safe, Math.round(bx1 + rv), Math.round(L.tall ? L.top + ride : L.stacked ? L.top - 6 + ride : vh - 8)],
     words, font: face,
   };
   // (wave 9, J2b NOW) the bodies condense earlier on a phone held upright (the arrival above)
   if (L.tall) ask.c0 = 0.5;
-  return { ask, P, lx, ly, ride, gone, tall: L.tall };
+  return { ask, P, lx, ly, ride, gone, tall: L.tall, rail: !!RA };
 }
 
 /* ================================================================ the glow behind the figure (it was the plate's)
@@ -292,7 +306,7 @@ export default {
     // orreryAsk's, the plate's own laws); P is the glow's footprint behind the mark, as the plate's was behind it:
     // about twice the mark's height
     // (wave 9, J2b NOW) gone: how far Now has gone past (with the captions, from its last caption's let-go; orreryAsk)
-    const { ask, P: F, lx, ly, ride, gone, tall } = orreryAsk(c);
+    const { ask, P: F, lx, ly, ride, gone, tall, rail } = orreryAsk(c);
     const side = clamp(1.9 * F.H, 110, 480);
     const P = { cx: F.cx, cy: F.cy, w: side, h: side, cz: 0 };
     const enter = ask.a;
@@ -303,7 +317,9 @@ export default {
     // hold the stage's four slots
     // (round 12, COVER3FIX) only once the name's points have gone dark behind the lens (world.js gone(), k 0.42-0.5):
     // handed over while dark, they appear on the glow's places instead of flying across the screen as blue streaks
-    const hw = mix(0.3, 1, sstep(0.55, 1, k)) * enter * sstep(0.52, 0.62, k) * (1 - sstep(0.3, 0.8, gone));
+    // (wave 9, J2r RAIL) on the rail the glow stands deeper than the mark and so lags it in the pan (true parallax): it
+    // goes over the pan's second half, as the figure leaves the frame (gone: how far the eye has travelled, in steps)
+    const hw = mix(0.3, 1, sstep(0.55, 1, k)) * enter * sstep(0.52, 0.62, k) * (1 - (rail ? sstep(0.6, 1, gone) : sstep(0.3, 0.8, gone)));
     // Now's keep-outs once the letters are behind the eye (during the pass they cut rectangles out of them)
     // (round 12, COVER3FIX) the title from the live DOM (the host's rect of it is taken under its rise mask), and the
     // header's words: no chip over them

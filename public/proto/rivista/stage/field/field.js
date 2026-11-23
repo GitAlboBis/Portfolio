@@ -163,6 +163,9 @@ function readChips(c) {
     transmit: num(c.transmit, D.transmit), bevel: num(c.bevel, D.bevel), edgeFade: num(c.edgeFade, D.edgeFade),
     alpha: Math.max(0, Math.min(1, num(c.alpha, D.alpha))), seed: Math.round(num(c.seed, D.seed)) >>> 0, cap: num(c.cap, D.cap), near: num(c.near, D.near),
     mask: c.mask || null,
+    // (wave 9, J2r RAIL) the eye's place on the rail (px to the right; 0 off it): the window follows it, the chips stand
+    // still in the world (fx-stage.js railField)
+    rail: num(c.rail, 0),
     // (round 12) rim: the cut edge's colour toward paper (0 cobalt = before); clear: { rect: [x, y, w, h] viewport css
     // px, point: [x, y, z] } no chip nearer than the point's depth inside the rect (null = none)
     rim: Math.max(0, Math.min(1, num(c.rim, D.rim))),
@@ -396,16 +399,18 @@ function makeField(o) {
     put(FU.head, [cam.time, lights.length, count, chipsA]);
     put(FU.head2, [cosA, haze ? 1 : 0, CELLS, spec.hazeEnd || 0]);
     if (ch) {
-      put(FU.boxC, [ch.center[0] + sx, ch.center[1] + sy, ch.center[2], ch.edgeFade]);
+      // (wave 9, J2r RAIL) the chips' window stands on the eye's place on the rail (ch.rail, px; 0 off it), the chips stay
+      // where they are in the world (the shader wraps them by the same amount: FU.extra.w)
+      put(FU.boxC, [ch.rail ? ch.center[0] + sx + ch.rail : ch.center[0] + sx, ch.center[1] + sy, ch.center[2], ch.edgeFade]);
       put(FU.boxS, [...ch.size, ch.seed]);
       put(FU.wind, [...ch.wind, ch.spin]);
       put(FU.size, [ch.sizes[0], ch.sizes[1], ch.body, ch.edge]);
       put(FU.look, [ch.glint, ch.shininess, ch.transmit, ch.bevel]);
       ch.shapes.forEach((/** @type {any} */ s, /** @type {number} */ i) => put(FU.shape + i, [s.cell + s.scale / 10, s.weight, s.depth, s.width]));
       put(FU.shapes, [ch.shapes.length, ch.cap, ch.near, ch.floor || 0]);
-      if (ch.rim > 0 || ch.clear) {
+      if (ch.rim > 0 || ch.clear || ch.rail) {
         const cl = ch.clear;
-        put(FU.extra, [ch.rim, cl ? vp(cl.point)[2] : 0, cl ? 1 : 0, 0]);
+        put(FU.extra, [ch.rim, cl ? vp(cl.point)[2] : 0, cl ? 1 : 0, ch.rail || 0]);
         if (cl) put(FU.clear, [cl.rect[0], cl.rect[1], cl.rect[0] + cl.rect[2], cl.rect[1] + cl.rect[3]]);
       }
     }

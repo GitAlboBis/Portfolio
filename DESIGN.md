@@ -416,6 +416,20 @@ the menu first. A new size sits on the scale tokens, never written by hand.
   screen; anywhere else they are plain blocks in the one step's column, so the desktop and every printed state keep the
   one step, and no word is written twice. The other scenes (About's stack and path, Consulting, Obla, the joins) come
   in lane J2c (`stage/scenes/README.md`, "The caption at the foot").
+- **The rail** (a phone's journey between scenes; the phone wave, lane J2r, 23 November; Alberto from his iPhone: «Al
+  posto di scrollare e far si che sia tutto verso il basso nel mondo su telefono , possiamo fare I movimento nello spazio
+  dimensionale come facciamo gia su desktop»). On a phone held upright a caption scene may also stand at its own PLACE
+  in the world (`data-place` on its section; today Now and the gallery). Two such scenes one after the other in the page
+  are a JOIN (`fx-scroll.js` marks them `rail-out` and `rail-in`): the next one's place is one step to the right (1.1
+  view widths; the cosmos's own journey drifts right at every page, `placeOf`, so the two agree), and over the first
+  scene's last screen the eye travels from one place to the next, a function of the scroll (the quintic: it starts and
+  ends at rest, and reverses exactly). It is the camera that travels (`fx-stage.js` "THE RAIL"): both figures stand
+  still in their bands, held at the top, and pass the frame with their true parallax, the chips in front faster, the
+  cosmos's far threads slower; nothing is moved in screen space and nothing fades by the rows it holds. The text does
+  not go down either: the first scene's last caption and the next scene's first keep their holds (`css/scene.css` "the
+  rail's join") and hand over in place at the foot at the middle of the pan, as two captions of one scene do. A scene
+  off the rail stands at the place of the rail scene before it. Joins to come (Work into About's stack, the stack into
+  the path, the path into Consulting, Consulting into Obla, Obla into Contact) are lane J2c's.
 - The view is never boxed: no border, no frame, no caption inside it.
 - Without scene mode (reduced motion, no WebGPU, no script, print, a dead stage) a scene is plain flow: its blocks in
   order, with their real pictures (`[data-stage-poster]`, hidden in scene mode, where the stage reads them as
@@ -519,7 +533,12 @@ page's dawn close, in the home Contact's part); the open menu keeps it night.
 - **The scene's name** (`.hdr-scene`): the heading of the scene in view, the page's own words, set as a label
   in `--mute` after a short rule; it changes behind a straight mask (`fx-motion.js`). It stands only while the scene's
   own heading is off the screen and has gone up (in the home the gallery's top passes the middle while its heading is
-  still to come from below: no name yet). Decoration (`aria-hidden`).
+  still to come from below: no name yet). In a caption scene on a phone (the phone wave, lane J2r) the name is the one
+  of the scene whose caption is shown, and it stands while that caption is not the one holding the scene's heading: a
+  heading held clear at the foot counts as off the screen (`fx-motion.js` `capStep`, `capMid`; before, the gallery's
+  first works and Now's second and third captions had no name). The name put in is always the last one asked for
+  (`seq`: a name waiting on its way out no longer comes back after a newer one, as "Obla" did over the hero after a
+  quick run to Contact and a jump to the top). Decoration (`aria-hidden`).
   From 1024 px it follows the header's name on its line. Below 1024 px it stands under the header's name, which rises
   0.6em to make room (`.hdr.has-scene`, by `translate`: the header's entrance owns `transform`), behind a 1rem rule;
   it ends 5rem plus the gutter from the right edge, clear of MENU, and hides while the menu is open, the name coming
@@ -624,10 +643,12 @@ left the site on 22 November, go to the top of Work.
   51-66 px, the orbits nearly round under a close eye, one name at a time under the front body (the nine stay printed in
   the third caption). It still lights only once the name's letters are behind the eye, but nearer and larger (about 70 px
   as it lights, against a 32 px speck), its bodies condensing from k 0.5, and it lands in its place as Now's view
-  reaches the top. It leaves with Now's last caption: both ride up as Now's end reaches the view's foot, the figure
-  fading with Now's blend weight while the gallery's head comes up below with its opening row and its plates' light
-  rises with that scene's weight: one cross-fade, so the frame is never without a figure and the two never stand in it
-  together (where they cross both are faint: the orrery under a fifth of its light as a plate passes a third of its own).
+  reaches the top. It does not leave by going down: Now and Work are the first **join of the rail** (see "The scene
+  grammar"; the phone wave, lane J2r). Over Now's last screen the eye travels to the right, from the orrery's place in
+  the world to the gallery's, a step of 1.1 view widths away, as a function of the scroll; the orrery goes out of the
+  frame on the left with its name under it while the gallery's opening row comes in from the right, the two side by side
+  at the middle with a clear gap, and "What I do" hands over to "Eleven works" in place at the foot at the middle of the
+  pan. No figure rides up with the page, nothing fades by the rows it holds, and the frame is never without a figure.
   On a desktop, a phone held sideways and every printed state Now is the one step it was.
 - **The parts.** After Now the journey goes on through every page's own part (see "The home's parts" under Layout):
   Work (the gallery's head and its eleven plates), About (the stack's head and eight
@@ -676,8 +697,10 @@ the day's straight edge rises toward it, gone before the edge reaches its foot, 
   room under the band; it never fires otherwise). The glide is centred on
   the hand-over (the step's boundary at the reading line), so the plate just read swings out and the next comes in
   while the caption changes. The queue recedes toward a point inside the frame (0.76 of the width, under the header's
-  room), and over an etched plate it steps up out of the clear face rather than right, out of the screen. The head
-  comes up with the opening row; the last caption leaves with the page and the band rises with it, plate and caption
+  room), and over an etched plate it steps up out of the clear face rather than right, out of the screen. On Work the
+  head comes up with the opening row; in the home the gallery stands one step of the rail to the right of Now's figure
+  and the opening row comes into the frame from the right as the eye travels there (Now's join, above), its head
+  caption handed over in place. The last caption leaves with the page and the band rises with it, plate and caption
   leaving the frame together. Without the caption grammar (before `fx-scroll.js` runs, or a phone held sideways) the
   plate keeps to the free band it stands in, as before.
 - **No measured figures** (22 November; Alberto, looking at the site: «queste due sezioni son da eliminare , perchè non
@@ -1013,6 +1036,17 @@ and the name hung in Work's room for a second after a flight from the home). The
 it about the subject (the pointer on a desktop, a horizontal drag on a touch screen). Nothing in the DOM follows the
 pointer.
 
+**The rail** (a phone held upright; the phone wave, lane J2r; see "The scene grammar"). Across a join of the rail the
+host moves the blended free camera (its eye and what it looks at) by the eye's place on the rail, a quintic of the
+scroll, and sets every rail scene's world at its own place: its plates, its formations' rects, its field's lights and
+its own orbit pivot (a scene without one turns about its target, the eye's); an extra pass places itself with
+`ctx.rail.at` (the orrery's `x`, `hx`). The cosmos sees the moved eye (the eye in the room is the camera's own), and the
+chips' window rides the eye's place while the chips are wrapped back by as much (`field.wgsl.js` `vsChip`, `extra.w`),
+so they stand still in the world and the eye passes them. While a join is under way its two scenes' figures (plates,
+extra passes) stand whole and their views are held at the top; their air, field, cameras and looks keep their share's
+weights. The hand's drag still orbits the eye about the blended pivot, which travels with the rail. Off the rail every
+value is what it was.
+
 **A slide ends without a jerk** (wave 8, `build/k-smooth.md`; Alberto, 21 November: «alla fine dello slide diciamo
 scatta un può il movimento»). Whatever a scene slides rides a critically damped spring (`lib/camera.js` `follow`: it
 carries its speed, starts from the one it had and lands exactly, never past a target at rest, so the stage sleeps); a
@@ -1148,7 +1182,8 @@ Tokens in `rv/css/tokens.css`; read by `fx-core.js` as `FX.motion`.
   a screen and a half ahead (the elements held, `.mo-own`, which `fx-scroll.js` leaves to it) and played when the title
   reaches 85 % of the view's height, or when the block is on screen with the title already past that line (a jump, Back
   or the language's place never leaves text held). Only the hero plays at load. Live motion only: every printed state
-  shows the text.
+  shows the text. A part whose opening is held in a caption that is not shown yet (the gallery's head at the rail's
+  join, waiting clear at the foot) plays as its caption is shown, never unseen (`fx-motion.js` `capStep`, on `fx:step`).
 - **Focus** (`rv/css/type.css`, `rv/fx-scroll.js`): `[data-focus]` and `[data-focus-lines]` come into focus once, when
   they first enter the viewport. In scene mode the step nearest the middle of the viewport is `.is-active` and sharp;
   the others are at opacity 0.12 and blur 6 px. In a caption scene on a phone (the phone wave) it is the step whose box

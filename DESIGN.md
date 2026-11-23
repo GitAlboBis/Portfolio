@@ -83,7 +83,7 @@ typography:
 rounded:
   none: "0"
 spacing:
-  gut: "clamp(1rem, 3vw, 3rem)"
+  gut: "max(clamp(1rem, 3vw, 3rem), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))"
   s1: "0.25rem"
   s2: "0.5rem"
   s3: "1rem"
@@ -93,7 +93,7 @@ spacing:
   s7: "6.5rem"
   s8: "10rem"
   col: "34rem"
-  hdr: "4rem"
+  hdr: "calc(4rem + env(safe-area-inset-top, 0px))"
   btn-h: "3.5rem"
   target-min: "2.75rem"
 components:
@@ -327,7 +327,8 @@ size is `clamp(rem floor, rem + vw, rem cap)`, growing with the screen from abou
 | `--t-label` | `1rem` (16 px) / 1.35 | `clamp(1rem, 0.5rem + 0.625vw, 1.375rem)` | 17 / 20 / 22 | overlines, fields, counters, captions, the role line, the scene's name in the header |
 
 (The px columns are the stylesheet's own table, in its comment.) Heights that go with it: the header `--hdr` 4rem on a
-phone, `clamp(4.5rem, 1.8rem + 3vw, 6rem)` from 1024 px; the filled button `--btn-h` 3.5rem, then
+phone, `clamp(4.5rem, 1.8rem + 3vw, 6rem)` from 1024 px, each plus the top safe area (`env(safe-area-inset-top)`: 0
+but where the page runs under a notch or a status bar; the phone wave, lane J3); the filled button `--btn-h` 3.5rem, then
 `clamp(4rem, 2.2rem + 2vw, 5.25rem)`; the scene's text column `--col` 34rem, then 27.2 body ems.
 
 Page-level sizes outside the scale: the key words of a work without a capture `clamp(4rem, 9vw, 9rem)`
@@ -432,7 +433,10 @@ the menu first. A new size sits on the scale tokens, never written by hand.
 
 One gutter, `--gut` = `clamp(1rem, 3vw, 3rem)`, and one rhythm on a 4 px base whose steps roughly double (`--s1`
 0.25rem … `--s8` 10rem). Tight inside a group, generous between groups, more above a title than below
-(`rv/css/blocks.css`). Targets are at least 2.75rem.
+(`rv/css/blocks.css`). Targets are at least 2.75rem. The gutter never lies inside a safe area: a phone held sideways
+reports its notch's inset left and right, and `--gut` is the larger of the clamp and the two insets
+(`env(safe-area-inset-left|right)`, live with `viewport-fit=cover`; 0 on a desktop and an upright phone, where it is
+the clamp; the phone wave, lane J3). The sideways grammar is otherwise the old one.
 
 ### Breakpoints and input
 
@@ -494,6 +498,14 @@ part; `fx-core.js` "rv-place"). **Over the morning** the
 header takes the ground under it, as a straight cut with no fade: on Contact (`html[data-ground="dawn"]`) and on every
 other page while the morning is under it (`html[data-hdr-ground="dawn"]`, from the page's first `[data-dawn]`: a
 page's dawn close, in the home Contact's part); the open menu keeps it night.
+
+- **The safe area** (the phone wave, lane J3): with `viewport-fit=cover` a page may run under a phone's notch or
+  status bar. The header then pads its words below the top safe area (`padding-top: env(safe-area-inset-top)`) and is
+  that much taller (`--hdr` includes it), so its ground, once scrolled, covers the band and nothing of the page that
+  clears the header (the first screen, the menu, an anchor's scroll margin) stands under it; the scenes that keep their
+  figures under the header add it (`ctx.safeTop`: the gallery's caption band, Now's figure, Obla, Contact's strokes, a
+  case's band). Sideways the header's words keep to the gutter, which clears the notch (see "Space"). Everywhere else the
+  inset is 0 and the header is as it was.
 
 - **The part being read** (the home, wave 7; `fx-nav.js`, `.is-here` in `rv/css/chrome.css`): the part on the
   viewport's middle line marks its page quietly, the item in ink with the travelling rule resting under it and the
@@ -640,7 +652,7 @@ the day's straight edge rises toward it, gone before the edge reaches its foot, 
   apex itself, never a plate that takes over at the halfway mark.
 - **On a phone** (the phone wave, lane J2a: the caption at the foot, see "The scene grammar"). Each work's text is a
   caption held at the foot of the view and the plate in step stands whole in the band above it, under the header's
-  room, the same size and place for every step (its height 0.84 of the band, never wider than 0.7 of the screen): it no
+  room (its 64 px and a breath, plus its top safe area under a notch: lane J3), the same size and place for every step (its height 0.84 of the band, never wider than 0.7 of the screen): it no
   longer moves into a free band or comes back on the other side, and no text of the gallery meets it (the old fade
   where a text meets a plate stays only as a guard, within 12 px, for a page zoomed so far that a caption outgrows the
   room under the band; it never fires otherwise). The glide is centred on
@@ -850,6 +862,19 @@ home's name, light while the stage drew it, prints as type.
 
 One fixed, full-viewport WebGPU canvas above the pages (`aria-hidden`, `pointer-events: none`), drawn by
 `rv/stage/stage.js` on its own device. Nothing the reader needs to know exists only in the canvas.
+
+**The canvas on a phone** (the phone wave, lane J3). On an iPhone Safari's bar hides as the reader goes down and shows
+again: the layout viewport, `innerHeight` and the visual viewport follow it, the small (svh) and large (lvh) viewports
+and the initial containing block (`clientHeight`, the small viewport) do not. The canvas is `max(100%, 100lvh)` tall,
+so it keeps one box and one backing through every change of the bar (at 100 % it followed the bar while the stage drew
+the small viewport into it: with the bar hidden the picture was stretched about 1.14 times, every plate and keep-out
+sliding off its text toward the foot of the screen). The scenes keep their frame (`clientWidth` × `clientHeight`, the
+height of the views' 100svh); the stage maps it into the canvas's box, top to top, the eye before the frame's centre
+(`stage.resize`'s `boxH`), and the strip a hidden bar uncovers is drawn and guarded like the rest (texts, keep-outs
+and the day down to the box's foot). A resize measures the page again only when the layout moved (the width,
+`clientHeight`, the canvas's box or the pixel ratio: `fx-stage.js` `layoutMoved`): a change of the bar alone costs no
+measure, no raster of the glass's type and no new backing; a caption held by its bottom follows the bar from
+`innerHeight`. On a desktop and in Chrome the box is the viewport and nothing changed.
 
 **The start.** On every page that will have a stage the head script asks for the GPU adapter before the first paint
 and imports `rv/stage/boot.js`, which makes the device and starts every pipeline at once while the page loads. The

@@ -146,6 +146,9 @@ export default {
       const fs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       const hv = getComputedStyle(document.documentElement).getPropertyValue("--hdr").trim();
       S.hdr = hv.endsWith("rem") ? parseFloat(hv) * fs : parseFloat(hv) || (phone ? 64 : 72);
+      // (wave 9, J3 VIEWPORT) --hdr is now a calc() with the top safe area (css/tokens.css), read here as the fallback
+      // above; the safe area itself comes from the host (c.safeTop, 0 on a desktop and in Chrome)
+      S.hdr += c.safeTop || 0;
     }
     const HDR = S.hdr;
     if (S.capKey !== key && S.sec) {

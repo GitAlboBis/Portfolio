@@ -137,7 +137,8 @@ export default {
     const footBot = (below.length ? Math.max(...below.map((/** @type {any} */ t) => t.y + t.h)) : c.vh) + sy;
     // (wave 7, STAGE) the upper band starts under the header at Contact's own top: in the home the part's top is far down
     // the page (on Contact's own page it is 0, as before); the strokes belong to the morning, never above its edge
-    const hdr = (homeCam ? c.section.y + sy : 0) + (c.phone ? 64 : 64) + gap;
+    // (wave 9, J3 VIEWPORT) the header's 64 px and its top safe area under a notch (c.safeTop, 0 elsewhere)
+    const hdr = (homeCam ? c.section.y + sy : 0) + (c.phone ? 64 : 64) + (c.safeTop || 0) + gap;
     /** @type {{ y0: number, y1: number, up: boolean }[]} */ const bands = [];
     if (top - gap - hdr > 60) bands.push({ y0: hdr, y1: top - gap, up: true });
     // under the line: between it and the foot if there is room, else under the foot

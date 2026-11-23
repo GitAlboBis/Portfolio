@@ -116,7 +116,9 @@ function orreryAsk(c) {
   const nowTop = C.nowTop || 1, k = flightK(c);
   // ---- the figure's place in Now (viewport px when Now's view is at the top): the figure's half on a desktop, the band
   // between the header and the text on a phone; its size from that room
-  const bx0 = L.x0 + 6, bx1 = L.x1 - 6, by0 = L.stacked ? 68 : 76, by1 = L.stacked ? L.top - 8 : vh - 12;
+  // (wave 9, J3 VIEWPORT) the header is taller by the top safe area under a notch (c.safeTop, 0 elsewhere)
+  const safe = c.safeTop || 0;
+  const bx0 = L.x0 + 6, bx1 = L.x1 - 6, by0 = (L.stacked ? 68 : 76) + safe, by1 = L.stacked ? L.top - 8 : vh - 12;
   // one number, A, the outer orbit's radius: the carousel has a fixed shape (stage/orrery/layout.js SHAPE: `open` in
   // the figure's half, `band` in a phone's low band) and E is how far that shape reaches from the mark's centre, as
   // shares of A: left, right, up, down (layout.js EXTENT).
@@ -174,7 +176,7 @@ function orreryAsk(c) {
     k: r4(k), a: r3(enter * lit * (1 - sstep(0.3, 0.8, gone))), ax: r4(OS.tx), ay: r4(OS.ty), flash: r3(OS.flash),
     px: OS.pin > 0 ? OS.px || 0 : 0, py: OS.pin > 0 ? OS.py || 0 : 0, pin: r3(OS.pin), phone: L.stacked ? 1 : 0, all: all ? 1 : 0,
     // where a word may stand: clear of the header and of Now's text (the column on a desktop, the block under the band)
-    lab: [Math.round(bx0), 72, Math.round(bx1), Math.round(L.stacked ? L.top - 6 + ride : vh - 8)],
+    lab: [Math.round(bx0), 72 + safe, Math.round(bx1), Math.round(L.stacked ? L.top - 6 + ride : vh - 8)],
     words, font: face,
   };
   return { ask, P, lx, ly, ride };

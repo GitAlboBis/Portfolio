@@ -10,8 +10,8 @@
  *
  * device  the page's one GPUDevice, asked for by the host (fx-stage.js) through ./gpu.js. The stage
  *         itself never requests an adapter.
- * canvas  a full-viewport canvas (the host sizes it in CSS: position fixed, 100vw x 100vh,
- *         pointer-events none, aria-hidden). The stage configures it with alphaMode "premultiplied". (wave 9, J1 LIGHT)
+ * canvas  a full-viewport canvas (the host sizes it in CSS: position fixed at the top left, 100% wide, max(100%, 100lvh)
+ *         tall since wave 9 J3 VIEWPORT, pointer-events none, aria-hidden). The stage configures it with alphaMode "premultiplied". (wave 9, J1 LIGHT)
  *         The frame is drawn into a texture of the canvas's format (frameTex: light added at alpha 0, glass and ink
  *         with their own alpha) and one last pass writes the canvas from it with every pixel VALID premultiplied
  *         (alpha at least the brightest channel; wgsl/resolve.wgsl.js): Safari drops colour above alpha, Chrome adds
@@ -39,7 +39,10 @@
  * and on every reader input (scroll, pointer move/down, touch, key):
  *   stage.input()                 opens the 5 s window ("Rest")
  * and on a viewport change:
- *   stage.resize(cssW, cssH, dpr)
+ *   stage.resize(cssW, cssH, dpr, boxH?)   cssW x cssH: the frame the scenes see (VIEWPORT px). (wave 9, J3 VIEWPORT)
+ *                                 boxH: the canvas's own css height when it is taller (an iPhone: the canvas is 100lvh,
+ *                                 the frame the small viewport): the backing covers the box and the frame is mapped
+ *                                 into it, its top-left at the canvas's, the eye still before the frame's centre
  *
  * set({
  *   formations: [ { id, weight, rect: { x, y, w, h },            up to 4; weight 0..1; rect in DOCUMENT px
@@ -770,7 +773,7 @@ export async function createStage(o) {
   const U32 = new Uint32Array(F32.buffer);
   const S32 = new Float32Array((4 * SLOT_SIZE) / 4);
   const st = {
-    cssW: 1, cssH: 1, dpr: 1, bw: 1, bh: 1,
+    cssW: 1, cssH: 1, boxH: 1, dpr: 1, bw: 1, bh: 1,   // boxH: the canvas's box, at least cssH (resize; wave 9, J3 VIEWPORT)
     scrollX: 0, scrollY: 0, scrollV: 0,
     /** @type {{ x0: number, y0: number, x1: number, y1: number }[]} */ dawn: [],
     /** @type {Rect[]} */ keep: [],
@@ -1354,12 +1357,17 @@ export async function createStage(o) {
     st.lastInput = performance.now();
   }
 
-  /** @param {number} cssW @param {number} cssH @param {number} dpr */
-  function resize(cssW, cssH, dpr) {
-    const area = Math.max(1, cssW * cssH);
+  /** (wave 9, J3 VIEWPORT) boxH: the canvas's own height in css px, when it is taller than the scenes' frame (an iPhone:
+   *  the canvas is the large viewport, 100lvh, the frame the small one, so Safari's bar never resizes it). cssW x cssH
+   *  stays the frame every scene and camera reads (the eye before its centre, the pivot, D); the backing covers the box,
+   *  and the frame uniform maps the frame into it (packFrame). Absent or equal to cssH: exactly as before.
+   *  @param {number} cssW @param {number} cssH @param {number} dpr @param {number} [boxH] */
+  function resize(cssW, cssH, dpr, boxH) {
+    const bxH = boxH && boxH > cssH ? boxH : cssH;
+    const area = Math.max(1, cssW * bxH);
     const eff = Math.min(dpr || 1, 1.5, Math.sqrt(MAX_PIXELS / area)) * TIER_DPR[tier];
-    st.cssW = cssW; st.cssH = cssH; st.dpr = eff;
-    st.bw = Math.max(1, Math.round(cssW * eff)); st.bh = Math.max(1, Math.round(cssH * eff));
+    st.cssW = cssW; st.cssH = cssH; st.boxH = bxH; st.dpr = eff;
+    st.bw = Math.max(1, Math.round(cssW * eff)); st.bh = Math.max(1, Math.round(bxH * eff));
     if (canvas.width !== st.bw) canvas.width = st.bw;
     if (canvas.height !== st.bh) canvas.height = st.bh;
     if (plates) plates.ensureInk(st.bw, st.bh);
@@ -1575,9 +1583,15 @@ export async function createStage(o) {
   /** @param {number} dt simulated seconds this frame */
   function packFrame(dt) {
     const put = (/** @type {number} */ k, /** @type {number[]} */ v) => F32.set(v, k * 4);
-    put(FRAME.view, [st.cssW, st.cssH, st.scrollX, st.scrollY]);
-    put(FRAME.backing, [st.bw, st.bh, st.bw / st.cssW, st.bh / st.cssH]);
-    put(FRAME.cam, [st.D, st.eye[0], st.eye[1], st.aperture]);
+    /* (wave 9, J3 VIEWPORT) the frame mapped into the canvas's box (resize's boxH, taller on an iPhone: the strip under
+       Safari's bar). view and backing are the box (viewport px -> clip space, and px per css px, over the whole canvas);
+       the eye's offset carries (cssH - boxH) / 2, so every shader's eye, view.xy * 0.5 + cam.yz, stays the frame's centre
+       plus the eye's own offset (the scenes' cameras, the plates', the field's and the orrery's JS read the frame).
+       boxH = cssH: the same values as before */
+    const bxH = st.boxH || st.cssH;
+    put(FRAME.view, [st.cssW, bxH, st.scrollX, st.scrollY]);
+    put(FRAME.backing, [st.bw, st.bh, st.bw / st.cssW, st.bh / bxH]);
+    put(FRAME.cam, [st.D, st.eye[0], st.eye[1] + (st.cssH - bxH) / 2, st.aperture]);
     put(FRAME.clock, [st.time, dt, st.activity, st.frameIndex]);
     // (lane m-glass) z: the aberration in speed; w: the light's ceiling as written (1 on the 8-bit canvas, as its own clamp)
     put(FRAME.band, [st.dawn.length, look.nightAlpha, st.aber, hdrOn ? HDR_CEIL : 1]);
@@ -1726,9 +1740,12 @@ export async function createStage(o) {
        empty sheet (from 650 to 800 ms the frame read as a blank page before "WRITE TO ME." rose) */
     let dayY = Infinity;
     for (const r of st.dawn) if (r.x0 <= 0 && r.x1 >= st.cssW - 1 && r.y1 >= st.cssH - 1) dayY = Math.min(dayY, Math.max(0, r.y0));
+    // (wave 9, J3 VIEWPORT) the plates see the frame as the shaders do (packFrame): the canvas's box, the eye's offset
+    // carrying the difference, so a plate in the strip under an iPhone's bar is not culled and every eye is the same
+    const pbH = st.boxH || st.cssH;
     st.platesOn = draw && !!plates && slabList.length > 0 && plates.pack({
       slabs: slabList, R: st.camR, pivot: st.camP, origin: st.camO, scroll: { x: st.scrollX, y: st.scrollY }, dayY,
-      view: { w: st.cssW, h: st.cssH }, D: st.D, eye: st.eye, pointer: st.pointer, dt: dtSim, dpr: st.dpr,
+      view: { w: st.cssW, h: pbH }, D: st.D, eye: pbH === st.cssH ? st.eye : [st.eye[0], st.eye[1] + (st.cssH - pbH) / 2], pointer: st.pointer, dt: dtSim, dpr: st.dpr,
       free: st.free ? { near: st.clip[0], nearFull: st.clip[1], fog: st.clip[3] > st.clip[2] ? [st.clip[2], st.clip[3]] : null,
         focusZ: st.focusZ, aperture: st.aperture, plateFocus: st.fT.plateFocus } : null,
       soften: pe,
@@ -2062,6 +2079,8 @@ export async function createStage(o) {
       gpuMs: s.length ? s[s.length >> 1] : st.gpuLast, gpuLastMs: st.gpuLast, timestamps: tsOn,
       awake: st.activity > 0, activity: st.activity, submits: st.submits, frames: st.frameIndex,
       backing: [st.bw, st.bh], dpr: st.dpr,
+      // (wave 9, J3 VIEWPORT) the scenes' frame and the canvas's box it is mapped into (css px)
+      view: [st.cssW, st.cssH, st.boxH || st.cssH],
       swarm: { ready: !!simPipe, at: swarmAt }, passMs: st.passMs, platesOn: st.platesOn, plates: st.platesOn ? plates.count : 0, plateTier: plates ? plates.tier : null, glass: !!plates, focus: st.focus,
       camera: st.free ? { free: true, pos: st.fC.pos.map(Math.round), target: st.fC.target.map(Math.round), roll: st.fC.roll, lens: st.fC.lens, orbit: [...st.orb], D: Math.round(st.D),
         // (wave 8, SMOOTH) the pivot the orbit turns about as drawn (a jump of the scene's handed over: pivotStep)

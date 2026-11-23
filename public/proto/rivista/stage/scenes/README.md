@@ -4,7 +4,7 @@
 > and wave 7 (21 November: the home as one page of every page's scenes, the neural cosmos where the wall was, the
 > looks mixed by weight), and wave 8 (22 November: every slide on springs, the pivot handed over, textures made again,
 > the door's lines and the edge of day), and the phone wave (23 November, lane J2a: the caption at the foot, opt-in,
-> the gallery first). The engine's own reference is the header of `stage/stage.js`; the host's is
+> the gallery first; lane J3: the canvas's box on a phone and `safeTop`). The engine's own reference is the header of `stage/stage.js`; the host's is
 > the header of `fx-stage.js`. Where this page and the code disagree, the code wins.
 
 A scene is one module, `stage/scenes/NAME.js`, for every `<section data-stage="NAME">` on a page (a case page's
@@ -62,7 +62,8 @@ export default {
 | `cue` | the `data-stage-cue` id hovered, focused, or (touch) nearest the middle of the screen; else `null` |
 | `pointer` | `{ x, y, present, down, nx, ny }`; `nx, ny` −1..1 across the viewport |
 | `scrollVelocity`, `scrollY` | px/s (positive down), document px |
-| `vw`, `vh`, `phone`, `tier`, `inkK` | viewport, `vw < 760`, "A"/"B"/"C", ink factor for the tier's count (A 1, B 2, C 4) |
+| `vw`, `vh`, `phone`, `tier`, `inkK` | viewport, `vw < 760`, "A"/"B"/"C", ink factor for the tier's count (A 1, B 2, C 4). `vw` x `vh` is the scene's frame (`documentElement.clientWidth` x `clientHeight`: on a phone the small viewport, the height the views' 100svh are). (wave 9, lane J3) On an iPhone the canvas is taller (100lvh: the strip under Safari's bar when it hides): the stage maps the frame into it, its top at the canvas's top and its eye before the frame's centre, so nothing a scene computes changes; `texts`, `media`, `textRects()`, the keep-outs and `dawn` reach down to the canvas's foot |
+| `safeTop` | (wave 9, lane J3) the header's top safe area, px: what a notch or a status bar takes over the page (`env(safe-area-inset-top)`), 0 on a desktop, in Chrome and on a phone whose page starts under its bar. The header is that much taller (`--hdr`): a figure that keeps under the header adds it (the gallery's caption band, Now's orrery, Obla's band, Contact's strokes, a case's band) |
 | `share`, `weight` | the scene's share of the viewport (0–1) and its smoothed blend weight |
 | `marks` | `{ ID: rect }` of every `[data-stage-mark="ID"]` in the section (their glyph box) |
 | `imgs` | `{ ID: { tex, w, h, aspect, rect, el } }` of every `<img data-slab="ID">`; `tex` is the texture id once decoded, else `null` |

@@ -631,8 +631,8 @@
     "geometry": [
       {
         "name": "gut",
-        "value": "clamp(1rem, 3vw, 3rem)",
-        "purpose": "The one page gutter.",
+        "value": "max(clamp(1rem, 3vw, 3rem), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))",
+        "purpose": "The one page gutter; never inside a notch's inset (a phone held sideways), the clamp everywhere else.",
         "source": "public/proto/rivista/css/tokens.css"
       },
       {
@@ -649,8 +649,8 @@
       },
       {
         "name": "hdr",
-        "value": "4rem on a phone; clamp(4.5rem, 1.8rem + 3vw, 6rem) from 1024 px",
-        "purpose": "The header's height.",
+        "value": "calc(4rem + env(safe-area-inset-top, 0px)) on a phone; calc(clamp(4.5rem, 1.8rem + 3vw, 6rem) + env(safe-area-inset-top, 0px)) from 1024 px",
+        "purpose": "The header's height, its top safe area included (the header pads its words below it).",
         "source": "public/proto/rivista/css/tokens.css"
       },
       {

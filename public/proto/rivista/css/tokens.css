@@ -54,7 +54,10 @@
   --tr-btn: 0.04em;
 
   /* space: one gutter, one rhythm (a 4 px base, steps that double) */
-  --gut: clamp(1rem, 3vw, 3rem);
+  /* (wave 9, J3 VIEWPORT) the gutter never lies inside a notch's or a rounded corner's inset: a phone held sideways reports
+     them left and right (env(), live with viewport-fit=cover, parts/head.html), the larger of the two on both sides; 0
+     on a desktop and an upright phone, where this is the clamp it was */
+  --gut: max(clamp(1rem, 3vw, 3rem), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   --s1: 0.25rem;
   --s2: 0.5rem;
   --s3: 1rem;
@@ -64,7 +67,11 @@
   --s7: 6.5rem;
   --s8: 10rem;
   --col: 34rem;            /* the scene's text column: 27.2 body ems on a desktop (544 px at 1440, 612 at 1920, below) */
-  --hdr: 4rem;             /* the header's height: 64 px on a phone, 72 px from 1024 px, growing with --t-nav (below) */
+  /* the header's height: 64 px on a phone, 72 px from 1024 px, growing with --t-nav (below); (wave 9, J3 VIEWPORT) plus
+     the top safe area (a notch or a status bar over the page; 0 elsewhere): the header pads its words below it
+     (css/chrome.css), and all that clears the header (the first screen's padding, the menu, the anchors' scroll margin)
+     clears it too */
+  --hdr: calc(4rem + env(safe-area-inset-top, 0px));
   --btn-h: 3.5rem;         /* the filled button: 56 px on a phone, 64 px from 1024 px, growing with --t-btn (below) */
 
   /* motion: the verb is focus (spec 50 §6) */
@@ -110,7 +117,7 @@
     --t-btn: clamp(1.25rem, 0.6875rem + 0.625vw, 1.625rem);
     --t-nav: clamp(1.125rem, 0.5rem + 0.8333vw, 1.75rem);
     --t-lang: clamp(1.125rem, 0.375rem + 0.8333vw, 1.5rem);
-    --hdr: clamp(4.5rem, 1.8rem + 3vw, 6rem);
+    --hdr: calc(clamp(4.5rem, 1.8rem + 3vw, 6rem) + env(safe-area-inset-top, 0px));   /* (wave 9, J3 VIEWPORT) the top inset */
     --btn-h: clamp(4rem, 2.2rem + 2vw, 5.25rem);
     --col: calc(var(--t-body) * 27.2);
   }

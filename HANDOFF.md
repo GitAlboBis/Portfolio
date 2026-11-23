@@ -1,6 +1,42 @@
 # HANDOFF — continua da qui
 
-> **Macchina: GIANNI · 23 novembre, verso le 00:40. La prima corsia del telefono, J1 LIGHT, è online: lo squash `c4c0646` sopra `5b22104`. Ora tocca all'iPhone di Alberto; la sessione `-27` lancia J2a.**
+> **Macchina: GIANNI · scritto il 23 novembre alle 09:43 dalla sessione `portfolioalbertotuveri-viva-27`, che guida l'ondata del telefono (blocco suo, sopra il diario del direttore).**
+> - **Fatto.** J3 VIEWPORT è finita e non committata, sopra `0f19daa`. La tela al telefono ha l'altezza `max(100%, 100lvh)`, così la barra di Safari non stira più l'immagine (prima la stirava 1,14 volte) e non rifà più le misure; aggiunte le aree sicure (`--hdr`, `--gut`, `ctx.safeTop`). Il resoconto è al direttore. Alberto ha confermato dal suo iPhone che J1 funziona (il nome di luce compare) e che la galleria di J2a va bene. Ha chiesto Now fermo e grande, poi le altre sezioni, e il viaggio nello spazio fra le sezioni. Le sue parole e il piano sono in `build/j-mobile.md`.
+> - **Prossimo passo esatto.** Il direttore committa J3 e lo mette online. Poi questa sessione lancia J2b NOW, senza il viaggio. Dopo il suo commit viene J2r RAIL, il viaggio su un solo passaggio (Now → Work), da far vedere ad Alberto. Solo dopo il suo sì, J2c (le altre sezioni). Le note del direttore per J2b e J2r e le istruzioni scena per scena sono in `build/j-mobile.md`.
+> - **Da non ritentare.** Non lanciare una corsia sopra lavoro non committato di un'altra. Niente agenti in parallelo; Fable è finito fino al 26 novembre, quindi si usa Opus 5.5 a effort max. Nessun blocco forzato dello scroll: «pinnando» vuol dire una vista sticky con le didascalie che si passano il posto (§2). Il viaggio è della camera, mai figure traslate sullo schermo.
+
+> **Macchina: GIANNI · 23 novembre, notte. Anche J2a CAPTION è online (lo squash `24eaba4` sopra `c4c0646`); la sessione `-27` lancia J3 VIEWPORT.**
+> - **Fatto.** La corsia J2a CAPTION della sessione `-27` (`build/j-caption.md`) è committata come `a5a1fff`.
+>   - **Cosa cambia.** Al telefono in verticale la galleria (Work e la parte Work della home, nelle due lingue) tiene il testo di ogni lavoro in una didascalia ferma in basso (`data-caption`), che cambia sul posto. La lastra sta intera nella fascia sopra, e niente passa sulle parole.
+>   - **Cosa resta com'era.** Il desktop (identico a HEAD), il telefono in orizzontale (apposta: non c'è altezza per didascalia e fascia insieme) e le stampe.
+>   - **Il controllo del direttore.** Ha guardato `pair-r2-b-drag-home-en.jpg` e `pair-stills-work-en.jpg` e il codice, che vale solo per le scene che chiedono la didascalia. Ha rifatto i gate: `--check`, i numeri, Astro con PARITY OK e asserts, il rilascio.
+> - **Online.** `24eaba4` è su `main` (sha in `.shots/_director/squash-sha-j2a.txt`), e Vercel ha risposto «Deployment has completed».
+>
+>   Sul dominio vero:
+>   - i cinque indirizzi rispondono giusto;
+>   - la sonda `.shots/_director/livework.mjs` (catture in `livework/`), su `/work.html` a 390 px, ai passi 1, 4, 8 e 11: una sola didascalia, ferma in basso (le parole da y 531–559 a 804 su 844), e la console pulita;
+>   - `livenow.mjs`: il passo finale pronto e Now invariato.
+> - **Le risposte di Alberto dall'iPhone (23 novembre, verso le 07:56, due catture girate dalla sessione `-27`).**
+>   - **J1 funziona sul suo telefono:** nella home ci sono il nome di luce, i fili del cosmo e le schegge. Su `/?hdr=1` non ha detto nulla.
+>   - **Le sue parole:** «Ho visto la galleria di work , è Vabene. L'unico problema è che in now at Sersan non si vede il logo con le competenze che ruotano, è troppo piccolo e sparisce con lo scroll perché va dietro le scritte, lo stesso problema che c era in work e che hai risolto , e che devi fare anche per le altre sezioni, bloccando lo scroll pinnando la posizione tipo in modo tale che l animazione si possa vedere senza che la pagina scenda giù e la scritta vada sopra .»
+>   - **Il piano approvato dal direttore,** ogni corsia dopo il commit della precedente:
+>     - **J2b NOW.** Al telefono Now prende le didascalie, divise in due o tre passi solo lì. La figura sta nella fascia sopra per tutto Now, grande circa il doppio. Si accende prima, senza toccare la prima vista né le lettere del nome. Il desktop resta un passo solo, identico.
+>     - **J2c.** Le altre sezioni: la pila e il percorso di About, Consulting, Obla e le giunture.
+>   - **Cosa vuol dire «pinnando».** Una vista sticky con le didascalie che cambiano sul posto; lo scroll resta del browser, mai bloccato.
+>   - **La seconda richiesta (verso le 08:10).** «Puoi fare anche un movimento nel mondo 4D verso destra per esempio per le card di capabilities , non che si slidano verso destra. Ma intendo proprio la posizione della sezione e dell elemento nel mondo 4D che è verso destra rispetto alla sezione precedente. Al posto di scrollare e far si che sia tutto verso il basso nel mondo su telefono , possiamo fare I movimento nello spazio dimensionale come facciamo gia su desktop .»
+>     - **Cosa vuol dire.** Al telefono ogni figura sta al suo posto nel mondo, accanto a quella prima, e lo scroll muove l'occhio da un posto all'altro: è la camera che viaggia lungo la curva del cosmo (`placeOf`), non le figure che scivolano. Le didascalie cambiano sul posto.
+>     - **La corsia.** Il direttore ne ha fatto una corsia sua: J2r RAIL, dopo J2b, provata prima su una giuntura (Now → Work) e pubblicata perché Alberto la guardi. Poi J2c su tutte le altre sezioni.
+> - **Prossimo passo.**
+>   - **Alberto.** Ha già guardato J1 e J2a (sopra). Resta solo `/?hdr=1`, se gli va.
+>   - **La sessione `-27`.** Lancia J3 VIEWPORT sopra `a5a1fff`: il canvas e le misure, che non devono più seguire ogni andata e ritorno della barra di Safari, e l'area sicura in alto. Le note del direttore sono nel messaggio di via libera.
+>   - **Dopo.** J2b (le altre scene, le giunture, Now e il percorso) parte solo dopo lo sguardo di Alberto a J2a; le istruzioni scena per scena sono in fondo a `build/j-mobile.md`. Poi J4 PLAIN.
+> - **Da non ritentare:**
+>   - una corsia lanciata sopra il lavoro non committato di un'altra;
+>   - agenti in parallelo: la finestra delle cinque ore è condivisa, e Fable è finito fino al 26 novembre (Opus 5.5 a effort max).
+>
+>   Lo squash va sempre sopra lo sha di `main` (ora `24eaba4`).
+
+> **Macchina: GIANNI · 23 novembre, verso le 00:40 (storia). La prima corsia del telefono, J1 LIGHT, è online: lo squash `c4c0646` sopra `5b22104`. Ora tocca all'iPhone di Alberto; la sessione `-27` lancia J2a.**
 > - **Fatto.** La corsia J1 LIGHT della sessione `-27` (`portfolioalbertotuveri-viva-27`) è finita sopra `ae26554`; i dettagli sono in `build/j-light.md`.
 >   - **Cosa fa.** Ogni pipeline disegna come prima in una texture, e un ultimo passo a pieno schermo (`stage/wgsl/resolve.wgsl.js`) scrive il canvas con ogni pixel premoltiplicato valido. Sopra la notte e sopra la carta dell'alba la composizione è quella che Chrome mostrava. Il bloom compone nello stesso passo.
 >   - **WebKit.** Safari e ogni browser di iPhone e iPad restano col canvas a 8 bit, salvo `?hdr=1` (`stage/gpu.js` `isWebKit`).

@@ -48,7 +48,9 @@ export default {
       // (wave 7, STAGE) and never above the section's own top: in the home Obla comes up under Consulting's last block,
       // whose text is not this scene's (c.texts): the band ran from the header down over it, and the character stood
       // huge and grey across "WRITE TO ME", cut by that text's keep-outs. On Obla's own page the section starts at 0.
-      const fh = rect.h, y0 = Math.max(60, c.section ? c.section.y : 60), y1 = c.vh - Math.max(16, m), pad = 14;   // 60: under the header
+      // 60: under the header; (wave 9, J3 VIEWPORT) and its top safe area under a notch (c.safeTop, 0 elsewhere)
+      const hd = 60 + (c.safeTop || 0);
+      const fh = rect.h, y0 = Math.max(hd, c.section ? c.section.y : hd), y1 = c.vh - Math.max(16, m), pad = 14;
       const cut = c.texts.filter((/** @type {any} */ t) => t.y < y1 && t.y + t.h > y0 && t.x < rect.x + rect.w && t.x + t.w > rect.x)
         .map((/** @type {any} */ t) => [t.y - pad, t.y + t.h + pad]).sort((/** @type {number[]} */ a, /** @type {number[]} */ b) => a[0] - b[0]);
       /** @type {number[][]} */ const free = [];

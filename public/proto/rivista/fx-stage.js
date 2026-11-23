@@ -28,7 +28,10 @@
      .portal) the stage opens pushed in and inside the glass, and on fx:nav:uncovered the eye comes out (the push back,
      the portal 1 -> 0 in PORTAL_IN_MS) as soon as the glass can draw (at most PORTAL_WAIT_MS later).
    - Rects are measured on build, resize, ScrollTrigger refresh and body resize, in document space with every sticky box
-     flattened; the tick resolves the sticky boxes from the scroll alone. No layout read in the tick.
+     flattened; the tick resolves the sticky boxes from the scroll alone. No layout read in the tick. (wave 9, J3
+     VIEWPORT) A resize measures only when the layout moved (the width, clientHeight, the canvas's box, the pixel ratio:
+     layoutMoved), never for an iPhone's bar alone; the canvas is max(100%, 100lvh) tall and the stage maps the scenes'
+     frame (clientWidth x clientHeight) into its box (stage.resize's boxH).
    - Scroll, wheel, pointer, touch and key open the stage's 5 s window (stage.input()).
    - html.stage-on while the stage draws; [data-stage-instr] gets "{n} points · {ms} ms GPU" through FX.t / FX.num.
    - Early start (BOOT): the head script asks for the adapter and imports stage/boot.js, which makes the device and
@@ -197,6 +200,10 @@
    *  (k-fix3d) B: a box held by its bottom (top: auto, bottom: B), cbT its containing block's top, vh the scrollport */
   /** @typedef {{ el: Element, nat: Rect, chain: Stick[] }} Rec */
   /** @type {any} */ let M = null;   // the last measure
+  /* (wave 9, J3 VIEWPORT) the layout viewport's height now (innerHeight, MDN: "taken from the height of the window's
+     layout viewport"), kept from the resize events without a measure: on an iPhone it follows Safari's bar, and so does
+     the foot of the scrollport a box held by its bottom stands on (a case opener's caption, at()) */
+  let vpH = 0;
   /** @typedef {{ kx: number, ky: number, tx: number, ty: number, ox: number, oy: number }} Aff  an axis-aligned
    *  transform x' = ox + kx (x - ox) + tx (and y), viewport px */
   /** a rect with one transform undone @param {Aff} a @param {{ x: number, y: number, w: number, h: number }} r */
@@ -410,11 +417,30 @@
       return { el, nat: { ...r }, chain };
     };
     const cw = D.clientWidth, ch = D.clientHeight;
+    /* (wave 9, J3 VIEWPORT) THE CANVAS'S BOX. The canvas is max(100%, 100lvh) tall (makeCanvas): on an iPhone the large
+       viewport, so neither its box nor the backing changes as Safari's bar shows and hides (the layout viewport,
+       innerHeight and the visual viewport follow the bar; the initial containing block, clientHeight, is the small
+       viewport and stays). The scenes keep their frame, cw x ch (the views are 100svh tall); the stage maps it into the
+       box (stage.resize's boxH), and what the host keeps light off and lays the day on runs down to the box's foot (dh):
+       the strip a hidden bar uncovers is drawn and guarded. Where the box is the viewport (a desktop, Chrome, a browser
+       without a bar) dh is ch and every value is what it was */
+    const cbox = canvas ? canvas.getBoundingClientRect().height : 0;
+    const dh = cbox >= ch + 0.5 ? cbox : ch;
+    /* (wave 9, J3 VIEWPORT) the header's top safe area (css/chrome.css pads the header by env(safe-area-inset-top)): what
+       a notch or a status bar takes over the page, 0 elsewhere; the scenes that stand their figures under the header add
+       it (ctx.safeTop) */
+    const hdrEl = document.querySelector(".hdr");
+    const safeTop = hdrEl ? parseFloat(getComputedStyle(hdrEl).paddingTop) || 0 : 0;
+    // the layout viewport's height (vpH, at()), read here while the layout is clean: read after the sticky boxes are put
+    // back, innerHeight forced a whole layout inside the measure (+1.2 to 2 ms a measure on a phone's home)
+    const ih = window.innerHeight || ch;
     /** (wave 9, J2a CAPTION) the caption step of a caption scene an element stands in, as [scene, step] (else null)
      *  @param {Element} e */
     const capAt = (e) => { for (let i = 0; i < sc.length; i++) { if (!sc[i].cap) continue; const k = sc[i].steps.findIndex((st) => st.contains(e)); if (k >= 0) return [i, k]; } return null; };
     const out = {
       cw, ch, fs: D.classList.contains("fs-on"),
+      // (wave 9, J3 VIEWPORT) the drawn height, the pixel ratio and the header's top safe area at this measure
+      dh, dpr: window.devicePixelRatio || 1, safeTop,
       scenes: sc.map((s, si) => {
         const r = rec(s.sec), view = rec(s.view) || r;
         const stepIx = (/** @type {Element} */ e) => (s.cap ? s.steps.findIndex((st) => st.contains(e)) : -1);
@@ -482,8 +508,10 @@
     };
     for (const [h, v, p] of saved) { if (v) h.style.setProperty("position", v, p); else h.style.removeProperty("position"); }
     M = out;
+    vpH = ih;
     BD.key = "";                    // the layout moved: the type is rasterised again
-    if (stage) stage.resize(cw, ch, window.devicePixelRatio || 1);
+    // (wave 9, J3 VIEWPORT) the scenes' frame and the canvas's own box (dh): the backing covers the box
+    if (stage) stage.resize(cw, ch, window.devicePixelRatio || 1, dh);
     log(`[stage] measured ${all.size} boxes (${sticky.size} sticky) in ${(performance.now() - t0).toFixed(1)} ms`);
   }
 
@@ -496,7 +524,9 @@
       const nt = s.top + d;
       // held by its bottom (k-fix3d): it rises from its place to keep B over the scrollport's foot, never above its
       // containing block's top; else held by its top, never below its containing block's bottom
-      const stuck = s.B !== undefined ? Math.min(nt, Math.max(y + (s.vh || 0) - s.B - s.h, (s.cbT ?? nt) + d + (s.mt || 0)))
+      // (wave 9, J3 VIEWPORT) the scrollport's foot now (vpH: the layout viewport, which follows an iPhone's bar), not the
+      // one measured: the box moves with the bar and its keep-out with it, with no measure
+      const stuck = s.B !== undefined ? Math.min(nt, Math.max(y + (vpH || s.vh || 0) - s.B - s.h, (s.cbT ?? nt) + d + (s.mt || 0)))
         : Math.max(nt, Math.min(y + s.T, s.cbB + d - s.h - s.mb));
       d = stuck - s.top;
     }
@@ -504,6 +534,28 @@
   }
   /** the same, in viewport px @param {Rec | null | undefined} r @param {number} y @returns {Rect | null} */
   function vat(r, y) { const a = at(r, y); return a ? { x: a.x, y: a.y - y, w: a.w, h: a.h } : null; }
+
+  /* (wave 9, J3 VIEWPORT) WHETHER A RESIZE MOVED THE LAYOUT. On an iPhone Safari's bar showing or hiding fires resize
+     (innerHeight, the layout viewport and the visual viewport follow the bar; FX's onResize follows 200 ms later) and
+     moves nothing the host measured: the width, the initial containing block (clientHeight: the small viewport, which
+     the views' 100svh and the captions' holds are made of), the canvas's box (100lvh) and the pixel ratio stay. Every
+     resize measured the whole page again (twice), rastered the glass's type three times and asked the stage for its size:
+     now only a change of one of those four does (a turned phone, a resized window, a zoom); a bar change keeps the
+     layout viewport's height for the boxes held by their bottom (vpH) and nothing else. Layout changes that are not
+     resizes keep their own measures: the fonts, the body's height and the tracks (ResizeObservers), ScrollTrigger's
+     refresh (which on a touch-only screen skips a resize of the height alone: fx-core.js ignoreMobileResize). */
+  function layoutMoved() {
+    if (!M) return true;
+    if (D.clientWidth !== M.cw || D.clientHeight !== M.ch || (window.devicePixelRatio || 1) !== M.dpr) return true;
+    const cbox = canvas ? canvas.getBoundingClientRect().height : 0;
+    const dh = cbox >= M.ch + 0.5 ? cbox : M.ch;   // as measure() reads it
+    return Math.abs(dh - M.dh) >= 0.5;
+  }
+  /** a resize: the layout viewport's height kept (vpH, read by at()), the page measured only if its layout moved */
+  function onViewport() {
+    vpH = window.innerHeight || vpH;
+    if (stage && !dead && layoutMoved()) measure();
+  }
 
   /* (wave 9, J2a CAPTION) THE CAPTIONS ON SCREEN. In a caption scene every caption is held at the foot of the view, the
      one in focus shown and the others clear (css/scene.css): a caption is text (keep-outs, ctx.texts, ctx.textRects, the
@@ -796,6 +848,9 @@
     const dt = clamp(lastT ? (now - lastT) / 1000 : 1 / 60, 0, 0.1);
     lastT = now; time += dt;
     const y = window.scrollY, vw = M.cw, vh = M.ch;
+    // (wave 9, J3 VIEWPORT) the drawn height: the canvas's box (measure), as deep as vh or deeper (the strip under an
+    // iPhone's bar): texts, keep-outs and the day are kept down to it; the scenes' frame stays vw x vh
+    const dh = Math.max(vh, M.dh || vh);
     sv += ((y - lastY) / Math.max(dt, 1e-3) - sv) * (1 - Math.exp(-dt / 0.1));
     lastY = y;
     if (Math.abs(sv) < 0.5) sv = 0;
@@ -830,18 +885,19 @@
       // (lane m-fly) reached by a flight from a night view: the day rises as a straight edge from the bottom of the frame
       const k = dayAt ? clamp((now - dayAt) / DAY_MS, 0, 1) : 1, e = k * k * (3 - 2 * k);
       if (dayAt) dayRose = true;
-      if (e > 0.002) dawn.push({ x0: 0, y0: Math.round(vh * (1 - e)), x1: vw, y1: vh });
+      // (wave 9, J3 VIEWPORT) down to the drawn foot (dh): the strip a hidden bar uncovers is day too
+      if (e > 0.002) dawn.push({ x0: 0, y0: Math.round(dh * (1 - e)), x1: vw, y1: Math.round(dh) });
       if (k >= 1) dayAt = 0;
     }
     else for (const d of M.dawn) {
       const r = vat(d, y);
-      if (!r || r.y >= vh || r.y + r.h <= 0) continue;
-      dawn.push({ x0: Math.round(Math.max(0, r.x)), y0: Math.round(Math.max(0, r.y)), x1: Math.round(Math.min(vw, r.x + r.w)), y1: Math.round(Math.min(vh, r.y + r.h)) });
+      if (!r || r.y >= dh || r.y + r.h <= 0) continue;
+      dawn.push({ x0: Math.round(Math.max(0, r.x)), y0: Math.round(Math.max(0, r.y)), x1: Math.round(Math.min(vw, r.x + r.w)), y1: Math.round(Math.min(dh, r.y + r.h)) });
     }
     // the night band for a stage that reads only `night` (light inside it): from far above to the first day's top
     const night = gnd === "dawn" ? null : { top: -1e5, bottom: dawn.length ? Math.min(...dawn.map((d) => d.y0)) : 1e5 };
     const dawnV = dawn.map((d) => ({ x: d.x0, y: d.y0, w: d.x1 - d.x0, h: d.y1 - d.y0 }));
-    viewDawn = dawnV.reduce((s, r) => s + r.w * r.h, 0) / Math.max(1, vw * vh);
+    viewDawn = dawnV.reduce((s, r) => s + r.w * r.h, 0) / Math.max(1, vw * dh);
     const nightRoom = gnd === "dawn" ? 1 : sstep(0.62, 0.98, (night ? night.bottom : 1e5) / vh);
 
     // ------------------------------------------------ the scenes
@@ -904,9 +960,10 @@
         imgs[im.id] = { tex: held(im.id) ? im.id : null, w: el.naturalWidth || 0, h: el.naturalHeight || 0,
           aspect: el.naturalWidth && el.naturalHeight ? el.naturalWidth / el.naturalHeight : 16 / 10, rect: vat(im.r, y), el };
       }
-      const texts = m.texts.filter((/** @type {any} */ t) => capShown(m, t.k)).map((/** @type {any} */ t) => ({ tag: t.tag, ...vat(t.r, y) })).filter((/** @type {any} */ t) => t.y + t.h > -40 && t.y < vh + 40);
+      // (wave 9, J3 VIEWPORT) down to the drawn foot (dh): a text in the strip under an iPhone's hidden bar is seen
+      const texts = m.texts.filter((/** @type {any} */ t) => capShown(m, t.k)).map((/** @type {any} */ t) => ({ tag: t.tag, ...vat(t.r, y) })).filter((/** @type {any} */ t) => t.y + t.h > -40 && t.y < dh + 40);
       textBy.push({ name: S.name, texts });
-      const media = m.media.map((/** @type {Rec} */ r) => vat(r, y)).filter((/** @type {Rect | null} */ r) => r && r.y + r.h > -40 && r.y < vh + 40);
+      const media = m.media.map((/** @type {Rec} */ r) => vat(r, y)).filter((/** @type {Rect | null} */ r) => r && r.y + r.h > -40 && r.y < dh + 40);
       const ctx = {
         name: S.name, view, fig, side: m.side, section: { x: sec.x, y: sec.y - y, w: sec.w, h: sec.h },
         step: st.step, steps: st.steps, local: st.local, progress: st.progress, through: st.through,
@@ -922,7 +979,7 @@
         // desktop, the horizontal drag on a touch screen), and the scene's text, now (README "The room")
         speed: r4(spd),
         aim: touch ? { x: drag.nx, y: 0, touch: true } : { x: nx, y: ny, touch: false },
-        textRects: (/** @type {any} */ o) => textRects(m, y, vh, o),
+        textRects: (/** @type {any} */ o) => textRects(m, y, dh, o),
         // (wave 2, ARRIVE) { cut, under, age }: reached by a cut, the sheet still over the page, s since the first frame
         arrival,
         // (lane o-fix) the cut's flight through the portal, 0 (the room) .. 1 (inside the glass): the room dims what only
@@ -931,6 +988,9 @@
         // (wave 9, J2a CAPTION) a caption scene: where its captions stand, viewport px (top: the tallest one's top when
         // held, foot: the line their foot is held at); null in every other scene and on a wide screen
         caption: m.cap ? { top: Math.round(m.capT - m.capH), foot: Math.round(m.capT) } : null,
+        // (wave 9, J3 VIEWPORT) the header's top safe area, px (a notch or a status bar over the page; 0 elsewhere): the
+        // header is that much taller, and a figure that stands under it stands that much lower
+        safeTop: M.safeTop || 0,
       };
       /** @type {any} */ let o = null;
       try { o = S.def.frame ? S.def.frame(ctx) : null; }
@@ -1045,16 +1105,17 @@
     cam.dolly = damp(cam.dolly, cd * n, first ? 0 : CAM_S, dt);
     cam.follow = PTR_FOLLOW * pk;
 
-    // ------------------------------------------------ keep-outs (viewport px, on screen only)
+    // ------------------------------------------------ keep-outs (viewport px, on screen only: down to the drawn foot,
+    // dh, wave 9 J3 VIEWPORT)
     const keepouts = [];
     for (const r of sceneKeep) {
       if (keepouts.length >= MAX_KEEP) break;
-      if (r && r.w > 1 && r.h > 1 && r.y + r.h > -40 && r.y < vh + 40) keepouts.push({ x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h) });
+      if (r && r.w > 1 && r.h > 1 && r.y + r.h > -40 && r.y < dh + 40) keepouts.push({ x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h) });
     }
     for (const k of M.keep) {
       if (keepouts.length >= MAX_KEEP) break;
       const r = vat(k, y);
-      if (!r || r.y + r.h < -40 || r.y > vh + 40 || r.x + r.w < 0 || r.x > vw) continue;
+      if (!r || r.y + r.h < -40 || r.y > dh + 40 || r.x + r.w < 0 || r.x > vw) continue;
       // a control that has faded out (the cover's foot as its flight begins) needs no hole in the light
       const el = /** @type {any} */ (k).el;
       if (el && typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
@@ -1369,7 +1430,13 @@
     // (round 12) the cover's hall is lit from its first frame: its canvas comes up in 250 ms; (wave 1, FIX3D) every
     // page now stands in the same lit room and opens on it the same way (it was 700 ms of dark before the room)
     const inMs = 250;
-    c.style.cssText = `position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:var(--z-stage,50);display:block;opacity:0;transition:opacity ${inMs}ms var(--ease-out,ease-out);`;
+    /* (wave 9, J3 VIEWPORT) the height: never less than the layout viewport (100%, the box a fixed element is laid out
+       in), and on a phone the large viewport (100lvh: Safari's bar retracted). On an iPhone the layout viewport grows and
+       shrinks as the bar hides and shows while 100lvh is fixed (CSS Values 4: "fixed (and therefore stable) unless the
+       viewport itself is resized"), so the canvas keeps one box and one backing; at 100% it followed the bar and the
+       picture, projected into the small viewport, was stretched over it. Where the two are one (a desktop, Chrome) the
+       box is what it was; a browser without lvh keeps the 100% before it */
+    c.style.cssText = `position:fixed;left:0;top:0;width:100%;height:100%;height:max(100%,100lvh);pointer-events:none;z-index:var(--z-stage,50);display:block;opacity:0;transition:opacity ${inMs}ms var(--ease-out,ease-out);`;
     document.body.appendChild(c);
     return c;
   }
@@ -1952,7 +2019,8 @@
       const ro2 = new ResizeObserver(() => { clearTimeout(roT); roT = window.setTimeout(() => { if (stage) measure(); }, 160); });
       document.querySelectorAll(".sc-track, [data-dawn]").forEach((el) => ro2.observe(el));
     }
-    window.addEventListener("resize", () => { if (stage && !dead) measure(); }, opt);
+    // (wave 9, J3 VIEWPORT) a resize measures only a layout that moved (layoutMoved): never an iPhone's bar alone
+    window.addEventListener("resize", onViewport, opt);
   }
 
   /** start once the page is ready and still; (wave 2, ARRIVE) an arrival by a cut starts at once, under its sheet, so
@@ -1984,7 +2052,9 @@
       listen();
       whenReady(() => { build(); });
     },
-    onResize() { if (stage && !dead) measure(); },
+    // (wave 9, J3 VIEWPORT) FX's resize, 200 ms after the last: the same rule (the window's resize has measured a layout
+    // that moved; a bar's change has moved none)
+    onResize() { onViewport(); },
     /** (lane o-router) the page leaves under the router: the stage is handed to the next page (window.__rvKeep) */
     leave() { /** @type {any} */ (window).__rvKeep = handOver(); },
   });

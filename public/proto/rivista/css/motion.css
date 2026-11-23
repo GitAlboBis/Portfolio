@@ -92,7 +92,9 @@ html.mo-on .hdr-scene {
 }
 @media (max-width: 1023.98px) {
   html.mo-on .hdr-scene {
-    position: absolute; top: 50%; left: var(--gut); right: calc(var(--gut) + 5rem);
+    /* (wave 9, J3 VIEWPORT) the middle of the header's words, under its top safe area (css/chrome.css padding-top): 50 %
+       of the box was the middle of the band and the words together, over the name */
+    position: absolute; top: calc(50% + env(safe-area-inset-top, 0px) / 2); left: var(--gut); right: calc(var(--gut) + 5rem);
     gap: var(--s2);
   }
   .hdr-scene-r { width: 1rem; }

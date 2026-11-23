@@ -76,7 +76,7 @@
   --t-lang: 1.125rem;       
   --tr-label: 0.06em;
   --tr-btn: 0.04em;
-  --gut: clamp(1rem, 3vw, 3rem);
+  --gut: max(clamp(1rem, 3vw, 3rem), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   --s1: 0.25rem;
   --s2: 0.5rem;
   --s3: 1rem;
@@ -86,7 +86,7 @@
   --s7: 6.5rem;
   --s8: 10rem;
   --col: 34rem;            
-  --hdr: 4rem;             
+  --hdr: calc(4rem + env(safe-area-inset-top, 0px));
   --btn-h: 3.5rem;         
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-io: cubic-bezier(0.66, 0, 0.22, 1);
@@ -123,7 +123,7 @@
     --t-btn: clamp(1.25rem, 0.6875rem + 0.625vw, 1.625rem);
     --t-nav: clamp(1.125rem, 0.5rem + 0.8333vw, 1.75rem);
     --t-lang: clamp(1.125rem, 0.375rem + 0.8333vw, 1.5rem);
-    --hdr: clamp(4.5rem, 1.8rem + 3vw, 6rem);
+    --hdr: calc(clamp(4.5rem, 1.8rem + 3vw, 6rem) + env(safe-area-inset-top, 0px));   
     --btn-h: clamp(4rem, 2.2rem + 2vw, 5.25rem);
     --col: calc(var(--t-body) * 27.2);
   }
@@ -433,6 +433,7 @@ html.rv-motion .rv-pic.st-on figcaption {
   position: fixed; inset: 0 0 auto 0; z-index: 50;
   height: var(--hdr);
   display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding-top: env(safe-area-inset-top, 0px);
   padding-inline: var(--gut);
   color: var(--ink);
   border-bottom: 1px solid transparent;
@@ -1063,7 +1064,7 @@ html.mo-on .hdr-scene { flex: 1 1 auto; margin-left: var(--s4); }
 }
 @media (max-width: 1023.98px) {
 html.mo-on .hdr-scene {
-    position: absolute; top: 50%; left: var(--gut); right: calc(var(--gut) + 5rem);
+    position: absolute; top: calc(50% + env(safe-area-inset-top, 0px) / 2); left: var(--gut); right: calc(var(--gut) + 5rem);
     gap: var(--s2);
   }
 .hdr-scene-r { width: 1rem; }

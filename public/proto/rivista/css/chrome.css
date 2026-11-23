@@ -8,6 +8,10 @@
   position: fixed; inset: 0 0 auto 0; z-index: 50;
   height: var(--hdr);
   display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  /* (wave 9, J3 VIEWPORT) where the page runs under a notch or a status bar (viewport-fit=cover) its words stand below the
+     top safe area: --hdr is that much taller (css/tokens.css), so the bar's ground, once scrolled, covers the band; and
+     sideways the gutter clears the notch (--gut) */
+  padding-top: env(safe-area-inset-top, 0px);
   padding-inline: var(--gut);
   color: var(--ink);
   border-bottom: 1px solid transparent;

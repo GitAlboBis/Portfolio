@@ -134,17 +134,19 @@ function lineup(i, L) {
 }
 
 /** (wave 9, J2a CAPTION) a phone's caption band: the room the header leaves at the top of the frame (its 64 px and a
- *  breath), and the share of the band's height the plate in step takes (the rest is air round it) */
+ *  breath), and the share of the band's height the plate in step takes (the rest is air round it). (wave 9, J3
+ *  VIEWPORT) The header is taller by the top safe area under a notch (c.safeTop, 0 elsewhere): the room follows it */
 const CAP_HDR = 80, CAP_FILL = 0.84;
 
 /** the layout of the scene for this viewport and figure half @param {any} c */
 function layout(c) {
   const phone = c.vw < 1024, f = c.fig, vw = c.vw, vh = c.vh;
+  const safe = c.safeTop || 0, capHdr = CAP_HDR + safe;   // (wave 9, J3 VIEWPORT)
   // the near plate: 4:3 like the captures, as large as the figure's half allows with room for the queue on its right
   let pw = phone ? Math.min(vw * 0.7, (f.h - 90) * 1.25) : Math.min(f.w * 0.62, vh * 0.58 * (4 / 3), 700);
   const ax = phone ? vw * 0.42 : f.x + Math.max(pw * 0.5 + 24, f.w * 0.36);
   // phone: 0.40 of the height (was 0.42): the larger type of chain 10 lifts the step's first line into the plate's foot
-  let ay = phone ? Math.max(64 + pw * 0.75 * 0.75, vh * 0.4) : vh * 0.53;
+  let ay = phone ? Math.max(64 + safe + pw * 0.75 * 0.75, vh * 0.4) : vh * 0.53;
   const D = eyeD(vw, vh), cz = phone ? 30 : 46;
   /* (wave 9, J2a CAPTION) A PHONE WITH THE CAPTION AT THE FOOT (c.caption; css/scene.css): no text ever enters the
      figure's band (the host's c.fig: from the view's top to a gap above the tallest caption), so the plate in step
@@ -152,7 +154,7 @@ function layout(c) {
      holds (its projected height CAP_FILL of the band) and never wider than the phone's plate was (0.7 of the width) */
   const cap = phone && c.caption ? c.caption : null;
   if (cap) {
-    const top = f.y + CAP_HDR, room = Math.max(120, f.y + f.h - top);
+    const top = f.y + capHdr, room = Math.max(120, f.y + f.h - top);
     pw = Math.min(vw * 0.7, (room * CAP_FILL) / 0.75 / persp(D, cz));
     ay = top + room / 2;
   }
@@ -162,7 +164,7 @@ function layout(c) {
     // the line's vanishing point (screen) and the step between two plates along it (px of depth)
     // (wave 9, J2a CAPTION) with the caption, the queue recedes toward a point inside the frame, under the header's room:
     // at 0.9 of the width the far plates stood cut by the screen's right edge (build/j-walk.md)
-    vpx: cap ? vw * 0.76 : phone ? vw * 0.9 : vw * 0.95, vpy: cap ? f.y + CAP_HDR : phone ? vh * 0.08 : vh * 0.17, sz: phone ? 560 : 780,
+    vpx: cap ? vw * 0.76 : phone ? vw * 0.9 : vw * 0.95, vpy: cap ? f.y + capHdr : phone ? vh * 0.08 : vh * 0.17, sz: phone ? 560 : 780,
   };
 }
 

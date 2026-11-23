@@ -23,7 +23,7 @@
  * pass cannot draw (html.orrery-off).
  */
 import { C, clamp, sstep, mix } from "./cover/shared.js";
-import { coverCamera, flightK, hallField, liveKeeps } from "./cover/world.js";
+import { coverCamera, flightK, hallField, liveKeeps, eyeD } from "./cover/world.js";
 // (lane NAME) ?name=splat: the same splat config as hero.js (the host takes the heaviest scene's)
 const NAME_SPLAT = typeof location !== "undefined" && /[?&]name=splat(?:&|$)/.test(location.search);
 /** @type {any} */ let SN = null;
@@ -107,35 +107,50 @@ const r1 = (/** @type {number} */ v) => Math.round(v * 10) / 10, r3 = (/** @type
 function orreryAsk(c) {
   const vw = c.vw, vh = c.vh, y = c.scrollY, phone = c.phone;
   /** @type {any} */ const OS = c.state.orrery || (c.state.orrery = fresh());
+  // (wave 9, J2b NOW) A PHONE HELD UPRIGHT (c.caption: Now in the caption grammar, css/scene.css): Now's text is three
+  // captions held at the foot, and the figure owns the band above the tallest one for the whole of Now: the host's
+  // c.fig, from the view's top (capB: its foot under the view's top, a gap over the tallest caption's words). That band
+  // is about twice as tall as the old one over the text block, and the figure fills it in the tall band's shape
+  // (stage/orrery/layout.js SHAPE.tall)
+  const capB = c.caption && c.fig ? Math.max(0, Math.round(c.fig.h)) : 0;
   // where Now's layout puts the figure: the figure's half on a desktop, clear of the text column (the host's figure
   // box starts at half the view at most: on a narrow desktop that is inside the column); on a phone the band over
   // the text block
-  const B = nowBox(vw, vh), f = c.fig, stacked = phone || f.w > vw * 0.9;
+  const B = capB ? null : nowBox(vw, vh), f = c.fig, stacked = !!capB || phone || f.w > vw * 0.9;
   const x0 = stacked ? 0 : Math.max(f.x, B ? B.right + Math.max(24, vw * 0.03) : f.x);
-  const L = { x0, x1: stacked ? vw : f.x + f.w, top: B ? B.top : vh * 0.55, stacked };
+  const L = { x0, x1: stacked ? vw : f.x + f.w, top: capB || (B ? B.top : vh * 0.55), stacked, tall: !!capB };
   const nowTop = C.nowTop || 1, k = flightK(c);
   // ---- the figure's place in Now (viewport px when Now's view is at the top): the figure's half on a desktop, the band
   // between the header and the text on a phone; its size from that room
   // (wave 9, J3 VIEWPORT) the header is taller by the top safe area under a notch (c.safeTop, 0 elsewhere)
   const safe = c.safeTop || 0;
-  const bx0 = L.x0 + 6, bx1 = L.x1 - 6, by0 = (L.stacked ? 68 : 76) + safe, by1 = L.stacked ? L.top - 8 : vh - 12;
+  // (wave 9, J2b NOW) the tall band ends at the host's band foot (its gap over the captions is already in it)
+  const bx0 = L.x0 + 6, bx1 = L.x1 - 6, by0 = (L.stacked ? 68 : 76) + safe, by1 = L.tall ? L.top : L.stacked ? L.top - 8 : vh - 12;
   // one number, A, the outer orbit's radius: the carousel has a fixed shape (stage/orrery/layout.js SHAPE: `open` in
-  // the figure's half, `band` in a phone's low band) and E is how far that shape reaches from the mark's centre, as
-  // shares of A: left, right, up, down (layout.js EXTENT).
-  const E = L.stacked ? [1.26, 1.265, 0.57, 0.745] : [1.12, 1.17, 0.78, 0.99];
+  // the figure's half, `band` in a phone's low band, `tall` in a phone's band over Now's captions) and E is how far
+  // that shape reaches from the mark's centre, as shares of A: left, right, up, down (layout.js EXTENT; the numbers are
+  // written here as well: this scene never imports the orrery's modules, which come after the stage's first frame).
+  const E = L.tall ? [1.24, 1.22, 1.03, 1.16] : L.stacked ? [1.26, 1.265, 0.57, 0.745] : [1.12, 1.17, 0.78, 0.99];
   // On a desktop every body carries its name under it all the turn (two lines of the label face where the name is
   // long): past the shape the room keeps two lines under the lowest body and half a name at the sides; a phone's band
   // keeps one line under the front body
   const mS = L.stacked ? 4 : 44, mT = L.stacked ? 3 : 26, mB = L.stacked ? 26 : 62, rw = bx1 - bx0 - 2 * mS, rh = by1 - by0 - mT - mB;
   const A = Math.max(60, Math.min(rw / (E[0] + E[1]), rh / (E[2] + E[3]), L.stacked ? 260 : 470));
-  const P = { cx: bx0 + mS + E[0] * A + (rw - (E[0] + E[1]) * A) / 2, cy: by0 + mT + E[2] * A + (rh - (E[2] + E[3]) * A) / 2, A, H: (L.stacked ? 0.445 : 0.54) * A };
+  const P = { cx: bx0 + mS + E[0] * A + (rw - (E[0] + E[1]) * A) / 2, cy: by0 + mT + E[2] * A + (rh - (E[2] + E[3]) * A) / 2, A, H: (L.tall ? 0.85 : L.stacked ? 0.445 : 0.54) * A };
   // all nine names stand round the carousel only where it is large enough (the lane's proof holds from A 244, a view
   // 1280 wide); under that the three nearest the front do, and the page prints the list (html.orbit-few,
   // css/page-cover.css: said again on every page, since the router's swap takes html's classes)
   const all = !L.stacked && A >= 232;
   if (OS.few !== !all) { OS.few = !all; document.documentElement.classList.toggle("orbit-few", !L.stacked && !all); }
   // fixed to the viewport through the flight (the camera moves), then it rides up with the section (the plate's law)
-  const ride = Math.min(0, nowTop - y);
+  // (wave 9, J2b NOW) with the captions it is held in its band for the whole of Now and leaves WITH Now's last caption:
+  // that caption is let go as Now's end reaches the view's foot (css/scene.css: the last caption box keeps its room
+  // over the foot), and from there both ride up with the page, the figure above its caption, as the gallery's head comes
+  // up below with its opening row (J2a: a figure leaves with its scene's last caption and enters with its first)
+  const ride = L.tall ? Math.min(0, c.section.y + c.section.h - vh) : Math.min(0, nowTop - y);
+  // how far Now has gone past (0 while it holds the view; 1 a screen later): the figure fades as it leaves, the chips
+  // thin out, the scene lets go of the frame
+  const gone = L.tall ? clamp(-ride / vh) : clamp((y - nowTop) / vh);
   // far down the hall it stands dead ahead, behind the gap in the name the eye flies through (cover/world.js: the
   // world's `gap`); once the eye is through, it comes to its place long before it is near
   const W = C.world, g = W && W.vw === vw && W.vh === vh && Array.isArray(W.gap) ? W.gap : [vw / 2, vh / 2];
@@ -158,12 +173,37 @@ function orreryAsk(c) {
   // ---- presence: it comes up with the hall (the hero's arrival), never in one frame; it goes as Now leaves
   if (OS.t0 == null) OS.t0 = c.time;
   const enter = Math.min(sstep(0, 0.6, c.time - OS.t0), sstep(2.2, 3.3, C.at ?? 99));
-  const gone = clamp((y - nowTop) / vh);
   // lit only once the name's letters are behind the eye (cover/world.js gone(), k 0.42 to 0.5): far ahead the mark
   // would stand ON the letters, a dark spot with the mark in it (a phone's two lines most). The scroll's own gate,
   // as the plate's laws were (no state: it is dark again whenever the eye is back before the name). The hero's first
   // view is untouched: Now's frame does not even run there
   const lit = sstep(0.42, 0.56, k);
+  // (wave 9, J2b NOW) THE EARLIER ARRIVAL on a phone held upright, inside that gate. A flick from the name used to land
+  // in the hero's empty tail: lit at k 0.42 to 0.56, the mark then stood a speck far down the hall (half its size) until
+  // k 0.72 and the bodies condensed only from k 0.66. Now, once lit, the figure stands NEARER the eye (toward the reader,
+  // z > 0) by as much as makes it read at a size that grows steadily from 0.55 of its own at k 0.42 to the whole at k
+  // 0.95 (the eye's own distance and lens are the cover's camera, coverCamera, this frame), and it is back on the page
+  // plane, exactly in its place, when Now's view reaches the top (k 1: the straight view, z 0); the bodies condense
+  // from k 0.5 (c0). Nothing of it is lit before the gate, so nothing ever stands on the name's letters
+  let zq = 0;
+  if (L.tall && lit > 0 && k < 1) {
+    const cam = coverCamera(c), D = eyeD(vw, vh), ez = cam && cam.pos ? cam.pos[2] : D, lens = (cam && cam.lens) || 1;
+    zq = Math.max(0, ez - (lens * D) / mix(0.55, 1, sstep(0.42, 0.95, k)));
+  }
+  // (wave 9, J2b NOW) THE JOIN INTO WORK, one take: once Now's last caption is let go the figure rides up with it and
+  // fades as the gallery's head comes up below, in step with it: the gallery's plates come in by that scene's blend
+  // weight and Now's own weight is the rest of the frame (c.weight: the same rows, the same damping), so the figure has
+  // gone (under 0.05 of its light) as the nearest plate reaches about a third of its own, wherever the reader stops:
+  // never a frame without a figure, never two standing at once. Scrolling back it comes in again as the plates go; by the
+  // greater of Now's damped weight and its share of the frame followed more closely (c.share through a 0.07 s follower:
+  // the share alone steps a row at a time), so a quick flick back, which carries the plates out of the frame's foot
+  // before their damped weight lets go of them, finds the figure already coming in.
+  // Before the let-go (ride 0) Now's weight is not read: during the flight it is low while the hero still covers the screen
+  const sh = typeof c.share === "number" ? c.share : 1;
+  OS.wq = OS.wq == null || dt <= 0 ? sh : OS.wq + (sh - OS.wq) * (1 - Math.exp(-dt / 0.07));
+  if (Math.abs(sh - OS.wq) < 1e-4) OS.wq = sh;
+  const wNow = Math.max(typeof c.weight === "number" ? c.weight : 1, OS.wq);
+  const leave = L.tall && ride < 0 ? sstep(0.64, 0.86, wNow) : 1;
   const here = k > 0.9 && p.present && !touch;
   // the hand comes and goes on the clock (round it the mark's crust is blown off and settles back: never in one
   // frame), and it settles exactly
@@ -172,14 +212,17 @@ function orreryAsk(c) {
   const words = orbitNames(), face = labelFace(vw);
   OS.t = c.time;
   const ask = {
-    x: r1(P.cx + lx), y: r1(P.cy + ride + ly), z: 0, hx: r1(P.cx), hy: r1(P.cy), A: r1(P.A),
-    k: r4(k), a: r3(enter * lit * (1 - sstep(0.3, 0.8, gone))), ax: r4(OS.tx), ay: r4(OS.ty), flash: r3(OS.flash),
-    px: OS.pin > 0 ? OS.px || 0 : 0, py: OS.pin > 0 ? OS.py || 0 : 0, pin: r3(OS.pin), phone: L.stacked ? 1 : 0, all: all ? 1 : 0,
-    // where a word may stand: clear of the header and of Now's text (the column on a desktop, the block under the band)
-    lab: [Math.round(bx0), 72 + safe, Math.round(bx1), Math.round(L.stacked ? L.top - 6 + ride : vh - 8)],
+    x: r1(P.cx + lx), y: r1(P.cy + ride + ly), z: r1(zq), hx: r1(P.cx), hy: r1(P.cy), A: r1(P.A),
+    k: r4(k), a: r3(enter * lit * (1 - sstep(0.3, 0.8, gone)) * leave), ax: r4(OS.tx), ay: r4(OS.ty), flash: r3(OS.flash),
+    px: OS.pin > 0 ? OS.px || 0 : 0, py: OS.pin > 0 ? OS.py || 0 : 0, pin: r3(OS.pin), phone: L.tall ? 2 : L.stacked ? 1 : 0, all: all ? 1 : 0,
+    // where a word may stand: clear of the header and of Now's text (the column on a desktop, the block under the band;
+    // with the captions, the band above them)
+    lab: [Math.round(bx0), 72 + safe, Math.round(bx1), Math.round(L.tall ? L.top + ride : L.stacked ? L.top - 6 + ride : vh - 8)],
     words, font: face,
   };
-  return { ask, P, lx, ly, ride };
+  // (wave 9, J2b NOW) the bodies condense earlier on a phone held upright (the arrival above)
+  if (L.tall) ask.c0 = 0.5;
+  return { ask, P, lx, ly, ride, gone, tall: L.tall };
 }
 
 /* ================================================================ the glow behind the figure (it was the plate's)
@@ -248,14 +291,14 @@ export default {
     // (wave 8, ORRERY) the figure where the plate stood (its place, lift, ride, spring, flash and presence are
     // orreryAsk's, the plate's own laws); P is the glow's footprint behind the mark, as the plate's was behind it:
     // about twice the mark's height
-    const { ask, P: F, lx, ly, ride } = orreryAsk(c);
+    // (wave 9, J2b NOW) gone: how far Now has gone past (with the captions, from its last caption's let-go; orreryAsk)
+    const { ask, P: F, lx, ly, ride, gone, tall } = orreryAsk(c);
     const side = clamp(1.9 * F.H, 110, 480);
     const P = { cx: F.cx, cy: F.cy, w: side, h: side, cz: 0 };
     const enter = ask.a;
     // ------------------------------------------------ the field behind the plate (FZ behind the page, out of focus)
     const FZ = -520, D = clamp(1.25 * Math.hypot(vw, vh), 1100, 2600), kP = D / (D - P.cz), kF = D / (D - FZ);
     C.field = { sw: P.w * kP, sh: P.h * kP, z: FZ, D, phone };
-    const gone = clamp((y - nowTop) / vh);
     // only from the flight on: at rest the hall's four formations (the name's face and depth, the shafts, the sheen)
     // hold the stage's four slots
     // (round 12, COVER3FIX) only once the name's points have gone dark behind the lens (world.js gone(), k 0.42-0.5):
@@ -264,7 +307,14 @@ export default {
     // Now's keep-outs once the letters are behind the eye (during the pass they cut rectangles out of them)
     // (round 12, COVER3FIX) the title from the live DOM (the host's rect of it is taken under its rise mask), and the
     // header's words: no chip over them
-    const keep = k < 0.45 ? [] : c.texts.filter((/** @type {any} */ r) => r.tag !== "h2").map((/** @type {any} */ r) => ({ x: r.x - 16, y: r.y - 16, w: r.w + 32, h: r.h + 32 })).concat(liveKeeps(c, true));
+    // (wave 9, J2b NOW) with the captions the title is held at the foot inside its caption, which is a text block of its
+    // own (measured where it is held, its lines' rise undone): the live title's rect, read twice a second and then
+    // moved with the page, would wander off a held title into the band between two reads
+    // (wave 9, J2b NOW) and with the captions from the start: the first caption's block is a text only while it is shown
+    // (its step holds the reading line, a little before it rises into the screen), so it asks for nothing earlier; but
+    // a flick runs the scroll far ahead of the flight's damped k, and the caption's first line came up into the cosmos's
+    // light before k reached 0.45 (strips t4: p95 up to 93 over its first line at the screen's foot)
+    const keep = k < 0.45 && !tall ? [] : c.texts.filter((/** @type {any} */ r) => r.tag !== "h2").map((/** @type {any} */ r) => ({ x: r.x - 16, y: r.y - 16, w: r.w + 32, h: r.h + 32 })).concat(liveKeeps(c, !tall));
     if (gone >= 1) return null;
     // the hall's chips and wall at the end of the flight and in Now's own view (the same numbers as the hero's, so the
     // host's blend is one field; the hero alone brings the light): the plate arrives among the SerSan marks, which
@@ -284,7 +334,9 @@ export default {
     const passes = OR && ask.a > 0 ? { ...(sp || {}), orrery: ask } : sp;
     // (wave 7, STAGE) the cover's one shot is one look: Now asks the hero's (the host mixes the scenes' looks by weight,
     // and a scene that asks none counts at the stage's defaults: Now would have pulled the hall's depth in mid-flight)
-    if (typeof c.look === "function") c.look({ far: Math.round(-2.6 * D), near: Math.round(4.7 * D), keepFeather: k > 0.45 && y < nowTop + vh * 0.5 ? 40 : 6 });
+    // (wave 9, J2b NOW) the soft keep-outs while Now holds the frame (half a screen past its top; with the captions, until
+    // half a screen past its last caption's let-go: gone is that measure in both)
+    if (typeof c.look === "function") c.look({ far: Math.round(-2.6 * D), near: Math.round(4.7 * D), keepFeather: k > 0.45 && gone < 0.5 ? 40 : 6 });
     return {
       ...(passes ? { passes } : {}),
       swarm: [{ id: "field", weight: hw, rect: { x: fx - P.w / 2, y: fy - P.h / 2, w: P.w, h: P.h } }],

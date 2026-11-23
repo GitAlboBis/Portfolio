@@ -140,7 +140,7 @@ text and faded where the text met it, the stack and Obla changed sides, Consulti
 keep-outs: `build/j-walk.md`). A scene that opts in has no text in its band at all.
 
 - **Opting in:** `data-caption` on the scene's `<section data-stage>` (today the gallery's, `parts/c-main.work.html`:
-  Work and the home's Work part). The CSS does the rest (`css/scene.css` "THE CAPTION AT THE FOOT"), under 1024 px on
+  Work and the home's Work part; and Now's, `parts/c-main.index.html`, wave 9 lane J2b). The CSS does the rest (`css/scene.css` "THE CAPTION AT THE FOOT"), under 1024 px on
   an upright screen (`orientation: portrait`: a phone turned sideways has no height for a caption and a band) in scene
   mode once `fx-scroll.js` runs (`html.fs-on`); without it, sideways, on a wide screen or in any printed state the
   scene is as it was. `FX.scroll.caption(section)` says whether the grammar holds now (the CSS, fx-scroll and the host read
@@ -162,6 +162,17 @@ keep-outs: `build/j-walk.md`). A scene that opts in has no text in its band at a
   waiting part of the figure inside the frame; and leave with the last caption (the gallery's band rises with it from
   `local` 0.5 of its last step, so plate and caption leave the frame together). Another scene's text still takes
   plates away (`yields`). The desktop's branch stays as it is (`L.cap` is null there).
+- **A step split into the phone's captions** (wave 9, lane J2b; Now): where one step's text is far taller than a
+  caption, the markup cuts it where each caption ends into boxes marked `[data-cap-step="N"]`, each holding one
+  `.sc-cap` (inside the step's column, or after the step in the track for text that is not a step: Now's nine names),
+  every word once. In the caption grammar those boxes are the scene's steps: fx-scroll picks among them, `fx:step`
+  numbers them, and the host's `steps`, `step`, `local`, `c.caption`, `c.fig` and caption blocks are theirs (the step and
+  its column are `display: contents`, `position: static`); everywhere else they are plain blocks in the one step's
+  column and the scene is the one step it was. A box that is a keep-out where it prints in flow (`data-stage-keepout`)
+  is none in the grammar (it is a screen tall): its caption is a text block. Now (`now.js`) stands the orrery in
+  `c.fig` for the whole of Now in the `tall` shape (below), holds it while the view holds (its ride starts as Now's
+  end reaches the view's foot, with the last caption's let-go) and fades it with its scene's blend weight as the next
+  scene's plates come in with theirs.
 - **The reference:** `gallery.js` (`layout` `cap`, `CAP_HDR`, `CAP_FILL`; the band-follow skipped with `L.cap`; its
   old fade where a text meets a plate kept only as a 12 px guard for a page zoomed so far that a caption outgrows the
   room under the band, which the designed layouts never reach), the host's `figOf`, `capShown`, `CAP_SEEN_MS`
@@ -479,9 +490,12 @@ passes: { splat: { sets: [{ id: "A", pos: [x, y, z], size: 520, rot: [yaw, pitch
   (`cover/splatname.js`). Bench: `stage/dev.html?view=splat`.
 - **`orrery`** (`stage/orrery/orrery.js`; importing the file registers it, over the swarm): the figure of "Now at
   SerSan", the SerSan mark as a lit solid of grains and nine bodies of points turning round it, each with its name.
-  One scene uses it (`now.js`), and the config is that figure's own: `passes: { orrery: { x, y, hx, hy, A, k, a, ax,
-  ay, flash, px, py, pin, phone, lab, words, font } }` (the header of `orrery.js` says what each is; everything else is
-  a share of `A`, the outer orbit's radius, by `layout.js`). Stateless: every pose is a function of the stage's clock
+  One scene uses it (`now.js`), and the config is that figure's own: `passes: { orrery: { x, y, z, hx, hy, A, k, a, ax,
+  ay, flash, px, py, pin, phone, all, c0, lab, words, font } }` (the header of `orrery.js` says what each is; everything
+  else is a share of `A`, the outer orbit's radius, by `layout.js`). `phone` picks the shape: 0 the desktop's (`open`),
+  1 a phone's low band (`band`), 2 (wave 9, lane J2b) a phone held upright with Now's captions at the foot (`tall`,
+  about twice the band's size); `z` brings the figure toward the eye (the tall band's earlier arrival), `c0` the k where
+  its bodies start condensing (0.66 by default). Stateless: every pose is a function of the stage's clock
   and of what the scene sends, so the stage sleeps on an exact frame. `layout.js` is pure (no GPU, no DOM): the pass
   and a probe evaluate the same functions, and `orreryScan` steps a whole turn to prove that no two figures and no two
   names ever meet. `?failorrery=1` breaks its init on purpose (`=2` a frame): the stage draws on without it and

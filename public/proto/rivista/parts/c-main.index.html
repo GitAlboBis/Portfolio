@@ -8,34 +8,46 @@
        block from a clip that is shut; [data-stage-keepout]: where the list shows, the host keeps it clear whatever
        scene is answering). Their order is the bodies' (stage/orrery/bodies.js). Wave 7 (lane HOME): the cover's index is gone; the home goes on through
        every page's own part (parts/c-main.home.mjs) and ends with Contact's morning.
+       (wave 9, J2b NOW) data-caption and the three [data-cap-step] boxes: on a phone held upright Now's text is three
+       captions held at the foot of the view (the label, the title and the lead; the body and the two ways on; "What I
+       do" and the nine names), handing over in place while the orrery stands in the band above them for the whole of
+       Now (css/scene.css "a step split into the phone's captions"). The boxes only cut the text where a caption ends:
+       every word is here once, in reading order, under one heading. Anywhere else they are plain blocks in the one
+       step's column (css/page-cover.css keeps the column's rhythm) and Now is the one step it was.
        COPY: parts/strings.mjs ("now.*"). -->
-  <section class="sc sc-left now" id="now" data-stage="now" style="--steps:1" aria-labelledby="now-h">
+  <section class="sc sc-left now" id="now" data-stage="now" data-caption style="--steps:1" aria-labelledby="now-h">
     <div class="sc-view" data-stage-anchor="now" aria-hidden="true"></div>
     <div class="sc-track">
       <div class="sc-step" data-stage-step="1">
         <div class="sc-in">
-          <p class="t-label t-acc now-when">{{t:now.eyebrow}}</p>
-          <h2 id="now-h" class="t-d1 now-t" data-refract="title" data-focus-lines><span class="ln">{{t:now.h.1}}</span><span class="ln">SerSan</span></h2>
-          <p class="t-lead now-lead">{{t:now.lead}}</p>
-          <p class="t-body now-body">{{t:now.body}}</p>
-          <p class="now-go"><a class="q" href="https://sersan.io" rel="noopener">sersan.io <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a><a class="q" href="case-sersan-agent-os.html" data-pt-label="SerSan Agent OS" data-pt-sub="01 · {{t:sec.work}}">SerSan&nbsp;Agent&nbsp;OS <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></p>
+          <div class="now-cap" data-cap-step="1"><div class="sc-cap">
+            <p class="t-label t-acc now-when">{{t:now.eyebrow}}</p>
+            <h2 id="now-h" class="t-d1 now-t" data-refract="title" data-focus-lines><span class="ln">{{t:now.h.1}}</span><span class="ln">SerSan</span></h2>
+            <p class="t-lead now-lead">{{t:now.lead}}</p>
+          </div></div>
+          <div class="now-cap" data-cap-step="2"><div class="sc-cap">
+            <p class="t-body now-body">{{t:now.body}}</p>
+            <p class="now-go"><a class="q" href="https://sersan.io" rel="noopener">sersan.io <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a><a class="q" href="case-sersan-agent-os.html" data-pt-label="SerSan Agent OS" data-pt-sub="01 · {{t:sec.work}}">SerSan&nbsp;Agent&nbsp;OS <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></p>
+          </div></div>
         </div>
       </div>
-      <dl class="now-orbit" data-orbit data-stage-unseen data-stage-keepout>
-        <dt class="t-label t-acc">{{t:now.orbit}}</dt>
-        <dd>
-          <ul class="now-orbit-l">
-            <li class="t-label t-ink">{{t:now.orbit.1}}</li>
-            <li class="t-label t-ink">{{t:now.orbit.2}}</li>
-            <li class="t-label t-ink">{{t:now.orbit.3}}</li>
-            <li class="t-label t-ink">{{t:now.orbit.4}}</li>
-            <li class="t-label t-ink">{{t:now.orbit.5}}</li>
-            <li class="t-label t-ink">{{t:now.orbit.6}}</li>
-            <li class="t-label t-ink">{{t:now.orbit.7}}</li>
-            <li class="t-label t-ink">{{t:now.orbit.8}}</li>
-            <li class="t-label t-ink">{{t:now.orbit.9}}</li>
-          </ul>
-        </dd>
+      <dl class="now-orbit" data-cap-step="3" data-orbit data-stage-unseen data-stage-keepout>
+        <div class="sc-cap">
+          <dt class="t-label t-acc">{{t:now.orbit}}</dt>
+          <dd>
+            <ul class="now-orbit-l">
+              <li class="t-label t-ink">{{t:now.orbit.1}}</li>
+              <li class="t-label t-ink">{{t:now.orbit.2}}</li>
+              <li class="t-label t-ink">{{t:now.orbit.3}}</li>
+              <li class="t-label t-ink">{{t:now.orbit.4}}</li>
+              <li class="t-label t-ink">{{t:now.orbit.5}}</li>
+              <li class="t-label t-ink">{{t:now.orbit.6}}</li>
+              <li class="t-label t-ink">{{t:now.orbit.7}}</li>
+              <li class="t-label t-ink">{{t:now.orbit.8}}</li>
+              <li class="t-label t-ink">{{t:now.orbit.9}}</li>
+            </ul>
+          </dd>
+        </div>
       </dl>
     </div>
   </section>

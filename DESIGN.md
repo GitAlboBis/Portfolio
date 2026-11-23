@@ -400,7 +400,7 @@ the menu first. A new size sits on the scale tokens, never written by hand.
   iPhone: «animazioni storte e non continue , che si vedono dietro le scritte. Non è uno scroll continuo in un mondo come
   su desktop»). Below 1024 px a step's text used to sit at the foot of its own screen and travel up through the
   figure's band, and every scene dodged it its own way. A scene that opts in (`data-caption` on its section; today the
-  gallery, on Work and in the home's Work part) holds each step's text, on an upright screen under 1024 px (a phone
+  gallery, on Work and in the home's Work part, and Now: lane J2b) holds each step's text, on an upright screen under 1024 px (a phone
   turned sideways keeps the grammar above: it has no height for both), as a CAPTION at the foot of the view
   (`rv/css/scene.css`): one step a screen as before, but the steps hand over in place there, and the figure owns the
   band above the tallest caption (`fx-stage.js` `figOf`), the same band for every step, so nothing of the scene's text
@@ -411,7 +411,11 @@ the menu first. A new size sits on the scale tokens, never written by hand.
   with the scene (its figure rising above it) and is held once the view stands; its last is let go halfway through its
   step and leaves with the page, the figure going with it. The type is the step's own, never smaller. Printed states,
   reduced motion, `?stage=0`, `?gl=0` and a wide screen are untouched; before `fx-scroll.js` runs a scene keeps the
-  grammar above. The other scenes come in lane J2b (`stage/scenes/README.md`, "The caption at the foot").
+  grammar above. A step whose text is far taller than a caption (Now's) is cut where each caption ends into boxes
+  (`[data-cap-step]`, each holding one `.sc-cap`): on the phone those boxes are the scene's steps, one caption a
+  screen; anywhere else they are plain blocks in the one step's column, so the desktop and every printed state keep the
+  one step, and no word is written twice. The other scenes (About's stack and path, Consulting, Obla, the joins) come
+  in lane J2c (`stage/scenes/README.md`, "The caption at the foot").
 - The view is never boxed: no border, no frame, no caption inside it.
 - Without scene mode (reduced motion, no WebGPU, no script, print, a dead stage) a scene is plain flow: its blocks in
   order, with their real pictures (`[data-stage-poster]`, hidden in scene mode, where the stage reads them as
@@ -611,6 +615,20 @@ left the site on 22 November, go to the top of Work.
   it a few degrees with inertia and blows the spores off the mark where it is; a press flashes the mark. Where there
   is no stage, and whenever its pass cannot draw, Now prints the nine names as a list. The cosmos runs on behind Now
   into the gallery's room; only the chips thin out as Now leaves (`now.js`).
+- **Now on a phone** (the phone wave, lane J2b, 23 November; Alberto from his iPhone: «non si vede il logo con le
+  competenze che ruotano, è troppo piccolo e sparisce con lo scroll perché va dietro le scritte»). Held upright, Now is
+  three captions at the foot, a screen of scroll each, handing over in place: the date label, the title and the lead;
+  the body and the two links; "What I do" and the nine names (the caption grammar above, with Now's step cut into its
+  three caption boxes). The figure stands in the band above the tallest caption for the whole of Now, never behind a
+  line of text, in a shape of its own (`layout.js` `tall`): the mark about 128 px tall (it was 65), a body at the front
+  51-66 px, the orbits nearly round under a close eye, one name at a time under the front body (the nine stay printed in
+  the third caption). It still lights only once the name's letters are behind the eye, but nearer and larger (about 70 px
+  as it lights, against a 32 px speck), its bodies condensing from k 0.5, and it lands in its place as Now's view
+  reaches the top. It leaves with Now's last caption: both ride up as Now's end reaches the view's foot, the figure
+  fading with Now's blend weight while the gallery's head comes up below with its opening row and its plates' light
+  rises with that scene's weight: one cross-fade, so the frame is never without a figure and the two never stand in it
+  together (where they cross both are faint: the orrery under a fifth of its light as a plate passes a third of its own).
+  On a desktop, a phone held sideways and every printed state Now is the one step it was.
 - **The parts.** After Now the journey goes on through every page's own part (see "The home's parts" under Layout):
   Work (the gallery's head and its eleven plates), About (the stack's head and eight
   layers, the path's head and five panes), Consulting (its six blocks), Obla (its seven blocks), Contact. Each part

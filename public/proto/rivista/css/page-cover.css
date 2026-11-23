@@ -54,6 +54,16 @@ html[data-page="home"].sc-on.stage-on:not(.gl-off):not(.stage-dead) .hero-name {
    column is narrow */
 .now-go { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s3) var(--s5); }
 
+/* ---------------------------------------------------------------- now: its column, cut into the phone's captions
+   (wave 9, J2b NOW). parts/c-main.index.html cuts Now's text where each of a phone's captions ends: [data-cap-step]
+   boxes, each holding one .sc-cap (css/scene.css "a step split into the phone's captions"). Wherever Now is one step (a
+   desktop, a phone held sideways, every printed state) those are plain blocks, and the column keeps the rhythm
+   css/blocks.css gives a column's own children: a line's room between two blocks (.sc-in > * + *), more after the
+   display title, and the lead's room to the body (.t-lead + .t-body), so the page is as it was. */
+.now .sc-in .sc-cap > * + * { margin-top: var(--s3); }
+.now .sc-in .sc-cap > .t-d1 + * { margin-top: var(--s4); }
+.now .sc-in > .now-cap + .now-cap { margin-top: var(--s4); }
+
 /* ---------------------------------------------------------------- now: the nine names (wave 8, lane ORRERY). On the
    stage they turn round the SerSan mark, each a figure of light with its name under it (stage/orrery/). The page keeps
    the same nine as type, after Now's step: printed where there is no stage (reduced motion, no WebGPU, print) and on

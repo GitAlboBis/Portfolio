@@ -14,6 +14,8 @@
  * plane), so a proof at one size holds at every size: `open` (the figure's half of a desktop: the system seen from
  * about 45 degrees) and `band` (the low band of a phone: the same carousel seen from close and lower, what is near
  * large and what is far small, since nine bodies of a size worth reading do not fit a low band at one scale).
+ * (wave 9, J2b NOW) a third, `tall`: a phone held upright with Now's text as captions at the foot, whose band above
+ * them is about twice as tall (the scene sends phone: 2). Bodies under it in the band's way, one word at a time.
  * The scene (scenes/now.js) fits A to its room with EXTENT below.
  */
 import { BODIES } from "./bodies.js";
@@ -51,6 +53,15 @@ export const SHAPE = Object.freeze({
   // mark is a hair smaller (0.54 of A; it was 0.555)
   open: Object.freeze({ r: [0.8, 0.9, 1], cosI: [0.875, 0.78, 0.755], lift: [0, 0, 0], node: [-0.05, 0.035, -0.02], S: 0.184, H: 0.54, eye: 0, life: 1, hand: 1 }),
   band: Object.freeze(bandShape({ r: [0.94, 0.97, 1], yn: 0.545, yf: 0.46, node: [-0.02, 0.012, -0.008], S: 0.199, H: 0.445, eye: 2.1, life: 0.6, hand: 0.35 })),
+  // (wave 9, J2b NOW) a phone held upright with Now's captions at the foot: the band above them is about twice as tall
+  // as the old low band (378 x 400-450 css px on a 390 phone), and the figure is about twice the size. Still as wide
+  // as the phone allows (the width is the limit), but the mark much larger against the orbits (0.85 of A; the band's is
+  // 0.445) and the bodies too (0.32; 0.199), each at its desktop size against the others (g, not the band's gb: a body's
+  // height no longer costs), seen by a close eye a little less close (2.6 A): the orbits nearly round (all three pass
+  // 0.92 A under the mark's centre and 0.82 A over it) so the far arc clears the large mark and the near arc its foot.
+  // The lane's proof over a whole turn (build/j-now.md): bodies at least 10.9 px apart, 16 px from the mark, at 390 and
+  // 393 in either language; the mark 128 px tall, a body at the front 52 to 66 px (the band's: 65, and 45 to 54)
+  tall: Object.freeze(bandShape({ r: [0.9, 0.95, 1], yn: 0.92, yf: 0.82, node: [-0.02, 0.012, -0.008], S: 0.32, H: 0.85, eye: 2.6, life: 0.6, hand: 0.35 })),
 });
 /**
  * The band's three orbits from where they must pass: every orbit's near arc yn under the mark's centre and its far arc
@@ -73,7 +84,7 @@ function bandShape(o) {
  * whole turn (the probe's own measure: orreryScan().ext); the scene fits A to its room with these and leaves a word's
  * room past them.
  */
-export const EXTENT = Object.freeze({ open: [1.12, 1.17, 0.78, 0.99], band: [1.26, 1.265, 0.57, 0.745] });
+export const EXTENT = Object.freeze({ open: [1.12, 1.17, 0.78, 0.99], band: [1.26, 1.265, 0.57, 0.745], tall: [1.24, 1.22, 1.03, 1.16] });
 
 /** a body's breath in its radius, and its bob off its plane (a share of its unit) */
 const BREATH = 0.022, BOB = 0.07;
@@ -102,11 +113,12 @@ const SLOT = BODIES.map((b, i) => 3 * (i % 3) + b.shell);
 /**
  * Where everything stands at simulated time t. World: document px, z toward the reader (the free camera's space).
  * @param {any} c the scene's config: x, y (the mark's centre, viewport css px at the current scroll), z, hx, hy (where
- *   it rests under the straight view: it faces the eye from there), A, phone (1: the band's shape), ax, ay (the hand)
+ *   it rests under the straight view: it faces the eye from there), A, phone (1: the band's shape; 2: the tall band's,
+ *   a phone with Now's captions), ax, ay (the hand)
  * @param {{ time: number, vw: number, vh: number, sx: number, sy: number }} env
  */
 export function orreryLayout(c, env) {
-  const band = !!c.phone, sh = band ? SHAPE.band : SHAPE.open;
+  const band = !!c.phone, tall = c.phone === 2, sh = tall ? SHAPE.tall : band ? SHAPE.band : SHAPE.open;
   const A = Math.max(40, num(c.A, 320)), S = sh.S * A, H = sh.H * A;
   const D0 = clamp(1.25 * Math.hypot(env.vw, env.vh), 1100, 2600);               // the straight view's eye distance
   const Dv = sh.eye > 0 ? Math.min(D0, sh.eye * A) : D0;                         // the figure's own
@@ -132,14 +144,14 @@ export function orreryLayout(c, env) {
     const o = mv(T, [(x0 * cn - y0 * s2) * f, (x0 * s2 + y0 * cn) * f, z]);
     const yaw = lf.spin ? lf.spin * w : lf.yaw0 + lf.sw * sh.life * Math.sin(lf.ns * w + i);
     const pitch = lf.pitch0 + 0.07 * sh.life * Math.sin(lf.np * w + i * 2);
-    return { id: b.id, mode: b.mode, shell: s, slot: SLOT[i], th, sin: sn, cos: cs, f, size: S * (band ? lf.gb : lf.g) * f, p: [C0[0] + o[0], C0[1] + o[1], C0[2] + o[2]], R: mm(T, turn([yaw, pitch, 0])) };
+    return { id: b.id, mode: b.mode, shell: s, slot: SLOT[i], th, sin: sn, cos: cs, f, size: S * (band && !tall ? lf.gb : lf.g) * f, p: [C0[0] + o[0], C0[1] + o[1], C0[2] + o[2]], R: mm(T, turn([yaw, pitch, 0])) };
   });
   // the mark sways slowly, never edge-on: always read as the mark. (the lead, 22 Nov) It is a lit solid now: it sways a
   // little further, and it turns with the hand more than the system does (the eye peeks round it: the wall on the
   // hand's side shows, lit or in shade by the side)
   const hk = 1.6 * sh.hand;
   const mark = { p: C0, H, R: mm(T, turn([0.34 * sh.life * Math.sin(4 * w) + hk * num(c.ax, 0), (0.07 + 0.08 * Math.sin(3 * w + 1)) * sh.life + hk * num(c.ay, 0), 0])) };
-  return { band, all: !band && (c.all == null || !!c.all), A, S, H, D0, Dv, C0, T, bodies, mark, pad: clamp(0.065 * S, 2, BOX_PAD), zNear: sh.r[2] * A * Math.sqrt(1 - sh.cosI[2] * sh.cosI[2]) };
+  return { band, tall, all: !band && (c.all == null || !!c.all), A, S, H, D0, Dv, C0, T, bodies, mark, pad: clamp(0.065 * S, 2, BOX_PAD), zNear: sh.r[2] * A * Math.sqrt(1 - sh.cosI[2] * sh.cosI[2]) };
 }
 
 /** the body under the hand comes forward and grows a little (h: 0..1 a body) @param {any} L @param {number[]} hov */

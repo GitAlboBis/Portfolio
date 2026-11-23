@@ -118,6 +118,48 @@ html.sc-on:not(.gl-off).fs-on .sc-step[data-stage-step].is-active .sc-in {
   html.sc-on.fs-on:not(.gl-off) [data-caption] :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step] > .sc-in { margin-bottom: 0; }
 }
 
+/* (wave 9, J2b NOW) A STEP SPLIT INTO THE PHONE'S CAPTIONS. One step on a desktop can be several captions on a phone
+   (Now: its text is far taller than a caption). The step's text is cut where each caption ends into boxes marked
+   [data-cap-step="N"], each holding one caption (.sc-cap): inside the step's column, and after the step in the track
+   for the scene's text that is not a step (Now's nine names). In the caption grammar those boxes are the scene's steps
+   (fx-scroll.js and the host read them there, as FX.scroll.caption says) and each is held as a step's caption is above:
+   a box one screen tall, its caption a box of no height at its top, sticky, its foot at the view's foot; the step and
+   its column give way to them (display: contents: no box of their own, so the caption boxes stand in the track one after
+   another). Anywhere else (a desktop, a phone held sideways, every printed state) the boxes are plain blocks in the one
+   step's column and the scene is the one step it was. No word is written twice. */
+@media (max-width: 1023.98px) and (orientation: portrait) {
+  /* (position static too: a box of no box is still sticky to getComputedStyle, and the host would resolve the captions'
+     places through a sticky ancestor that is not there; their keep-outs went off the screen) */
+  html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-step[data-stage-step]:has([data-cap-step]),
+  html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-step[data-stage-step]:has([data-cap-step]) > .sc-in { display: contents; position: static; }
+  html.sc-on.fs-on:not(.gl-off) [data-caption] [data-cap-step] {
+    position: relative; display: flex; align-items: flex-start;
+    min-height: 100svh; margin: 0; padding: 0 var(--gut);
+  }
+  html.sc-on.fs-on:not(.gl-off) [data-caption] [data-cap-step] > .sc-cap {
+    position: sticky;
+    top: calc(100svh - max(var(--s5), env(safe-area-inset-bottom)));
+    display: flex; flex-direction: column; justify-content: flex-end;
+    width: 100%; max-width: 40rem; height: 0;
+    margin: -60svh 0 -150svh;
+    opacity: 0; filter: blur(6px); pointer-events: none;
+    transition: opacity var(--cap-hand) linear, filter var(--cap-hand) linear;
+  }
+  html.sc-on.fs-on:not(.gl-off) [data-caption] [data-cap-step]:is(.is-active, :has(:focus-visible)) > .sc-cap {
+    opacity: 1; filter: blur(0); pointer-events: auto;
+    transition: opacity var(--focus-in) var(--ease-out) var(--cap-hand), filter var(--focus-in) var(--ease-out) var(--cap-hand);
+  }
+  /* (a caption box's text comes and goes by the focus pull alone: its display title is the type the stage may bend, which
+     never moves; its lines rise once, as they first come into view. A curtain on the title at each hand-over was tried
+     and left out: a title clipped shut is not "in view" to the IntersectionObserver that lets its lines rise, so a
+     reader landing on a later caption and coming back saw the curtain and then the rise, 1.3 s late) */
+  /* the scene's first caption box (the first in its first step's column) comes up with the scene, its last (the track's
+     last child) leaves with it, as the first and last steps' captions do above */
+  html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > :first-child > .sc-in > [data-cap-step]:first-child > .sc-cap { margin-top: calc(100svh - max(var(--s5), env(safe-area-inset-bottom))); }
+  html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > [data-cap-step]:last-child { padding-bottom: max(var(--s5), env(safe-area-inset-bottom)); }
+  html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > [data-cap-step]:last-child > .sc-cap { margin-bottom: 0; }
+}
+
 /* plain flow on a wide screen: two columns, the text and its picture side by side */
 @media (min-width: 1024px) {
   .sc-step { padding-block: var(--s7); }

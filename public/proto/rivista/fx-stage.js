@@ -250,7 +250,13 @@
       const anchors = qa(sec, "[data-stage-anchor]");
       const view = anchors.find((a) => a.getAttribute("data-stage-anchor") === S.name) || anchors[0]
         || document.querySelector(`[data-stage-anchor="${S.name}"]`) || null;
-      const steps = qa(sec, "[data-stage-step]").filter((e) => inScene(e, sec));
+      // (wave 9, J2a CAPTION) a scene in the caption grammar now (css/scene.css "the caption at the foot"; the one rule,
+      // fx-scroll.js FX.scroll.caption): each step's .sc-in is a caption held at the view's foot
+      const cap = !!(FX.scroll && typeof FX.scroll.caption === "function" && FX.scroll.caption(sec));
+      // (wave 9, J2b NOW) there a step split into the phone's captions ([data-cap-step] boxes, each with its .sc-cap: Now)
+      // has those boxes as the scene's steps, as fx-scroll.js picks them; everywhere else the scene's own steps
+      const capSteps = cap ? qa(sec, "[data-cap-step]").filter((e) => inScene(e, sec)) : [];
+      const steps = capSteps.length ? capSteps : qa(sec, "[data-stage-step]").filter((e) => inScene(e, sec));
       const cues = qa(sec, "[data-stage-cue]").filter((e) => inScene(e, sec));
       const marks = qa(sec, "[data-stage-mark]").filter((e) => inScene(e, sec));
       const imgs = /** @type {HTMLImageElement[]} */ (qa(sec, "img[data-slab]").filter((e) => inScene(e, sec)));
@@ -262,15 +268,12 @@
       // clip of 1 px ([data-stage-unseen] on the clip: Now's nine names on a desktop, css/page-cover.css) asks for no
       // keep-out while the clip is shut (its children's own boxes are whole, wherever the clip stands)
       const unseen = (/** @type {Element} */ e) => { const u = /** @type {HTMLElement | null} */ (e.closest("[data-stage-unseen]")); return !!u && u.offsetWidth <= 1 && u.offsetHeight <= 1; };
-      // (wave 9, J2a CAPTION) a scene in the caption grammar now (css/scene.css "the caption at the foot"; the one rule,
-      // fx-scroll.js FX.scroll.caption): each step's .sc-in is a caption held at the view's foot
-      const cap = !!(FX.scroll && typeof FX.scroll.caption === "function" && FX.scroll.caption(sec));
       let tx = qa(sec, TEXT_SEL).filter((e) => inScene(e, sec) && !(view && view.contains(e)) && (e.textContent || "").trim() && !unseen(e));
       // (wave 9, J2a CAPTION) there each step's caption is ONE text block (the sticky .sc-in itself, so its rect is read
       // where it is held): a step that is a text element itself (the gallery's li) would be read in its flow place, a
-      // screen away from its words
+      // screen away from its words. (wave 9, J2b NOW) a caption box's caption is its .sc-cap
       if (cap) {
-        const capEls = steps.map((st) => st.querySelector(":scope > .sc-in")).filter((e) => e && (e.textContent || "").trim());
+        const capEls = steps.map((st) => st.querySelector(":scope > .sc-in, :scope > .sc-cap")).filter((e) => e && (e.textContent || "").trim());
         tx = [...capEls, ...tx.filter((e) => !steps.some((st) => st === e || st.contains(e)))];
       }
       const texts = tx.filter((e) => !tx.some((o) => o !== e && o.contains(e))).slice(0, MAX_TEXTS);
@@ -454,7 +457,7 @@
         let capH = 0, capT = 0;
         if (s.cap) {
           for (const t of texts) { const ch0 = t.k >= 0 ? t.r.chain[t.r.chain.length - 1] : null; if (ch0) capH = Math.max(capH, ch0.top - t.r.nat.y); }
-          const c0 = s.steps.length ? s.steps[0].querySelector(":scope > .sc-in") : null;
+          const c0 = s.steps.length ? s.steps[0].querySelector(":scope > .sc-in, :scope > .sc-cap") : null;
           capT = c0 ? parseFloat(getComputedStyle(c0).top) || 0 : 0;
         }
         // the text column's natural x extent (the view is laid out across the viewport; its text sits in one half)
@@ -480,7 +483,8 @@
           cap: s.cap && capT > 0, capH, capT, stepEl: s.cap ? s.steps : [],
           steps: s.steps.map((e) => rec(e)),
           // each step's number (data-stage-step="N"; 0 is an intro; missing or not a number: its place, from 1)
-          stepNo: s.steps.map((e, k) => { const v = parseInt(e.getAttribute("data-stage-step") || "", 10); return Number.isFinite(v) && v >= 0 ? v : k + 1; }),
+          // (wave 9, J2b NOW) a caption box's own number (data-cap-step="N")
+          stepNo: s.steps.map((e, k) => { const v = parseInt(e.getAttribute("data-stage-step") || e.getAttribute("data-cap-step") || "", 10); return Number.isFinite(v) && v >= 0 ? v : k + 1; }),
           cues: s.cues.map((e) => ({ id: e.getAttribute("data-stage-cue") || "", el: e, r: rec(e) })),
           marks: s.marks.map((e) => ({ id: e.getAttribute("data-stage-mark") || "", r: rec(e, true) })),
           imgs: s.imgs.map((e) => ({ id: e.getAttribute("data-slab") || "", el: e, r: rec(e) })),
@@ -490,7 +494,9 @@
         };
       }),
       dawn: dawnEls.map((e) => rec(e)),
-      keep: keepEls.map((e) => { const q = rec(e); return q ? Object.assign(q, { cap: capAt(e) }) : q; }).filter((r) => r && r.nat.w > 1 && r.nat.h > 1),
+      // (wave 9, J2b NOW) a caption box is no keep-out (it is a screen tall: Now's list of names, [data-stage-keepout] where
+      // it prints in flow, is the third caption box on a phone); the caption in it is a text block
+      keep: keepEls.map((e) => { const q = rec(e); return q ? Object.assign(q, { cap: capAt(e) }) : q; }).filter((r) => r && r.nat.w > 1 && r.nat.h > 1 && !(r.cap && sc[r.cap[0]].steps[r.cap[1]] === r.el)),
       refract: refract.map((e) => ({ el: e, r: rec(e, true) })).filter((x) => x.r && x.r.nat.w > 1),
       // (wave 1, KIT) the header's words (fixed: viewport px, with the header's own slide undone), for ctx.textRects
       hdr: qa(document, ".hdr-name, .hdr-nav, .hdr-menu").map((e) => {

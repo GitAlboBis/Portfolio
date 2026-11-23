@@ -49,8 +49,11 @@
      CSS, this module and the host read one rule */
   const capMQ = typeof matchMedia === "function" ? matchMedia("(max-width: 1023.98px) and (orientation: portrait)") : null;
   const caption = (sc) => !!(sc && sc.hasAttribute && sc.hasAttribute("data-caption") && capMQ && capMQ.matches && sceneMode() && d.classList.contains("fs-on"));
+  /* (wave 9, J2b NOW) a scene whose step is split into the phone's captions ([data-cap-step] boxes: Now; css/scene.css
+     "a step split into the phone's captions") has those boxes as its steps in the caption grammar, and its one step
+     everywhere else: caps holds them, and pick reads the list the grammar asks for now (a turned phone changes it) */
   function collect() {
-    scenes = [...document.querySelectorAll(".sc")].map((sc) => ({ sc, steps: [...sc.querySelectorAll(".sc-step[data-stage-step]")] })).filter((s) => s.steps.length);
+    scenes = [...document.querySelectorAll(".sc")].map((sc) => ({ sc, steps: [...sc.querySelectorAll(".sc-step[data-stage-step]")], caps: [...sc.querySelectorAll("[data-cap-step]")] })).filter((s) => s.steps.length);
     steps = scenes.flatMap((s) => s.steps);
   }
   function pick() {
@@ -63,7 +66,9 @@
          (the view's middle as the host reads it, fx-stage.js stepping: the caption changes where the stage's step does);
          none before the scene's first step reaches the line or after its last has left it */
       const cap = caption(s.sc), line = cap ? d.clientHeight / 2 : mid;
-      for (const el of s.steps) {
+      // (wave 9, J2b NOW) the steps of the grammar that holds now; the other list keeps nothing in focus
+      const list = cap && s.caps.length ? s.caps : s.steps, other = list === s.caps ? s.steps : s.caps;
+      for (const el of list) {
         // the step's text block, not the step's whole box: a tall step whose text is still below the fold must not take
         // the focus from the text the reader has on screen (a phone, Obla: only a dimmed block showed at rest)
         const r = (cap ? el : el.querySelector(".sc-in") || el).getBoundingClientRect();
@@ -75,9 +80,14 @@
       /* the contract between lanes: fx:step {scene, step, of} when a scene's active step changes */
       if (best && best !== s.cur) {
         s.cur = best;
-        FX.emit("fx:step", { scene: s.sc.getAttribute("data-stage") || "", step: +best.getAttribute("data-stage-step"), of: s.steps.length });
+        FX.emit("fx:step", { scene: s.sc.getAttribute("data-stage") || "", step: +(best.getAttribute("data-stage-step") ?? best.getAttribute("data-cap-step")), of: list.length });
       }
-      for (const el of s.steps) {
+      for (const el of other) {
+        if (!el.classList.contains("is-active") && !el.classList.contains("st-on")) continue;
+        el.classList.remove("is-active");
+        if (el.classList.contains("st-on")) { if (FX.mo && FX.mo.live) FX.mo.step(el, false); el.classList.remove("st-on"); }
+      }
+      for (const el of list) {
         el.classList.toggle("is-active", el === best);
         if (scn) {
           const on = el === best;
@@ -308,7 +318,8 @@
   /* (wave 9, J2a CAPTION) a caption reached by the keyboard comes into focus: a held caption is "in view" wherever its
      step is, so the browser would not scroll to it; its step is brought to the reading line, where it is the one shown */
   function capFocus(e) {
-    const st = e.target && e.target.closest ? e.target.closest(".sc-step[data-stage-step]") : null;
+    // (wave 9, J2b NOW) in a step split into the phone's captions, the caption box the link stands in
+    const st = e.target && e.target.closest ? e.target.closest("[data-cap-step]") || e.target.closest(".sc-step[data-stage-step]") : null;
     const sc = st && st.closest(".sc");
     if (!st || !caption(sc) || st.classList.contains("is-active")) return;
     const r = st.getBoundingClientRect();

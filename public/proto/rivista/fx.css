@@ -642,6 +642,30 @@ html.sc-on.fs-on:not(.gl-off) [data-caption] :is(.sc-track > .sc-step:first-chil
 html.sc-on.fs-on:not(.gl-off) [data-caption] :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step] { padding-bottom: max(var(--s5), env(safe-area-inset-bottom)); }
 html.sc-on.fs-on:not(.gl-off) [data-caption] :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step] > .sc-in { margin-bottom: 0; }
 }
+@media (max-width: 1023.98px) and (orientation: portrait) {
+html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-step[data-stage-step]:has([data-cap-step]),
+html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-step[data-stage-step]:has([data-cap-step]) > .sc-in { display: contents; position: static; }
+html.sc-on.fs-on:not(.gl-off) [data-caption] [data-cap-step] {
+    position: relative; display: flex; align-items: flex-start;
+    min-height: 100svh; margin: 0; padding: 0 var(--gut);
+  }
+html.sc-on.fs-on:not(.gl-off) [data-caption] [data-cap-step] > .sc-cap {
+    position: sticky;
+    top: calc(100svh - max(var(--s5), env(safe-area-inset-bottom)));
+    display: flex; flex-direction: column; justify-content: flex-end;
+    width: 100%; max-width: 40rem; height: 0;
+    margin: -60svh 0 -150svh;
+    opacity: 0; filter: blur(6px); pointer-events: none;
+    transition: opacity var(--cap-hand) linear, filter var(--cap-hand) linear;
+  }
+html.sc-on.fs-on:not(.gl-off) [data-caption] [data-cap-step]:is(.is-active, :has(:focus-visible)) > .sc-cap {
+    opacity: 1; filter: blur(0); pointer-events: auto;
+    transition: opacity var(--focus-in) var(--ease-out) var(--cap-hand), filter var(--focus-in) var(--ease-out) var(--cap-hand);
+  }
+html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > :first-child > .sc-in > [data-cap-step]:first-child > .sc-cap { margin-top: calc(100svh - max(var(--s5), env(safe-area-inset-bottom))); }
+html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > [data-cap-step]:last-child { padding-bottom: max(var(--s5), env(safe-area-inset-bottom)); }
+html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-track > [data-cap-step]:last-child > .sc-cap { margin-bottom: 0; }
+}
 @media (min-width: 1024px) {
 .sc-step { padding-block: var(--s7); }
 }
@@ -1160,6 +1184,9 @@ html[data-page="home"].sc-on.stage-on:not(.gl-off) .hero-foot {
   to { opacity: 0; filter: blur(var(--focus-blur)); }
 }
 .now-go { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s3) var(--s5); }
+.now .sc-in .sc-cap > * + * { margin-top: var(--s3); }
+.now .sc-in .sc-cap > .t-d1 + * { margin-top: var(--s4); }
+.now .sc-in > .now-cap + .now-cap { margin-top: var(--s4); }
 .now-orbit { margin: 0; padding: 0 var(--gut) var(--s6); }
 .now-orbit dd { margin: 0; }
 .now .sc-step { padding-bottom: var(--s4); }

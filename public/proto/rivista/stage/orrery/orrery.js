@@ -17,7 +17,9 @@
  * the flight's last third, one after another round the turn: a function of the scroll, it reverses); a presence 0..1;
  * ax, ay the hand's tilt (rad); flash 0..1 (a press); px, py, pin the pointer (viewport css px, 1 present: the body
  * under it comes forward and names itself, the motes under it lift); phone 1: the low band's shape, one word at a
- * time; all 0: the figure is too small for nine names, the three nearest the front show theirs (default: all nine);
+ * time (2: the tall band's, a phone held upright with Now's captions at the foot: layout.js SHAPE.tall); c0 the k
+ * where the bodies start condensing (0.66 by default; the tall band's arrives earlier); all 0: the figure is too
+ * small for nine names, the three nearest the front show theirs (default: all nine);
  * lab the rectangle words may stand in; words the nine names; font the page's label face { family, weight, size, ls,
  * lang }.
  *
@@ -232,10 +234,12 @@ async function make(api) {
       // v.z 0: no share of the stage's lens (sharp at any distance); v.w its motes
       // q.x: how far round the hand the crust is blown off the mark (css px at the page plane)
       put(0, L.mark.R, L.H, L.mark.p, [0.46 * L.H, 0, MODE.mark, 1], [clamp(Math.pow(180 / L.H, 0.25), 0.9, 1.3) * markVis, 0, 0, motes]);
+      // (wave 9, J2b NOW) where the condensing starts (c0: a phone held upright asks for it earlier, scenes/now.js)
+      const c0 = clamp(num(c.c0, 0.66), 0, 0.8);
       L.bodies.forEach((/** @type {any} */ b, /** @type {number} */ i) => {
         const h = hov[i], an = anim(b.id, t);
         // each condenses in its turn round the carousel, a few tens of ms of scroll after the one before
-        const st = 0.66 + 0.02 * b.slot, cond = sstep(st, st + 0.15, k);
+        const st = c0 + 0.02 * b.slot, cond = sstep(st, st + 0.15, k);
         // a smaller body carries its light in fewer px; what is at the back of the turn is a little dimmer
         const light = clamp(Math.pow(62 / b.size, 0.5), 0.85, 1.6) * mix(0.74, 1, sstep(-0.9, 0.5, b.sin));
         put(1 + i, b.R, b.size, b.p, [an[0], an[1], b.mode, cond], [light * (1 + 0.6 * h), 0.22 * h, an[2], an[3]]);

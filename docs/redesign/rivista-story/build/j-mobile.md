@@ -191,6 +191,58 @@ No law of CLAUDE.md §1-§2 is broken: the eye travelling from place to place is
   (--hdr, --gut, ctx.safeTop). The lead looked at `.shots/j-viewport/bar/cmp-work-gal-rest.jpg`. Summary sent to the
   director. **Next:** J2b NOW on his commit.
 
+## J3 online, J2b NOW launched (23 Nov, about 09:55)
+
+- The director: J3 committed (`6405b8a`), his diary `17d593d`; the squash `c02be7b` on top of `24eaba4` pushed. He
+  passes Alberto the three checks (the bar, the notch, sideways) and asks for a screen recording of two quick flicks,
+  the iPhone model and the iOS version.
+- J2b NOW launched on `17d593d` without the rail (notes `j-now.md`, captures `.shots/j-now/`, ports 5446-5448).
+
+## J2b NOW, done (run wf_c79d552f-9c8, returned 23 Nov about 12:25; notes `j-now.md`)
+
+- On an upright phone Now is three captions held at the foot (`[data-cap-step]` boxes inside the one step: the desktop
+  keeps one step to the stage and the eye); the orrery held in the band for the whole of Now, the mark 128 px (HEAD 65),
+  front bodies 51-66 (HEAD 45-54), one name at a time; it arrives earlier inside `lit` (70 px as it lights, HEAD 22-32);
+  at the join it rides up with the last caption and fades while the gallery's head comes up (J2r replaces this).
+  Desktop and printed states identical; GPU in place below HEAD; gates green. The lead looked at
+  `.shots/j-now/vF-en/sheet.png`. Summary sent to the director.
+- Open: the hero's tail between k 0.31 and 0.42 is the cosmos alone (as on HEAD: closing it means moving `lit`); the
+  smallest front body is 51 px; the header shows no scene name during captions 2 and 3 (fx-motion, for J2c).
+
+## J2r's brief from J2b (its `forRail`)
+
+NOW ON AN UPRIGHT PHONE (caption grammar on)
+- Now's section is three screens tall: 2,532 px at 390x844, 2,556 at 393x852. Its top is the hero's end (190svh): y 1,604 at 390, 1,619 at 393, in EN and IT alike.
+- It holds three caption boxes, each 100svh. Each has a sticky .sc-cap held at top: calc(100svh - max(var(--s5), env(safe-area-inset-bottom))).
+- The active box is the one whose caption holds the reading line. fx:step sends {scene: 'now', step 1..3, of: 3}.
+
+WHERE THE ORRERY STANDS
+- Config phone: 2 (SHAPE.tall), centred in the band, built from the host's ctx.fig.
+- x is about 196-198 css px. Config y: 263.7 (EN 390), 248.2 (IT 390), 267.6 (EN 393).
+- The band runs from 68 + safe top to capT - capH - 24, which ends at about 504-512 in EN and 474-482 in IT (the Italian tallest caption is taller).
+- A is 150-152. In place z is 0 and the camera is coverCamera's straight view at k 1.
+- Important: the orrery has no world anchor. now.js places it each frame in screen terms (x, y, A in css px; z in world units toward the eye; label bottom = L.top + ride).
+
+WHEN IT LEAVES
+- It is held until Now's section bottom reaches the view bottom (scrollY = Now top + 2 vh, so 3,292 at 390 and 3,323 at 393).
+- Then ride = min(0, section.y + section.h - vh) moves it 1:1 with the last caption.
+- It fades by leave = sstep(0.64, 0.86, max(c.weight, Now's c.share through a 0.07 s follower)). Now's weight drives it: it is gone at around 300 px past the release.
+- gone = clamp(-ride / vh) also dims it through sstep(0.3, 0.8, gone).
+- now.js returns null one screen past the release.
+- Now is blend: false (it weighs itself). The raw c.share steps one of 40 rows at a time, so do not drive alpha from it directly.
+- z (the arrival) and c0 0.5 apply only while the hero's flight k is below 1. flightK is a 0.26 s damped follower.
+
+WHAT THE GALLERY'S HEAD DOES (J2a)
+- Its section top is Now's end: y 4,136 at 390, 4,175 at 393.
+- Its band top is the view's y 80 + safe (CAP_HDR).
+- The plates' alpha follows the gallery's damped weight (SCENE_S 0.16 s).
+- Its head caption (the opening row) comes up with its section and is held once its view stands; fx:step gallery step 1 is the head.
+
+FOR THE CAMERA'S TRAVEL
+- Replace or coordinate now.js's ride, leave and gone: the screen-space ride and the fade are what make the faint crossing.
+- If the camera travels from Now's place to Work's (placeOf), give the orrery a world anchor, or turn the camera's travel into its screen offset, so the figure stays put and the eye moves.
+- Keep c.fig's band and the caption keep-outs as they are: a caption is a keep-out only while shown, and the held title is not read live.
+
 ## J2b's brief, as J2a left it (its `forJ2b`, 23 Nov about 02:30)
 
 Opting a scene in is one attribute: data-caption on its section. The CSS (holds, first and last step), fx-scroll (which caption is shown), the host (captions as text blocks, keep-outs, the band, ctx.caption) and the keyboard all follow from it. Before opting in, measure the scene's captions on a phone (C:/Users/alber/Desktop/PortfolioAlbertoTuveri-viva/.shots/j-caption/_scripts/caph.mjs, change its selector). The host gives every step the band above the scene's tallest caption, so one tall step shrinks every step's band. Shorten by layout, never by size. The gallery's captions are 245-315 px (29-43 % of the screen) and leave a 280-420 px band.

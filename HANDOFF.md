@@ -1,6 +1,28 @@
 # HANDOFF — continua da qui
 
-> **Macchina: GIANNI · 22 novembre, verso le 21:25. La figura di Now è online su https://albertotuveri.sersan.io: lo squash `5b22104` sopra `a3e7b7c`.**
+> **Macchina: GIANNI · 23 novembre, verso le 00:40. La prima corsia del telefono, J1 LIGHT, è online: lo squash `c4c0646` sopra `5b22104`. Ora tocca all'iPhone di Alberto; la sessione `-27` lancia J2a.**
+> - **Fatto.** La corsia J1 LIGHT della sessione `-27` (`portfolioalbertotuveri-viva-27`) è finita sopra `ae26554`; i dettagli sono in `build/j-light.md`.
+>   - **Cosa fa.** Ogni pipeline disegna come prima in una texture, e un ultimo passo a pieno schermo (`stage/wgsl/resolve.wgsl.js`) scrive il canvas con ogni pixel premoltiplicato valido. Sopra la notte e sopra la carta dell'alba la composizione è quella che Chrome mostrava. Il bloom compone nello stesso passo.
+>   - **WebKit.** Safari e ogni browser di iPhone e iPad restano col canvas a 8 bit, salvo `?hdr=1` (`stage/gpu.js` `isWebKit`).
+>   - **Gli stati di blend.** La strada degli stati di blend al posto del passo finale è stata pesata e scartata, per i quattro motivi scritti in `j-light.md`.
+>   - **Le prove della corsia.** Nella lettura del canvas dalla GPU nessun pixel non valido (in HEAD erano il 22,8 %). In un'emulazione del compositore di Safari, HEAD tiene solo le lastre, l'albero nuovo ogni luce. In Chrome lo stesso fotogramma nei due modi: al p99 al massimo 1 passo, e la carta dell'alba esatta. GPU, sonno e primo frame come HEAD.
+>   - **Il controllo del direttore.** Ha guardato le catture (`.shots/j-light/sheet-emu-iphone.png`, `sheet-HR-d-en.png`) e il codice. Ha rifatto i gate: `--check`, i numeri, Astro con PARITY OK e asserts, il rilascio (34 pagine, 159 file). In locale ha controllato il rilascio: il passo finale pronto, `valid.on`, Now invariato.
+>   - **Commit.** `44471ab` è la diagnosi (`j-mobile.md`, `j-device.md`, `j-walk.md`); `2e7a046` è la correzione, con i documenti.
+> - **Online.** `c4c0646` è su `main` (sha in `.shots/_director/squash-sha-j1.txt`), e Vercel ha risposto «Deployment has completed».
+>
+>   Sul dominio vero:
+>   - i cinque indirizzi rispondono giusto, e `resolve.wgsl.js` è servito;
+>   - la sonda `livenow.mjs` (catture in `.shots/_director/livej1/`): a 1440 e al telefono il passo finale è pronto, `valid.on` è vero, la figura di Now c'è e la console è pulita.
+> - **Prossimo passo.**
+>   - **Alberto.** Apre sul suo iPhone `/`, dove nome di luce, cosmo, schegge e figura di Now devono comparire, poi `/?hdr=1`, il canvas float16. Se la luce sparisce solo con `?hdr=1`, WebKit resta a 8 bit come fa ora il codice.
+>   - **La sessione `-27`.** Lancia J2a sopra `2e7a046`: al telefono le scritte di ogni passo diventano una didascalia ferma in basso e la figura ha la fascia sopra, prima sulla galleria. Il direttore l'ha approvato con sei note: il testo libero dalla luce in ogni fotogramma; la scala del tipo; il passaggio col movimento della casa; area sicura e barra di Safari; nessuno scatto a fine slide; stampe invariate. Quando J2a è verde, il direttore lo pubblica, così Alberto lo vede sull'iPhone prima di J2b; poi J3 VIEWPORT e J4 PLAIN (il piano è in `j-mobile.md`).
+> - **Da non ritentare:**
+>   - un ventaglio di agenti: la finestra delle cinque ore è condivisa, e il limite settimanale di Fable è finito fino al 26 novembre, quindi le corsie girano su Opus 5.5 a effort max;
+>   - una corsia lanciata prima del commit di quella precedente: il rilascio del direttore vedrebbe mezza corsia.
+>
+>   Lo squash va sempre sopra lo sha di `main` (`git ls-remote origin refs/heads/main`, ora `c4c0646`).
+
+> **Macchina: GIANNI · 22 novembre, verso le 21:25 (storia). La figura di Now è online su https://albertotuveri.sersan.io: lo squash `5b22104` sopra `a3e7b7c`.**
 > - **Fatto.**
 >   - **L'integrazione.** La sessione `-27` (`portfolioalbertotuveri-viva-27`) ha integrato la figura sopra `94634c2` e mandato il resoconto: `build/k-orrery.md`, sezioni «The integration» e «The review».
 >   - **Il controllo del direttore.** Ha guardato le catture della sessione (`.shots/orrery/r20`, `r21`, `r24`, `r25`). Ha rifatto i gate: `assemble --check`, i numeri, Astro con PARITY OK e asserts, il rilascio (34 pagine, 158 file).

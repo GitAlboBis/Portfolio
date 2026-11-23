@@ -42,6 +42,13 @@
   }
 
   const sceneMode = () => d.classList.contains("sc-on") && !d.classList.contains("gl-off");
+  /* (wave 9, J2a CAPTION) a scene in the caption grammar (css/scene.css, "the caption at the foot"): scene mode, under
+     1024 px on an upright screen (the CSS's own query), this module running (html.fs-on), a section that opts in
+     (data-caption). Its steps' text is held at the foot of the view, every caption in one place, so the step in focus is
+     the one whose BOX holds the reading line (pick). The host (fx-stage.js) asks this through FX.scroll.caption, so the
+     CSS, this module and the host read one rule */
+  const capMQ = typeof matchMedia === "function" ? matchMedia("(max-width: 1023.98px) and (orientation: portrait)") : null;
+  const caption = (sc) => !!(sc && sc.hasAttribute && sc.hasAttribute("data-caption") && capMQ && capMQ.matches && sceneMode() && d.classList.contains("fs-on"));
   function collect() {
     scenes = [...document.querySelectorAll(".sc")].map((sc) => ({ sc, steps: [...sc.querySelectorAll(".sc-step[data-stage-step]")] })).filter((s) => s.steps.length);
     steps = scenes.flatMap((s) => s.steps);
@@ -52,12 +59,17 @@
     const scn = live && sceneMode();
     for (const s of scenes) {
       let best = null, bd = Infinity;
+      /* (wave 9, J2a CAPTION) a caption scene: the step's own box, and only the step whose box holds the reading line
+         (the view's middle as the host reads it, fx-stage.js stepping: the caption changes where the stage's step does);
+         none before the scene's first step reaches the line or after its last has left it */
+      const cap = caption(s.sc), line = cap ? d.clientHeight / 2 : mid;
       for (const el of s.steps) {
         // the step's text block, not the step's whole box: a tall step whose text is still below the fold must not take
         // the focus from the text the reader has on screen (a phone, Obla: only a dimmed block showed at rest)
-        const r = (el.querySelector(".sc-in") || el).getBoundingClientRect();
+        const r = (cap ? el : el.querySelector(".sc-in") || el).getBoundingClientRect();
         if (r.bottom < 0 || r.top > window.innerHeight) continue;
-        const dist = Math.abs(r.top + r.height / 2 - mid);
+        if (cap && !(r.top <= line && r.bottom > line)) continue;
+        const dist = Math.abs(r.top + r.height / 2 - line);
         if (dist < bd) { bd = dist; best = el; }
       }
       /* the contract between lanes: fx:step {scene, step, of} when a scene's active step changes */
@@ -290,7 +302,19 @@
     /* the step in focus of a scene, or null (for anyone who asks: the stage reads its own) */
     activeStep(sc) { const el = sc && sc.querySelector(".sc-step.is-active"); return el ? +el.getAttribute("data-stage-step") : null; },
     refresh() { collect(); schedule(); },
+    /* (wave 9, J2a CAPTION) is this scene section in the caption grammar now (above) */
+    caption,
   };
+  /* (wave 9, J2a CAPTION) a caption reached by the keyboard comes into focus: a held caption is "in view" wherever its
+     step is, so the browser would not scroll to it; its step is brought to the reading line, where it is the one shown */
+  function capFocus(e) {
+    const st = e.target && e.target.closest ? e.target.closest(".sc-step[data-stage-step]") : null;
+    const sc = st && st.closest(".sc");
+    if (!st || !caption(sc) || st.classList.contains("is-active")) return;
+    const r = st.getBoundingClientRect();
+    const y = Math.max(0, Math.round(window.scrollY + r.top + r.height / 2 - d.clientHeight / 2));
+    if (typeof FX.scrollTo === "function") FX.scrollTo(y, { immediate: true }); else window.scrollTo(0, y);
+  }
 
   FX.register("scroll", {
     init() { FX.scroll = api; },
@@ -299,6 +323,7 @@
       prepare();
       pick();
       window.addEventListener("scroll", schedule, { passive: true });
+      document.addEventListener("focusin", capFocus);
       d.classList.add("fs-on");
       /* the reveals and the entrances start when the page is handed over (after a cut's sheet has left) */
       FX.once("fx:ready", () => {

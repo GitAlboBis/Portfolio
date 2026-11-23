@@ -3,7 +3,8 @@
 > Brought up to the code of 17 November 2026 (wave 5) by its DOCS lane; corrected in place for wave 6 (20 November)
 > and wave 7 (21 November: the home as one page of every page's scenes, the neural cosmos where the wall was, the
 > looks mixed by weight), and wave 8 (22 November: every slide on springs, the pivot handed over, textures made again,
-> the door's lines and the edge of day). The engine's own reference is the header of `stage/stage.js`; the host's is
+> the door's lines and the edge of day), and the phone wave (23 November, lane J2a: the caption at the foot, opt-in,
+> the gallery first). The engine's own reference is the header of `stage/stage.js`; the host's is
 > the header of `fx-stage.js`. Where this page and the code disagree, the code wins.
 
 A scene is one module, `stage/scenes/NAME.js`, for every `<section data-stage="NAME">` on a page (a case page's
@@ -51,7 +52,8 @@ export default {
 |---|---|
 | `name` | the scene's name |
 | `view` | the sticky `[data-stage-anchor]` (100svh) inside the section, else the section |
-| `fig` | the figure's half of the view: opposite the text column; on a phone (text across) the top 55 %. `data-stage-side="left\|right\|top\|full"` on the section overrides |
+| `fig` | the figure's half of the view: opposite the text column; on a phone (text across) the top 55 %; on a phone in a caption scene (see "The caption at the foot") the band from the view's top to a gap above the scene's tallest caption, the same band for every step. `data-stage-side="left\|right\|top\|full"` on the section overrides |
+| `caption` | (wave 9) a caption scene on a phone: `{ top, foot }`, viewport px, where its captions stand (`top` the tallest one's top when held, `foot` the line every caption's foot is held at); `null` in every other scene and on a wide screen |
 | `side` | which side the figure took |
 | `section` | the section's rect (its `y` is where it starts relative to the viewport's top) |
 | `step`, `steps`, `local` | the step under the reading line (1-based; 0 without steps), how many, 0–1 inside it |
@@ -64,7 +66,7 @@ export default {
 | `share`, `weight` | the scene's share of the viewport (0–1) and its smoothed blend weight |
 | `marks` | `{ ID: rect }` of every `[data-stage-mark="ID"]` in the section (their glyph box) |
 | `imgs` | `{ ID: { tex, w, h, aspect, rect, el } }` of every `<img data-slab="ID">`; `tex` is the texture id once decoded, else `null` |
-| `texts` | the section's text blocks on screen: `[{ tag, x, y, w, h }]` (glyph boxes): keep-outs, the display line. A box in a sticky held by its bottom (a caption at the foot of the view) is measured where it stands (wave 8) |
+| `texts` | the section's text blocks on screen: `[{ tag, x, y, w, h }]` (glyph boxes): keep-outs, the display line. A box in a sticky held by its bottom (a caption at the foot of the view) is measured where it stands (wave 8). In a caption scene (wave 9) each step's caption is one block, read where it is held, and only the captions on screen count (the step in focus, and one leaving it for 0.22 s); the same for `textRects()` and for the other scenes' `yields` |
 | `media` | the section's pictures on screen (`img`, `picture`, `video`, `canvas` outside the view): rects, for keep-outs |
 | `dawn` | the day rectangles on screen (inside them a point is ink) |
 | `ground` | `"night"` or `"dawn"` (the Contact page) |
@@ -128,6 +130,41 @@ the point in the prism's own space, so a scene aims its shaft at `u0` and starts
 `inset` below −1, as `inset: -(1 + k)` (k the beam's light, read up to 2; `-1` alone is a prism with no beam). One
 prism exists since wave 7 (the index's, with its beam, left with the index): More work's in a case
 (`case/figures.js`, `inset: -1`, no beam: its shaft, the light inside it and its ray are drawn by the `rays` pass).
+
+## The caption at the foot (a phone's grammar, opt-in; wave 9, lane J2a)
+
+Under 1024 px a scene with steps used to give its figure the top 55 % of the view while each step's text, at the foot of
+its own screen, travelled up through that band; every scene dodged it its own way (the gallery's plate hopped round its
+text and faded where the text met it, the stack and Obla changed sides, Consulting's figures vanished under their
+keep-outs: `build/j-walk.md`). A scene that opts in has no text in its band at all.
+
+- **Opting in:** `data-caption` on the scene's `<section data-stage>` (today the gallery's, `parts/c-main.work.html`:
+  Work and the home's Work part). The CSS does the rest (`css/scene.css` "THE CAPTION AT THE FOOT"), under 1024 px on
+  an upright screen (`orientation: portrait`: a phone turned sideways has no height for a caption and a band) in scene
+  mode once `fx-scroll.js` runs (`html.fs-on`); without it, sideways, on a wide screen or in any printed state the
+  scene is as it was. `FX.scroll.caption(section)` says whether the grammar holds now (the CSS, fx-scroll and the host read
+  that one rule).
+- **What the page does:** each step's `.sc-in` is a caption held at the view's foot (sticky from the top in svh, so a
+  phone's bar never moves it; its foot above the bar and the home indicator). Only the step whose BOX holds the
+  reading line shows its caption (fx-scroll's `.is-active`; none outside the scene's steps); the leaving caption clears
+  in 120 ms in place and the arriving one comes into focus after it while fx-motion's step beats play (its title from
+  behind its mask, its rows). The first caption comes up with the scene and is held once the view stands; the last one
+  is let go halfway through its step and leaves with the page, its room above the next scene's top. The step boxes stay
+  one screen each: `step` and `local` are as before.
+- **What the host gives:** `c.fig` is the band above the scene's tallest caption (one band for every step); `c.caption`
+  says where the captions stand; `c.texts` and `c.textRects()` hold the caption on screen and nothing of the hidden
+  ones, so the room's keep-outs follow the caption that is read and no hole rides past with a hidden one.
+- **What a scene must stop doing on a phone with a caption:** following a free band, moving or hiding its figure where
+  a text crosses it, changing sides, letting keep-outs cut its figure away: no text of the scene enters its band. Stand
+  the figure in `c.fig`, whole and in one place for every step; centre the step's own motion on the hand-over (the
+  step's boundary at the reading line: the gallery's glide `off` is 0 there, 0.22 on a desktop); keep every queued or
+  waiting part of the figure inside the frame; and leave with the last caption (the gallery's band rises with it from
+  `local` 0.5 of its last step, so plate and caption leave the frame together). Another scene's text still takes
+  plates away (`yields`). The desktop's branch stays as it is (`L.cap` is null there).
+- **The reference:** `gallery.js` (`layout` `cap`, `CAP_HDR`, `CAP_FILL`; the band-follow skipped with `L.cap`; its
+  old fade where a text meets a plate kept only as a 12 px guard for a page zoomed so far that a caption outgrows the
+  room under the band, which the designed layouts never reach), the host's `figOf`, `capShown`, `CAP_SEEN_MS`
+  (`fx-stage.js`), `build/j-caption.md` (what each choice answered, and the measures).
 
 ## A camera path (the free camera, `lib/camera.js`)
 
@@ -589,8 +626,9 @@ markup to the bench's builder if the generic steps do not fit.
 - A plate's window (the screen box the glass draws in) grows from its centre with the plate's presence (wave 8): a
   plate fading in is not drawn whole at a few hundredths of its light, so the next plate's glass does not flash at a
   slide's ends.
-- On a phone the gallery's plate keeps to the free band it stands in and takes another only when its own falls under
-  four fifths of the tallest or under 150 px; it rides springs into the band; the stack's band pushes it with a cushion
-  (`softClamp`, `softMin`) from before a text arrives (wave 8).
+- On a phone the stack's band pushes its figure with a cushion (`softClamp`, `softMin`) from before a text arrives
+  (wave 8). The gallery kept to the free band it stood in (another only when its own fell under four fifths of the
+  tallest or under 150 px, on springs) until wave 9: with the caption at the foot it stands in `c.fig` (above); the
+  free band stays for a phone where the caption grammar does not hold (before fx-scroll runs, or without it).
 - `list` figures (`case/figures.js`) etch nothing since wave 8: a thin plate with "01" on it is the floating card
   Alberto hated; no figure is a rectangle carrying a number.

@@ -66,6 +66,58 @@ html.sc-on:not(.gl-off).fs-on .sc-step[data-stage-step].is-active .sc-in {
   html.sc-on:not(.gl-off) .sc-intro { align-items: flex-end; }
 }
 
+/* (wave 9, J2a CAPTION) THE CAPTION AT THE FOOT: the phone's grammar for a scene that opts in (data-caption on its
+   section: the gallery first; lane J2b brings the others). Above, each step's text sat at the foot of its own screen and
+   travelled up through the figure's band as the reader scrolled, and every scene dodged it its own way (build/j-walk.md).
+   Here the text of each step is a CAPTION held at the foot of the view: the steps hand over in place, and the figure owns
+   the band above the captions (fx-stage.js figOf). The step box stays one screen: the scroll still drives everything.
+   · The caption is the step's .sc-in made a box of no height at the step's top, its lines standing above that line (a
+     column justified to its end), sticky: its foot is held at the view's foot. Held from the TOP in svh, so Safari's bar
+     coming and going never moves it, and its foot stays clear of the bar and of the home indicator (the safe area).
+   · Its negative margins stretch the hold: from its step's top 1.55 screens down to 1.55 screens up. The caption in focus
+     is still held a screen after it leaves focus, either way, so it never travels while it is seen: it clears in place.
+   · The scene's ends come and go with the scene. Its FIRST caption stands at its step's foot (a box of no height there)
+     and is held only from the moment the scene's view stands at the top: it comes up with the scene, under the figure
+     rising in the band above it, as one picture (held earlier, it waited at the foot while the figure, still rising
+     with the view, came down over it). Its LAST caption has no hold below its step: it leaves with the scene, just above
+     the next scene's top (held on, it stood over the dawn's paper on Work).
+   · Only the step in focus shows its caption (fx-scroll.js: the step whose box holds the reading line); the others are
+     clear and take no taps. The hand-over is the step focus pull above, tightened so two captions never stand together:
+     the leaving one clears in --cap-hand, the arriving one comes into focus after it while its title rises from behind
+     its straight mask and its rows follow (fx-motion.js step: 120 ms, then 70 ms a line; the rows from 260 ms).
+   · Gated on html.fs-on (fx-scroll running): before it runs, or if it never does, the steps keep the grammar above (at
+     the top of work.html both grammars put the head's caption at the foot, so the switch is not seen). Every printed
+     state (reduced motion, ?stage=0, ?gl=0, no script, print) is outside scene mode and untouched.
+   · Upright screens only (orientation: portrait): a phone turned sideways has no height for a caption and a band
+     above it, and keeps the grammar above. The orientation never changes as Safari's bar comes and goes (a height
+     threshold would have, between 100svh and 100lvh). fx-scroll.js reads the same query. */
+@media (max-width: 1023.98px) and (orientation: portrait) {
+  html.sc-on.fs-on:not(.gl-off) [data-caption] { --cap-hand: 0.12s; }
+  html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-step[data-stage-step] { align-items: flex-start; padding-top: 0; padding-bottom: 0; }
+  html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-step[data-stage-step] > .sc-in {
+    position: sticky;
+    top: calc(100svh - max(var(--s5), env(safe-area-inset-bottom)));
+    display: flex; flex-direction: column; justify-content: flex-end;
+    width: 100%; height: 0;
+    margin: -60svh 0 -150svh;
+    opacity: 0; filter: blur(6px); pointer-events: none;
+    transition: opacity var(--cap-hand) linear, filter var(--cap-hand) linear;
+  }
+  /* (a link reached by the keyboard shows its caption; fx-scroll.js then brings its step to the reading line) */
+  html.sc-on.fs-on:not(.gl-off) [data-caption] .sc-step[data-stage-step]:is(.is-active, :has(:focus-visible)) > .sc-in {
+    opacity: 1; filter: blur(0); pointer-events: auto;
+    transition: opacity var(--focus-in) var(--ease-out) var(--cap-hand), filter var(--focus-in) var(--ease-out) var(--cap-hand);
+  }
+  /* the scene's first step and its last (the track's first and last step, or its list's) */
+  /* (the first caption's box is set at its step's foot by its top margin: aligned to the step's end, its negative bottom
+     margin would push it a screen and a half below) */
+  html.sc-on.fs-on:not(.gl-off) [data-caption] :is(.sc-track > .sc-step:first-child, .sc-track > :first-child > .sc-step:first-child)[data-stage-step] > .sc-in { margin-top: calc(100svh - max(var(--s5), env(safe-area-inset-bottom))); }
+  /* (the last caption keeps its room over the foot as it leaves: let go as its step's end reaches the view's foot, it
+     rides that far above the next scene's top) */
+  html.sc-on.fs-on:not(.gl-off) [data-caption] :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step] { padding-bottom: max(var(--s5), env(safe-area-inset-bottom)); }
+  html.sc-on.fs-on:not(.gl-off) [data-caption] :is(.sc-track > .sc-step:last-child, .sc-track > :last-child > .sc-step:last-child)[data-stage-step] > .sc-in { margin-bottom: 0; }
+}
+
 /* plain flow on a wide screen: two columns, the text and its picture side by side */
 @media (min-width: 1024px) {
   .sc-step { padding-block: var(--s7); }

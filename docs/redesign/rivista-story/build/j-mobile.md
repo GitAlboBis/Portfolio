@@ -69,3 +69,40 @@
   Alberto then opens `/` and `/?hdr=1` on his iPhone.
 - **Next:** J2a GRAMMAR + GALLERY, launched only once the director says J1 is committed (his release must not see
   half a lane). Its plan went to the director with J1's summary.
+- **23 Nov, 00:33 (the director):** J1 committed (`44471ab` the diagnosis, `2e7a046` the resolve and isWebKit) and online
+  (the squash `c4c0646` on top of `5b22104`). HEAD `2e7a046`.
+
+## J2a CAPTION (launched 23 Nov about 00:40 on `2e7a046`; notes `j-caption.md`, captures `.shots/j-caption/`, ports 5440-5442)
+
+- The caption grammar on a phone, opt-in per scene, the gallery first, its phone-only dodges out; the director's six
+  notes in the brief (the caption kept clear every frame, the type floor, the house motion, the safe area and the bar
+  without J3's work, SMOOTH's no-snap law with its probe and tier B GPU, printed states unchanged).
+- **Done (run wf_ad2d8385-1b3, returned 23 Nov about 02:30):** `data-caption` on the gallery; captions held at the foot
+  in svh (`css/scene.css`), picked by `FX.scroll.caption` (`fx-scroll.js`), kept clear and given the band above them by
+  the host (`fx-stage.js` figOf, `ctx.caption`); `gallery.js` without its phone dodges. Plates over a shown caption: 0
+  frames (HEAD up to 4,657); SMOOTH's worst step 116-134 px/s against 346-361; desktop and printed states identical;
+  gates green. The lead looked at `.shots/j-caption/pair-r2-b-drag-home-en.jpg`. Summary and J3's plan sent to the
+  director. **J2b waits for Alberto's look at J2a on his iPhone**; its scene-by-scene brief is J2a's `forJ2b`, kept at the
+  end of this file.
+
+## J2b's brief, as J2a left it (its `forJ2b`, 23 Nov about 02:30)
+
+Opting a scene in is one attribute: data-caption on its section. The CSS (holds, first and last step), fx-scroll (which caption is shown), the host (captions as text blocks, keep-outs, the band, ctx.caption) and the keyboard all follow from it. Before opting in, measure the scene's captions on a phone (C:/Users/alber/Desktop/PortfolioAlbertoTuveri-viva/.shots/j-caption/_scripts/caph.mjs, change its selector). The host gives every step the band above the scene's tallest caption, so one tall step shrinks every step's band. Shorten by layout, never by size. The gallery's captions are 245-315 px (29-43 % of the screen) and leave a 280-420 px band.
+
+Already handled generically, from pitfalls hit here:
+- A step that is itself a text element (an li) was read as one text block in its flow place, a screen away from its words. Now each caption .sc-in is one block, read where it is held.
+- With a negative bottom margin, align-self: flex-end pushes the box down by that margin. The first caption is placed by its top margin instead.
+- The last caption has no hold below its step and keeps its room as padding, so it leaves just above the next scene's top.
+- The first caption sits at its step's foot and rides up with the scene; held from the start, it sat under the figure still rising with the view.
+- The home's part opener needs no change.
+
+Scene by scene:
+- Now has no steps, and its text (title, lead, body, links, nine names) is far taller than a caption. Either split Now into two or three caption steps with the orrery held in the band above for the whole of Now, or keep it in flow and hold the orrery's band (now.js orreryAsk, stacked) for the whole of Now instead of letting it leave at the second half-screen.
+- About's stack: on a phone with a caption, drop the free band, the push (softClamp/softMin) and the glass stepped back as it crosses (stack.js 162-207). Stand the stack in c.fig and centre its slide on the hand-over (its own off = 0). Measure its .tools rows first.
+- About's path: drop the pane stepping back within 64 px and the line dimming within 72 px (path.js 189-295). The band lets the phone run the desktop's walk along the line through two or three panes, and the empty frame at the path's head closes.
+- Consulting: the keep-outs will hold only the caption, so the figures stand whole; give the walk between the four figures the band. Its .btn controls inside captions already follow the captions' visibility (capAt). The grey blob of the splat mark and the faint film strip are figure matters.
+- Obla: drop the hop (obla.js 43-89) and stand the character in c.fig. The fields table makes one caption tall: measure it.
+- Joins: where two caption scenes meet, the first scene's last caption rides up just above the next section and the next scene's first caption comes up with its section. Text moves with the page there, never through a held figure. Make each figure leave with its last caption (the gallery's band rises from local 0.5 of its last step) and enter with its first.
+- The hero's empty tail is not a caption matter: shorten it on a phone or light Now's figure earlier.
+
+Probes to reuse, in .shots/j-caption/_scripts/ (they use gallery selectors, generalise them): touch.mjs, stills.mjs, floor.mjs, desk.mjs, plain.mjs, gpugal.mjs and gpugal.sh, ff2.mjs, meas.mjs, pairstrip.mjs.

@@ -255,7 +255,17 @@
       // clip of 1 px ([data-stage-unseen] on the clip: Now's nine names on a desktop, css/page-cover.css) asks for no
       // keep-out while the clip is shut (its children's own boxes are whole, wherever the clip stands)
       const unseen = (/** @type {Element} */ e) => { const u = /** @type {HTMLElement | null} */ (e.closest("[data-stage-unseen]")); return !!u && u.offsetWidth <= 1 && u.offsetHeight <= 1; };
-      const tx = qa(sec, TEXT_SEL).filter((e) => inScene(e, sec) && !(view && view.contains(e)) && (e.textContent || "").trim() && !unseen(e));
+      // (wave 9, J2a CAPTION) a scene in the caption grammar now (css/scene.css "the caption at the foot"; the one rule,
+      // fx-scroll.js FX.scroll.caption): each step's .sc-in is a caption held at the view's foot
+      const cap = !!(FX.scroll && typeof FX.scroll.caption === "function" && FX.scroll.caption(sec));
+      let tx = qa(sec, TEXT_SEL).filter((e) => inScene(e, sec) && !(view && view.contains(e)) && (e.textContent || "").trim() && !unseen(e));
+      // (wave 9, J2a CAPTION) there each step's caption is ONE text block (the sticky .sc-in itself, so its rect is read
+      // where it is held): a step that is a text element itself (the gallery's li) would be read in its flow place, a
+      // screen away from its words
+      if (cap) {
+        const capEls = steps.map((st) => st.querySelector(":scope > .sc-in")).filter((e) => e && (e.textContent || "").trim());
+        tx = [...capEls, ...tx.filter((e) => !steps.some((st) => st === e || st.contains(e)))];
+      }
       const texts = tx.filter((e) => !tx.some((o) => o !== e && o.contains(e))).slice(0, MAX_TEXTS);
       // the text column: the steps' columns (their first child: a step block may span the whole width), else the
       // text blocks
@@ -263,11 +273,14 @@
       // (wave 1, KIT) the scene's display titles the glass may bend ([data-refract]: inside the view or not), for
       // ctx.textRects({ display: true })
       const disp = qa(sec, "[data-refract]").filter((e) => inScene(e, sec)).slice(0, 8);
-      return { S, sec, view, steps, cues, marks, imgs, media, texts, col, disp };
+      return { S, sec, view, steps, cues, marks, imgs, media, texts, col, disp, cap };
     });
     const dawnEls = qa(document, "[data-dawn]").slice(0, MAX_DAWN);
     const keepEls = qa(document, "[data-stage-keepout], .btn");
-    const refract = qa(document, "[data-refract]");
+    // (wave 9, J2a CAPTION) the type inside a caption is never bent by glass (the figure's band stands above the captions)
+    // and a held caption is not where its document place says: it is not rastered for the glass
+    const inCaption = (/** @type {Element} */ e) => sc.some((s) => s.cap && s.steps.some((st) => st.contains(e)));
+    const refract = qa(document, "[data-refract]").filter((e) => !inCaption(e));
     const all = new Set([...dawnEls, ...keepEls, ...refract]);
     for (const s of sc) {
       all.add(s.sec); if (s.view) all.add(s.view);
@@ -397,10 +410,27 @@
       return { el, nat: { ...r }, chain };
     };
     const cw = D.clientWidth, ch = D.clientHeight;
+    /** (wave 9, J2a CAPTION) the caption step of a caption scene an element stands in, as [scene, step] (else null)
+     *  @param {Element} e */
+    const capAt = (e) => { for (let i = 0; i < sc.length; i++) { if (!sc[i].cap) continue; const k = sc[i].steps.findIndex((st) => st.contains(e)); if (k >= 0) return [i, k]; } return null; };
     const out = {
-      cw, ch,
-      scenes: sc.map((s) => {
+      cw, ch, fs: D.classList.contains("fs-on"),
+      scenes: sc.map((s, si) => {
         const r = rec(s.sec), view = rec(s.view) || r;
+        const stepIx = (/** @type {Element} */ e) => (s.cap ? s.steps.findIndex((st) => st.contains(e)) : -1);
+        // (wave 9, J2a CAPTION) k: the caption step a text stands in (-1: none), so a hidden caption is no text
+        const texts = s.texts.map((e) => ({ tag: e.tagName.toLowerCase(), r: rec(e, true), k: stepIx(e) })).filter((t) => t.r && t.r.nat.w > 1 && t.r.nat.h > 1);
+        /* (wave 9, J2a CAPTION) a caption scene: how far its tallest caption's words rise over the line its foot is held
+           at, and that line (the sticky top, viewport px): the figure's band ends above the tallest caption, the same band
+           for every step, so the figure never changes size or place between two steps (figOf). Read from what the
+           measure has already read (each caption is a text block: its glyphs' union, and its sticky box's natural top,
+           the foot line), so the captions cost no layout read but one style read */
+        let capH = 0, capT = 0;
+        if (s.cap) {
+          for (const t of texts) { const ch0 = t.k >= 0 ? t.r.chain[t.r.chain.length - 1] : null; if (ch0) capH = Math.max(capH, ch0.top - t.r.nat.y); }
+          const c0 = s.steps.length ? s.steps[0].querySelector(":scope > .sc-in") : null;
+          capT = c0 ? parseFloat(getComputedStyle(c0).top) || 0 : 0;
+        }
         // the text column's natural x extent (the view is laid out across the viewport; its text sits in one half)
         let tx0 = 1e9, tx1 = -1e9;
         for (const e of s.col) { const b = rectOf(e); if (b.w > 1 && b.h > 1) { tx0 = Math.min(tx0, b.x); tx1 = Math.max(tx1, b.x + b.w); } }
@@ -419,20 +449,22 @@
           else side = (tx0 + tx1) / 2 < vr.x + vr.w / 2 ? "right" : "left";
         }
         return {
-          r, view, side, tx0, tx1,
+          r, view, side, tx0, tx1, ix: si,
+          // (wave 9, J2a CAPTION) cap: a caption scene; capH, capT above; stepEl: its steps (their .is-active, per frame)
+          cap: s.cap && capT > 0, capH, capT, stepEl: s.cap ? s.steps : [],
           steps: s.steps.map((e) => rec(e)),
           // each step's number (data-stage-step="N"; 0 is an intro; missing or not a number: its place, from 1)
           stepNo: s.steps.map((e, k) => { const v = parseInt(e.getAttribute("data-stage-step") || "", 10); return Number.isFinite(v) && v >= 0 ? v : k + 1; }),
           cues: s.cues.map((e) => ({ id: e.getAttribute("data-stage-cue") || "", el: e, r: rec(e) })),
           marks: s.marks.map((e) => ({ id: e.getAttribute("data-stage-mark") || "", r: rec(e, true) })),
           imgs: s.imgs.map((e) => ({ id: e.getAttribute("data-slab") || "", el: e, r: rec(e) })),
-          texts: s.texts.map((e) => ({ tag: e.tagName.toLowerCase(), r: rec(e, true) })).filter((t) => t.r && t.r.nat.w > 1 && t.r.nat.h > 1),
+          texts,
           media: s.media.map((e) => rec(e)).filter((r) => r && r.nat.w > 1 && r.nat.h > 1),
-          disp: s.disp.map((e) => rec(e, true)).filter((r) => r && r.nat.w > 1 && r.nat.h > 1),
+          disp: s.disp.map((e) => { const q = rec(e, true); return q ? Object.assign(q, { k: stepIx(e) }) : q; }).filter((r) => r && r.nat.w > 1 && r.nat.h > 1),
         };
       }),
       dawn: dawnEls.map((e) => rec(e)),
-      keep: keepEls.map((e) => rec(e)).filter((r) => r && r.nat.w > 1 && r.nat.h > 1),
+      keep: keepEls.map((e) => { const q = rec(e); return q ? Object.assign(q, { cap: capAt(e) }) : q; }).filter((r) => r && r.nat.w > 1 && r.nat.h > 1),
       refract: refract.map((e) => ({ el: e, r: rec(e, true) })).filter((x) => x.r && x.r.nat.w > 1),
       // (wave 1, KIT) the header's words (fixed: viewport px, with the header's own slide undone), for ctx.textRects
       hdr: qa(document, ".hdr-name, .hdr-nav, .hdr-menu").map((e) => {
@@ -473,6 +505,15 @@
   /** the same, in viewport px @param {Rec | null | undefined} r @param {number} y @returns {Rect | null} */
   function vat(r, y) { const a = at(r, y); return a ? { x: a.x, y: a.y - y, w: a.w, h: a.h } : null; }
 
+  /* (wave 9, J2a CAPTION) THE CAPTIONS ON SCREEN. In a caption scene every caption is held at the foot of the view, the
+     one in focus shown and the others clear (css/scene.css): a caption is text (keep-outs, ctx.texts, ctx.textRects, the
+     other scenes' yields) only while it can be seen: its step is in focus (fx-scroll.js .is-active), or it left focus
+     less than CAP_SEEN_MS ago (it clears in 120 ms). A clear caption riding past the figure's band is no text: no hole
+     in the cosmos follows it. m.capVis is written by the tick before the scene's frame */
+  const CAP_SEEN_MS = 220;
+  /** @param {any} m a scene's measure @param {number | undefined} k the caption step (-1 / undefined: not a caption) */
+  function capShown(m, k) { return !(m && m.cap && typeof k === "number" && k >= 0 && m.capVis && !m.capVis[k]); }
+
   /**
    * (wave 1, KIT) ctx.textRects(o): the rectangles of this scene's text, now, in viewport px: its text blocks (their
    * glyphs' final layout boxes, entrances undone), its display titles ([data-refract], o.display, default true), its
@@ -489,10 +530,11 @@
       if (!r || r.w < 1 || r.h < 1 || r.y + r.h < -pad - 40 || r.y > vh + pad + 40) return;
       rs.push({ x: r.x - pad, y: r.y - pad, w: r.w + 2 * pad, h: r.h + 2 * pad });
     };
-    for (const t of m.texts) add(vat(t.r, y));
-    if (o.display !== false) for (const r of m.disp || []) add(vat(r, y));
+    // (wave 9, J2a CAPTION) in a caption scene only the captions on screen are text (capShown: set each frame)
+    for (const t of m.texts) if (capShown(m, t.k)) add(vat(t.r, y));
+    if (o.display !== false) for (const r of m.disp || []) if (capShown(m, r.k)) add(vat(r, y));
     const sec = m.r && at(m.r, y);
-    if (sec && M) for (const k of M.keep) { const r = vat(k, y); if (r && r.y + y >= sec.y && r.y + y < sec.y + sec.h) add(r); }
+    if (sec && M) for (const k of M.keep) { if (k.cap && !capShown(M.scenes[k.cap[0]], k.cap[1])) continue; const r = vat(k, y); if (r && r.y + y >= sec.y && r.y + y < sec.y + sec.h) add(r); }
     const cl = D.classList;
     if (o.header !== false && M && M.hdr && !(cl.contains("hdr-away") && !cl.contains("menu-open"))) for (const r of M.hdr) add(r);
     // merge: the pair whose union adds the least area, until few enough
@@ -748,6 +790,8 @@
     // (lane m-fly) stg: the stage this tick reads: this page's, or (a priming pass before the takeover) the kept one
     const stg = stage || (priming ? shadow : null);
     if (!stg || dead || paused || (building && !priming) || document.hidden || !M) return;
+    // (wave 9, J2a CAPTION) fx-scroll's arrival (html.fs-on) turns the caption grammar on with no resize: measure again
+    if (M.fs !== D.classList.contains("fs-on")) measure();
     const now = performance.now();
     const dt = clamp(lastT ? (now - lastT) / 1000 : 1 / 60, 0, 0.1);
     lastT = now; time += dt;
@@ -844,6 +888,11 @@
         for (const id of TEXFROM.keys()) if (id.startsWith(pre) || id.startsWith(pe)) held(id);
       }
       if (!near && share[k] <= 0 && S.w < 0.002) return;
+      // (wave 9, J2a CAPTION) which captions are on screen this frame (capShown)
+      if (m.cap) {
+        const seen = /** @type {any} */ (S).capSeen || (/** @type {any} */ (S).capSeen = []);
+        m.capVis = m.stepEl.map((/** @type {Element} */ e, /** @type {number} */ j) => { if (e.classList.contains("is-active")) seen[j] = now; return seen[j] != null && now - seen[j] < CAP_SEEN_MS; });
+      }
       const view = vat(m.view, y) || { x: 0, y: sec.y - y, w: vw, h: sec.h };
       const fig = figOf(m, view, vw);
       const st = stepping(m, sec, y, vh, m.side === "top");
@@ -855,7 +904,7 @@
         imgs[im.id] = { tex: held(im.id) ? im.id : null, w: el.naturalWidth || 0, h: el.naturalHeight || 0,
           aspect: el.naturalWidth && el.naturalHeight ? el.naturalWidth / el.naturalHeight : 16 / 10, rect: vat(im.r, y), el };
       }
-      const texts = m.texts.map((/** @type {any} */ t) => ({ tag: t.tag, ...vat(t.r, y) })).filter((/** @type {any} */ t) => t.y + t.h > -40 && t.y < vh + 40);
+      const texts = m.texts.filter((/** @type {any} */ t) => capShown(m, t.k)).map((/** @type {any} */ t) => ({ tag: t.tag, ...vat(t.r, y) })).filter((/** @type {any} */ t) => t.y + t.h > -40 && t.y < vh + 40);
       textBy.push({ name: S.name, texts });
       const media = m.media.map((/** @type {Rec} */ r) => vat(r, y)).filter((/** @type {Rect | null} */ r) => r && r.y + r.h > -40 && r.y < vh + 40);
       const ctx = {
@@ -879,6 +928,9 @@
         // (lane o-fix) the cut's flight through the portal, 0 (the room) .. 1 (inside the glass): the room dims what only
         // the room's own light should show (lib/room.js: the hand's blade, a grey column once the plates left the frame)
         flight: stg && stg.portalState ? r4(stg.portalState.p) : 0,
+        // (wave 9, J2a CAPTION) a caption scene: where its captions stand, viewport px (top: the tallest one's top when
+        // held, foot: the line their foot is held at); null in every other scene and on a wide screen
+        caption: m.cap ? { top: Math.round(m.capT - m.capH), foot: Math.round(m.capT) } : null,
       };
       /** @type {any} */ let o = null;
       try { o = S.def.frame ? S.def.frame(ctx) : null; }
@@ -1153,6 +1205,9 @@
     const gap = Math.max(24, vw * 0.03);
     if (m.side === "right") { const x0 = Math.min(v.x + v.w * 0.5, Math.max(v.x + v.w * 0.4, m.tx1 + gap)); return { x: x0, y: v.y, w: v.x + v.w - x0, h: v.h }; }
     if (m.side === "left") { const x1 = Math.max(v.x + v.w * 0.5, Math.min(v.x + v.w * 0.6, m.tx0 - gap)); return { x: v.x, y: v.y, w: x1 - v.x, h: v.h }; }
+    // (wave 9, J2a CAPTION) a caption scene: the band above its captions, a gap over the tallest one's top (the same for
+    // every step), moving with the view as the scene comes and goes
+    if (m.side === "top" && m.cap) return { x: v.x, y: v.y, w: v.w, h: Math.max(v.h * 0.3, m.capT - m.capH - gap) };
     if (m.side === "top") return { x: v.x, y: v.y, w: v.w, h: v.h * 0.55 };
     return v;
   }

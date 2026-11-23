@@ -395,6 +395,22 @@ the menu first. A new size sits on the scale tokens, never written by hand.
 - `--steps` counts the blocks, an intro (`data-stage-step="0"`) included. Both builds assert it.
 - The text keeps to one half: a column of at most `--col` on the side the class names. Below 1024 px the figure takes
   the top of the screen and the text the lower part.
+- **The caption at the foot** (a phone's grammar, opt-in; the phone wave, lane J2a, 23 November; Alberto from his
+  iPhone: «animazioni storte e non continue , che si vedono dietro le scritte. Non è uno scroll continuo in un mondo come
+  su desktop»). Below 1024 px a step's text used to sit at the foot of its own screen and travel up through the
+  figure's band, and every scene dodged it its own way. A scene that opts in (`data-caption` on its section; today the
+  gallery, on Work and in the home's Work part) holds each step's text, on an upright screen under 1024 px (a phone
+  turned sideways keeps the grammar above: it has no height for both), as a CAPTION at the foot of the view
+  (`rv/css/scene.css`): one step a screen as before, but the steps hand over in place there, and the figure owns the
+  band above the tallest caption (`fx-stage.js` `figOf`), the same band for every step, so nothing of the scene's text
+  ever crosses it. Only the step whose box holds the reading line shows its caption; the leaving one clears in 120 ms
+  and the arriving one comes into focus after it while its title rises from behind its straight mask and its rows
+  follow (the step beats). The caption is held from the top in svh: a phone's bar never moves it, and its foot stays
+  above the bar and the home indicator (`max(--s5, env(safe-area-inset-bottom))`). The scene's first caption comes up
+  with the scene (its figure rising above it) and is held once the view stands; its last is let go halfway through its
+  step and leaves with the page, the figure going with it. The type is the step's own, never smaller. Printed states,
+  reduced motion, `?stage=0`, `?gl=0` and a wide screen are untouched; before `fx-scroll.js` runs a scene keeps the
+  grammar above. The other scenes come in lane J2b (`stage/scenes/README.md`, "The caption at the foot").
 - The view is never boxed: no border, no frame, no caption inside it.
 - Without scene mode (reduced motion, no WebGPU, no script, print, a dead stage) a scene is plain flow: its blocks in
   order, with their real pictures (`[data-stage-poster]`, hidden in scene mode, where the stage reads them as
@@ -621,9 +637,19 @@ the day's straight edge rises toward it, gone before the edge reaches its foot, 
   through the step and the rest is one quintic across the middle half of the boundary (`glideK`, no speed and no
   acceleration at its ends), and the plates ride a critically damped spring to it (`follow`, 0.09 s), so a slide starts
   from the speed it had and lands with no corner. The hand's orbit, the subject's light and the focus turn about the
-  apex itself, never a plate that takes over at the halfway mark. On a phone the apex keeps to the free band it stands
-  in (another band only when its own falls under four fifths of the tallest, or under 150 px) and rides springs into
-  it.
+  apex itself, never a plate that takes over at the halfway mark.
+- **On a phone** (the phone wave, lane J2a: the caption at the foot, see "The scene grammar"). Each work's text is a
+  caption held at the foot of the view and the plate in step stands whole in the band above it, under the header's
+  room, the same size and place for every step (its height 0.84 of the band, never wider than 0.7 of the screen): it no
+  longer moves into a free band or comes back on the other side, and no text of the gallery meets it (the old fade
+  where a text meets a plate stays only as a guard, within 12 px, for a page zoomed so far that a caption outgrows the
+  room under the band; it never fires otherwise). The glide is centred on
+  the hand-over (the step's boundary at the reading line), so the plate just read swings out and the next comes in
+  while the caption changes. The queue recedes toward a point inside the frame (0.76 of the width, under the header's
+  room), and over an etched plate it steps up out of the clear face rather than right, out of the screen. The head
+  comes up with the opening row; the last caption leaves with the page and the band rises with it, plate and caption
+  leaving the frame together. Without the caption grammar (before `fx-scroll.js` runs, or a phone held sideways) the
+  plate keeps to the free band it stands in, as before.
 - **No measured figures** (22 November; Alberto, looking at the site: «queste due sezioni son da eliminare , perchè non
   hanno senso . prima facciamo vedere tutti i work , e poi dei dati su sphere ai e su domus tua , che sono inutili»).
   The scene `evidence` ("Measured before and after.", Sphere AI's and Domus Tua's figures as rows with bars of light)
@@ -1082,8 +1108,10 @@ Tokens in `rv/css/tokens.css`; read by `fx-core.js` as `FX.motion`.
   shows the text.
 - **Focus** (`rv/css/type.css`, `rv/fx-scroll.js`): `[data-focus]` and `[data-focus-lines]` come into focus once, when
   they first enter the viewport. In scene mode the step nearest the middle of the viewport is `.is-active` and sharp;
-  the others are at opacity 0.12 and blur 6 px. `fx:step { scene, step, of }` is sent when a scene's active step
-  changes.
+  the others are at opacity 0.12 and blur 6 px. In a caption scene on a phone (the phone wave) it is the step whose box
+  holds the reading line, and only its caption shows: the others are clear and take no taps; a caption leaves in 120 ms
+  (`--cap-hand`) and the next comes into focus after it (`--focus-in`), its beats as any step's. `fx:step { scene,
+  step, of }` is sent when a scene's active step changes.
 - **The rise.** A display line comes up from behind a straight mask and settles, like a film title. Display type the
   stage bends through its glass (`[data-refract]`) never moves, since the host measures its glyphs: it gets a curtain
   only.

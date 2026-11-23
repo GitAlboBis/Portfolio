@@ -133,19 +133,36 @@ function lineup(i, L) {
     : { X: L.fx + L.fw * 0.2 + L.fw * 0.64 * k, Y: L.ay + L.ph * 0.1 - L.ph * 0.42 * k, z: -40 - 1500 * k, yaw: -0.66, sharp: 1 - 0.6 * k, alpha: 1, scale: 0.6 };
 }
 
+/** (wave 9, J2a CAPTION) a phone's caption band: the room the header leaves at the top of the frame (its 64 px and a
+ *  breath), and the share of the band's height the plate in step takes (the rest is air round it) */
+const CAP_HDR = 80, CAP_FILL = 0.84;
+
 /** the layout of the scene for this viewport and figure half @param {any} c */
 function layout(c) {
   const phone = c.vw < 1024, f = c.fig, vw = c.vw, vh = c.vh;
   // the near plate: 4:3 like the captures, as large as the figure's half allows with room for the queue on its right
-  const pw = phone ? Math.min(vw * 0.7, (f.h - 90) * 1.25) : Math.min(f.w * 0.62, vh * 0.58 * (4 / 3), 700);
-  const ph = pw * 0.75;
+  let pw = phone ? Math.min(vw * 0.7, (f.h - 90) * 1.25) : Math.min(f.w * 0.62, vh * 0.58 * (4 / 3), 700);
   const ax = phone ? vw * 0.42 : f.x + Math.max(pw * 0.5 + 24, f.w * 0.36);
   // phone: 0.40 of the height (was 0.42): the larger type of chain 10 lifts the step's first line into the plate's foot
-  const ay = phone ? Math.max(64 + ph * 0.75, vh * 0.4) : vh * 0.53;
+  let ay = phone ? Math.max(64 + pw * 0.75 * 0.75, vh * 0.4) : vh * 0.53;
+  const D = eyeD(vw, vh), cz = phone ? 30 : 46;
+  /* (wave 9, J2a CAPTION) A PHONE WITH THE CAPTION AT THE FOOT (c.caption; css/scene.css): no text ever enters the
+     figure's band (the host's c.fig: from the view's top to a gap above the tallest caption), so the plate in step
+     stands in that band, whole and in one place for every step: centred under the header's room, as large as the band
+     holds (its projected height CAP_FILL of the band) and never wider than the phone's plate was (0.7 of the width) */
+  const cap = phone && c.caption ? c.caption : null;
+  if (cap) {
+    const top = f.y + CAP_HDR, room = Math.max(120, f.y + f.h - top);
+    pw = Math.min(vw * 0.7, (room * CAP_FILL) / 0.75 / persp(D, cz));
+    ay = top + room / 2;
+  }
+  const ph = pw * 0.75;
   return {
-    phone, vw, vh, fx: f.x, fw: f.w, pw, ph, ax, ay, cz: phone ? 30 : 46, yaw0: phone ? -0.2 : -0.28, D: eyeD(vw, vh), t: phone ? 22 : 34,
+    phone, cap, vw, vh, fx: f.x, fw: f.w, pw, ph, ax, ay, cz, yaw0: phone ? -0.2 : -0.28, D, t: phone ? 22 : 34,
     // the line's vanishing point (screen) and the step between two plates along it (px of depth)
-    vpx: phone ? vw * 0.9 : vw * 0.95, vpy: phone ? vh * 0.08 : vh * 0.17, sz: phone ? 560 : 780,
+    // (wave 9, J2a CAPTION) with the caption, the queue recedes toward a point inside the frame, under the header's room:
+    // at 0.9 of the width the far plates stood cut by the screen's right edge (build/j-walk.md)
+    vpx: cap ? vw * 0.76 : phone ? vw * 0.9 : vw * 0.95, vpy: cap ? f.y + CAP_HDR : phone ? vh * 0.08 : vh * 0.17, sz: phone ? 560 : 780,
   };
 }
 
@@ -177,12 +194,20 @@ export default {
     }
     const L = layout(c);
     L.n = S.works.length;
+    // (wave 9, J2a CAPTION) THE LAST FRAME LEAVES WHOLE. With the caption at the foot the scene's last caption is let go
+    // as its step's end reaches the view's foot (css/scene.css: halfway through the step, the step's top at the view's
+    // top) and leaves with the page, its room above the next scene's top: from that moment the band rises with it, the
+    // plate kept above its caption as it was at rest, and both leave the frame together, as the head came in with the
+    // opening row. (A plate swung out early left the band empty for the rest of the step; one standing still met the
+    // rising caption.)
+    if (L.cap && c.step >= S.works.length) L.ay -= Math.max(0, (c.local - 0.5) * c.vh);
     const EYE = workEye(c), C = EYE.pos;
     const dt = Math.min(c.dt || 0, 0.1);
     // (FIX3D) a phone: the step's text scrolls through the plate's band, and the plate hid there (Voice AI and Supply
     // Chain had no plate at all, the etched ones were ghosts): the apex moves into the tallest band no text crosses
     // (damped) and the plate fits it
-    if (L.phone) {
+    // (wave 9, J2a CAPTION) not with the caption at the foot (L.cap): no text crosses the band, the plate stands in it
+    if (L.phone && !L.cap) {
       // (wave 2, GLOW-WORK) ONE band per step, kept through the step's edges; a text block crossing the kept band hides
       // the plate (below), it never moves it.
       // (wave 8, SMOOTH) THE BAND, FOLLOWED. It was measured again every frame while the step's middle crossed the
@@ -220,7 +245,9 @@ export default {
     // centred where the two texts trade places: a step's title is on screen from about 0.2 of its step to 0.2 of the
     // next (measured: .shots/r-work/_scripts/gdbg.mjs), so the plates glide there, never beside the other work's text.
     // Continuous across the boundary: the reader's place x on the line of works, the nearest work n, the glide r about it
-    const off = 0.22;
+    // (wave 9, J2a CAPTION) with the caption at the foot the texts trade places in one place, at the step's boundary (the
+    // reading line, where the caption changes): the glide is centred there
+    const off = L.cap ? 0 : 0.22;
     // (wave 8, SMOOTH) ONE GLIDE PER BOUNDARY. The glide was two smoothsteps mirrored about the boundary, so its speed
     // fell back to the base slope exactly where the plates trade places: a hesitation mid-slide (0.64, 0.45, 0.64
     // plates/s inside one turn of the wheel). Now the 0.84 of the travel is ONE quintic across 0.24..0.76 of the way
@@ -282,7 +309,9 @@ export default {
       if (a && clear > 0.001 && u > 0.05 && i !== clearI) {
         // aside: further right and deeper, then dimmed by how much of it is still behind the clear face
         const g = clamp(u, 0, 1) * clear;
-        a.X += L.pw * (L.phone ? 0.44 : 0.8) * g; a.Y -= L.phone ? 0 : L.ph * 0.2 * g; a.z -= 160 * g;
+        // (wave 9, J2a CAPTION) with the caption at the foot the queue steps UP out of the clear face (the band has room
+        // above the plate): stepping right it stood cut by the screen's edge
+        a.X += L.pw * (L.cap ? 0.14 : L.phone ? 0.44 : 0.8) * g; a.Y -= L.cap ? L.ph * 0.42 * g : L.phone ? 0 : L.ph * 0.2 * g; a.z -= 160 * g;
         const ps = persp(L.D, a.z), hw = (L.pw * ps) / 2, hh = (L.ph * ps) / 2;
         const ox = Math.max(0, Math.min(face.x1, a.X + hw) - Math.max(face.x0, a.X - hw)), oy = Math.max(0, Math.min(face.y1, a.Y + hh) - Math.max(face.y0, a.Y - hh));
         a.alpha *= 1 - (L.phone ? 0.85 : 0.97) * clear * clamp((ox * oy) / (4 * hw * hh) * (L.phone ? 1.6 : 4));
@@ -318,10 +347,14 @@ export default {
         const lo = L.band[0] + hh, hi = L.band[1] - hh;
         a.Y += ((lo <= hi ? clamp(a.Y, lo, hi) : (L.band[0] + L.band[1]) / 2) - a.Y) * wc;
       }
+      // (wave 9, J2a CAPTION) with the caption at the foot no text of the gallery enters the band (c.texts holds only the
+      // caption on screen, below it), so this never fires in the layouts it was built for (measured: 0 frames); it stays
+      // as the guard for a caption taller than the screen leaves room for (a page zoomed far in), and there it takes the
+      // glass off within 12 px, not 40 (the glass drawn over the first 40 px of a rising title: build/j-walk.md)
       let hide = 0;
       for (const t of c.texts) {
         const ix = Math.min(a.X + hw, t.x + t.w) - Math.max(a.X - hw, t.x), iy = Math.min(a.Y + hh, t.y + t.h) - Math.max(a.Y - hh, t.y);
-        if (ix > 0 && iy > 0) hide = Math.max(hide, clamp(Math.min(ix, iy) / 40));
+        if (ix > 0 && iy > 0) hide = Math.max(hide, clamp(Math.min(ix, iy) / (L.cap ? 12 : 40)));
       }
       a.alpha *= 1 - hide;
       // the last plate goes in the last fifth of its step (integrate: on a phone it lingered as a dim empty box above
